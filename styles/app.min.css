@@ -211,7 +211,7 @@ html[data-bs-theme="dark"] .btn-outline-light:active {
   height: calc(100% - 1.5rem);
 }
 .offer-card {
-  background-color: url(/selfservice/assets/images/extra/pet-bg.png);
+  background-color: url(/assets/images/extra/pet-bg.png);
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -583,7 +583,7 @@ input.add-file-input {
   border-top: 1px;
 }
 .color-bg {
-  background-image: url(/selfservice/assets/images/extra/color-bg-2.jpg);
+  background-image: url(/assets/images/extra/color-bg-2.jpg);
   background-position: top center;
   background-repeat: no-repeat;
   background-size: cover;

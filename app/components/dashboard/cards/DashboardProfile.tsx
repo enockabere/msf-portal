@@ -29,7 +29,7 @@ export default function DashboardProfile() {
                   />
                 ) : (
                   <Image
-                    src="/selfservice/assets/images/avatar.png"
+                    src="/assets/images/avatar.png"
                     alt="User Avatar"
                     width={60}
                     height={60}
@@ -39,7 +39,7 @@ export default function DashboardProfile() {
                 {!isLoading && (
                   <div className="position-absolute top-50 start-100 translate-middle">
                     <Image
-                      src="/selfservice/assets/images/kenya.png"
+                      src="/assets/images/kenya.png"
                       alt="Flag"
                       width={30}
                       height={30}

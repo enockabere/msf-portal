@@ -17,7 +17,7 @@ export default function CallbackPage() {
       if (!code) return;
 
       try {
-        const tokenRes = await fetch("/selfservice/api/auth/token", {
+        const tokenRes = await fetch("/api/auth/token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),
@@ -34,7 +34,7 @@ export default function CallbackPage() {
         const email = userData.mail || userData.userPrincipalName;
 
         const employeeRes = await fetch(
-          `/selfservice/api/auth/employee?email=${email}`
+          `/api/auth/employee?email=${email}`
         );
         const employeeJson = await employeeRes.json();
         const employee = employeeJson?.data?.value?.[0];
@@ -63,7 +63,7 @@ export default function CallbackPage() {
     <div className="d-flex flex-column align-items-center justify-content-center vh-100 bg-light text-center">
       <div className={styles.spinnerContainer}>
         <Image
-          src="/selfservice/assets/images/logo-light.png"
+          src="/assets/images/logo-light.png"
           alt="Microsoft Logo"
           width={140}
           height={70}

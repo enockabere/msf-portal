@@ -30,7 +30,7 @@ export default function AuthPage() {
     <div className="d-flex flex-column align-items-center justify-content-center vh-100 bg-light text-center">
       <div className={styles.spinnerContainer}>
         <Image
-          src="/selfservice/assets/images/logo-light.png"
+          src="/assets/images/logo-light.png"
           alt="Microsoft Logo"
           width={140}
           height={70}

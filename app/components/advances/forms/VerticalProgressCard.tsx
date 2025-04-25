@@ -43,7 +43,7 @@ export default function VerticalProgressCard({
       if (advance?.status === "Pending Approval") {
         try {
           const res = await fetch(
-            `/selfservice/api/bc/advances/salary/approvals?documentNo=${advance.no}`
+            `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
           );
           const json = await res.json();
           const entries = json?.data?.value || [];

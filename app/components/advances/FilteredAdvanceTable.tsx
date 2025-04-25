@@ -27,7 +27,7 @@ export default function AdvanceDataTable({
     setLoading(true);
     try {
       const res = await fetch(
-        `/selfservice/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
+        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
       );
       const json = await res.json();
       const advanceData: Advance[] = json["data"]["value"];

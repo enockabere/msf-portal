@@ -37,7 +37,7 @@ export default function ActionButtons({
 
     try {
       const res = await fetch(
-        "/selfservice/api/bc/advances/salary/cancelApproval",
+        "/api/bc/advances/salary/cancelApproval",
         {
           method: "POST",
           headers: {

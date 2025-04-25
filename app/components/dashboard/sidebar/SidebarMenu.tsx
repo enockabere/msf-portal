@@ -37,7 +37,7 @@ export default function SidebarMenu() {
           className="nav-link"
           href="#sidebarMyRequests"
           data-bs-toggle="collapse"
-          aria-expanded={isGroupActive("/selfservice/requests")}
+          aria-expanded={isGroupActive("/requests")}
           aria-controls="sidebarMyRequests"
         >
           <i className="iconoir-shopping-bag menu-icon"></i>
@@ -45,7 +45,7 @@ export default function SidebarMenu() {
         </a>
         <div
           className={`collapse ${
-            isGroupActive("/selfservice/requests") ? "show" : ""
+            isGroupActive("/requests") ? "show" : ""
           }`}
           id="sidebarMyRequests"
         >
@@ -81,7 +81,7 @@ export default function SidebarMenu() {
           className="nav-link"
           href="#sidebarHRServices"
           data-bs-toggle="collapse"
-          aria-expanded={isGroupActive("/selfservice/hr")}
+          aria-expanded={isGroupActive("/hr")}
           aria-controls="sidebarHRServices"
         >
           <i className="iconoir-user menu-icon"></i>
@@ -89,7 +89,7 @@ export default function SidebarMenu() {
         </a>
         <div
           className={`collapse ${
-            isGroupActive("/selfservice/hr") ? "show" : ""
+            isGroupActive("/hr") ? "show" : ""
           }`}
           id="sidebarHRServices"
         >

@@ -55,7 +55,7 @@ export default function SidebarBrand() {
       <a href="#" className="logo d-flex align-items-center">
         <span className={isCollapsed ? "" : "d-none"}>
           <Image
-            src="/selfservice/assets/images/favicon.png"
+            src="/assets/images/favicon.png"
             alt="logo-small"
             width={30}
             height={30}
@@ -65,7 +65,7 @@ export default function SidebarBrand() {
         <span className={isCollapsed ? "d-none" : ""}>
           {theme === "light" ? (
             <Image
-              src="/selfservice/assets/images/logo-light.png"
+              src="/assets/images/logo-light.png"
               alt="logo-light"
               width={140}
               height={40}
@@ -73,7 +73,7 @@ export default function SidebarBrand() {
             />
           ) : (
             <Image
-              src="/selfservice/assets/images/logo-dark.svg"
+              src="/assets/images/logo-dark.svg"
               alt="logo-dark"
               width={140}
               height={40}

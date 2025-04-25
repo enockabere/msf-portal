@@ -14,7 +14,7 @@ export default function LoginClient() {
       <header className="py-3 ">
         <div className="container d-flex justify-content-between align-items-center">
           <Image
-            src="/selfservice/assets/images/logo-light.png"
+            src="/assets/images/logo-light.png"
             alt="logo-light"
             width={140}
             height={40}
@@ -114,7 +114,7 @@ export default function LoginClient() {
               style={{ height: "100%", width: "100%", backgroundColor: "red" }}
             >
               <img
-                src="/selfservice/assets/images/auth-banner.png"
+                src="/assets/images/auth-banner.png"
                 alt="msf"
                 style={{ height: "100%", width: "100%" }}
                 className="rounded-5"

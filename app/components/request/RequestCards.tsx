@@ -37,7 +37,7 @@ export default function RequestCards() {
     setIsLoading(true);
     try {
       const res = await fetch(
-        `/selfservice/api/bc/advances/salary/requests?employeeNo=${employee.number}`
+        `/api/bc/advances/salary/requests?employeeNo=${employee.number}`
       );
       const json = await res.json();
       const data = json?.data?.value || [];

@@ -24,7 +24,7 @@ export const metadata = {
   },
   description: "Employee Self Service Portal",
   icons: {
-    icon: "/selfservice/assets/images/favicon.png",
+    icon: "/assets/images/favicon.png",
   },
 };
 

@@ -57,7 +57,7 @@ export default function BreadcrumbNav() {
       </h3>
       <div className="d-flex align-items-center py-2 rounded-3">
         <Link
-          href="/selfservice/dashboard"
+          href="/dashboard"
           className="text-primary d-flex align-items-center text-decoration-none"
         >
           <div

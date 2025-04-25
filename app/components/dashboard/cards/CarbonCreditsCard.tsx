@@ -14,7 +14,7 @@ export default function CarbonCreditsCard() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: `linear-gradient(to right, rgba(17, 43, 34, 0.9) 40%, rgba(75, 164, 128, 0.9)), url('/selfservice/assets/images/3.jpg')`,
+          backgroundImage: `linear-gradient(to right, rgba(17, 43, 34, 0.9) 40%, rgba(75, 164, 128, 0.9)), url('/assets/images/3.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "right center",
           zIndex: 0,
@@ -39,7 +39,7 @@ export default function CarbonCreditsCard() {
             {/* Foreground Image */}
             <div className="mt-2 mb-2" style={{ maxWidth: "200px" }}>
               <Image
-                src="/selfservice/assets/images/Climate change-bro.png"
+                src="/assets/images/Climate change-bro.png"
                 alt="Carbon Credit Icon"
                 width={200}
                 height={120}

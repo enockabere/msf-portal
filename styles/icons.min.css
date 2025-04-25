@@ -6280,8 +6280,8 @@
   font-family: IcoFont;
   font-weight: 400;
   font-style: Regular;
-  src: url(/selfservice/fonts/icofont.woff2) format("woff2"),
-    url(/selfservice/fonts/icofont.woff) format("woff");
+  src: url(/fonts/icofont.woff2) format("woff2"),
+    url(/fonts/icofont.woff) format("woff");
 }
 [class*=" icofont-"],
 [class^="icofont-"] {
@@ -17135,13 +17135,13 @@
   font-style: normal;
   font-weight: 400;
   font-display: auto;
-  src: url(/selfservice/fonts/la-brands-400.eot);
-  src: url(/selfservice/fonts/la-brands-400.eot#iefix)
+  src: url(/fonts/la-brands-400.eot);
+  src: url(/fonts/la-brands-400.eot#iefix)
       format("embedded-opentype"),
-    url(/selfservice/fonts/la-brands-400.woff2) format("woff2"),
-    url(/selfservice/fonts/la-brands-400.woff) format("woff"),
-    url(/selfservice/fonts/la-brands-400.ttf) format("truetype"),
-    url(/selfservice/fonts/la-brands-400.svg#lineawesome) format("svg");
+    url(/fonts/la-brands-400.woff2) format("woff2"),
+    url(/fonts/la-brands-400.woff) format("woff"),
+    url(/fonts/la-brands-400.ttf) format("truetype"),
+    url(/fonts/la-brands-400.svg#lineawesome) format("svg");
 }
 .lab {
   font-family: "Line Awesome Brands";
@@ -17151,13 +17151,13 @@
   font-style: normal;
   font-weight: 400;
   font-display: auto;
-  src: url(/selfservice/fonts/la-regular-400.eot);
-  src: url(/selfservice/fonts/la-regular-400.eot#iefix)
+  src: url(/fonts/la-regular-400.eot);
+  src: url(/fonts/la-regular-400.eot#iefix)
       format("embedded-opentype"),
-    url(/selfservice/fonts/la-regular-400.woff2) format("woff2"),
-    url(/selfservice/fonts/la-regular-400.woff) format("woff"),
-    url(/selfservice/fonts/la-regular-400.ttf) format("truetype"),
-    url(/selfservice/fonts/la-regular-400.svg#lineawesome) format("svg");
+    url(/fonts/la-regular-400.woff2) format("woff2"),
+    url(/fonts/la-regular-400.woff) format("woff"),
+    url(/fonts/la-regular-400.ttf) format("truetype"),
+    url(/fonts/la-regular-400.svg#lineawesome) format("svg");
 }
 .lar {
   font-family: "Line Awesome Free";
@@ -17168,13 +17168,13 @@
   font-style: normal;
   font-weight: 900;
   font-display: auto;
-  src: url(/selfservice/fonts/la-solid-900.eot);
-  src: url(/selfservice/fonts/la-solid-900.eot#iefix)
+  src: url(/fonts/la-solid-900.eot);
+  src: url(/fonts/la-solid-900.eot#iefix)
       format("embedded-opentype"),
-    url(/selfservice/fonts/la-solid-900.woff2) format("woff2"),
-    url(/selfservice/fonts/la-solid-900.woff) format("woff"),
-    url(/selfservice/fonts/la-solid-900.ttf) format("truetype"),
-    url(/selfservice/fonts/la-solid-900.svg#lineawesome) format("svg");
+    url(/fonts/la-solid-900.woff2) format("woff2"),
+    url(/fonts/la-solid-900.woff) format("woff"),
+    url(/fonts/la-solid-900.ttf) format("truetype"),
+    url(/fonts/la-solid-900.svg#lineawesome) format("svg");
 }
 .la,
 .las {
@@ -25888,8 +25888,8 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url(/selfservice/fonts/fa-brands-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-brands-400.ttf) format("truetype");
+  src: url(/fonts/fa-brands-400.woff2) format("woff2"),
+    url(/fonts/fa-brands-400.ttf) format("truetype");
 }
 .fa-brands,
 .fab {
@@ -27459,8 +27459,8 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url(/selfservice/fonts/fa-regular-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-regular-400.ttf) format("truetype");
+  src: url(/fonts/fa-regular-400.woff2) format("woff2"),
+    url(/fonts/fa-regular-400.ttf) format("truetype");
 }
 .fa-regular,
 .far {
@@ -27476,8 +27476,8 @@
   font-style: normal;
   font-weight: 900;
   font-display: block;
-  src: url(/selfservice/fonts/fa-solid-900.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-solid-900.ttf) format("truetype");
+  src: url(/fonts/fa-solid-900.woff2) format("woff2"),
+    url(/fonts/fa-solid-900.ttf) format("truetype");
 }
 .fa-solid,
 .fas {
@@ -27487,40 +27487,40 @@
   font-family: "Font Awesome 5 Brands";
   font-display: block;
   font-weight: 400;
-  src: url(/selfservice/fonts/fa-brands-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-brands-400.ttf) format("truetype");
+  src: url(/fonts/fa-brands-400.woff2) format("woff2"),
+    url(/fonts/fa-brands-400.ttf) format("truetype");
 }
 @font-face {
   font-family: "Font Awesome 5 Free";
   font-display: block;
   font-weight: 900;
-  src: url(/selfservice/fonts/fa-solid-900.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-solid-900.ttf) format("truetype");
+  src: url(/fonts/fa-solid-900.woff2) format("woff2"),
+    url(/fonts/fa-solid-900.ttf) format("truetype");
 }
 @font-face {
   font-family: "Font Awesome 5 Free";
   font-display: block;
   font-weight: 400;
-  src: url(/selfservice/fonts/fa-regular-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-regular-400.ttf) format("truetype");
+  src: url(/fonts/fa-regular-400.woff2) format("woff2"),
+    url(/fonts/fa-regular-400.ttf) format("truetype");
 }
 @font-face {
   font-family: FontAwesome;
   font-display: block;
-  src: url(/selfservice/fonts/fa-solid-900.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-solid-900.ttf) format("truetype");
+  src: url(/fonts/fa-solid-900.woff2) format("woff2"),
+    url(/fonts/fa-solid-900.ttf) format("truetype");
 }
 @font-face {
   font-family: FontAwesome;
   font-display: block;
-  src: url(/selfservice/fonts/fa-brands-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-brands-400.ttf) format("truetype");
+  src: url(/fonts/fa-brands-400.woff2) format("woff2"),
+    url(/fonts/fa-brands-400.ttf) format("truetype");
 }
 @font-face {
   font-family: FontAwesome;
   font-display: block;
-  src: url(/selfservice/fonts/fa-regular-400.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-regular-400.ttf) format("truetype");
+  src: url(/fonts/fa-regular-400.woff2) format("woff2"),
+    url(/fonts/fa-regular-400.ttf) format("truetype");
   unicode-range: U+F003, U+F006, U+F014, U+F016-F017, U+F01A-F01B, U+F01D,
     U+F022, U+F03E, U+F044, U+F046, U+F05C-F05D, U+F06E, U+F070, U+F087-F088,
     U+F08A, U+F094, U+F096-F097, U+F09D, U+F0A0, U+F0A2, U+F0A4-F0A7, U+F0C5,
@@ -27534,8 +27534,8 @@
 @font-face {
   font-family: FontAwesome;
   font-display: block;
-  src: url(/selfservice/fonts/fa-v4compatibility.woff2) format("woff2"),
-    url(/selfservice/fonts/fa-v4compatibility.ttf) format("truetype");
+  src: url(/fonts/fa-v4compatibility.woff2) format("woff2"),
+    url(/fonts/fa-v4compatibility.ttf) format("truetype");
   unicode-range: U+F041, U+F047, U+F065-F066, U+F07D-F07E, U+F080, U+F08B,
     U+F08E, U+F090, U+F09A, U+F0AC, U+F0AE, U+F0B2, U+F0D0, U+F0D6, U+F0E4,
     U+F0EC, U+F10A-F10B, U+F123, U+F13E, U+F148-F149, U+F14C, U+F156, U+F15E,

@@ -216,7 +216,7 @@ export default function SalaryAdvanceForm({
 
     const id = setTimeout(() => {
       setIsLimitLoading(true);
-      fetch("/selfservice/api/codeunit", {
+      fetch("/api/codeunit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ empNo: employeeNo }),
@@ -309,8 +309,8 @@ export default function SalaryAdvanceForm({
 
         const isEdit = !!advanceNo;
         const endpoint = isEdit
-          ? "/selfservice/api/bc/advances/salary/edit"
-          : "/selfservice/api/bc/advances/salary/create";
+          ? "/api/bc/advances/salary/edit"
+          : "/api/bc/advances/salary/create";
         const method = isEdit ? "PATCH" : "POST";
         if (isEdit) {
           payload.no = advanceNo;
@@ -343,7 +343,7 @@ export default function SalaryAdvanceForm({
 
         try {
           const approvalRes = await fetch(
-            "/selfservice/api/bc/advances/salary/sendApproval",
+            "/api/bc/advances/salary/sendApproval",
             {
               method: "POST",
               headers: {

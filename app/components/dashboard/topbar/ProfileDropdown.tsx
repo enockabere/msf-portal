@@ -20,7 +20,7 @@ export default function ProfileDropdown() {
         aria-expanded="false"
       >
         <Image
-          src="/selfservice/assets/images/avatar.png"
+          src="/assets/images/avatar.png"
           alt="Profile"
           width={40}
           height={40}
@@ -32,7 +32,7 @@ export default function ProfileDropdown() {
           <div className="d-flex align-items-center dropdown-item py-2 bg-secondary-subtle">
             <div className="flex-shrink-0">
               <img
-                src="/selfservice/assets/images/avatar.png"
+                src="/assets/images/avatar.png"
                 alt="avatar"
                 className="thumb-md rounded-circle"
               />

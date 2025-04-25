@@ -25,7 +25,7 @@ export default function ProtectedRoute({
   if (!employee) {
     return (
       <div className="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
-        <img src="/selfservice/assets/images/favicon.png" width={60} />
+        <img src="/assets/images/favicon.png" width={60} />
         <p className="mt-3 text-muted">Checking authentication...</p>
       </div>
     );

@@ -94,7 +94,7 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const res = await fetch("/selfservice/api/setups", {
+        const res = await fetch("/api/setups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ endpoints: setupsArray, resolveAll }),
