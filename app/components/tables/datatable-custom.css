@@ -1,0 +1,164 @@
+/* Custom styles for React Data Table to match dashboard UI */
+
+.react-data-table {
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.react-data-table .rdt_Table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.react-data-table .rdt_TableHead {
+  background-color: #f1f3f5; /* soft gray */
+}
+
+.react-data-table .rdt_TableHeadRow {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.react-data-table .rdt_TableHeadCell {
+  font-weight: 600;
+  color: #212529;
+  background-color: #f1f3f5;
+  padding: 0.75rem;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.react-data-table .rdt_TableCell {
+  padding: 0.75rem;
+  vertical-align: middle;
+  text-align: left;
+  font-weight: 400;
+}
+
+.react-data-table .rdt_TableRow {
+  border-bottom: 1px dashed #dee2e6;
+}
+
+.react-data-table .rdt_TableBody .rdt_TableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.react-data-table .rdt_Pagination {
+  padding: 1rem;
+  justify-content: flex-end;
+}
+
+.react-data-table .rdt_Pagination .sc-bczRLJ {
+  margin-left: 0;
+}
+
+.react-data-table .rdt_Pagination .sc-dkPtRN {
+  display: flex;
+  gap: 4px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.react-data-table .rdt_Pagination .sc-dkPtRN li {
+  list-style: none;
+}
+
+.react-data-table .rdt_Pagination .sc-dkPtRN li button {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #212529;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.react-data-table .rdt_Pagination .sc-dkPtRN li button:hover {
+  background-color: #e9ecef;
+}
+
+.react-data-table .rdt_Pagination .sc-dkPtRN li.selected button {
+  background-color: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+/* Rounded corners for header cells */
+.react-data-table .rdt_TableHeadRow .rdt_TableCol:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.react-data-table .rdt_TableHeadRow .rdt_TableCol:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Consistent border styles for last row */
+.react-data-table .rdt_TableBody .rdt_TableRow:last-child td {
+  border-bottom: none;
+}
+
+/* Checkbox alignment fix */
+.react-data-table input[type="checkbox"] {
+  margin: 0;
+  transform: scale(1.2);
+  accent-color: #22c55e;
+}
+
+/* Action buttons layout */
+.react-data-table .rdt_TableCell .d-flex {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Make search bar and filters row spacing clean */
+.container .form-control {
+  font-size: 0.875rem;
+}
+
+/* Table responsiveness fix */
+.react-data-table .rdt_TableCol {
+  white-space: nowrap;
+}
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.skeleton-cell {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+.skeleton-col-1 {
+  width: 8%;
+}
+.skeleton-col-2 {
+  width: 16%;
+}
+.skeleton-col-3 {
+  width: 20%;
+}
+.skeleton-col-4 {
+  width: 12%;
+}
+.skeleton-col-5 {
+  width: 10%;
+}
+.skeleton-col-6 {
+  width: 18%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,91 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Home, ChevronRight } from "lucide-react";
+import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
+import { useEmployee } from "@/app/context/EmployeeContext";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
+const greetings = [
+  { greeting: "Jambo 👋", welcome: "Karibu Tena!" },
+  { greeting: "Hola 👋", welcome: "¡Bienvenido de nuevo!" },
+  { greeting: "Bonjour 👋", welcome: "Bienvenue encore!" },
+  { greeting: "Hallo 👋", welcome: "Willkommen zurück!" },
+  { greeting: "Ciao 👋", welcome: "Benvenuto di nuovo!" },
+  { greeting: "Olá 👋", welcome: "Bem-vindo novamente!" },
+  { greeting: "Salam 👋", welcome: "Selamat datang kembali!" },
+  { greeting: "Namaste 👋", welcome: "Phir se swagat hai!" },
+  { greeting: "Konnichiwa 👋", welcome: "Okaerinasai!" },
+  { greeting: "Annyeong 👋", welcome: "다시 오신 것을 환영합니다!" },
+];
+
+export default function BreadcrumbNav() {
+  const { breadcrumb } = useBreadcrumb();
+  const { employee } = useEmployee();
+  const [currentGreeting, setCurrentGreeting] = useState(greetings[0]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * greetings.length);
+      setCurrentGreeting(greetings[randomIndex]);
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (breadcrumb.length === 0) {
+    return (
+      <li className="mx-3 welcome-text">
+        <h3 className="mb-0 fw-bold text-truncate">
+          {currentGreeting.greeting},{" "}
+          {employee?.firstName ? employee.firstName : <Skeleton width={100} />}
+        </h3>
+        <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
+          "You miss 100% of the shots you don't take." – Wayne Gretzky
+        </h6>
+      </li>
+    );
+  }
+
+  return (
+    <li className="mx-3">
+      <h3 className="mb-0 fw-bold text-truncate">
+        {currentGreeting.greeting},{" "}
+        {employee?.firstName ? employee.firstName : <Skeleton width={100} />}
+      </h3>
+      <div className="d-flex align-items-center py-2 rounded-3">
+        <Link
+          href="/selfservice/dashboard"
+          className="text-primary d-flex align-items-center text-decoration-none"
+        >
+          <div
+            className="bg-danger rounded-circle d-flex align-items-center justify-content-center me-2"
+            style={{ width: 20, height: 20 }}
+          >
+            <Home size={12} className="text-white" />
+          </div>
+        </Link>
+
+        {breadcrumb.map((item, index) => {
+          const isLast = index === breadcrumb.length - 1;
+          return (
+            <div key={index} className="d-flex align-items-center">
+              <ChevronRight className="text-danger" size={15} />
+              <Link
+                href={item.path}
+                className={`text-decoration-none ${
+                  isLast ? "text-danger" : "text-dark"
+                }`}
+                style={{ fontSize: ".7rem" }}
+              >
+                {item.label}
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </li>
+  );
+}

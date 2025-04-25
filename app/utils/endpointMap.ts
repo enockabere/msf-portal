@@ -1,0 +1,33 @@
+const endpointMap: Record<string, string> = {
+    imprestTypes: '/api/KineticTechnology/CashMgt/v2.0/imprestTypeApi',
+    currencies: '/api/v2.0/currencies',
+    dimensions: '/api/KineticTechnology/CashMgt/v2.0/dimensionValuesApi',
+    expenseCodes: '/api/KineticTechnology/CashMgt/v2.0/expenseCodes',
+    projectActivities: '/api/kinetics/timeSheet/v1.0/projects',
+    modesOfTransport: '/api/KineticTechnology/CashMgt/v2.0/modeOfTransport',
+    unitsOfMeasure: '/api/v2.0/unitsOfMeasure',
+    dimensionSpeedKeys: '/api/KineticTechnology/Amber/v1.0/dimensionSpeedKeyApi',
+    projects: '/api/kinetics/timeSheet/v1.0/projects',
+    approvalEntry: '/api/kinetics/voyager/v1.0/approvalEntriesReport',
+    approvalAttachments: '/api/kinetics/voyager/v1.0/documentAttachments',
+    paymentMethods: '/api/KineticTechnology/Payroll/v2.0/paymentMethod',
+    banks: '/api/KineticTechnology/PayRoll/v2.0/banks',
+    bankBranches: '/api/KineticTechnology/PayRoll/v2.0/bankBranches',
+    SendAdvanceForApproval: '/ODATAV4/CashManagement_SendApprovalRequest',
+    CancelAdvanceApprovalRequest: '/ODATAV4/CashManagement_CancelApprovalRequest',
+    AdvnaceLiquidation: '/ODATAV4/CashManagement_LiquidateImprest',
+    requisitionDimensions: '/api/kinetics/requisition/v1.0/dimensionValues',
+    billingItems: '/api/kinetics/requisition/v1.0/billingItems',
+    locations: '/api/kinetics/requisition/v1.0/locations',
+    employees: '/api/KineticTechnology/ESS/v1.0/leavemployees',
+    SendRequisitionForApproval: '/ODataV4/Requisition_SendApprovalRequest',
+    CancelRequisitionApprovalRequest: '/ODataV4/Requisition_CancelApprovalRequest',
+    salaryAdvance: '/api/KineticTechnology/PayRoll/v2.0/payrollAdvance',
+    advance: '/api/KineticTechnology/CashMgt/v2.0/imprestApi',
+    GetRequisitionStats: '/ODataV4/Requisition_getRequisitionStats',
+    employeeBanks: '/api/KineticTechnology/Payroll/v2.0/employeeBanks',
+    payrollPeriods: '/api/KineticTechnology/Payroll/v2.0/payrollPeriods',
+  }
+  
+  export default endpointMap
+  

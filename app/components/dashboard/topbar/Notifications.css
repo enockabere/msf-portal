@@ -1,0 +1,27 @@
+/* Blinking dot notification */
+.alert-dot {
+  position: absolute;
+  top: 3.5rem;
+  right: 0.8rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(236, 35, 43, 1); /* Red color */
+  display: inline-block;
+}
+
+.blink {
+  animation: blink-animation 1.2s infinite;
+}
+
+@keyframes blink-animation {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
