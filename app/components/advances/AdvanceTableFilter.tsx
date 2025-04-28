@@ -45,17 +45,6 @@ export default function AdvanceTableFilter({
 
       <div className="dropdown-menu p-3 shadow" style={{ minWidth: "320px" }}>
         <div className="mb-2">
-          <label className="form-label fw-semibold">Search</label>
-          <input
-            type="text"
-            className="form-control"
-            value={search}
-            placeholder="Type or Employee"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-2">
           <label className="form-label fw-semibold">Advance Type</label>
           <select
             className="form-select"

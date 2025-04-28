@@ -21,7 +21,7 @@ export default function LoginClient() {
             className="logo-lg"
           />
           <button className="btn btn-primary" onClick={handleSSORedirect}>
-            Microsoft SSO Login
+            Login
           </button>
         </div>
       </header>
@@ -45,19 +45,19 @@ export default function LoginClient() {
                 <div className="d-flex justify-content-center gap-3">
                   <Link
                     href="/login"
-                    className="btn bg-black text-white btn-lg rounded-pill d-flex justify-content-center align-items-center"
+                    className="btn bg-black text-white btn-lg rounded-pill d-flex justify-content-center align-items-center w-25"
                     style={{ fontSize: "14px" }}
                   >
                     Get Started
                   </Link>
-                  <Link
-                    target="_blank"
-                    href="https://msf.or.ke/"
-                    className="btn bg-white text-black btn-lg rounded-pill d-flex justify-content-center align-items-center"
-                    style={{ fontSize: "14px" }}
-                  >
-                    About Us
-                  </Link>
+                  {/*<Link*/}
+                  {/*  target="_blank"*/}
+                  {/*  href="https://msf.or.ke/"*/}
+                  {/*  className="btn bg-white text-black btn-lg rounded-pill d-flex justify-content-center align-items-center"*/}
+                  {/*  style={{ fontSize: "14px" }}*/}
+                  {/*>*/}
+                  {/*  About Us*/}
+                  {/*</Link>*/}
                 </div>
               </section>
 
@@ -103,7 +103,7 @@ export default function LoginClient() {
 
               {/* Footer */}
               <footer className="text-center pt-5 text-muted small mt-auto">
-                &copy; {new Date().getFullYear()} Your Organization · ERP Portal
+                &copy; {new Date().getFullYear()}  { process.env.ORG_NAME ?? 'MSF' } · ERP Portal
               </footer>
             </div>
           </div>
