@@ -237,7 +237,7 @@ export default function AdvanceDataTable({
           employeeNo={employeeNo}
         />
       }
-      searchPlaceholder="Search by Type or Employee Name"
+      searchPlaceholder="Search..."
       loading={loading}
     />
   );

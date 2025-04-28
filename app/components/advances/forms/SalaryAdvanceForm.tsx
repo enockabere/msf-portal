@@ -532,6 +532,7 @@ export default function SalaryAdvanceForm({
               <FormRowSkeleton />
               <FormRowSkeleton />
               <FormRowSkeleton />
+              <FormRowSkeleton />
             </div>
           </>
         ) : (
@@ -550,6 +551,7 @@ export default function SalaryAdvanceForm({
               advanceLimit={advanceLimit}
               isLimitLoading={isLimitLoading}
               isViewMode={isViewMode}
+              status={advanceStatus || ""}
             />
 
             {paymentMethod === "MPESA" ? (
@@ -560,6 +562,7 @@ export default function SalaryAdvanceForm({
                 setIdNumber={setIdNumber}
                 isViewMode={isViewMode}
                 required={currency === "KES" && paymentMethod === "MPESA"}
+                status={advanceStatus || ""}
               />
             ) : (
               (paymentMethod === "CHEQUE" || paymentMethod === "RTGS") && (
@@ -578,6 +581,7 @@ export default function SalaryAdvanceForm({
                   banks={banks}
                   filteredBranches={filteredBranches}
                   isViewMode={isViewMode}
+                  status={advanceStatus || ""}
                 />
               )
             )}

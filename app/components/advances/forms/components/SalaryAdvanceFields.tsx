@@ -15,6 +15,7 @@ interface Props {
   advanceLimit: number | null | undefined;
   isLimitLoading: boolean;
   isViewMode: boolean;
+  status?: string; // <-- Added status prop
 }
 
 export default function SalaryAdvanceFields({
@@ -30,9 +31,13 @@ export default function SalaryAdvanceFields({
   advanceLimit,
   isLimitLoading,
   isViewMode,
+  status = "", // <-- Default value
 }: Props) {
   const isKES = currency === "KES";
   const currencyChosen = currency !== "";
+
+  const isDisabled =
+    isViewMode || status === "Pending Approval" || status === "Released"; // Central disabled logic
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value;
@@ -63,7 +68,7 @@ export default function SalaryAdvanceFields({
           className="form-select"
           value={currency}
           onChange={handleCurrencyChange}
-          disabled={isViewMode}
+          disabled={isDisabled}
           required
         >
           <option value="">-- Select Currency --</option>
@@ -87,7 +92,7 @@ export default function SalaryAdvanceFields({
           value={advanceAmount}
           onChange={(e) => setAdvanceAmount(e.target.value)}
           required
-          disabled={isViewMode}
+          disabled={isDisabled}
         />
         {typeof advanceLimit === "number" && (
           <div className="mt-1 small">
@@ -120,7 +125,7 @@ export default function SalaryAdvanceFields({
           className="form-select"
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
-          disabled={isViewMode || isPaymentMethodLocked || !currencyChosen}
+          disabled={isDisabled || isPaymentMethodLocked || !currencyChosen}
           required
         >
           <option value="">-- Select Payment Method --</option>

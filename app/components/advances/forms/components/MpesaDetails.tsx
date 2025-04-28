@@ -10,6 +10,7 @@ type MpesaDetailsProps = {
   isLoading?: boolean;
   isViewMode?: boolean;
   required?: boolean;
+  status?: string; // <-- Added status prop
 };
 
 export default function MpesaDetails({
@@ -20,7 +21,11 @@ export default function MpesaDetails({
   isLoading = false,
   isViewMode = false,
   required = false,
+  status = "", // <-- Default empty string
 }: MpesaDetailsProps) {
+  const isDisabled =
+    isViewMode || status === "Pending Approval" || status === "Released"; // Central disable logic
+
   return (
     <div className="fade-in">
       <div className="row">
@@ -43,12 +48,13 @@ export default function MpesaDetails({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 maxLength={9}
-                disabled={isViewMode}
+                disabled={isDisabled}
                 required={required}
               />
             </div>
           )}
         </div>
+
         <div className="col-md-6 mb-3">
           <label htmlFor="id-number" className="form-label">
             ID / Passport No. (Used to register the provided MPESA number){" "}
@@ -66,7 +72,7 @@ export default function MpesaDetails({
               className="form-control"
               value={idNumber}
               onChange={(e) => setIdNumber(e.target.value)}
-              disabled={isViewMode}
+              disabled={isDisabled}
               required={required}
             />
           )}

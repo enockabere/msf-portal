@@ -18,6 +18,7 @@ interface BankDetailsProps {
   filteredBranches: any[];
   isLoading?: boolean;
   isViewMode?: boolean;
+  status?: string; // <-- Added status prop
 }
 
 export default function BankDetails({
@@ -36,11 +37,15 @@ export default function BankDetails({
   filteredBranches,
   isLoading = false,
   isViewMode = false,
+  status = "",
 }: BankDetailsProps) {
   const isRTGS = paymentMethod === "RTGS";
   const isCHEQUE = paymentMethod === "CHEQUE";
 
   const isRequired = isRTGS || isCHEQUE;
+
+  const isDisabled =
+    isViewMode || status === "Pending Approval" || status === "Released"; // <-- Central disabled logic
 
   return (
     <div className="fade-in">
@@ -62,7 +67,7 @@ export default function BankDetails({
               value={accountNo}
               onChange={(e) => setAccountNo(e.target.value)}
               required={isRequired}
-              disabled={isViewMode}
+              disabled={isDisabled}
             />
           )}
         </div>
@@ -83,7 +88,7 @@ export default function BankDetails({
               value={bank}
               onChange={(e) => setBank(e.target.value)}
               required={isRequired}
-              disabled={isViewMode}
+              disabled={isDisabled}
             >
               <option value="">Select Bank</option>
               {banks.map((b) => (
@@ -113,7 +118,7 @@ export default function BankDetails({
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
               required={isRequired}
-              disabled={!bank || isViewMode}
+              disabled={!bank || isDisabled}
             >
               <option value="">Select Branch</option>
               {filteredBranches.map((bb) => (
@@ -142,7 +147,7 @@ export default function BankDetails({
               value={chequeName}
               onChange={(e) => setChequeName(e.target.value)}
               required={isRequired}
-              disabled={isViewMode}
+              disabled={isDisabled}
             />
           )}
         </div>
@@ -167,7 +172,7 @@ export default function BankDetails({
                 value={swiftCode}
                 onChange={(e) => setSwiftCode(e.target.value)}
                 required
-                disabled={isViewMode}
+                disabled={isDisabled}
               />
             )}
           </div>

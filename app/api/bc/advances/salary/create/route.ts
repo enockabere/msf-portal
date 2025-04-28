@@ -1,38 +1,6 @@
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
 
-interface ApiError {
-  code: string;
-  message: string;
-  correlationId?: string;
-}
-
-interface ApiSuccessResponse {
-  no: string;
-  applicationDate: string;
-  employeeCode: string;
-  employeeName: string;
-  preferredDisbursementDate: string;
-  advanceType: string;
-  applicationAmount: number;
-  payrollPeriod: string;
-  status: string;
-  currencyCode: string;
-  bankCode?: string;
-  employeeBankName?: string;
-  employeeBranchCode?: string;
-  employeeBranchName?: string;
-  accountNo?: string;
-  chequeName?: string;
-  swiftCode?: string;
-  paymentMethod: string;
-}
-
-interface ApiResponse {
-  data?: ApiSuccessResponse;
-  error?: ApiError;
-}
-
 interface Payload {
   employeeCode: string;
   applicationAmount: number;
@@ -52,7 +20,7 @@ interface Payload {
 }
 
 export async function POST(request: Request) {
-  const start = performance.now(); // ⏱ Start timing
+  const start = performance.now();
 
   try {
     const body = await request.json();
@@ -69,42 +37,30 @@ export async function POST(request: Request) {
 
     console.log("📦 Sending Payload:", JSON.stringify(payload, null, 2));
 
-    const response = await transport.post<ApiResponse>(
+    const response = await transport.post(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
     );
 
-    const end = performance.now(); // ⏱ End timing
-
+    const end = performance.now();
     console.log(`⏱ Transport request took ${(end - start).toFixed(2)} ms`);
     console.log("📨 Received Response:", JSON.stringify(response, null, 2));
 
-    if (response.error) {
-      console.error("🔴 API returned error:", response.error);
-      return NextResponse.json(
-        { success: false, error: response.error },
-        { status: 400 }
-      );
-    }
-
-    if (!response.data) {
-      console.warn("🟠 API returned empty data");
+    if ((response as any)?.error) {
+      console.error("🔴 API returned error:", (response as any).error);
       return NextResponse.json(
         {
           success: false,
-          error: {
-            code: "EMPTY_RESPONSE",
-            message: "API returned empty response",
-          },
+          rawResponse: response,
         },
-        { status: 500 }
+        { status: 400 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: response.data,
+      data: response, // <-- return the whole response like PATCH
       message: "Salary advance created successfully",
     });
   } catch (error: any) {
@@ -113,14 +69,11 @@ export async function POST(request: Request) {
       {
         success: false,
         error: {
-          code: error?.response?.data?.code || "API_ERROR",
-          message:
-            error?.response?.data?.message ||
-            error.message ||
-            "Failed to create salary advance",
+          code: "POST_ERROR",
+          message: error?.message || "Failed to create salary advance",
         },
       },
-      { status: error?.response?.status || 500 }
+      { status: 500 }
     );
   }
 }
