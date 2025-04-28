@@ -6,7 +6,6 @@ import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import AdvanceSummaryCard from "@/app/components/advances/AdvanceSummaryCard";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { toast, ToastContainer } from "react-toastify";
 
 const FilteredAdvanceTable = dynamic(
   () => import("@/app/components/advances/FilteredAdvanceTable"),
@@ -23,8 +22,6 @@ export default function AdvancesClient() {
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
   >("bottom");
-
-  // ✅ Load saved placement on first render
   useEffect(() => {
     const saved = localStorage.getItem("advancePlacement") as
       | "right"
@@ -38,7 +35,6 @@ export default function AdvancesClient() {
     }
   }, []);
 
-  // ✅ Save placement when user changes it
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"
   ) => {
@@ -48,8 +44,6 @@ export default function AdvancesClient() {
 
   return (
     <div className="page-content dashboard-container p-3">
-      <ToastContainer position="top-right" autoClose={5000} />
-
       {placement === "top" && (
         <div className="row gx-1 mb-2">
           <div className="col-12">

@@ -52,6 +52,8 @@ interface Payload {
 }
 
 export async function POST(request: Request) {
+  const start = performance.now(); // ⏱ Start timing
+
   try {
     const body = await request.json();
 
@@ -65,11 +67,18 @@ export async function POST(request: Request) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
+    console.log("📦 Sending Payload:", JSON.stringify(payload, null, 2));
+
     const response = await transport.post<ApiResponse>(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
     );
+
+    const end = performance.now(); // ⏱ End timing
+
+    console.log(`⏱ Transport request took ${(end - start).toFixed(2)} ms`);
+    console.log("📨 Received Response:", JSON.stringify(response, null, 2));
 
     if (response.error) {
       console.error("🔴 API returned error:", response.error);
@@ -104,12 +113,14 @@ export async function POST(request: Request) {
       {
         success: false,
         error: {
-          code: error.response?.data?.code || "API_ERROR",
+          code: error?.response?.data?.code || "API_ERROR",
           message:
-            error.response?.data?.message || "Failed to create salary advance",
+            error?.response?.data?.message ||
+            error.message ||
+            "Failed to create salary advance",
         },
       },
-      { status: error.response?.status || 500 }
+      { status: error?.response?.status || 500 }
     );
   }
 }

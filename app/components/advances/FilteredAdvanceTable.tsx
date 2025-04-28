@@ -6,6 +6,9 @@ import AdvanceRequestAction from "./AdvanceRequestAction";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Advance } from "@/app/types/advance";
 
+// Move local cache OUTSIDE the component
+const localCache: Record<string, Advance[]> = {};
+
 interface AdvanceDataTableProps {
   employeeNo?: string;
 }
@@ -21,28 +24,41 @@ export default function AdvanceDataTable({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(false); // 👈 NEW
 
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
+
+    const cacheKey = `advances-${employeeNo}`;
+
+    // Only use cache if NOT force refreshing
+    if (localCache[cacheKey] && !forceRefresh) {
+      console.log(`⚡ Using local cache for ${employeeNo}`);
+      setData(localCache[cacheKey]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    const start = performance.now();
     try {
       const res = await fetch(
         `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
       );
       const json = await res.json();
       const advanceData: Advance[] = json["data"]["value"];
-      const sorted = [...advanceData].sort(
-        (a, b) =>
-          new Date(b.applicationDate).getTime() -
-          new Date(a.applicationDate).getTime()
-      );
-      setData(sorted);
+
+      localCache[cacheKey] = advanceData; // Update cache
+      setData(advanceData);
     } catch (err) {
       console.error("❌ Failed to fetch advances:", err);
     } finally {
+      const end = performance.now();
+      console.log(`⏳ Fetched advances in ${(end - start).toFixed(2)} ms`);
       setLoading(false);
+      setForceRefresh(false); // Reset forceRefresh
     }
-  }, [employeeNo]);
+  }, [employeeNo, forceRefresh]); // 👈 depend on forceRefresh
 
   useEffect(() => {
     fetchAdvances();
@@ -142,12 +158,14 @@ export default function AdvanceDataTable({
     {
       name: "Amount",
       selector: (row: Advance) =>
-        `${row.currencyCode ?? ""} ${row.applicationAmount.toLocaleString()}`,
+        `${
+          row.currencyCode || "KES"
+        } ${row.applicationAmount.toLocaleString()}`,
       sortable: true,
       grow: 1.2,
       cell: (row: Advance) => (
         <span style={{ fontSize: "0.775rem" }}>
-          {row.currencyCode ?? ""} {row.applicationAmount.toLocaleString()}
+          {row.currencyCode || "KES"} {row.applicationAmount.toLocaleString()}
         </span>
       ),
     },
@@ -171,7 +189,7 @@ export default function AdvanceDataTable({
             <button
               className="text-primary border-0 bg-transparent"
               title="Edit"
-              onClick={() => setSelectedAdvance(row)} // ✅ Show modal for edit
+              onClick={() => setSelectedAdvance(row)}
             >
               <i className="las la-pen fs-18" />
             </button>
@@ -212,7 +230,9 @@ export default function AdvanceDataTable({
       actions={
         <AdvanceRequestAction
           advance={selectedAdvance}
-          refetch={fetchAdvances}
+          refetch={() => {
+            setForceRefresh(true); // 🧹 Force re-fetch fresh data
+          }}
           onCloseView={() => setSelectedAdvance(null)}
           employeeNo={employeeNo}
         />

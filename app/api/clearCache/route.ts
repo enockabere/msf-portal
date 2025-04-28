@@ -1,9 +1,6 @@
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
-
-// Simple in-memory cache for dev (Redis later)
-const memoryCache: Record<string, { data: any; expiry: number }> = {};
-const CACHE_TTL_SECONDS = 300; // 5 minutes
+import { memoryCache, CACHE_TTL_SECONDS } from "./cache";
 
 interface AdvanceEntry {
   no: string;
@@ -30,7 +27,6 @@ export async function GET(req: Request) {
   const cacheKey = `advances-${employeeNo}`;
   const now = Date.now();
 
-  // Check cached first
   const cached = memoryCache[cacheKey];
   if (cached && cached.expiry > now) {
     console.log(`⚡ Returning cached advances for ${employeeNo}`);
@@ -46,9 +42,9 @@ export async function GET(req: Request) {
       {
         $filter: `employeeCode eq '${employeeNo}'`,
         $select:
-          "no,employeeName,applicationDate,preferredDisbursementDate,advanceType,status,applicationAmount,currencyCode,bankCode,accountNo,mobilePhoneNo,identificationDocumentNo,employeeBankName,employeeBranchCode,employeeBranchName,chequeName,swiftCode,paymentMethod",
+          "no,employeeName,applicationDate,preferredDisbursementDate,advanceType,status,applicationAmount,currencyCode",
       }
-    )) as { value: AdvanceEntry[] }; // 👈 Safe casting here!
+    )) as { value: AdvanceEntry[] };
 
     const sorted = [...response.value].sort(
       (a, b) =>

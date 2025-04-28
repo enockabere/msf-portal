@@ -11,6 +11,7 @@ import BankDetails from "./components/BankDetails";
 import SalaryAdvanceHeader from "./components/SalaryAdvanceHeader";
 import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { SalaryAdvanceData } from "@/app/types/advance";
+import Swal from "sweetalert2";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -90,6 +91,7 @@ export default function SalaryAdvanceForm({
     advanceNo
   );
   const [cutoffPassed, setCutoffPassed] = useState(false);
+  const [isPaymentMethodLocked, setIsPaymentMethodLocked] = useState(false);
 
   const {
     currencies,
@@ -109,12 +111,19 @@ export default function SalaryAdvanceForm({
     const loadData = async () => {
       try {
         setIsLoading(true);
+        const start = performance.now();
         await fetchSetups([
           "currencies",
           { paymentMethods: { filters: { isAdvance: true } } },
+          { payrollPeriods: { filters: { current: true } } },
+        ]);
+        const mid = performance.now();
+        console.log(
+          `⚡ Critical setups fetched in ${(mid - start).toFixed(2)} ms`
+        );
+        fetchSetups([
           "banks",
           "bankBranches",
-          { payrollPeriods: { filters: { current: true } } },
           {
             employeeBanks: {
               filters: {
@@ -125,13 +134,26 @@ export default function SalaryAdvanceForm({
               },
             },
           } as any,
-        ]);
+        ]).then(() => {
+          const end = performance.now();
+          console.log(
+            `⚡ All setups fetched in ${(end - start).toFixed(2)} ms`
+          );
+        });
       } finally {
         setIsLoading(false);
       }
     };
+
     loadData();
   }, [fetchSetups, employeeNo, advanceBankCode]);
+
+  const displayedCurrencies = useMemo(() => {
+    return [
+      { code: "KES", description: "Kenyan Shilling" },
+      ...currencies.filter((c) => c.code !== "KES"),
+    ];
+  }, [currencies]);
 
   useEffect(() => {
     if (payrollPeriods.length > 0) {
@@ -146,32 +168,55 @@ export default function SalaryAdvanceForm({
         console.log("🕓 Current date:", now.toISOString());
 
         if (now > cutoffDate) {
-          setCutoffPassed(true);
-          toast.error("The advance application deadline has passed.");
+          if (
+            advanceStatus !== "Pending Approval" &&
+            advanceStatus !== "Released"
+          ) {
+            setCutoffPassed(true);
+            toast.error("The advance application deadline has passed.");
+          }
         }
       } else {
         console.warn("⚠️ No valid cutoff date found.");
       }
     }
-  }, [payrollPeriods]);
+  }, [payrollPeriods, advanceStatus]);
 
   useEffect(() => {
     if (currencies.length && paymentMethods.length && bankBranches.length) {
       setAdvanceAmount(advanceApplicationAmount?.toString() || "");
 
+      // If advance has a currency already
       if (advanceCurrencyCode) {
         setCurrency(advanceCurrencyCode);
-        setPaymentMethod(advancePaymentMethod || "RTGS");
-      } else if (!advanceNo) {
+
+        if (advanceCurrencyCode === "KES" || advanceCurrencyCode === "") {
+          setPaymentMethod("MPESA");
+          setIsPaymentMethodLocked(true);
+        } else {
+          setPaymentMethod(advancePaymentMethod || "RTGS");
+          setIsPaymentMethodLocked(false);
+        }
+      }
+      // If no currency in advance (new form)
+      else {
         setCurrency("KES");
         setPaymentMethod("MPESA");
+        setIsPaymentMethodLocked(true);
       }
 
       setAccountNo(advanceAccountNo || "");
       setBank(advanceBankCode || "");
       setChequeName(advanceChequeName || "");
       setSwiftCode(advanceSwiftCode || "");
-      setPhone(advanceMobilePhoneNo?.replace("+254", "") || "");
+      if (advanceMobilePhoneNo) {
+        const cleanPhone = advanceMobilePhoneNo.startsWith("+254")
+          ? advanceMobilePhoneNo.slice(4)
+          : advanceMobilePhoneNo;
+        setPhone(cleanPhone);
+      } else {
+        setPhone("");
+      }
       setIdNumber(advanceIdNo || "");
 
       const validBranch = bankBranches.find(
@@ -195,8 +240,17 @@ export default function SalaryAdvanceForm({
     advanceMobilePhoneNo,
     advanceIdNo,
     advanceEmployeeBranchCode,
-    advanceNo,
   ]);
+
+  useEffect(() => {
+    if (currency === "KES" || currency === "") {
+      setPaymentMethod("MPESA");
+      setIsPaymentMethodLocked(true);
+    } else {
+      setIsPaymentMethodLocked(false);
+    }
+  }, [currency]);
+
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {
       const eb = employeeBanks[0];
@@ -216,10 +270,14 @@ export default function SalaryAdvanceForm({
 
     const id = setTimeout(() => {
       setIsLimitLoading(true);
+
       fetch("/api/codeunit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ empNo: employeeNo }),
+        body: JSON.stringify({
+          empNo: employeeNo,
+          currencyCode: currency === "KES" ? "" : currency,
+        }),
       })
         .then((r) => r.json())
         .then((payload) => {
@@ -232,8 +290,10 @@ export default function SalaryAdvanceForm({
         })
         .finally(() => setIsLimitLoading(false));
     }, 500);
+
     return () => clearTimeout(id);
-  }, [advanceAmount, employeeNo]);
+  }, [advanceAmount, employeeNo, currency]);
+
   useEffect(() => {
     if (paymentMethod === "MPESA") {
       setCurrency("KES");
@@ -245,12 +305,25 @@ export default function SalaryAdvanceForm({
     }
   }, [filteredBranches, branch, advanceNo]);
 
+  useEffect(() => {
+    if (advanceMobilePhoneNo) {
+      const cleanPhone = advanceMobilePhoneNo.startsWith("+254")
+        ? advanceMobilePhoneNo.slice(4)
+        : advanceMobilePhoneNo;
+      setPhone(cleanPhone);
+    }
+
+    if (advanceIdNo) {
+      setIdNumber(advanceIdNo);
+    }
+  }, [advanceMobilePhoneNo, advanceIdNo]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
 
       if (cutoffPassed) {
-        toast.error("You cannot apply after the cutoff date.");
+        Swal.fire("Error", "The advance cutoff date has passed.", "error");
         return;
       }
 
@@ -258,34 +331,36 @@ export default function SalaryAdvanceForm({
         typeof advanceLimit === "number" &&
         parseFloat(advanceAmount) > advanceLimit
       ) {
-        toast.error("Requested advance amount exceeds your allowed limit.");
+        Swal.fire(
+          "Error",
+          "Requested advance amount exceeds your allowed limit.",
+          "error"
+        );
         return;
       }
 
       if (isViewMode) {
-        return toast.info("View mode - no changes will be saved");
+        Swal.fire("Info", "View mode - no changes will be saved.", "info");
+        return;
       }
+
       setIsSubmitting(true);
 
       try {
         if (!advanceAmount || isNaN(Number(advanceAmount))) {
-          console.error(
-            "❌ Validation failed: Invalid advance amount",
-            advanceAmount
-          );
-          toast.error("Please enter a valid advance amount");
+          Swal.fire("Error", "Please enter a valid advance amount.", "error");
           return;
         }
+
         if (!payrollPeriods?.[0]?.startingDate) {
-          console.error("❌ Validation failed: No valid payroll period");
-          toast.error("No valid payroll period available");
+          Swal.fire("Error", "No valid payroll period available.", "error");
           return;
         }
 
         const payload: any = {
           employeeCode: employeeNo,
           applicationAmount: Number(advanceAmount),
-          currencyCode: currency,
+          currencyCode: currency === "KES" ? "" : currency,
           applicationDate:
             advanceApplicationDate || new Date().toISOString().split("T")[0],
           paymentMethod,
@@ -312,9 +387,12 @@ export default function SalaryAdvanceForm({
           ? "/api/bc/advances/salary/edit"
           : "/api/bc/advances/salary/create";
         const method = isEdit ? "PATCH" : "POST";
+
         if (isEdit) {
           payload.no = advanceNo;
         }
+
+        console.log("🚀 Submitting payload:", payload);
 
         const res = await fetch(endpoint, {
           method,
@@ -323,6 +401,9 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
+
+        console.log("📥 Response after create/edit:", response);
+
         if (!res.ok || response.error) {
           throw new Error(
             response.error?.message || "Failed to process advance"
@@ -330,67 +411,106 @@ export default function SalaryAdvanceForm({
         }
 
         const newAdvanceNo =
-          response.no || response.data?.no || advanceNo || response.value?.no;
+          response?.data?.no ||
+          response?.no ||
+          response?.value?.no ||
+          advanceNo;
+
         if (!newAdvanceNo) {
           throw new Error("No advance number returned from server");
         }
 
         setSavedAdvanceNo(newAdvanceNo);
-        const successMessage = isEdit
-          ? `Salary advance #${newAdvanceNo} updated successfully!`
-          : `Salary advance request #${newAdvanceNo} created successfully!`;
-        toast.success(successMessage);
 
+        Swal.fire(
+          "Success",
+          isEdit
+            ? `Salary advance #${newAdvanceNo} updated successfully!`
+            : `Salary advance #${newAdvanceNo} created successfully!`,
+          "success"
+        );
+        try {
+          const clearCacheRes = await fetch(
+            `/api/clearCache?employeeNo=${employeeNo}`,
+            { method: "POST" }
+          );
+          if (!clearCacheRes.ok) {
+            console.warn("⚠️ Failed to clear cache after save");
+          } else {
+            console.log(`🧹 Cache cleared for ${employeeNo}`);
+          }
+        } catch (clearCacheErr) {
+          console.warn("⚠️ Cache clear request failed", clearCacheErr);
+        }
         try {
           const approvalRes = await fetch(
             "/api/bc/advances/salary/sendApproval",
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ advanceNo: newAdvanceNo }),
             }
           );
 
           const approvalJson = await approvalRes.json();
+
+          console.log("📩 Approval submission response:", approvalJson);
+
           if (!approvalRes.ok || approvalJson.error) {
-            toast.warning("Saved but failed to submit for approval");
+            Swal.fire(
+              "Warning",
+              "Advance saved but failed to submit for approval.",
+              "warning"
+            );
           } else {
-            toast.success("Submitted for approval successfully");
+            Swal.fire(
+              "Success",
+              "Advance submitted for approval successfully.",
+              "success"
+            );
           }
-        } catch (approvalErr) {
-          toast.warning("Saved but error occurred during approval submission");
+        } catch (approvalError) {
+          console.error("❌ Error submitting for approval:", approvalError);
+          Swal.fire(
+            "Warning",
+            "Saved but failed to submit for approval.",
+            "warning"
+          );
         }
 
         onSuccess?.();
       } catch (error: any) {
-        toast.error(error.message || "An error occurred while processing");
+        console.error("❌ Error:", error);
+        Swal.fire(
+          "Error",
+          error.message || "An error occurred while processing",
+          "error"
+        );
       } finally {
         setIsSubmitting(false);
       }
     },
     [
-      cutoffPassed,
-      advanceLimit,
       advanceAmount,
-      isViewMode,
-      payrollPeriods,
-      employeeNo,
-      currency,
-      advanceApplicationDate,
-      paymentMethod,
-      phone,
-      idNumber,
+      advanceNo,
+      advanceLimit,
       accountNo,
       bank,
+      banks,
       branch,
       bankBranches,
-      banks,
       chequeName,
-      swiftCode,
-      advanceNo,
+      cutoffPassed,
+      currency,
+      employeeNo,
+      idNumber,
+      isViewMode,
       onSuccess,
+      paymentMethod,
+      phone,
+      payrollPeriods,
+      swiftCode,
+      advanceApplicationDate,
     ]
   );
 
@@ -422,14 +542,16 @@ export default function SalaryAdvanceForm({
               setAdvanceAmount={setAdvanceAmount}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
+              isPaymentMethodLocked={isPaymentMethodLocked}
               currency={currency}
               setCurrency={setCurrency}
-              currencies={currencies}
+              currencies={displayedCurrencies}
               paymentMethods={paymentMethods}
               advanceLimit={advanceLimit}
               isLimitLoading={isLimitLoading}
               isViewMode={isViewMode}
             />
+
             {paymentMethod === "MPESA" ? (
               <MpesaDetails
                 phone={phone}
@@ -473,6 +595,7 @@ export default function SalaryAdvanceForm({
           status={advanceStatus || ""}
           advanceNo={savedAdvanceNo}
           onSuccess={onSuccess}
+          employeeNo={employeeNo}
         />
       </form>
     </>

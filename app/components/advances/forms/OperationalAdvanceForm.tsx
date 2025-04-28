@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle, CircleXIcon, FileText, LogOut } from "lucide-react";
 import "./SalaryAdvanceForm.css";
 
 export default function OperationalAdvanceForm() {
   const [purpose, setPurpose] = useState("");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("KES");
-  const [paymentMethod, setPaymentMethod] = useState("Bank"); // Default to Bank Transfer
+  const [paymentMethod, setPaymentMethod] = useState("Bank"); 
   const [cashCollectionDate, setCashCollectionDate] = useState("");
   const [cashHours, setCashHours] = useState("morning");
   const [idPassportNumber, setIdPassportNumber] = useState("");
@@ -243,37 +242,6 @@ export default function OperationalAdvanceForm() {
           </div>
         </div>
       )}
-
-      {/* Action Buttons */}
-      <div className="mt-3 d-flex flex-wrap gap-2">
-        <button
-          type="submit"
-          className="btn btn-success d-flex align-items-center gap-2"
-        >
-          <CheckCircle size={16} /> Save & Continue
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-danger d-flex align-items-center gap-2"
-        >
-          <CircleXIcon size={16} /> Cancel Approval
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-outline-primary d-flex align-items-center gap-2"
-        >
-          <FileText size={16} /> Preview Report
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-secondary d-flex align-items-center gap-2"
-        >
-          <LogOut size={16} /> Exit
-        </button>
-      </div>
     </form>
   );
 }

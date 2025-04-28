@@ -149,12 +149,11 @@ export default function AdvanceRequestAction({
               onClick={() => handleNewRequest("Settlement")}
             >
               <i className="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>
-              Settle Advance (KES 30,000)
+              Record an Expense
             </a>
           </div>
         </div>
       )}
-
       {renderModal()}
     </>
   );

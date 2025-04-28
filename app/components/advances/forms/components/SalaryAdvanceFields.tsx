@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useMemo } from "react";
 
 interface Props {
@@ -5,6 +7,7 @@ interface Props {
   setAdvanceAmount: (v: string) => void;
   paymentMethod: string;
   setPaymentMethod: (v: string) => void;
+  isPaymentMethodLocked: boolean;
   currency: string;
   setCurrency: (v: string) => void;
   currencies: any[];
@@ -19,6 +22,7 @@ export default function SalaryAdvanceFields({
   setAdvanceAmount,
   paymentMethod,
   setPaymentMethod,
+  isPaymentMethodLocked,
   currency,
   setCurrency,
   currencies,
@@ -34,7 +38,7 @@ export default function SalaryAdvanceFields({
     const selectedCurrency = e.target.value;
     setCurrency(selectedCurrency);
 
-    if (selectedCurrency === "KES") {
+    if (selectedCurrency === "KES" || selectedCurrency === "") {
       setPaymentMethod("MPESA");
     } else {
       setPaymentMethod("");
@@ -64,15 +68,16 @@ export default function SalaryAdvanceFields({
         >
           <option value="">-- Select Currency --</option>
           {currencies.map((c) => (
-            <option key={c.id} value={c.code}>
-              {c.code} — {c.displayName}
+            <option key={c.code} value={c.code}>
+              {c.description}
             </option>
           ))}
         </select>
       </div>
+
       <div className="col-md-4 mb-3">
         <label htmlFor="AdvanceAmount" className="form-label">
-          Advance Amount:
+          Advance Amount
         </label>
         <input
           id="AdvanceAmount"
@@ -87,7 +92,7 @@ export default function SalaryAdvanceFields({
         {typeof advanceLimit === "number" && (
           <div className="mt-1 small">
             <strong className="text-info">Advance Limit:</strong>{" "}
-            {currency || "N/A"} {advanceLimit.toLocaleString()}
+            {isKES ? "KES" : currency || "N/A"} {advanceLimit.toLocaleString()}
             {parseFloat(advanceAmount) > advanceLimit && (
               <div className="text-danger mt-1">
                 Amount exceeds allowed limit!
@@ -105,6 +110,7 @@ export default function SalaryAdvanceFields({
           </div>
         )}
       </div>
+
       <div className="col-md-4 mb-3">
         <label htmlFor="payment-method" className="form-label">
           Payment Method
@@ -114,7 +120,7 @@ export default function SalaryAdvanceFields({
           className="form-select"
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
-          disabled={isViewMode || isKES || !currencyChosen}
+          disabled={isViewMode || isPaymentMethodLocked || !currencyChosen}
           required
         >
           <option value="">-- Select Payment Method --</option>
@@ -124,6 +130,11 @@ export default function SalaryAdvanceFields({
             </option>
           ))}
         </select>
+        {isPaymentMethodLocked && (
+          <small className="text-muted">
+            Change the currency to unlock payment method
+          </small>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { FileText, LogOut, CheckCircle, CircleXIcon } from "lucide-react";
+import React, { useState } from "react";
+import {
+  FileText,
+  LogOut,
+  CheckCircle,
+  CircleXIcon,
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  Check,
+} from "lucide-react";
 import SettlementExpenseForm from "./SettlementExpenseForm";
 
 type ExpenseItem = {
@@ -10,27 +19,19 @@ type ExpenseItem = {
   receipt?: File | null;
   mileage: string;
   costCenter: string;
-  deliverer: string;
 };
 
-const mockAdvances = [
-  { id: "ADV001", label: "Fuel for Project A", balance: 30000 },
-  { id: "ADV002", label: "Office Supplies", balance: 18500 },
-  { id: "ADV003", label: "Field Visit Allowance", balance: 9800 },
+const totalAdvanceAmount = 58300;
+
+const RECIPIENTS = [
+  "John Doe",
+  "Jane Smith",
+  "Michael Johnson",
+  "Sarah Williams",
+  "David Brown",
 ];
 
 export default function AdvanceSettlementForm() {
-  const [selectedAdvanceId, setSelectedAdvanceId] = useState(
-    mockAdvances[0].id
-  );
-  const [balance, setBalance] = useState(mockAdvances[0].balance);
-
-  const [justifiedAmount, setJustifiedAmount] = useState(0);
-  const [receipt, setReceipt] = useState<File | null>(null);
-  const [mileage, setMileage] = useState("");
-  const [costCenter, setCostCenter] = useState("");
-  const [deliverer, setDeliverer] = useState("");
-
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     {
       category: "",
@@ -38,58 +39,206 @@ export default function AdvanceSettlementForm() {
       receipt: null,
       mileage: "",
       costCenter: "",
-      deliverer: "",
     },
   ]);
 
-  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setReceipt(e.target.files[0]);
-    }
-  };
+  const [claimOverspent, setClaimOverspent] = useState<string>("Yes");
+  const [returnAdvanceBalance, setReturnAdvanceBalance] =
+    useState<string>("No");
+  const [selectedRecipient, setSelectedRecipient] = useState<string>("");
+  const [selectedDeliverer, setSelectedDeliverer] = useState<string>("");
 
-  useEffect(() => {
-    const selected = mockAdvances.find((adv) => adv.id === selectedAdvanceId);
-    if (selected) setBalance(selected.balance);
-  }, [selectedAdvanceId]);
+  const totalJustified = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const balanceToBeAccounted = totalAdvanceAmount - totalJustified;
+
+  const overspent = balanceToBeAccounted < 0;
+  const fullyAccounted = balanceToBeAccounted === 0;
+  const underspent = balanceToBeAccounted > 0;
 
   return (
     <form className="p-2 pt-3">
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label className="form-label fw-semibold">
-            Select Advance to Settle
-          </label>
-          <select
-            className="form-select"
-            value={selectedAdvanceId}
-            onChange={(e) => setSelectedAdvanceId(e.target.value)}
-          >
-            {mockAdvances.map((adv) => (
-              <option key={adv.id} value={adv.id}>
-                {adv.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Alert Section */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          {/* Summary Section */}
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <div className="p-3 border rounded bg-light">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-muted">Amount Advanced</span>
+                  <ArrowUp size={16} className="text-success" />
+                </div>
+                <h5 className="mt-2 mb-0 text-success fw-bold">
+                  KES {totalAdvanceAmount.toLocaleString()}
+                </h5>
+              </div>
+            </div>
 
-        <div className="col-md-6 mb-3">
-          <label className="form-label fw-semibold">
-            Balance to be Accounted for
-          </label>
-          <div className="form-control bg-light">
-            {`KES ${balance.toLocaleString()}`}
+            <div className="col-md-6">
+              <div className="p-3 border rounded bg-light">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-muted">Amount Justified</span>
+                  <ArrowDown size={16} className="text-primary" />
+                </div>
+                <h5 className="mt-2 mb-0 text-primary fw-bold">
+                  KES {totalJustified.toLocaleString()}
+                </h5>
+              </div>
+            </div>
           </div>
+          <div
+            className={`toast d-flex align-items-center w-100 text-white border-0 show ${
+              overspent
+                ? "bg-danger"
+                : fullyAccounted
+                ? "bg-success"
+                : "bg-warning"
+            }`}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div className="toast-body d-flex align-items-center gap-2">
+              {overspent ? (
+                <>
+                  <AlertTriangle size={20} />
+                  <div>
+                    <strong>Claim:</strong>{" "}
+                    <strong>
+                      KES {Math.abs(balanceToBeAccounted).toLocaleString()}
+                    </strong>{" "}
+                    overspent amount
+                  </div>
+                </>
+              ) : fullyAccounted ? (
+                <>
+                  <Check size={20} />
+                  <div>
+                    <strong>Perfect!</strong> Advance fully accounted for.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle size={20} />
+                  <div>
+                    <strong>Surrender:</strong> Remaining balance of{" "}
+                    <strong>KES {balanceToBeAccounted.toLocaleString()}</strong>
+                  </div>
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn-close btn-close-white ms-auto me-2"
+              aria-label="Close"
+              onClick={() => {}}
+            ></button>
+          </div>
+          {overspent && (
+            <div className="row g-3 mt-3">
+              <div className="col-md-6">
+                <label className="form-label fw-medium">
+                  Claim Overspent Amount?
+                </label>
+                <select
+                  className="form-select"
+                  value={claimOverspent}
+                  onChange={(e) => setClaimOverspent(e.target.value)}
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No, Convert to a donation</option>
+                </select>
+              </div>
+
+              {claimOverspent === "Yes" && (
+                <div className="col-md-6">
+                  <label className="form-label fw-medium">
+                    Give the money to:
+                  </label>
+                  <select
+                    className="form-select"
+                    value={selectedRecipient}
+                    onChange={(e) => setSelectedRecipient(e.target.value)}
+                  >
+                    <option value="">-- Select Recipient --</option>
+                    {RECIPIENTS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {underspent && (
+            <div className="row g-3 mt-3">
+              <div className="col-md-6">
+                <label className="form-label fw-medium">
+                  Return Advance Balance?
+                </label>
+                <select
+                  className="form-select"
+                  value={returnAdvanceBalance}
+                  onChange={(e) => setReturnAdvanceBalance(e.target.value)}
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+
+              {returnAdvanceBalance === "Yes" && (
+                <div className="col-md-6">
+                  <label className="form-label fw-medium">
+                    Deliverer to Return Balance
+                  </label>
+                  <select
+                    className="form-select"
+                    value={selectedDeliverer}
+                    onChange={(e) => setSelectedDeliverer(e.target.value)}
+                  >
+                    <option value="">-- Select Deliverer --</option>
+                    {RECIPIENTS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {fullyAccounted && (
+            <div className="row mt-3">
+              <div className="col-md-6">
+                <label className="form-label fw-medium">
+                  Deliverer of Settlement
+                </label>
+                <select
+                  className="form-select"
+                  value={selectedDeliverer}
+                  onChange={(e) => setSelectedDeliverer(e.target.value)}
+                >
+                  <option value="">-- Select Deliverer --</option>
+                  {RECIPIENTS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
       <SettlementExpenseForm
         expenses={expenses}
         setExpenses={setExpenses}
-        balance={balance}
+        balance={totalAdvanceAmount}
       />
-
-      <div className="mt-3 d-flex flex-wrap gap-2">
+      <div className="mt-4 d-flex flex-wrap gap-2">
         <button
           type="submit"
           className="btn btn-success d-flex align-items-center gap-2"

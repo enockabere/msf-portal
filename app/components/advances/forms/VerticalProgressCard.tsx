@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePlus, Clock, CheckCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import "./VerticalProgressCard.css";
@@ -11,7 +11,10 @@ interface ApprovalEntry {
   approverID: string;
   approveForName: string;
   dateTimeSentForApproval: string;
+  lastDateTimeModified: string;
   status: string;
+  ageing: string;
+  approvalComments?: { comment: string }[];
 }
 
 interface VerticalProgressCardProps {
@@ -27,6 +30,7 @@ export default function VerticalProgressCard({
   const isNew = !advance;
   const isPending = advance?.status === "Pending Approval";
   const isReleased = advance?.status === "Released";
+  const [showCommentsToast, setShowCommentsToast] = useState(true);
 
   useEffect(() => {
     if (advance?.applicationDate) {
@@ -40,7 +44,12 @@ export default function VerticalProgressCard({
 
   useEffect(() => {
     const fetchApprovals = async () => {
-      if (advance?.status === "Pending Approval") {
+      if (
+        advance?.status === "Pending Approval" ||
+        advance?.status === "Released"
+      ) {
+        const start = performance.now(); // ⏱️ Start timer
+
         try {
           const res = await fetch(
             `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
@@ -50,12 +59,31 @@ export default function VerticalProgressCard({
           console.log("📥 Approval entries fetched:", entries);
           setApprovalEntries(entries);
         } catch (error) {
-          console.error("Failed to fetch approval entries:", error);
+          console.error("❌ Failed to fetch approval entries:", error);
+        } finally {
+          const end = performance.now(); // ⏱️ End timer
+          console.log(
+            `⏳ Fetch approvalEntries took ${(end - start).toFixed(2)} ms`
+          );
         }
       }
     };
     fetchApprovals();
   }, [advance]);
+
+  const allApprovalComments = useMemo(() => {
+    let comments: string[] = [];
+
+    approvalEntries.forEach((entry) => {
+      if (entry.approvalComments && entry.approvalComments.length > 0) {
+        entry.approvalComments.forEach((c) => {
+          if (c.comment) comments.push(c.comment);
+        });
+      }
+    });
+
+    return comments;
+  }, [approvalEntries]);
 
   const getStatusClass = (status: string) => {
     switch (status) {
@@ -69,6 +97,36 @@ export default function VerticalProgressCard({
         return "text-muted";
     }
   };
+
+  const formatAgeing = (ageingStr: string | undefined) => {
+    if (!ageingStr) return null;
+
+    const match = ageingStr.match(/P(\d+)D(?:T(\d+)H(\d+)M([\d.]+)S)?/);
+    if (!match) return null;
+
+    const days = Number(match[1] || 0);
+    const hours = Number(match[2] || 0);
+    const minutes = Number(match[3] || 0);
+
+    const parts = [];
+    if (days > 0) parts.push(`${days} day${days > 1 ? "s" : ""}`);
+    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
+
+    return parts.length > 0 ? parts.join(" ") + " ago" : "Just now";
+  };
+
+  const ageingDuration = useMemo(() => {
+    if (approvalEntries.length > 0) {
+      const openEntry = approvalEntries.find(
+        (entry) => entry.status === "Open"
+      );
+      if (openEntry && openEntry.ageing) {
+        return formatAgeing(openEntry.ageing);
+      }
+    }
+    return null;
+  }, [approvalEntries]);
 
   const approvalNote = () => {
     if (isNew) {
@@ -149,11 +207,7 @@ export default function VerticalProgressCard({
                   Pending Approval
                 </h6>
                 <p className="text-muted fs-12 mb-0">
-                  {(isPending || isReleased) && approvalEntries.length > 0
-                    ? dayjs(approvalEntries[0]?.dateTimeSentForApproval).format(
-                        "D MMMM YYYY, hh:mm A"
-                      )
-                    : "-"}
+                  {isPending && ageingDuration ? ageingDuration : "-"}
                 </p>
               </div>
             </div>
@@ -180,7 +234,11 @@ export default function VerticalProgressCard({
                   Approved
                 </h6>
                 <p className="text-muted fs-12 mb-0">
-                  {isReleased ? dayjs().format("D MMMM YYYY, hh:mm A") : "-"}
+                  {isReleased && approvalEntries.length > 0
+                    ? dayjs(approvalEntries[0]?.lastDateTimeModified).format(
+                        "D MMMM YYYY, hh:mm A"
+                      )
+                    : "-"}
                 </p>
               </div>
             </div>
@@ -191,6 +249,29 @@ export default function VerticalProgressCard({
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">{approvalNote()}</div>
         </div>
+        {allApprovalComments.length > 0 && showCommentsToast && (
+          <div
+            className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div className="toast-body d-flex flex-column gap-2">
+              {allApprovalComments.map((comment, index) => (
+                <div key={index} className="d-flex align-items-center gap-2">
+                  <FilePlus size={16} />
+                  <span>{comment}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="btn-close btn-close-white ms-auto me-2"
+              aria-label="Close"
+              onClick={() => setShowCommentsToast(false)}
+            ></button>
+          </div>
+        )}
       </div>
     </div>
   );

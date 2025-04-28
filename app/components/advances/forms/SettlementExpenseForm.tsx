@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { Trash2, UploadCloud } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, UploadCloud, PlusCircle } from "lucide-react";
+import { Modal } from "react-bootstrap";
 
 interface ExpenseItem {
   category: string;
@@ -9,7 +10,7 @@ interface ExpenseItem {
   receipt?: File | null;
   mileage: string;
   costCenter: string;
-  deliverer: string;
+  otherCategory?: string;
 }
 
 interface Props {
@@ -18,19 +19,22 @@ interface Props {
   balance: number;
 }
 
-const USER_LIST = [
-  "John Doe",
-  "Jane Smith",
-  "Michael Johnson",
-  "Sarah Williams",
-  "David Brown",
-];
+const COST_CENTERS: Record<string, string[]> = {
+  ICT: ["Network Upgrade", "Helpdesk Support", "Software Projects"],
+  Finance: ["Audit", "Budget Planning"],
+  HR: ["Recruitment", "Training Programs"],
+  Programs: ["Water Sanitation", "Food Relief"],
+};
 
 export default function SettlementExpenseForm({
   expenses,
   setExpenses,
   balance,
 }: Props) {
+  const [showOtherModal, setShowOtherModal] = useState(false);
+  const [currentOtherIdx, setCurrentOtherIdx] = useState<number | null>(null);
+  const [otherInput, setOtherInput] = useState("");
+
   const handleChange = <K extends keyof ExpenseItem>(
     index: number,
     field: K,
@@ -52,11 +56,11 @@ export default function SettlementExpenseForm({
       ...expenses,
       {
         category: "",
-        amount: 0,
+        amount: NaN,
         receipt: null,
         mileage: "",
-        costCenter: "ICT",       // default
-        deliverer: USER_LIST[0], // default first user
+        costCenter: "",
+        otherCategory: "",
       },
     ]);
   };
@@ -64,12 +68,24 @@ export default function SettlementExpenseForm({
   const removeExpenseLine = (index: number) => {
     setExpenses(expenses.filter((_, i) => i !== index));
   };
-
-  const totalJustified = expenses.reduce((sum, item) => sum + item.amount, 0);
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
+
+  const openOtherModal = (idx: number) => {
+    setCurrentOtherIdx(idx);
+    setOtherInput("");
+    setShowOtherModal(true);
+  };
+
+  const saveOtherCategory = () => {
+    if (currentOtherIdx !== null && otherInput.trim() !== "") {
+      handleChange(currentOtherIdx, "otherCategory", otherInput.trim());
+    }
+    setShowOtherModal(false);
+  };
 
   return (
     <>
+      {/* Expense Table */}
       <table className="table table-bordered mb-3 align-middle">
         <thead className="table-light">
           <tr>
@@ -78,13 +94,14 @@ export default function SettlementExpenseForm({
             <th>Amount (KES)</th>
             {showMileageColumn && <th>Mileage</th>}
             <th>Cost Center</th>
-            <th>Deliverer</th>
             <th></th>
           </tr>
         </thead>
+
         <tbody>
           {expenses.map((exp, idx) => (
             <tr key={idx}>
+              {/* Receipt Upload */}
               <td>
                 <label className="btn btn-sm btn-outline-secondary w-100">
                   <UploadCloud size={14} className="me-1" />
@@ -99,30 +116,43 @@ export default function SettlementExpenseForm({
                   />
                 </label>
               </td>
+
+              {/* Category */}
               <td>
                 <select
                   className="form-select"
                   value={exp.category}
-                  onChange={(e) =>
-                    handleChange(idx, "category", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    if (selected === "Others") {
+                      openOtherModal(idx);
+                    }
+                    handleChange(idx, "category", selected);
+                  }}
                 >
-                  <option value="">-- Select --</option>
+                  <option value="">-- Select Category --</option>
                   <option>Transport</option>
                   <option>Accommodation</option>
                   <option>Meals</option>
                   <option>Stationery</option>
                   <option>Others</option>
                 </select>
+                {exp.category === "Others" && exp.otherCategory && (
+                  <div className="small text-muted mt-1">
+                    Other: {exp.otherCategory}
+                  </div>
+                )}
               </td>
               <td>
                 <input
                   type="number"
                   className="form-control"
-                  value={exp.amount}
-                  onChange={(e) =>
-                    handleChange(idx, "amount", Number(e.target.value))
-                  }
+                  value={isNaN(exp.amount) ? "" : exp.amount}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    handleChange(idx, "amount", val ? Number(val) : NaN);
+                  }}
+                  placeholder="Enter Amount"
                 />
               </td>
               {showMileageColumn && (
@@ -134,9 +164,12 @@ export default function SettlementExpenseForm({
                     onChange={(e) =>
                       handleChange(idx, "mileage", e.target.value)
                     }
+                    placeholder="Mileage"
                   />
                 </td>
               )}
+
+              {/* Cost Center */}
               <td>
                 <select
                   className="form-select"
@@ -145,25 +178,16 @@ export default function SettlementExpenseForm({
                     handleChange(idx, "costCenter", e.target.value)
                   }
                 >
-                  {/* ICT is default */}
-                  <option value="ICT">ICT</option>
-                  <option value="Finance">Finance</option>
-                  <option value="HR">HR</option>
-                  <option value="Programs">Programs</option>
-                </select>
-              </td>
-              <td>
-                <select
-                  className="form-select"
-                  value={exp.deliverer}
-                  onChange={(e) =>
-                    handleChange(idx, "deliverer", e.target.value)
-                  }
-                >
-                  {USER_LIST.map((user) => (
-                    <option key={user} value={user}>
-                      {user}
-                    </option>
+                  <option value="">-- Select Cost Center --</option>
+                  {Object.entries(COST_CENTERS).map(([dept, projects]) => (
+                    <optgroup key={dept} label={dept}>
+                      <option value={dept}>{dept} (Department Only)</option>
+                      {projects.map((proj) => (
+                        <option key={proj} value={`${dept} - ${proj}`}>
+                          {proj}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </td>
@@ -181,26 +205,52 @@ export default function SettlementExpenseForm({
         </tbody>
       </table>
 
+      {/* Add Line + Amount Summary */}
       <div className="mb-3 d-flex justify-content-between align-items-center">
         <button
           type="button"
-          className="btn btn-sm btn-outline-success"
+          className="btn btn-sm btn-outline-success d-flex align-items-center gap-2"
           onClick={addExpenseLine}
         >
-          + Add Expense Line
+          <PlusCircle size={16} /> Add Expense Line
         </button>
-        <div className="fw-semibold text-end">
-          Justified:{" "}
-          <span className="text-success">
-            KES {totalJustified.toLocaleString()}
-          </span>
-          <br />
-          Remaining Balance:{" "}
-          <span className="text-danger">
-            KES {(balance - totalJustified).toLocaleString()}
-          </span>
-        </div>
       </div>
+
+      {/* Other Category Modal */}
+      <Modal
+        show={showOtherModal}
+        onHide={() => setShowOtherModal(false)}
+        centered
+      >
+        <Modal.Header closeButton className="bg-danger">
+          <Modal.Title>Specify Other Category</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Enter Other Category"
+            value={otherInput}
+            onChange={(e) => setOtherInput(e.target.value)}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowOtherModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={saveOtherCategory}
+          >
+            Save
+          </button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }

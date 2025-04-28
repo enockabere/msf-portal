@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { CheckCircle, CircleXIcon } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import Swal from "sweetalert2";
 
 interface ActionButtonsProps {
   isSubmitting: boolean;
@@ -13,6 +13,7 @@ interface ActionButtonsProps {
   onSuccess?: () => void;
   cutoffPassed?: boolean;
   limitExceeded?: boolean;
+  employeeNo?: string;
 }
 
 export default function ActionButtons({
@@ -24,18 +25,20 @@ export default function ActionButtons({
   onSuccess,
   cutoffPassed = false,
   limitExceeded = false,
+  employeeNo,
 }: ActionButtonsProps) {
   const [isCancelling, setIsCancelling] = useState(false);
 
   const handleCancelForApproval = async () => {
     if (!advanceNo) {
-      toast.error("Missing advance number.");
+      Swal.fire("Error", "Missing advance number.", "error");
       return;
     }
 
     setIsCancelling(true);
 
     try {
+      // Cancel Approval first
       const res = await fetch(
         "/api/bc/advances/salary/cancelApproval",
         {
@@ -50,14 +53,27 @@ export default function ActionButtons({
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        toast.error(data.error?.message || "Failed to cancel for approval.");
+        Swal.fire(
+          "Error",
+          data.error?.message || "Failed to cancel approval.",
+          "error"
+        );
       } else {
-        toast.success("Cancelled for approval successfully.");
+        Swal.fire("Success", "Cancelled approval successfully!", "success");
+
+        // Clear cache after cancellation
+        if (employeeNo) {
+          await fetch(`/api/clearCache?employeeNo=${employeeNo}`, {
+            method: "POST",
+          });
+          console.log(`🧹 Cache cleared for employee ${employeeNo}`);
+        }
+
         onSuccess?.();
       }
     } catch (error) {
       console.error("Cancel approval error:", error);
-      toast.error("Something went wrong during cancellation.");
+      Swal.fire("Error", "Something went wrong during cancellation.", "error");
     } finally {
       setIsCancelling(false);
     }
@@ -78,13 +94,13 @@ export default function ActionButtons({
 
   return (
     <div className="mt-3 d-flex flex-column gap-2">
-      <ToastContainer position="top-right" autoClose={5000} />
       {(!status || status === "Open") && (
         <>
           <button
             type="submit"
-            className="btn btn-danger d-flex align-items-center gap-2"
+            className="btn btn-danger d-flex justify-content-center align-items-center gap-2"
             disabled={submissionDisabled}
+            style={{ height: "45px" }}
           >
             {isSubmitting ? (
               <>
@@ -96,7 +112,7 @@ export default function ActionButtons({
               </>
             ) : (
               <>
-                <CheckCircle size={13} />
+                <CheckCircle size={16} />
                 {advanceNo
                   ? "Edit & Submit for Approval"
                   : "Save & Submit for Approval"}
@@ -113,9 +129,10 @@ export default function ActionButtons({
       {status === "Pending Approval" && (
         <button
           type="button"
-          className="btn btn-danger d-flex align-items-center gap-2"
+          className="btn btn-danger d-flex justify-content-center align-items-center gap-2"
           disabled={isCancelling || isViewMode}
           onClick={handleCancelForApproval}
+          style={{ height: "45px" }}
         >
           {isCancelling ? (
             <>

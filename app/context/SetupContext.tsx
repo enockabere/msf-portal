@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   createContext,
   useContext,
@@ -8,7 +9,11 @@ import React, {
 } from "react";
 import { toast } from "react-toastify";
 
+// 🚀 Local in-memory cache for setups
+const localSetupCache = new Map<string, any>();
+
 type RecordAny = Record<string, any>;
+
 interface MySetupsState {
   imprestTypes: RecordAny[];
   currencies: RecordAny[];
@@ -65,6 +70,7 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
       return state;
   }
 }
+
 interface MySetupsContextValue extends MySetupsState {
   fetchSetups: (
     endpoints: Array<string | Record<string, unknown>>,
@@ -75,9 +81,11 @@ interface MySetupsContextValue extends MySetupsState {
 const MySetupsContext = createContext<MySetupsContextValue | undefined>(
   undefined
 );
+
 const DispatchSetupsContext = createContext<React.Dispatch<Action> | undefined>(
   undefined
 );
+
 export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -94,14 +102,41 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
+        const start = performance.now();
+
+        // Filter setups to only those missing in the local cache
+        const missingEndpoints = setupsArray.filter((setup) => {
+          const key = typeof setup === "string" ? setup : Object.keys(setup)[0];
+          return !localSetupCache.has(key);
+        });
+
+        if (missingEndpoints.length === 0) {
+          console.log("✅ All requested setups loaded from cache.");
+          return;
+        }
+
+        console.log("🔄 Fetching missing setups:", missingEndpoints);
+
         const res = await fetch("/api/setups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoints: setupsArray, resolveAll }),
+          body: JSON.stringify({ endpoints: missingEndpoints, resolveAll }),
         });
 
         const json = await res.json();
+
+        // Update React state
         dispatch({ type: "PATCH", payload: json });
+
+        // Save to local memory cache
+        for (const key of Object.keys(json)) {
+          localSetupCache.set(key, json[key]);
+        }
+
+        const end = performance.now();
+        console.log(
+          `⚡ fetchSetups completed in ${(end - start).toFixed(2)} ms`
+        );
       } catch (err) {
         console.error(err);
         toast.error("Failed to fetch setups.");
