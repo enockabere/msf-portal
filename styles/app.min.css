@@ -351,8 +351,8 @@ input.add-file-input {
   border-color: #ff9f43;
 }
 .form-switch-danger .form-check-input:checked {
-  background-color: #ef4d56;
-  border-color: #ef4d56;
+  background-color: #ec232b;
+  border-color: #ec232b;
 }
 .form-switch-pink .form-check-input:checked {
   background-color: #fd3c97;
@@ -487,13 +487,13 @@ input.add-file-input {
 }
 #form-validation-2 small {
   display: none;
-  color: #ef4d56;
+  color: #ec232b;
 }
 #form-validation-2 small.error {
   display: block;
 }
 .form-control.error {
-  border-color: #ef4d56;
+  border-color: #ec232b;
 }
 .form-control.success {
   border-color: #22c5ad;
@@ -2390,7 +2390,7 @@ html[data-bs-theme="light"]
 }
 .ribbon1 span.rib1-danger,
 .ribbon1 span:before {
-  background: #ef4d56;
+  background: #ec232b;
 }
 .ribbon1 span.rib1-danger:after {
   background: #dc141f;
@@ -2446,7 +2446,7 @@ html[data-bs-theme="light"]
   border-top-color: #ff9f43;
 }
 .ribbon1.rib1-danger:after {
-  border-top-color: #ef4d56;
+  border-top-color: #ec232b;
 }
 .ribbon1.rib1-pink:after {
   border-top-color: #fd3c97;
@@ -2542,14 +2542,14 @@ html[data-bs-theme="light"]
   border-right: 15px solid #ff9f43;
 }
 .ribbon2.rib2-danger {
-  background: #ef4d56;
+  background: #ec232b;
 }
 .ribbon2.rib2-danger:before {
   border-bottom: 6px solid #dc141f;
 }
 .ribbon2.rib2-danger:after {
-  border-left: 15px solid #ef4d56;
-  border-right: 15px solid #ef4d56;
+  border-left: 15px solid #ec232b;
+  border-right: 15px solid #ec232b;
 }
 .ribbon2.rib2-pink {
   background: #fd3c97;
@@ -2678,13 +2678,13 @@ html[data-bs-theme="light"]
   border-right: 15px solid #ff9f43;
 }
 .ribbon3.rib3-danger {
-  background: #ef4d56;
+  background: #ec232b;
 }
 .ribbon3.rib3-danger:before {
   border-top: 9px solid #dc141f;
 }
 .ribbon3.rib3-danger:after {
-  border-right: 15px solid #ef4d56;
+  border-right: 15px solid #ec232b;
 }
 .ribbon3.rib3-pink {
   background: #fd3c97;
@@ -2849,10 +2849,10 @@ html[data-bs-theme="light"]
   background: #ff9f43;
 }
 .ribbon4 .ribbon4-band.ribbon4-band-danger {
-  -webkit-box-shadow: 0 0 0 3px #ef4d56,
+  -webkit-box-shadow: 0 0 0 3px #ec232b,
     0 21px 5px -18px rgba(122, 130, 177, 0.6);
-  box-shadow: 0 0 0 3px #ef4d56, 0 21px 5px -18px rgba(122, 130, 177, 0.6);
-  background: #ef4d56;
+  box-shadow: 0 0 0 3px #ec232b, 0 21px 5px -18px rgba(122, 130, 177, 0.6);
+  background: #ec232b;
 }
 .ribbon4 .ribbon4-band.ribbon4-band-pink {
   -webkit-box-shadow: 0 0 0 3px #fd3c97,
@@ -3837,7 +3837,7 @@ pre.language-javascript:hover::-webkit-scrollbar-thumb {
 }
 .swal2-popup .swal2-styled.swal2-cancel {
   font-size: 0.812rem;
-  background-color: #ef4d56;
+  background-color: #ec232b;
 }
 .swal2-popup .swal2-styled.swal2-cancel:focus {
   -webkit-box-shadow: none;

@@ -111,3 +111,14 @@
     transform: translateY(0);
   }
 }
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.card-header h5 {
+  font-size: 1.1rem;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}

@@ -9,6 +9,7 @@ interface ExpenseItem {
   receipt?: File | null;
   mileage: string;
   costCenter: string;
+  project: string;
   otherCategory?: string;
 }
 
@@ -25,7 +26,7 @@ interface OperationalLineFormProps {
   onSaveLine?: (index: number, item: ExpenseItem) => void;
 }
 
-const COST_CENTERS: Record<string, string[]> = {
+const COST_CENTERS = {
   ICT: ["Network Upgrade", "Helpdesk Support", "Software Projects"],
   Finance: ["Audit", "Budget Planning"],
   HR: ["Recruitment", "Training Programs"],
@@ -41,12 +42,25 @@ export default function OperationalLineForm({
   onSaveLine,
 }: OperationalLineFormProps) {
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
+  const [availableProjects, setAvailableProjects] = useState<string[]>([]);
 
   useEffect(() => {
     if (expenses.length === 0) {
       addExpenseLine();
     }
   }, [expenses, addExpenseLine]);
+
+  const handleCostCenterChange = (index: number, value: string) => {
+    handleChange(index, "costCenter", value);
+    handleChange(index, "project", ""); // Reset project when cost center changes
+    
+    // Update available projects based on selected cost center
+    if (value && COST_CENTERS[value as keyof typeof COST_CENTERS]) {
+      setAvailableProjects(COST_CENTERS[value as keyof typeof COST_CENTERS]);
+    } else {
+      setAvailableProjects([]);
+    }
+  };
 
   return (
     <div>
@@ -57,6 +71,7 @@ export default function OperationalLineForm({
             <th>Amount (KES)</th>
             {showMileageColumn && <th>Mileage</th>}
             <th>Cost Center</th>
+            <th>Project</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -107,20 +122,28 @@ export default function OperationalLineForm({
                 <select
                   className="form-select"
                   value={exp.costCenter}
-                  onChange={(e) =>
-                    handleChange(idx, "costCenter", e.target.value)
-                  }
+                  onChange={(e) => handleCostCenterChange(idx, e.target.value)}
                 >
                   <option value="">-- Select Cost Center --</option>
-                  {Object.entries(COST_CENTERS).map(([dept, projects]) => (
-                    <optgroup key={dept} label={dept}>
-                      <option value={dept}>{dept} (Department Only)</option>
-                      {projects.map((proj) => (
-                        <option key={proj} value={`${dept} - ${proj}`}>
-                          {proj}
-                        </option>
-                      ))}
-                    </optgroup>
+                  {Object.keys(COST_CENTERS).map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td>
+                <select
+                  className="form-select"
+                  value={exp.project}
+                  onChange={(e) => handleChange(idx, "project", e.target.value)}
+                  disabled={!exp.costCenter}
+                >
+                  <option value="">-- Select Project --</option>
+                  {exp.costCenter && COST_CENTERS[exp.costCenter as keyof typeof COST_CENTERS]?.map((proj) => (
+                    <option key={proj} value={proj}>
+                      {proj}
+                    </option>
                   ))}
                 </select>
               </td>
@@ -130,14 +153,14 @@ export default function OperationalLineForm({
                   className="btn btn-sm btn-outline-success"
                   onClick={() => onSaveLine?.(idx, exp)}
                 >
-                  <Save size={16} />
+                  <Save size={14} /> save
                 </button>
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-danger"
                   onClick={() => removeExpenseLine(idx)}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} /> delete
                 </button>
               </td>
             </tr>

@@ -86,22 +86,31 @@ export default function AdvanceRequestAction({
     ? "Settle Advance"
     : `Request ${advanceType || ""} Advance`;
 
-  const renderModal = () => (
-    <CustomModal
-      show={showModal}
-      onClose={handleCloseModal}
-      title={modalTitle}
-      size="xl"
-      titleIcon={<Wallet size={18} className="text-white" />}
-    >
-      <div className="row">
-        <div className="col-md-9">{renderForm()}</div>
-        <div className="col-md-3">
-          <VerticalProgressCard advance={editingAdvance} />
+  const renderModal = () => {
+    const isSalary =
+      advanceType === "Salary" || editingAdvance?.advanceType === "Salary";
+
+    return (
+      <CustomModal
+        show={showModal}
+        onClose={handleCloseModal}
+        title={modalTitle}
+        size="xl"
+        titleIcon={<Wallet size={18} className="text-white" />}
+      >
+        <div className="row">
+          <div className={isSalary ? "col-md-9" : "col-md-12"}>
+            {renderForm()}
+          </div>
+          {isSalary && (
+            <div className="col-md-3">
+              <VerticalProgressCard advance={editingAdvance} />
+            </div>
+          )}
         </div>
-      </div>
-    </CustomModal>
-  );
+      </CustomModal>
+    );
+  };
 
   return (
     <>
