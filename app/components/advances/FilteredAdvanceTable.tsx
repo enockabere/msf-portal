@@ -6,7 +6,6 @@ import AdvanceRequestAction from "./AdvanceRequestAction";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Advance } from "@/app/types/advance";
 
-// Move local cache OUTSIDE the component
 const localCache: Record<string, Advance[]> = {};
 
 interface AdvanceDataTableProps {
@@ -24,14 +23,13 @@ export default function AdvanceDataTable({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
-  const [forceRefresh, setForceRefresh] = useState(false); // 👈 NEW
+  const [forceRefresh, setForceRefresh] = useState(false);
 
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
 
     const cacheKey = `advances-${employeeNo}`;
 
-    // Only use cache if NOT force refreshing
     if (localCache[cacheKey] && !forceRefresh) {
       console.log(`⚡ Using local cache for ${employeeNo}`);
       setData(localCache[cacheKey]);
@@ -48,7 +46,7 @@ export default function AdvanceDataTable({
       const json = await res.json();
       const advanceData: Advance[] = json["data"]["value"];
 
-      localCache[cacheKey] = advanceData; // Update cache
+      localCache[cacheKey] = advanceData;
       setData(advanceData);
     } catch (err) {
       console.error("❌ Failed to fetch advances:", err);
@@ -56,9 +54,9 @@ export default function AdvanceDataTable({
       const end = performance.now();
       console.log(`⏳ Fetched advances in ${(end - start).toFixed(2)} ms`);
       setLoading(false);
-      setForceRefresh(false); // Reset forceRefresh
+      setForceRefresh(false);
     }
-  }, [employeeNo, forceRefresh]); // 👈 depend on forceRefresh
+  }, [employeeNo, forceRefresh]);
 
   useEffect(() => {
     fetchAdvances();
@@ -106,14 +104,16 @@ export default function AdvanceDataTable({
       sortable: true,
       style: { minWidth: "140px" },
       cell: (row: Advance) => (
-        <button
-          className="btn btn-link text-dark"
+        <span
+          className="text-blue text-decoration-underline cursor-pointer"
+          style={{ cursor: "pointer" }}
           onClick={() => setSelectedAdvance(row)}
         >
           {row.no}
-        </button>
+        </span>
       ),
     },
+
     {
       name: "Type",
       selector: (row: Advance) => row.advanceType,
@@ -231,7 +231,7 @@ export default function AdvanceDataTable({
         <AdvanceRequestAction
           advance={selectedAdvance}
           refetch={() => {
-            setForceRefresh(true); // 🧹 Force re-fetch fresh data
+            setForceRefresh(true);
           }}
           onCloseView={() => setSelectedAdvance(null)}
           employeeNo={employeeNo}

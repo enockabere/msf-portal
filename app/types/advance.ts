@@ -31,3 +31,30 @@ export interface SalaryAdvanceData extends Advance {
   swiftCode: string;
   payrollPeriod?: string;
 }
+
+export interface ExpenseItem {
+  category: string;
+  amount: number;
+  receipt?: File | null;
+  mileage: string;
+  costCenter: string;
+  project: string;
+  surrenderedAmount?: number;
+  otherCategory?: string;
+}
+
+export interface FormData {
+  purpose: string;
+  amount: string;
+  currency: string;
+  paymentMethod: string;
+  cashCollectionDate: string;
+  cashHours: string;
+  idPassportNumber: string;
+  accountNo: string;
+  bank: string;
+  branch: string;
+  chequeName: string;
+  swiftCode: string;
+  phone: string;
+}

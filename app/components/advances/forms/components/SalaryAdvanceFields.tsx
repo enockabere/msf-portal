@@ -15,7 +15,7 @@ interface Props {
   advanceLimit: number | null | undefined;
   isLimitLoading: boolean;
   isViewMode: boolean;
-  status?: string; // <-- Added status prop
+  status?: string; 
 }
 
 export default function SalaryAdvanceFields({
@@ -31,31 +31,26 @@ export default function SalaryAdvanceFields({
   advanceLimit,
   isLimitLoading,
   isViewMode,
-  status = "", // <-- Default value
+  status = "", 
 }: Props) {
   const isKES = currency === "KES";
   const currencyChosen = currency !== "";
 
   const isDisabled =
-    isViewMode || status === "Pending Approval" || status === "Released"; // Central disabled logic
+    isViewMode || status === "Pending Approval" || status === "Released"; 
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value;
     setCurrency(selectedCurrency);
-
-    if (selectedCurrency === "KES" || selectedCurrency === "") {
-      setPaymentMethod("MPESA");
-    } else {
-      setPaymentMethod("");
-    }
+    setPaymentMethod("");
   };
 
   const filteredPaymentMethods = useMemo(() => {
-    if (!currencyChosen) return [];
-    return isKES
-      ? paymentMethods.filter((pm) => pm.code === "MPESA")
-      : paymentMethods.filter((pm) => pm.code !== "MPESA");
-  }, [currency, paymentMethods]);
+    if (!currencyChosen || isKES) {
+      return paymentMethods; 
+    }
+    return paymentMethods.filter((pm) => pm.code !== "MPESA"); 
+  }, [currency, isKES, currencyChosen, paymentMethods]);
 
   return (
     <div className="row">

@@ -243,13 +243,14 @@ export default function SalaryAdvanceForm({
   ]);
 
   useEffect(() => {
-    if (currency === "KES" || currency === "") {
-      setPaymentMethod("MPESA");
+    if (currency && currency !== "KES") {
+      setPaymentMethod("RTGS"); 
       setIsPaymentMethodLocked(true);
     } else {
       setIsPaymentMethodLocked(false);
     }
   }, [currency]);
+  
 
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {

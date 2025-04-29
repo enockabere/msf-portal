@@ -6,6 +6,7 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
+import TravelAdvanceForm from "./forms/TravelAdvanceForm";
 import { Wallet, Plus } from "lucide-react";
 import { Advance, SalaryAdvanceData } from "@/app/types/advance";
 
@@ -74,7 +75,7 @@ export default function AdvanceRequestAction({
       case "Settlement":
         return <AdvanceSettlementForm />;
       case "Travel":
-        return <div className="alert alert-info">Travel form coming soon!</div>;
+        return <TravelAdvanceForm />;
       default:
         return <div className="text-muted">Select an advance type</div>;
     }
@@ -87,8 +88,8 @@ export default function AdvanceRequestAction({
     : `Request ${advanceType || ""} Advance`;
 
   const renderModal = () => {
-    const isSalary =
-      advanceType === "Salary" || editingAdvance?.advanceType === "Salary";
+    const formType = editingAdvance?.advanceType || advanceType;
+    const isSalary = formType === "Salary" || formType === "Advance";
 
     return (
       <CustomModal
@@ -133,7 +134,7 @@ export default function AdvanceRequestAction({
               href="#"
               onClick={() => handleNewRequest("Salary")}
             >
-              <i className="fa-solid fa-money-bill me-2 text-success"></i>
+              <i className="fa-solid fa-money-bill me-2 text-success"></i>{" "}
               Salary Advance
             </a>
             <a
@@ -141,23 +142,23 @@ export default function AdvanceRequestAction({
               href="#"
               onClick={() => handleNewRequest("Travel")}
             >
-              <i className="fa-solid fa-plane me-2 text-info"></i>
-              Travel Advance
+              <i className="fa-solid fa-plane me-2 text-info"></i> Travel
+              Advance
             </a>
             <a
               className="dropdown-item d-flex align-items-center"
               href="#"
               onClick={() => handleNewRequest("Operational")}
             >
-              <i className="fa-solid fa-gear me-2 text-warning"></i>
-              Operational Advance
+              <i className="fa-solid fa-gear me-2 text-warning"></i> Operational
+              Advance
             </a>
             <a
               className="dropdown-item d-flex align-items-center"
               href="#"
               onClick={() => handleNewRequest("Settlement")}
             >
-              <i className="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>
+              <i className="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>{" "}
               Advance Settlement
             </a>
           </div>

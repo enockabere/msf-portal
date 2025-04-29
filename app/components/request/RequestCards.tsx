@@ -13,6 +13,7 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import TravelAdvanceForm from "../advances/forms/TravelAdvanceForm";
 
 type AdvanceType = "Salary" | "Operational" | "Travel" | null;
 type RequestType = "Advance" | "Expense" | null;
@@ -36,7 +37,6 @@ export default function RequestCards() {
 
   const fetchAdvances = async () => {
     if (!employee?.number) return;
-
     setIsLoading(true);
     try {
       const res = await fetch(
@@ -50,7 +50,7 @@ export default function RequestCards() {
       const released = data.filter((a: any) => a.status === "Released").length;
       setMetrics({ pending, released });
     } catch (err) {
-      console.error("❌ Failed to fetch advances:", err);
+      console.error("\u274C Failed to fetch advances:", err);
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +167,15 @@ export default function RequestCards() {
                   >
                     Operational Advance
                   </a>
-                  <a className="dropdown-item disabled" href="#">
+                  <a
+                    className="dropdown-item"
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setAdvanceType("Travel");
+                      handleOpenModal("Advance");
+                    }}
+                  >
                     Travel Advance
                   </a>
                 </div>
@@ -176,7 +184,7 @@ export default function RequestCards() {
           </div>
         </div>
 
-        {/* Record Expenses Card (Active) */}
+        {/* Record Expenses Card */}
         <div className="col">
           <div
             className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
@@ -263,18 +271,34 @@ export default function RequestCards() {
         titleIcon={<PlusCircle size={18} className="text-white" />}
       >
         <div className="row">
-          <div className="col-md-8">
-            {requestType === "Advance" && advanceType === "Salary" && (
-              <SalaryAdvanceForm />
-            )}
-            {requestType === "Advance" && advanceType === "Operational" && (
+          {requestType === "Advance" && advanceType === "Salary" && (
+            <>
+              <div className="col-md-8">
+                <SalaryAdvanceForm />
+              </div>
+              <div className="col-md-4">
+                <VerticalProgressCard />
+              </div>
+            </>
+          )}
+
+          {requestType === "Advance" && advanceType === "Operational" && (
+            <div className="col-md-12">
               <OperationalAdvanceForm />
-            )}
-            {requestType === "Expense" && <AdvanceSettlementForm />}
-          </div>
-          <div className="col-md-4">
-            <VerticalProgressCard />
-          </div>
+            </div>
+          )}
+
+          {requestType === "Advance" && advanceType === "Travel" && (
+            <div className="col-md-12">
+              <TravelAdvanceForm />
+            </div>
+          )}
+
+          {requestType === "Expense" && (
+            <div className="col-md-12">
+              <AdvanceSettlementForm />
+            </div>
+          )}
         </div>
       </CustomModal>
     </>
