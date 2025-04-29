@@ -38,42 +38,44 @@ export default function ActionButtons({
     setIsCancelling(true);
 
     try {
-      // Cancel Approval first
-      const res = await fetch(
-        "/api/bc/advances/salary/cancelApproval",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ advanceNo }),
-        }
-      );
+      const res = await fetch("/api/bc/advances/salary/cancelApproval", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ advanceNo }),
+      });
 
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        Swal.fire(
+        await Swal.fire(
           "Error",
           data.error?.message || "Failed to cancel approval.",
           "error"
         );
       } else {
-        Swal.fire("Success", "Cancelled approval successfully!", "success");
+        await Swal.fire(
+          "Success",
+          "Cancelled approval successfully!",
+          "success"
+        );
 
-        // Clear cache after cancellation
         if (employeeNo) {
           await fetch(`/api/clearCache?employeeNo=${employeeNo}`, {
             method: "POST",
           });
-          console.log(`🧹 Cache cleared for employee ${employeeNo}`);
         }
 
         onSuccess?.();
       }
     } catch (error) {
       console.error("Cancel approval error:", error);
-      Swal.fire("Error", "Something went wrong during cancellation.", "error");
+      await Swal.fire(
+        "Error",
+        "Something went wrong during cancellation.",
+        "error"
+      );
     } finally {
       setIsCancelling(false);
     }

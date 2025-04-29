@@ -21,7 +21,7 @@ export default function LoginClient() {
             className="logo-lg"
           />
           <button className="btn btn-primary" onClick={handleSSORedirect}>
-            Login
+            Staff Login
           </button>
         </div>
       </header>
@@ -103,7 +103,8 @@ export default function LoginClient() {
 
               {/* Footer */}
               <footer className="text-center pt-5 text-muted small mt-auto">
-                &copy; {new Date().getFullYear()}  { process.env.ORG_NAME ?? 'MSF' } · ERP Portal
+                &copy; {new Date().getFullYear()}{" "}
+                {process.env.ORG_NAME ?? "MSF"} · ERP Portal
               </footer>
             </div>
           </div>
