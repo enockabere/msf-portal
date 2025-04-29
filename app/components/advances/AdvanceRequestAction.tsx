@@ -83,7 +83,7 @@ export default function AdvanceRequestAction({
   const modalTitle = editingAdvance
     ? `View/Edit ${editingAdvance.advanceType} Advance - ${editingAdvance.no}`
     : advanceType === "Settlement"
-    ? "Settle Advance - KES 30,000"
+    ? "Settle Advance"
     : `Request ${advanceType || ""} Advance`;
 
   const renderModal = () => (
@@ -149,7 +149,7 @@ export default function AdvanceRequestAction({
               onClick={() => handleNewRequest("Settlement")}
             >
               <i className="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>
-              Record an Expense
+              Advance Settlement
             </a>
           </div>
         </div>
