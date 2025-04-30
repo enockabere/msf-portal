@@ -6,8 +6,6 @@ import AdvanceRequestAction from "./AdvanceRequestAction";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Advance } from "@/app/types/advance";
 
-const localCache: Record<string, Advance[]> = {};
-
 interface AdvanceDataTableProps {
   employeeNo?: string;
 }
@@ -28,17 +26,13 @@ export default function AdvanceDataTable({
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
 
-    const cacheKey = `advances-${employeeNo}`;
-
-    if (localCache[cacheKey] && !forceRefresh) {
-      console.log(`⚡ Using local cache for ${employeeNo}`);
-      setData(localCache[cacheKey]);
-      setLoading(false);
-      return;
+    if (!forceRefresh) {
+      console.log(`🔁 Fetching advances for ${employeeNo} (no local cache)`);
     }
 
     setLoading(true);
     const start = performance.now();
+
     try {
       const res = await fetch(
         `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
@@ -46,7 +40,6 @@ export default function AdvanceDataTable({
       const json = await res.json();
       const advanceData: Advance[] = json["data"]["value"];
 
-      localCache[cacheKey] = advanceData;
       setData(advanceData);
     } catch (err) {
       console.error("❌ Failed to fetch advances:", err);

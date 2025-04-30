@@ -2,30 +2,29 @@
 
 import { ArrowDown } from "lucide-react";
 import React, { useEffect } from "react";
+import InboundTravelNotice from "./InboundTravelNotice";
+import OutboundTravelForm from "./OutboundTravelForm";
+
+export interface TravelInfo {
+  basedOnRequest: "Yes" | "No";
+  travelRequestId: "TR001" | "TR002" | "";
+  tripType: string;
+  tripDates: { from: string; to: string };
+  destination: string;
+  applyForOther: "Yes" | "No";
+  recipientName: string;
+  currency: string;
+  paymentMethod: string;
+  [key: string]: any;
+}
 
 interface TravelAdvanceHeaderProps {
-  travelInfo: any;
-  setTravelInfo: (info: any) => void;
+  travelInfo: TravelInfo;
+  setTravelInfo: React.Dispatch<React.SetStateAction<TravelInfo>>;
   onNext: () => void;
 }
 
-const RECIPIENTS = [
-  "John Doe",
-  "Jane Smith",
-  "Michael Johnson",
-  "Sarah Williams",
-  "David Brown",
-];
-
-const TRAVEL_REQUESTS: Record<
-  string,
-  {
-    destination: string;
-    tripDates: { from: string; to: string };
-    currency: string;
-    paymentMethod: string;
-  }
-> = {
+const TRAVEL_REQUESTS = {
   TR001: {
     destination: "Nairobi",
     tripDates: { from: "2024-06-01", to: "2024-06-05" },
@@ -38,7 +37,9 @@ const TRAVEL_REQUESTS: Record<
     currency: "USD",
     paymentMethod: "Cash",
   },
-};
+} as const;
+
+type TravelRequestID = keyof typeof TRAVEL_REQUESTS;
 
 export default function TravelAdvanceHeader({
   travelInfo,
@@ -46,23 +47,31 @@ export default function TravelAdvanceHeader({
   onNext,
 }: TravelAdvanceHeaderProps) {
   const handleChange = (field: string, value: any) => {
-    setTravelInfo((prev: any) => ({ ...prev, [field]: value }));
+    setTravelInfo((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Default "Yes" on first load
   useEffect(() => {
-    if (travelInfo.basedOnRequest === "Yes" && travelInfo.travelRequestId) {
-      const selected = TRAVEL_REQUESTS[travelInfo.travelRequestId];
-      if (selected) {
-        setTravelInfo((prev: any) => ({
-          ...prev,
-          destination: selected.destination,
-          tripDates: selected.tripDates,
-          currency: selected.currency,
-          paymentMethod: selected.paymentMethod,
-        }));
-      }
+    if (!travelInfo.basedOnRequest) {
+      setTravelInfo((prev) => ({ ...prev, basedOnRequest: "Yes" }));
     }
-  }, [travelInfo.basedOnRequest, travelInfo.travelRequestId, setTravelInfo]);
+  }, []);
+
+  // Populate data from request
+  useEffect(() => {
+    const { travelRequestId, basedOnRequest } = travelInfo;
+
+    if (basedOnRequest === "Yes" && travelRequestId in TRAVEL_REQUESTS) {
+      const selected = TRAVEL_REQUESTS[travelRequestId as TravelRequestID];
+      setTravelInfo((prev) => ({
+        ...prev,
+        destination: selected.destination,
+        tripDates: selected.tripDates,
+        currency: selected.currency,
+        paymentMethod: selected.paymentMethod,
+      }));
+    }
+  }, [travelInfo.basedOnRequest, travelInfo.travelRequestId]);
 
   return (
     <div className="card border-0 shadow-sm mb-4">
@@ -70,6 +79,7 @@ export default function TravelAdvanceHeader({
         <h5 className="mb-0 text-dark">Step 1: Travel Details</h5>
       </div>
       <div className="card-body">
+        {/* Based on Planner */}
         <div className="mb-3">
           <label className="form-label fw-semibold">
             Based on submitted Travel Request?
@@ -79,185 +89,40 @@ export default function TravelAdvanceHeader({
             value={travelInfo.basedOnRequest}
             onChange={(e) => handleChange("basedOnRequest", e.target.value)}
           >
-            <option value="No">No</option>
+            <option value="No">No - (MSF-EA Visitor Travel Allowance)</option>
             <option value="Yes">Yes</option>
           </select>
         </div>
 
-        {travelInfo.basedOnRequest === "Yes" ? (
-          <>
-            <div className="mb-3">
-              <label className="form-label">Select Travel Request</label>
-              <select
-                className="form-select"
-                value={travelInfo.travelRequestId}
-                onChange={(e) =>
-                  handleChange("travelRequestId", e.target.value)
-                }
-              >
-                <option value="">-- Select --</option>
-                <option value="TR001">Trip to Nairobi</option>
-                <option value="TR002">Workshop in Mombasa</option>
-              </select>
-            </div>
-            {travelInfo.travelRequestId && (
-              <div className="bg-light p-3 rounded border">
-                <p className="mb-2">
-                  <strong>Destination:</strong> {travelInfo.destination || "-"}
-                </p>
-                <p className="mb-2">
-                  <strong>Trip Dates:</strong> {travelInfo.tripDates?.from} to{" "}
-                  {travelInfo.tripDates?.to}
-                </p>
-                <p className="mb-2">
-                  <strong>Currency:</strong> {travelInfo.currency || "-"}
-                </p>
-                <p className="mb-0">
-                  <strong>Payment Method:</strong>{" "}
-                  {travelInfo.paymentMethod || "-"}
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="mb-3">
-              <label className="form-label">Trip Type</label>
-              <select
-                className="form-select"
-                value={travelInfo.tripType}
-                onChange={(e) => handleChange("tripType", e.target.value)}
-              >
-                <option value="">-- Select --</option>
-                <option value="outbound">Outbound</option>
-                <option value="inbound">Inbound</option>
-              </select>
-            </div>
+        {/* Travel Request ID (only active when Yes) */}
+        <div className="mb-3">
+          <label className="form-label fw-semibold">
+            Select Travel Request
+          </label>
+          <select
+            className="form-select"
+            disabled={travelInfo.basedOnRequest === "No"}
+            value={travelInfo.travelRequestId}
+            onChange={(e) => handleChange("travelRequestId", e.target.value)}
+          >
+            <option value="">-- Select --</option>
+            <option value="TR001">Trip to Nairobi</option>
+            <option value="TR002">Workshop in Mombasa</option>
+          </select>
+        </div>
 
-            {travelInfo.tripType === "outbound" && (
-              <>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Trip From</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      value={travelInfo.tripDates.from}
-                      onChange={(e) =>
-                        handleChange("tripDates", {
-                          ...travelInfo.tripDates,
-                          from: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label">Trip To</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      value={travelInfo.tripDates.to}
-                      onChange={(e) =>
-                        handleChange("tripDates", {
-                          ...travelInfo.tripDates,
-                          to: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="form-label">Destination</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={travelInfo.destination}
-                    onChange={(e) =>
-                      handleChange("destination", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="mt-3">
-                  <label className="form-label">
-                    Apply on behalf of someone else?
-                  </label>
-                  <select
-                    className="form-select"
-                    value={travelInfo.applyForOther}
-                    onChange={(e) =>
-                      handleChange("applyForOther", e.target.value)
-                    }
-                  >
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-
-                {travelInfo.applyForOther === "Yes" && (
-                  <div className="mt-2">
-                    <label className="form-label">Recipient Name</label>
-                    <select
-                      className="form-select"
-                      value={travelInfo.recipientName}
-                      onChange={(e) =>
-                        handleChange("recipientName", e.target.value)
-                      }
-                    >
-                      <option value="">-- Select Recipient --</option>
-                      {RECIPIENTS.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="row mt-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Currency</label>
-                    <select
-                      className="form-select"
-                      value={travelInfo.currency}
-                      onChange={(e) => handleChange("currency", e.target.value)}
-                    >
-                      <option value="">-- Select Currency --</option>
-                      <option value="KES">KES - Kenyan Shilling</option>
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                    </select>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Payment Method</label>
-                    <select
-                      className="form-select"
-                      value={travelInfo.paymentMethod}
-                      onChange={(e) =>
-                        handleChange("paymentMethod", e.target.value)
-                      }
-                    >
-                      <option value="">-- Select Method --</option>
-                      <option value="Cash">Cash</option>
-                      <option value="Mpesa">Mpesa</option>
-                      <option value="Bank">Bank Transfer</option>
-                    </select>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {travelInfo.tripType === "inbound" && (
-              <div className="alert alert-info mt-3">
-                Inbound trips do not require accounting. Approval required from
-                cross-admin.
-              </div>
-            )}
-          </>
+        {/* If Yes + Request is selected => show outbound */}
+        {travelInfo.basedOnRequest === "Yes" && travelInfo.travelRequestId && (
+          <OutboundTravelForm
+            travelInfo={travelInfo}
+            handleChange={handleChange}
+          />
         )}
 
+        {/* If No => Inbound */}
+        {travelInfo.basedOnRequest === "No" && <InboundTravelNotice />}
+
+        {/* Footer */}
         <div className="d-flex justify-content-end mt-4">
           <button
             type="button"

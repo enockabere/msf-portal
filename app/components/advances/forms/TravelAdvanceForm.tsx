@@ -1,23 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import TravelAdvanceHeader from "./Travel/TravelAdvanceHeader";
+import TravelAdvanceHeader, { TravelInfo } from "./Travel/TravelAdvanceHeader";
 import TravelAdvanceLine from "./Travel/TravelAdvanceLine";
 import ProgressIndicator from "./Operational/ProgressIndicator";
-import { ArrowDown, Check } from "lucide-react";
 
 export default function TravelAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [travelInfo, setTravelInfo] = useState({
-    basedOnRequest: "No",
+  const [travelInfo, setTravelInfo] = useState<TravelInfo>({
+    basedOnRequest: "Yes",
     travelRequestId: "",
-    tripType: "", 
+    tripType: "",
     tripDates: { from: "", to: "" },
     destination: "",
     applyForOther: "No",
     recipientName: "",
+    currency: "",
+    paymentMethod: "",
   });
+
   const [lines, setLines] = useState([{ category: "", amount: 0 }]);
 
   const handleSubmit = () => {

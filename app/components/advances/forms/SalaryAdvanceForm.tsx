@@ -244,13 +244,12 @@ export default function SalaryAdvanceForm({
 
   useEffect(() => {
     if (currency && currency !== "KES") {
-      setPaymentMethod("RTGS"); 
+      setPaymentMethod("RTGS");
       setIsPaymentMethodLocked(true);
     } else {
       setIsPaymentMethodLocked(false);
     }
   }, [currency]);
-  
 
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {
@@ -469,6 +468,7 @@ export default function SalaryAdvanceForm({
               "Advance submitted for approval successfully.",
               "success"
             );
+            setIsSubmitting(false);
           }
         } catch (approvalError) {
           console.error("❌ Error submitting for approval:", approvalError);
