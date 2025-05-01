@@ -4,8 +4,6 @@ import { NextResponse, NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const { advanceNo } = await request.json();
-    console.log("🔧 Payload received for approval:", { advanceNo });
-
     if (!advanceNo) {
       return NextResponse.json(
         {

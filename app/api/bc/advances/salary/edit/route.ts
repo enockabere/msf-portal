@@ -16,7 +16,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     const payload = { ...body, no: advanceNo };
-    console.log("🔧 Payload being sent to transport.patch:", payload);
 
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {

@@ -40,12 +40,13 @@ export default function BankDetails({
   status = "",
 }: BankDetailsProps) {
   const isRTGS = paymentMethod === "RTGS";
+  const isEFT = paymentMethod === "EFT";
   const isCHEQUE = paymentMethod === "CHEQUE";
 
-  const isRequired = isRTGS || isCHEQUE;
+  const isRequired = isRTGS || isCHEQUE || isEFT;
 
   const isDisabled =
-    isViewMode || status === "Pending Approval" || status === "Released"; // <-- Central disabled logic
+    isViewMode || status === "Pending Approval" || status === "Released";
 
   return (
     <div className="fade-in">
@@ -153,11 +154,11 @@ export default function BankDetails({
         </div>
       </div>
 
-      {isRTGS && (
+      {(isRTGS || isEFT) && (
         <div className="row">
           <div className="col-12 mb-3">
             <label htmlFor="swift-code" className="form-label">
-              Swift Code <span className="text-danger">*</span>
+              Swift Code {isRTGS && <span className="text-danger">*</span>}
             </label>
             {isLoading ? (
               <div
@@ -171,7 +172,7 @@ export default function BankDetails({
                 className="form-control"
                 value={swiftCode}
                 onChange={(e) => setSwiftCode(e.target.value)}
-                required
+                required={isRTGS}
                 disabled={isDisabled}
               />
             )}

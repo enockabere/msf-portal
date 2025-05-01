@@ -7,12 +7,14 @@ import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Advance } from "@/app/types/advance";
 
 interface AdvanceDataTableProps {
-  employeeNo?: string;
+  employee?: {
+    number: string;
+    nationalId: string;
+    mobilePhone: string;
+  };
 }
 
-export default function AdvanceDataTable({
-  employeeNo,
-}: AdvanceDataTableProps) {
+export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
   const [data, setData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -22,6 +24,7 @@ export default function AdvanceDataTable({
   const [endDate, setEndDate] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [forceRefresh, setForceRefresh] = useState(false);
+  const employeeNo = employee?.number;
 
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
@@ -223,11 +226,9 @@ export default function AdvanceDataTable({
       actions={
         <AdvanceRequestAction
           advance={selectedAdvance}
-          refetch={() => {
-            setForceRefresh(true);
-          }}
+          refetch={() => setForceRefresh(true)}
           onCloseView={() => setSelectedAdvance(null)}
-          employeeNo={employeeNo}
+          employee={employee}
         />
       }
       searchPlaceholder="Search..."

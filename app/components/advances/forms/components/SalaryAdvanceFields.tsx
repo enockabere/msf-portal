@@ -7,7 +7,6 @@ interface Props {
   setAdvanceAmount: (v: string) => void;
   paymentMethod: string;
   setPaymentMethod: (v: string) => void;
-  isPaymentMethodLocked: boolean;
   currency: string;
   setCurrency: (v: string) => void;
   currencies: any[];
@@ -15,7 +14,7 @@ interface Props {
   advanceLimit: number | null | undefined;
   isLimitLoading: boolean;
   isViewMode: boolean;
-  status?: string; 
+  status?: string;
 }
 
 export default function SalaryAdvanceFields({
@@ -23,7 +22,6 @@ export default function SalaryAdvanceFields({
   setAdvanceAmount,
   paymentMethod,
   setPaymentMethod,
-  isPaymentMethodLocked,
   currency,
   setCurrency,
   currencies,
@@ -31,13 +29,13 @@ export default function SalaryAdvanceFields({
   advanceLimit,
   isLimitLoading,
   isViewMode,
-  status = "", 
+  status = "",
 }: Props) {
   const isKES = currency === "KES";
   const currencyChosen = currency !== "";
 
   const isDisabled =
-    isViewMode || status === "Pending Approval" || status === "Released"; 
+    isViewMode || status === "Pending Approval" || status === "Released";
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value;
@@ -46,11 +44,12 @@ export default function SalaryAdvanceFields({
   };
 
   const filteredPaymentMethods = useMemo(() => {
-    if (!currencyChosen || isKES) {
-      return paymentMethods; 
+    if (!currencyChosen) return [];
+    if (currency === "KES") {
+      return paymentMethods;
     }
-    return paymentMethods.filter((pm) => pm.code !== "MPESA"); 
-  }, [currency, isKES, currencyChosen, paymentMethods]);
+    return paymentMethods.filter((pm) => pm.code !== "MPESA");
+  }, [currency, currencyChosen, paymentMethods]);
 
   return (
     <div className="row">
@@ -120,7 +119,7 @@ export default function SalaryAdvanceFields({
           className="form-select"
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
-          disabled={isDisabled || isPaymentMethodLocked || !currencyChosen}
+          disabled={isDisabled || !currencyChosen}
           required
         >
           <option value="">-- Select Payment Method --</option>
@@ -130,11 +129,6 @@ export default function SalaryAdvanceFields({
             </option>
           ))}
         </select>
-        {isPaymentMethodLocked && (
-          <small className="text-muted">
-            Change the currency to unlock payment method
-          </small>
-        )}
       </div>
     </div>
   );

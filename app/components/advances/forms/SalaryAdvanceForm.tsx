@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./SalaryAdvanceForm.css";
@@ -49,14 +55,19 @@ interface SalaryAdvanceFormProps {
   advance?: SalaryAdvanceData | null;
   isViewMode?: boolean;
   onSuccess?: () => void;
-  employeeNo?: string;
+  employee?: {
+    number: string;
+    nationalId: string;
+    mobilePhone: string;
+    [key: string]: any;
+  };
 }
 
 export default function SalaryAdvanceForm({
   advance = null,
   isViewMode = false,
   onSuccess,
-  employeeNo,
+  employee,
 }: SalaryAdvanceFormProps) {
   const advanceNo = advance?.no;
   const advanceBankCode = advance?.bankCode;
@@ -75,8 +86,9 @@ export default function SalaryAdvanceForm({
   const [advanceLimit, setAdvanceLimit] = useState<number | null | undefined>(
     null
   );
-  const [paymentMethod, setPaymentMethod] = useState("RTGS");
-  const [currency, setCurrency] = useState("");
+  const [currency, setCurrency] = useState("KES"); // Default to KES
+  const [paymentMethod, setPaymentMethod] = useState("MPESA"); // Default to MPESA
+
   const [accountNo, setAccountNo] = useState("");
   const [bank, setBank] = useState("");
   const [branch, setBranch] = useState("");
@@ -91,7 +103,10 @@ export default function SalaryAdvanceForm({
     advanceNo
   );
   const [cutoffPassed, setCutoffPassed] = useState(false);
-  const [isPaymentMethodLocked, setIsPaymentMethodLocked] = useState(false);
+  const didInitDefaults = useRef(false);
+  const didSetInitialAmount = useRef(false);
+
+  const employeeNo = employee?.number;
 
   const {
     currencies,
@@ -107,6 +122,20 @@ export default function SalaryAdvanceForm({
     () => bankBranches.filter((b) => b.mainBank === bank),
     [bankBranches, bank]
   );
+
+  useEffect(() => {
+    if (
+      !advanceCurrencyCode &&
+      !didInitDefaults.current &&
+      currencies.length &&
+      paymentMethods.length
+    ) {
+      setCurrency("KES");
+      setPaymentMethod("MPESA"); // MPESA default for KES
+      didInitDefaults.current = true;
+    }
+  }, [advanceCurrencyCode, currencies.length, paymentMethods.length]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -184,40 +213,39 @@ export default function SalaryAdvanceForm({
 
   useEffect(() => {
     if (currencies.length && paymentMethods.length && bankBranches.length) {
-      setAdvanceAmount(advanceApplicationAmount?.toString() || "");
+      if (!didSetInitialAmount.current) {
+        setAdvanceAmount(advanceApplicationAmount?.toString() || "");
+        didSetInitialAmount.current = true;
+      }
 
-      // If advance has a currency already
       if (advanceCurrencyCode) {
         setCurrency(advanceCurrencyCode);
-
-        if (advanceCurrencyCode === "KES" || advanceCurrencyCode === "") {
-          setPaymentMethod("MPESA");
-          setIsPaymentMethodLocked(true);
-        } else {
-          setPaymentMethod(advancePaymentMethod || "RTGS");
-          setIsPaymentMethodLocked(false);
-        }
-      }
-      // If no currency in advance (new form)
-      else {
+        setPaymentMethod(
+          advanceCurrencyCode === "KES" || advanceCurrencyCode === ""
+            ? "MPESA"
+            : advancePaymentMethod || "RTGS"
+        );
+      } else {
         setCurrency("KES");
         setPaymentMethod("MPESA");
-        setIsPaymentMethodLocked(true);
       }
 
       setAccountNo(advanceAccountNo || "");
       setBank(advanceBankCode || "");
       setChequeName(advanceChequeName || "");
       setSwiftCode(advanceSwiftCode || "");
+
+      // ❗ Fix: Only set phone/idNumber if available in advance
       if (advanceMobilePhoneNo) {
         const cleanPhone = advanceMobilePhoneNo.startsWith("+254")
           ? advanceMobilePhoneNo.slice(4)
           : advanceMobilePhoneNo;
         setPhone(cleanPhone);
-      } else {
-        setPhone("");
       }
-      setIdNumber(advanceIdNo || "");
+
+      if (advanceIdNo) {
+        setIdNumber(advanceIdNo);
+      }
 
       const validBranch = bankBranches.find(
         (b) => b.branchNo === advanceEmployeeBranchCode
@@ -237,19 +265,20 @@ export default function SalaryAdvanceForm({
     advanceBankCode,
     advanceChequeName,
     advanceSwiftCode,
-    advanceMobilePhoneNo,
-    advanceIdNo,
+    advanceMobilePhoneNo, // ok to include
+    advanceIdNo, // ok to include
     advanceEmployeeBranchCode,
   ]);
 
   useEffect(() => {
     if (currency && currency !== "KES") {
-      setPaymentMethod("RTGS");
-      setIsPaymentMethodLocked(true);
-    } else {
-      setIsPaymentMethodLocked(false);
+      if (paymentMethod === "MPESA" || paymentMethod === "") {
+        setPaymentMethod("RTGS"); // or default to first non-MPESA method
+      }
+    } else if (currency === "KES" && paymentMethod === "") {
+      setPaymentMethod("MPESA"); // Default for KES
     }
-  }, [currency]);
+  }, [currency, paymentMethod]);
 
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {
@@ -311,12 +340,20 @@ export default function SalaryAdvanceForm({
         ? advanceMobilePhoneNo.slice(4)
         : advanceMobilePhoneNo;
       setPhone(cleanPhone);
+    } else if (!advance && employee?.mobilePhone) {
+      // Prefill from employee only if NOT editing
+      const cleanEmpPhone = employee.mobilePhone.startsWith("+254")
+        ? employee.mobilePhone.slice(4)
+        : employee.mobilePhone;
+      setPhone(cleanEmpPhone);
     }
 
     if (advanceIdNo) {
       setIdNumber(advanceIdNo);
+    } else if (!advance && employee?.nationalId) {
+      setIdNumber(employee.nationalId);
     }
-  }, [advanceMobilePhoneNo, advanceIdNo]);
+  }, [advanceMobilePhoneNo, advanceIdNo, advance, employee]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -341,6 +378,11 @@ export default function SalaryAdvanceForm({
 
       if (isViewMode) {
         Swal.fire("Info", "View mode - no changes will be saved.", "info");
+        return;
+      }
+
+      if (currency !== "KES" && paymentMethod === "MPESA") {
+        Swal.fire("Error", "MPESA is only valid for KES currency", "error");
         return;
       }
 
@@ -401,13 +443,17 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
-
         console.log("📥 Response after create/edit:", response);
 
-        if (!res.ok || response.error) {
-          throw new Error(
-            response.error?.message || "Failed to process advance"
-          );
+        if (!res.ok || response.error || response.success === false) {
+          const rawMsg =
+            response?.rawResponse?.error?.message ||
+            response?.error?.message ||
+            response?.error?.details?.[0]?.message;
+
+          console.error("🔴 API returned error:", response);
+          Swal.fire("Error", rawMsg || "Unknown API error", "error");
+          return;
         }
 
         const newAdvanceNo =
@@ -429,6 +475,7 @@ export default function SalaryAdvanceForm({
             : `Salary advance #${newAdvanceNo} created successfully!`,
           "success"
         );
+
         try {
           const clearCacheRes = await fetch(
             `/api/clearCache?employeeNo=${employeeNo}`,
@@ -436,12 +483,11 @@ export default function SalaryAdvanceForm({
           );
           if (!clearCacheRes.ok) {
             console.warn("⚠️ Failed to clear cache after save");
-          } else {
-            console.log(`🧹 Cache cleared for ${employeeNo}`);
           }
-        } catch (clearCacheErr) {
-          console.warn("⚠️ Cache clear request failed", clearCacheErr);
+        } catch (err) {
+          console.warn("⚠️ Cache clear request failed", err);
         }
+
         try {
           const approvalRes = await fetch(
             "/api/bc/advances/salary/sendApproval",
@@ -453,40 +499,55 @@ export default function SalaryAdvanceForm({
           );
 
           const approvalJson = await approvalRes.json();
-
           console.log("📩 Approval submission response:", approvalJson);
 
-          if (!approvalRes.ok || approvalJson.error) {
-            Swal.fire(
-              "Warning",
-              "Advance saved but failed to submit for approval.",
-              "warning"
-            );
+          if (
+            !approvalRes.ok ||
+            approvalJson.error ||
+            approvalJson.success === false
+          ) {
+            const approvalError =
+              approvalJson?.rawResponse?.error?.message ||
+              approvalJson?.error?.message ||
+              approvalJson?.error?.details?.[0]?.message ||
+              "Approval failed.";
+            console.error("🔴 Approval API error:", approvalJson);
+            Swal.fire("Warning", approvalError, "warning");
           } else {
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
               "success"
             );
-            setIsSubmitting(false);
           }
-        } catch (approvalError) {
+        } catch (approvalError: any) {
           console.error("❌ Error submitting for approval:", approvalError);
           Swal.fire(
             "Warning",
-            "Saved but failed to submit for approval.",
+            approvalError.message || "Saved but failed to submit for approval.",
             "warning"
           );
         }
 
         onSuccess?.();
       } catch (error: any) {
-        console.error("❌ Error:", error);
-        Swal.fire(
-          "Error",
-          error.message || "An error occurred while processing",
-          "error"
-        );
+        console.error("❌ Error in form submission:", error);
+
+        let message = "An unexpected error occurred.";
+        try {
+          const parsed =
+            typeof error.message === "string"
+              ? JSON.parse(error.message)
+              : null;
+          message =
+            parsed?.error?.message ||
+            error.message ||
+            "An unexpected error occurred.";
+        } catch {
+          message = error.message || message;
+        }
+
+        Swal.fire("Error", message, "error");
       } finally {
         setIsSubmitting(false);
       }
@@ -544,7 +605,6 @@ export default function SalaryAdvanceForm({
               setAdvanceAmount={setAdvanceAmount}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
-              isPaymentMethodLocked={isPaymentMethodLocked}
               currency={currency}
               setCurrency={setCurrency}
               currencies={displayedCurrencies}
@@ -565,27 +625,27 @@ export default function SalaryAdvanceForm({
                 required={currency === "KES" && paymentMethod === "MPESA"}
                 status={advanceStatus || ""}
               />
-            ) : (
-              (paymentMethod === "CHEQUE" || paymentMethod === "RTGS") && (
-                <BankDetails
-                  accountNo={accountNo}
-                  setAccountNo={setAccountNo}
-                  bank={bank}
-                  setBank={setBank}
-                  branch={branch}
-                  setBranch={setBranch}
-                  chequeName={chequeName}
-                  setChequeName={setChequeName}
-                  swiftCode={swiftCode}
-                  setSwiftCode={setSwiftCode}
-                  paymentMethod={paymentMethod}
-                  banks={banks}
-                  filteredBranches={filteredBranches}
-                  isViewMode={isViewMode}
-                  status={advanceStatus || ""}
-                />
-              )
-            )}
+            ) : paymentMethod === "CHEQUE" ||
+              paymentMethod === "RTGS" ||
+              paymentMethod === "EFT" ? (
+              <BankDetails
+                accountNo={accountNo}
+                setAccountNo={setAccountNo}
+                bank={bank}
+                setBank={setBank}
+                branch={branch}
+                setBranch={setBranch}
+                chequeName={chequeName}
+                setChequeName={setChequeName}
+                swiftCode={swiftCode}
+                setSwiftCode={setSwiftCode}
+                paymentMethod={paymentMethod}
+                banks={banks}
+                filteredBranches={filteredBranches}
+                isViewMode={isViewMode}
+                status={advanceStatus || ""}
+              />
+            ) : null}
           </>
         )}
         <ActionButtons

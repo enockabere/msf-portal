@@ -29,12 +29,8 @@ export async function GET(req: Request) {
 
   const cached = memoryCache[cacheKey];
   if (cached && cached.expiry > now) {
-    console.log(`⚡ Returning cached advances for ${employeeNo}`);
     return NextResponse.json({ data: cached.data });
   }
-
-  console.log(`⏳ Fetching fresh advances for ${employeeNo}...`);
-  const start = performance.now();
 
   try {
     const response = (await transport.get(
@@ -56,9 +52,6 @@ export async function GET(req: Request) {
       data: { value: sorted },
       expiry: now + CACHE_TTL_SECONDS * 1000,
     };
-
-    const end = performance.now();
-    console.log(`⚡ Fetched and cached in ${(end - start).toFixed(2)} ms`);
 
     return NextResponse.json({ data: { value: sorted } });
   } catch (error) {

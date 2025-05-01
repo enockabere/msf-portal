@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FilePlus, CheckCircle2, Clock, User } from "lucide-react";
-import SimpleBar from "simplebar-react";
+
 
 interface ProgressIndicatorProps {
   currentStep: number;

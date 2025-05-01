@@ -35,6 +35,8 @@ export default function AdvancesClient() {
     }
   }, []);
 
+  console.log(employee);
+
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"
   ) => {
@@ -74,7 +76,13 @@ export default function AdvancesClient() {
             </div>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <FilteredAdvanceTable employeeNo={employee?.number} />
+                <FilteredAdvanceTable
+                  employee={{
+                    number: employee?.number || "",
+                    nationalId: employee?.nationalId || "",
+                    mobilePhone: employee?.mobilePhone || "",
+                  }}
+                />
               </div>
             </div>
           </>
@@ -84,7 +92,13 @@ export default function AdvancesClient() {
           <>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <FilteredAdvanceTable employeeNo={employee?.number} />
+                <FilteredAdvanceTable
+                  employee={{
+                    number: employee?.number || "",
+                    nationalId: employee?.nationalId || "",
+                    mobilePhone: employee?.mobilePhone || "",
+                  }}
+                />
               </div>
             </div>
             <div className="col-lg-3">
@@ -103,7 +117,13 @@ export default function AdvancesClient() {
         {(placement === "top" || placement === "bottom") && (
           <div className="col-12">
             <div className="card h-100 p-2">
-              <FilteredAdvanceTable employeeNo={employee?.number} />
+              <FilteredAdvanceTable
+                employee={{
+                  number: employee?.number || "",
+                  nationalId: employee?.nationalId || "",
+                  mobilePhone: employee?.mobilePhone || "",
+                }}
+              />
             </div>
           </div>
         )}

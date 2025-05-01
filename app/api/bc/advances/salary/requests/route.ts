@@ -29,17 +29,10 @@ export async function GET(req: Request) {
 
   const cacheKey = `advances-${employeeNo}`;
   const now = Date.now();
-
-  // Check cached first
   const cached = memoryCache[cacheKey];
   if (cached && cached.expiry > now) {
-    console.log(`⚡ Returning cached advances for ${employeeNo}`);
     return NextResponse.json({ data: cached.data });
   }
-
-  console.log(`⏳ Fetching fresh advances for ${employeeNo}...`);
-  const start = performance.now();
-
   try {
     const response = (await transport.get(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
@@ -48,7 +41,7 @@ export async function GET(req: Request) {
         $select:
           "no,employeeName,applicationDate,preferredDisbursementDate,advanceType,status,applicationAmount,currencyCode,bankCode,accountNo,mobilePhoneNo,identificationDocumentNo,employeeBankName,employeeBranchCode,employeeBranchName,chequeName,swiftCode,paymentMethod",
       }
-    )) as { value: AdvanceEntry[] }; // 👈 Safe casting here!
+    )) as { value: AdvanceEntry[] };
 
     const sorted = [...response.value].sort(
       (a, b) =>
@@ -60,10 +53,6 @@ export async function GET(req: Request) {
       data: { value: sorted },
       expiry: now + CACHE_TTL_SECONDS * 1000,
     };
-
-    const end = performance.now();
-    console.log(`⚡ Fetched and cached in ${(end - start).toFixed(2)} ms`);
-
     return NextResponse.json({ data: { value: sorted } });
   } catch (error) {
     console.error("❌ Fetch Salary Advance Error:", error);

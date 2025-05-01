@@ -52,9 +52,7 @@ export default function OperationalLineForm({
 
   const handleCostCenterChange = (index: number, value: string) => {
     handleChange(index, "costCenter", value);
-    handleChange(index, "project", ""); // Reset project when cost center changes
-    
-    // Update available projects based on selected cost center
+    handleChange(index, "project", ""); 
     if (value && COST_CENTERS[value as keyof typeof COST_CENTERS]) {
       setAvailableProjects(COST_CENTERS[value as keyof typeof COST_CENTERS]);
     } else {

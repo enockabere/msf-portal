@@ -21,10 +21,10 @@ export default function MpesaDetails({
   isLoading = false,
   isViewMode = false,
   required = false,
-  status = "", // <-- Default empty string
+  status = "", 
 }: MpesaDetailsProps) {
   const isDisabled =
-    isViewMode || status === "Pending Approval" || status === "Released"; // Central disable logic
+    isViewMode || status === "Pending Approval" || status === "Released"; 
 
   return (
     <div className="fade-in">

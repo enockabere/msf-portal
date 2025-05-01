@@ -35,20 +35,12 @@ export async function POST(request: Request) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
-    console.log("📦 Sending Payload:", JSON.stringify(payload, null, 2));
-
     const response = await transport.post(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
     );
-
-    const end = performance.now();
-    console.log(`⏱ Transport request took ${(end - start).toFixed(2)} ms`);
-    console.log("📨 Received Response:", JSON.stringify(response, null, 2));
-
     if ((response as any)?.error) {
-      console.error("🔴 API returned error:", (response as any).error);
       return NextResponse.json(
         {
           success: false,

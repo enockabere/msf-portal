@@ -21,12 +21,8 @@ export async function GET(request: NextRequest) {
     const now = Date.now();
 
     if (cached && cached.expiry > now) {
-      console.log(`⚡ Returning cached approval entries for ${documentNo}`);
       return NextResponse.json({ data: cached.data });
     }
-
-    console.log(`⏳ Fetching fresh approval entries for ${documentNo}...`);
-
     const start = performance.now(); // Start timer
 
     const response = await transport.get(
@@ -37,13 +33,6 @@ export async function GET(request: NextRequest) {
           "documentNo,approverID,approveForName,status,sendByName,dateTimeSentForApproval,lastDateTimeModified,ageing,approvalComments",
         $expand: "*",
       }
-    );
-
-    const end = performance.now();
-    console.log(
-      `⏳ Fetch approvalEntries for ${documentNo} took ${(end - start).toFixed(
-        2
-      )} ms`
     );
     memoryCache[cacheKey] = {
       data: response,

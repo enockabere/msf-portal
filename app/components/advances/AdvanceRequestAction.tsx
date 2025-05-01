@@ -22,14 +22,19 @@ interface AdvanceRequestActionProps {
   advance: Advance | null;
   refetch?: () => void;
   onCloseView?: () => void;
-  employeeNo?: string;
+  employee?: {
+    number: string;
+    nationalId: string;
+    mobilePhone: string;
+    [key: string]: any;
+  };
 }
 
 export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
-  employeeNo,
+  employee,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
@@ -67,7 +72,7 @@ export default function AdvanceRequestAction({
           <SalaryAdvanceForm
             advance={editingAdvance}
             onSuccess={handleCloseModal}
-            employeeNo={employeeNo}
+            employee={employee}
           />
         );
       case "Operational":
