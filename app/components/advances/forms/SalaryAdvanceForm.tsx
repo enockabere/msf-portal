@@ -180,7 +180,7 @@ export default function SalaryAdvanceForm({
   const displayedCurrencies = useMemo(() => {
     return [
       { code: "KES", description: "Kenyan Shilling" },
-      ...currencies.filter((c) => c.code !== "KES"),
+      ...currencies.filter((c: Record<string, any>) => c.code !== "KES"),
     ];
   }, [currencies]);
 
@@ -248,7 +248,7 @@ export default function SalaryAdvanceForm({
       }
 
       const validBranch = bankBranches.find(
-        (b) => b.branchNo === advanceEmployeeBranchCode
+        (b: Record<string, any>) => b.branchNo === advanceEmployeeBranchCode
       );
       if (validBranch) {
         setBranch(validBranch.branchNo);
