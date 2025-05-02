@@ -249,7 +249,7 @@ export default function SalaryAdvanceForm({
 
       const validBranch = bankBranches.find(
         (b: Record<string, any>) => b.branchNo === advanceEmployeeBranchCode
-      );
+      ) as Record<string, any> | undefined;
       if (validBranch) {
         setBranch(validBranch.branchNo);
       }
@@ -282,7 +282,7 @@ export default function SalaryAdvanceForm({
 
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {
-      const eb = employeeBanks[0];
+      const eb = employeeBanks[0] as Record<string, any>;
       if (eb.accountNo) setAccountNo(eb.accountNo);
       if (eb.bankCode) setBank(eb.bankCode);
       if (eb.bankBranch) setBranch(eb.bankBranch);
@@ -330,7 +330,7 @@ export default function SalaryAdvanceForm({
   }, [paymentMethod]);
   useEffect(() => {
     if (filteredBranches.length && !advanceNo && !branch) {
-      setBranch(filteredBranches[0].branchNo);
+      setBranch((filteredBranches[0] as Record<string, any>).branchNo);
     }
   }, [filteredBranches, branch, advanceNo]);
 
@@ -394,7 +394,7 @@ export default function SalaryAdvanceForm({
           return;
         }
 
-        if (!payrollPeriods?.[0]?.startingDate) {
+        if (!(payrollPeriods?.[0] as Record<string, any>)?.startingDate) {
           Swal.fire("Error", "No valid payroll period available.", "error");
           return;
         }
@@ -406,7 +406,7 @@ export default function SalaryAdvanceForm({
           applicationDate:
             advanceApplicationDate || new Date().toISOString().split("T")[0],
           paymentMethod,
-          payrollPeriod: payrollPeriods[0].startingDate,
+          payrollPeriod: (payrollPeriods[0] as Record<string, any>).startingDate,
         };
 
         if (paymentMethod === "MPESA") {
@@ -417,9 +417,9 @@ export default function SalaryAdvanceForm({
           payload.bankCode = bank;
           payload.employeeBranchCode = branch;
           payload.employeeBranchName =
-            bankBranches.find((b) => b.branchNo === branch)?.name || "";
+            bankBranches.find((b: Record<string, any>) => b.branchNo === branch)?.name || "";
           payload.employeeBankName =
-            banks.find((b) => b.no === bank)?.name || "";
+            banks.find((b: Record<string, any>) => b.no === bank)?.name || "";
           payload.chequeName = chequeName;
           if (paymentMethod === "RTGS") payload.swiftCode = swiftCode;
         }
