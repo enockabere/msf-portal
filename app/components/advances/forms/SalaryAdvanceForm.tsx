@@ -282,13 +282,13 @@ export default function SalaryAdvanceForm({
 
   useEffect(() => {
     if (!advanceNo && employeeBanks?.length > 0) {
-      const eb = employeeBanks[0];
-      if (eb?.accountNo) setAccountNo(eb?.accountNo);
-      if (eb?.bankCode) setBank(eb?.bankCode);
-      if (eb?.bankBranch) setBranch(eb?.bankBranch);
-      if (eb?.currency) setCurrency(eb?.currency);
-      if (eb?.name) setChequeName(eb?.name);
-      if (eb?.swiftCode) setSwiftCode(eb?.swiftCode);
+      const eb: Record<string, any> = employeeBanks[0];
+      if (eb.accountNo) setAccountNo(eb.accountNo);
+      if (eb.bankCode) setBank(eb.bankCode);
+      if (eb.bankBranch) setBranch(eb.bankBranch);
+      if (eb.currency) setCurrency(eb.currency);
+      if (eb.name) setChequeName(eb.name);
+      if (eb.swiftCode) setSwiftCode(eb.swiftCode);
     }
   }, [advanceNo, employeeBanks]);
   useEffect(() => {
