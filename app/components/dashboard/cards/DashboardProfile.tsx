@@ -4,12 +4,10 @@ import Image from "next/image";
 import { User, Mail, Phone, Calendar, Briefcase } from "lucide-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react"
 
 export default function DashboardProfile() {
-  const { employee } = useEmployee();
-
-  console.log(employee);
+  const { data: employee } = useSession()
 
   const isLoading = !employee;
 
@@ -53,14 +51,14 @@ export default function DashboardProfile() {
                   {isLoading ? (
                     <Skeleton width={180} />
                   ) : (
-                    `${employee.firstName} ${employee.lastName}`
+                    `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
                   )}
                 </h5>
                 <p className="text-muted mb-0">
                   {isLoading ? (
                     <Skeleton width={140} />
                   ) : (
-                    employee.jobTitle || "Employee"
+                    employee?.user?.profile?.jobTitle || "Employee?.user?.profile?"
                   )}
                 </p>
               </div>
@@ -76,10 +74,10 @@ export default function DashboardProfile() {
               <Skeleton width={180} />
             ) : (
               <a
-                href={`mailto:${employee.email}`}
+                href={`mailto:${employee?.user?.profile?.email}`}
                 className="text-primary text-decoration-underline"
               >
-                {employee.email}
+                {employee?.user?.profile?.email}
               </a>
             )}
           </div>
@@ -90,14 +88,14 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={120} />
             ) : (
-              employee.mobilePhone || "N/A"
+              employee?.user?.profile?.mobilePhone || "N/A"
             )}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Staff No.:</span>
-            {isLoading ? <Skeleton width={100} /> : employee.number}
+            {isLoading ? <Skeleton width={100} /> : employee?.user?.profile?.number}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
@@ -106,7 +104,7 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={140} />
             ) : (
-              new Date(employee.employmentDate).toLocaleDateString()
+              new Date(employee?.user?.profile?.employmentDate).toLocaleDateString()
             )}
           </div>
 
@@ -116,14 +114,14 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
-              employee.globalDimension2Code || "N/A"
+              employee?.user?.profile?.globalDimension2Code || "N/A"
             )}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
-            {isLoading ? <Skeleton width={80} /> : employee.gender || "N/A"}
+            {isLoading ? <Skeleton width={80} /> : employee?.user?.profile?.gender || "N/A"}
           </div>
 
           <ul className="list-unstyled d-flex gap-2 mb-0">
