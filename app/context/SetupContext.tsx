@@ -13,27 +13,25 @@ import { toast } from "react-toastify";
 // 🚀 Local in-memory cache for setups
 const localSetupCache = new Map<string, any>();
 
-type RecordAny = Record<string, any>;
-
 const state = {
-  imprestTypes: [],
-  currencies: [],
-  dimensions: [],
-  expenseCodes: [],
-  projects: [],
-  projectActivities: [],
-  modesOfTransport: [],
-  unitsOfMeasure: [],
-  dimensionSpeedKeys: [],
-  paymentMethods: [],
-  banks: [],
-  bankBranches: [],
-  requisitionDimensions: [],
-  billingItems: [],
-  locations: [],
-  employees: [],
-  employeeBanks: [],
-  payrollPeriods: [],
+  imprestTypes: [] as Array<Record<string, any>>,
+  currencies: [] as Array<Record<string, any>>,
+  dimensions: [] as Array<Record<string, any>>,
+  expenseCodes: [] as Array<Record<string, any>>,
+  projects: [] as Array<Record<string, any>>,
+  projectActivities: [] as Array<Record<string, any>>,
+  modesOfTransport: [] as Array<Record<string, any>>,
+  unitsOfMeasure: [] as Array<Record<string, any>>,
+  dimensionSpeedKeys: [] as Array<Record<string, any>>,
+  paymentMethods: [] as Array<Record<string, any>>,
+  banks: [] as Array<Record<string, any>>,
+  bankBranches: [] as Array<Record<string, any>>,
+  requisitionDimensions: [] as Array<Record<string, any>>,
+  billingItems: [] as Array<Record<string, any>>,
+  locations: [] as Array<Record<string, any>>,
+  employees: [] as Array<Record<string, any>>,
+  employeeBanks: [] as Array<Record<string, any>>,
+  payrollPeriods: [] as Array<Record<string, any>>,
 }
 
 type MySetupsState = typeof state
@@ -64,10 +62,6 @@ interface MySetupsContextValue extends MySetupsState {
 }
 
 const MySetupsContext = createContext<MySetupsContextValue | undefined>(
-  undefined
-);
-
-const DispatchSetupsContext = createContext<React.Dispatch<Action> | undefined>(
   undefined
 );
 
@@ -132,9 +126,7 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <MySetupsContext.Provider value={{ ...state, fetchSetups }}>
-      <DispatchSetupsContext.Provider value={dispatch}>
-        {children}
-      </DispatchSetupsContext.Provider>
+      {children}
     </MySetupsContext.Provider>
   );
 };
@@ -143,16 +135,6 @@ export const useMySetups = (): MySetupsContextValue => {
   const ctx = useContext(MySetupsContext);
   if (!ctx) {
     throw new Error("useMySetups must be used within MySetupsProvider");
-  }
-  return ctx;
-};
-
-export const useMySetupDispatcher = () => {
-  const ctx = useContext(DispatchSetupsContext);
-  if (!ctx) {
-    throw new Error(
-      "useMySetupDispatcher must be used within MySetupsProvider"
-    );
   }
   return ctx;
 };
