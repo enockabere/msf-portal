@@ -119,7 +119,7 @@ export default function SalaryAdvanceForm({
   } = useMySetups();
 
   const filteredBranches = useMemo(
-    () => bankBranches.filter((b) => b.mainBank === bank),
+    () => bankBranches.filter((b: Record<string, any>) => b.mainBank === bank),
     [bankBranches, bank]
   );
 
