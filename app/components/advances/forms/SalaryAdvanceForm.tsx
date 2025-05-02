@@ -186,7 +186,7 @@ export default function SalaryAdvanceForm({
 
   useEffect(() => {
     if (payrollPeriods.length > 0) {
-      const period = payrollPeriods[0];
+      const period: Record<string, any> = payrollPeriods[0];
       const cutoff = period.advanceCutOffDate;
 
       if (cutoff && cutoff !== "0001-01-01") {
