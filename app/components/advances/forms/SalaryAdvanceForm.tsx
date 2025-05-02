@@ -248,7 +248,7 @@ export default function SalaryAdvanceForm({
       }
 
       const validBranch = bankBranches.find(
-        (b) => b.branchNo === advanceEmployeeBranchCode
+        (b: Record<string, any>) => b.branchNo === advanceEmployeeBranchCode
       );
       if (validBranch) {
         setBranch(validBranch.branchNo);
