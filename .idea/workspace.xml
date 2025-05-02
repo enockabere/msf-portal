@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7c3e5f3e-36ca-4999-b74e-44837c8760da" name="Changes" comment="approvals progress" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;wemali05&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/kinetics254/nehemiah.git&quot;,
+    &quot;accountId&quot;: &quot;de6a987e-cd74-4b9c-b373-d7923a9876e5&quot;
+  }
+}</component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/local/Cellar/php/8.4.1_1/bin/php" />
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2wG9Kge6FJmmjjErcQYvvv8YEh8" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;approval&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/user/Documents/sites/nehemiah/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-PS-243.24978.50" />
+        <option value="bundled-php-predefined-a98d8de5180a-fbeb0b58ac0f-com.jetbrains.php.sharedIndexes-PS-243.24978.50" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7c3e5f3e-36ca-4999-b74e-44837c8760da" name="Changes" comment="" />
+      <created>1745656981061</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745656981061</updated>
+      <workItem from="1745656982185" duration="1786000" />
+      <workItem from="1745677523186" duration="562000" />
+      <workItem from="1745679117963" duration="577000" />
+      <workItem from="1745746312032" duration="133000" />
+      <workItem from="1745758334651" duration="1832000" />
+      <workItem from="1745771730792" duration="3366000" />
+      <workItem from="1745819033491" duration="12449000" />
+      <workItem from="1745864487543" duration="3484000" />
+      <workItem from="1745906649806" duration="1731000" />
+      <workItem from="1746023763603" duration="305000" />
+    </task>
+    <task id="LOCAL-00001" summary="login page fixes">
+      <option name="closed" value="true" />
+      <created>1745660205246</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745660205246</updated>
+    </task>
+    <task id="LOCAL-00002" summary="remove advance search by employee">
+      <option name="closed" value="true" />
+      <created>1745677782150</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1745677782150</updated>
+    </task>
+    <task id="LOCAL-00003" summary="approval progress">
+      <option name="closed" value="true" />
+      <created>1745850332214</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1745850332214</updated>
+    </task>
+    <task id="LOCAL-00004" summary="get approvals update">
+      <option name="closed" value="true" />
+      <created>1745865422169</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1745865422169</updated>
+    </task>
+    <task id="LOCAL-00005" summary="approval stats component">
+      <option name="closed" value="true" />
+      <created>1745868492783</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1745868492783</updated>
+    </task>
+    <task id="LOCAL-00006" summary="sidebar approval update">
+      <option name="closed" value="true" />
+      <created>1745868518047</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1745868518047</updated>
+    </task>
+    <task id="LOCAL-00007" summary="approval update copy">
+      <option name="closed" value="true" />
+      <created>1745868567378</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1745868567378</updated>
+    </task>
+    <task id="LOCAL-00008" summary="approvals progress">
+      <option name="closed" value="true" />
+      <created>1745913892653</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1745913892653</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="login page fixes" />
+    <MESSAGE value="remove advance search by employee" />
+    <MESSAGE value="approval progress" />
+    <MESSAGE value="get approvals update" />
+    <MESSAGE value="approval stats component" />
+    <MESSAGE value="sidebar approval update" />
+    <MESSAGE value="approval update copy" />
+    <MESSAGE value="approvals progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="approvals progress" />
+  </component>
+</project>
