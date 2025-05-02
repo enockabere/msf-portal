@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import BootstrapClient from "./components/bootstrap/BootstrapClient";
 import { MySetupsProvider } from "./context/SetupContext";
-import { EmployeeProvider } from "./context/EmployeeContext";
+import SessionProvider from "./context/SessionProvider";
 import "../styles/bootstrap.min.css";
 import "../styles/icons.min.css";
 import "../styles/app.min.css";
@@ -38,13 +38,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <EmployeeProvider>
+        <SessionProvider>
           {" "}
           <MySetupsProvider>
             <BootstrapClient />
             {children}
           </MySetupsProvider>
-        </EmployeeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

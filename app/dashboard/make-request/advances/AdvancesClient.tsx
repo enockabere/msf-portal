@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import AdvanceSummaryCard from "@/app/components/advances/AdvanceSummaryCard";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -13,7 +13,7 @@ const FilteredAdvanceTable = dynamic(
 );
 
 export default function AdvancesClient() {
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -78,9 +78,9 @@ export default function AdvancesClient() {
               <div className="card h-100 p-2">
                 <FilteredAdvanceTable
                   employee={{
-                    number: employee?.number || "",
-                    nationalId: employee?.nationalId || "",
-                    mobilePhone: employee?.mobilePhone || "",
+                    number: employee?.user?.profile?.number || "",
+                    nationalId: employee?.user?.profile?.nationalId || "",
+                    mobilePhone: employee?.user?.profile?.mobilePhone || "",
                   }}
                 />
               </div>
@@ -94,9 +94,9 @@ export default function AdvancesClient() {
               <div className="card h-100 p-2">
                 <FilteredAdvanceTable
                   employee={{
-                    number: employee?.number || "",
-                    nationalId: employee?.nationalId || "",
-                    mobilePhone: employee?.mobilePhone || "",
+                    number: employee?.user?.profile?.number || "",
+                    nationalId: employee?.user?.profile?.nationalId || "",
+                    mobilePhone: employee?.user?.profile?.mobilePhone || "",
                   }}
                 />
               </div>
@@ -119,9 +119,9 @@ export default function AdvancesClient() {
             <div className="card h-100 p-2">
               <FilteredAdvanceTable
                 employee={{
-                  number: employee?.number || "",
-                  nationalId: employee?.nationalId || "",
-                  mobilePhone: employee?.mobilePhone || "",
+                  number: employee?.user?.profile?.number || "",
+                  nationalId: employee?.user?.profile?.nationalId || "",
+                  mobilePhone: employee?.user?.profile?.mobilePhone || "",
                 }}
               />
             </div>

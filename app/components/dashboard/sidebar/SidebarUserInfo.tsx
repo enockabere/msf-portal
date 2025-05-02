@@ -1,11 +1,11 @@
 "use client";
 
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react"
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 export default function SidebarUserInfo() {
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
 
   if (!employee) {
     return (
@@ -45,28 +45,28 @@ export default function SidebarUserInfo() {
       <div className="d-flex justify-content-center align-items-center thumb-lg update-icon-box rounded-circle mx-auto">
         <i className="iconoir-user h3 align-self-center mb-0 text-danger"></i>
       </div>
-      <h5 className="mt-3">{`${employee.firstName} ${employee.lastName}`}</h5>
-      <p className="text-muted text-small">{employee.email}</p>
+      <h5 className="mt-3">{`${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`}</h5>
+      <p className="text-muted text-small">{employee?.user?.profile?.email}</p>
 
       <div className="p-3 text-center">
         <div className="d-flex align-items-center mb-2">
           <i className="iconoir-home-alt me-2 text-danger"></i>
-          <span className="text-muted">{employee.company || "MSF Kenya"}</span>
+          <span className="text-muted">{employee?.user?.profile?.company || "MSF Kenya"}</span>
         </div>
         <div className="d-flex align-items-center mb-2">
           <i className="iconoir-phone me-2 text-danger"></i>
           <span className="text-muted">
-            {employee.mobilePhone || "No phone provided"}
+            {employee?.user?.profile?.mobilePhone || "No phone provided"}
           </span>
         </div>
         <div className="d-flex align-items-center mb-2">
           <i className="iconoir-user me-2 text-danger"></i>
-          <span className="text-muted">{employee.number}</span>
+          <span className="text-muted">{employee?.user?.profile?.number}</span>
         </div>
         <div className="d-flex align-items-center">
           <i className="iconoir-building me-2 text-danger"></i>
           <span className="text-muted">
-            {employee.globalDimension2Code || "Department N/A"}
+            {employee?.user?.profile?.globalDimension2Code || "Department N/A"}
           </span>
         </div>
       </div>

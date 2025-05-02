@@ -7,7 +7,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../dashboard/cards/Cards.css";
 import "./RequestCards.css";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react";
 import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
@@ -28,7 +28,7 @@ export default function RequestCards() {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
@@ -36,11 +36,11 @@ export default function RequestCards() {
   };
 
   const fetchAdvances = async () => {
-    if (!employee?.number) return;
+    if (!employee?.user?.profile?.number) return;
     setIsLoading(true);
     try {
       const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employee.number}`
+        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
       );
       const json = await res.json();
       const data = json?.data?.value || [];
@@ -68,9 +68,8 @@ export default function RequestCards() {
         {/* Advances Card */}
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 0 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -187,9 +186,8 @@ export default function RequestCards() {
         {/* Record Expenses Card */}
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 1 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 1 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (!target.closest("a") && !target.closest("button")) {
