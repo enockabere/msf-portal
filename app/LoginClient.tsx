@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { signIn } from "next-auth/react"
 import Image from "next/image";
 
 export default function LoginClient() {
   const handleSSORedirect = () => {
-    window.location.href = "/auth";
+    signIn()
   };
 
   return (
@@ -43,21 +43,13 @@ export default function LoginClient() {
                   integrated portal.
                 </p>
                 <div className="d-flex justify-content-center gap-3">
-                  <Link
-                    href="/login"
+                  <button
+                    onClick={() => signIn()}
                     className="btn bg-black text-white btn-lg rounded-pill d-flex justify-content-center align-items-center w-25"
                     style={{ fontSize: "14px" }}
                   >
                     Get Started
-                  </Link>
-                  {/*<Link*/}
-                  {/*  target="_blank"*/}
-                  {/*  href="https://msf.or.ke/"*/}
-                  {/*  className="btn bg-white text-black btn-lg rounded-pill d-flex justify-content-center align-items-center"*/}
-                  {/*  style={{ fontSize: "14px" }}*/}
-                  {/*>*/}
-                  {/*  About Us*/}
-                  {/*</Link>*/}
+                  </button>
                 </div>
               </section>
 

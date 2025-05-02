@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useCallback,
   ReactNode,
+  useEffect,
 } from "react";
 import { toast } from "react-toastify";
 
@@ -14,33 +15,12 @@ const localSetupCache = new Map<string, any>();
 
 type RecordAny = Record<string, any>;
 
-interface MySetupsState {
-  imprestTypes: RecordAny[];
-  currencies: RecordAny[];
-  dimensions: RecordAny[];
-  expenseCodes: RecordAny[];
-  projects: RecordAny;
-  projectActivities: RecordAny[];
-  modesOfTransport: RecordAny[];
-  unitsOfMeasure: RecordAny[];
-  dimensionSpeedKeys: RecordAny[];
-  paymentMethods: RecordAny[];
-  banks: RecordAny[];
-  bankBranches: RecordAny[];
-  requisitionDimensions: RecordAny[];
-  billingItems: RecordAny[];
-  locations: RecordAny[];
-  employees: RecordAny[];
-  employeeBanks: RecordAny[];
-  payrollPeriods: RecordAny[];
-}
-
-const initialState: MySetupsState = {
+const state = {
   imprestTypes: [],
   currencies: [],
   dimensions: [],
   expenseCodes: [],
-  projects: {},
+  projects: [],
   projectActivities: [],
   modesOfTransport: [],
   unitsOfMeasure: [],
@@ -54,6 +34,11 @@ const initialState: MySetupsState = {
   employees: [],
   employeeBanks: [],
   payrollPeriods: [],
+}
+
+type MySetupsState = typeof state
+const initialState: MySetupsState = {
+  ...state
 };
 
 type Action =

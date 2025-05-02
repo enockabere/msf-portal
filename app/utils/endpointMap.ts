@@ -1,4 +1,4 @@
-const endpointMap: Record<string, string> = {
+export const endpointMap = {
   imprestTypes: "/api/KineticTechnology/CashMgt/v2.0/imprestTypeApi",
   currencies: "/api/KineticTechnology/Payroll/v2.0/currencies",
   dimensions: "/api/KineticTechnology/CashMgt/v2.0/dimensionValuesApi",
@@ -28,6 +28,11 @@ const endpointMap: Record<string, string> = {
   GetRequisitionStats: "/ODataV4/Requisition_getRequisitionStats",
   employeeBanks: "/api/KineticTechnology/Payroll/v2.0/employeeBanks",
   payrollPeriods: "/api/KineticTechnology/Payroll/v2.0/payrollPeriods",
-};
+  imprest: "/api/KineticTechnology/CashMgt/v2.0/imprestApi",
+  imprestLine: "/api/KineticTechnology/CashMgt/v2.0/imprestLinesAPI",
+  cashManagementAttachment: "/api/KineticTechnology/CashMgt/v2.0/attachments",
+  imprestDetailedLine: "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines"
+} as const;
 
-export default endpointMap;
+export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));
+export type ENDPOINTMAP = keyof typeof endpointMap;
