@@ -25,7 +25,6 @@ export default function AdvanceTableFilter({
   setStartDate,
   endDate,
   setEndDate,
-  search,
   setSearch,
 }: AdvanceTableFilterProps) {
   return (

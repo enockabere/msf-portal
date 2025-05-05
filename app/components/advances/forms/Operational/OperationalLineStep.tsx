@@ -23,7 +23,6 @@ interface OperationalLineStepProps {
 export default function OperationalLineStep({
   expenses,
   onExpenseChange,
-  onFileChange,
   onRemoveExpense,
   onAddExpense,
   onSubmit,

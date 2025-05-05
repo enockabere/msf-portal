@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Save, Trash2, Send, ChevronLeft } from "lucide-react";
+import { Trash2, Send, ChevronLeft } from "lucide-react";
 
 interface LineItem {
   category: string;

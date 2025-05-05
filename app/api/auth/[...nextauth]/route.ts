@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { transport } from "@brainspore/hypernexus";
 import NextAuth from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";
@@ -36,7 +37,7 @@ const handler = NextAuth({
             else if (urlObject.pathname !== "/") return url
             else return `${baseUrl}/dashboard`
         },
-        async session({ session, token, user }) {
+        async session({ session, token }) {
             session.user.profile = token.profile as Record<string, any> | null;
             return session
         },
