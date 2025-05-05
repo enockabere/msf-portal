@@ -20,9 +20,9 @@ export default function ProfileDropdown() {
       >
         <Image
           src="/assets/images/avatar.png"
-          alt="Profile"
           width={40}
           height={40}
+          alt="Profile"
           className="thumb-lg rounded-circle"
         />
       </a>
@@ -32,6 +32,8 @@ export default function ProfileDropdown() {
             <div className="flex-shrink-0">
               <Image
                 src="/assets/images/avatar.png"
+                width={40}
+                height={40}
                 alt="avatar"
                 className="thumb-md rounded-circle"
               />

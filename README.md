@@ -26,7 +26,7 @@ cd ess-portal
 
 2. ⚙️ Environment Setup
 Create your environment file:
-cp example.env .env.local
+cp .env.example .env.local
 
 Then edit .env.local and fill in your Business Central and database credentials.
 Example:
