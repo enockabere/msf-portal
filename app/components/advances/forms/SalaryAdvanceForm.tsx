@@ -146,10 +146,6 @@ export default function SalaryAdvanceForm({
           { paymentMethods: { filters: { isAdvance: true } } },
           { payrollPeriods: { filters: { current: true } } },
         ]);
-        const mid = performance.now();
-        console.log(
-          `⚡ Critical setups fetched in ${(mid - start).toFixed(2)} ms`
-        );
         fetchSetups([
           "banks",
           "bankBranches",
@@ -163,12 +159,7 @@ export default function SalaryAdvanceForm({
               },
             },
           } as any,
-        ]).then(() => {
-          const end = performance.now();
-          console.log(
-            `⚡ All setups fetched in ${(end - start).toFixed(2)} ms`
-          );
-        });
+        ]).then(() => {});
       } finally {
         setIsLoading(false);
       }
@@ -192,10 +183,6 @@ export default function SalaryAdvanceForm({
       if (cutoff && cutoff !== "0001-01-01") {
         const now = new Date();
         const cutoffDate = new Date(cutoff);
-
-        console.log("🕓 Parsed cutoff date:", cutoffDate.toISOString());
-        console.log("🕓 Current date:", now.toISOString());
-
         if (now > cutoffDate) {
           if (
             advanceStatus !== "Pending Approval" &&
@@ -250,7 +237,7 @@ export default function SalaryAdvanceForm({
       const validBranch = (bankBranches as { branchNo: string }[]).find(
         (b) => b.branchNo === advanceEmployeeBranchCode
       );
-      
+
       if (validBranch) {
         setBranch(validBranch.branchNo);
       }
@@ -292,7 +279,7 @@ export default function SalaryAdvanceForm({
       if (eb.swiftCode) setSwiftCode(eb.swiftCode);
     }
   }, [advanceNo, employeeBanks]);
-  
+
   useEffect(() => {
     if (!advanceAmount) {
       setAdvanceLimit(null);
@@ -435,9 +422,6 @@ export default function SalaryAdvanceForm({
         if (isEdit) {
           payload.no = advanceNo;
         }
-
-        console.log("🚀 Submitting payload:", payload);
-
         const res = await fetch(endpoint, {
           method,
           headers: { "Content-Type": "application/json" },
@@ -445,7 +429,6 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
-        console.log("📥 Response after create/edit:", response);
 
         if (!res.ok || response.error || response.success === false) {
           const rawMsg =
@@ -501,7 +484,6 @@ export default function SalaryAdvanceForm({
           );
 
           const approvalJson = await approvalRes.json();
-          console.log("📩 Approval submission response:", approvalJson);
 
           if (
             !approvalRes.ok ||

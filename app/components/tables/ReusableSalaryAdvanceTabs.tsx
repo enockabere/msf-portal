@@ -1,25 +1,35 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import AdvanceRequestAction from "./AdvanceRequestAction";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
+import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
 
-interface AdvanceDataTableProps {
+interface Props {
   employee?: {
     number: string;
     nationalId: string;
     mobilePhone: string;
   };
+  onCountsUpdate?: (counts: {
+    open: number;
+    pending: number;
+    released: number;
+    total: number;
+  }) => void;
 }
 
-export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
+export default function ReusableSalaryAdvanceTabs({
+  employee,
+  onCountsUpdate,
+}: Props) {
   const [data, setData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [forceRefresh, setForceRefresh] = useState(false);
-
+  const [activeTab, setActiveTab] = useState("open");
   const employeeNo = employee?.number;
 
   const fetchAdvances = useCallback(async () => {
@@ -43,13 +53,35 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
     fetchAdvances();
   }, [fetchAdvances]);
 
-  const filteredData = data.filter((item) => {
-    const searchValue = search.toLowerCase();
-    return (
-      item.advanceType.toLowerCase().includes(searchValue) ||
-      item.employeeName.toLowerCase().includes(searchValue)
-    );
-  });
+  const filteredByStatus = useMemo(() => {
+    const lowerSearch = search.toLowerCase();
+    const filterBy = (status: string) =>
+      data.filter(
+        (item) =>
+          item.status === status &&
+          (item.advanceType.toLowerCase().includes(lowerSearch) ||
+            item.employeeName.toLowerCase().includes(lowerSearch))
+      );
+    return {
+      open: filterBy("Open"),
+      pending: filterBy("Pending Approval"),
+      released: filterBy("Released"),
+    };
+  }, [data, search]);
+
+  useEffect(() => {
+    if (onCountsUpdate) {
+      onCountsUpdate({
+        open: filteredByStatus.open.length,
+        pending: filteredByStatus.pending.length,
+        released: filteredByStatus.released.length,
+        total:
+          filteredByStatus.open.length +
+          filteredByStatus.pending.length +
+          filteredByStatus.released.length,
+      });
+    }
+  }, [filteredByStatus, onCountsUpdate]);
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
@@ -125,11 +157,6 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
           row.currencyCode || "KES"
         } ${row.applicationAmount.toLocaleString()}`,
       sortable: true,
-      cell: (row: Advance) => (
-        <span style={{ fontSize: "0.775rem" }}>
-          {row.currencyCode || "KES"} {row.applicationAmount.toLocaleString()}
-        </span>
-      ),
     },
     {
       name: "Application Date",
@@ -168,20 +195,52 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
   ];
 
   return (
-    <SkeletonDataTable
-      title="Advance Requests"
-      columns={columns}
-      data={loading ? [] : filteredData}
-      actions={
-        <AdvanceRequestAction
-          advance={selectedAdvance}
-          refetch={() => setForceRefresh(true)}
-          onCloseView={() => setSelectedAdvance(null)}
-          employee={employee}
-        />
-      }
-      searchPlaceholder="Search by type or name..."
-      loading={loading}
-    />
+    <div>
+      <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
+        <Tab eventKey="open" title={`Open (${filteredByStatus.open.length})`}>
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.open}
+              searchPlaceholder="Search salary advances..."
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="pending"
+          title={`Pending (${filteredByStatus.pending.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.pending}
+              searchPlaceholder="Search salary advances..."
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="released"
+          title={`Released (${filteredByStatus.released.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.released}
+              searchPlaceholder="Search salary advances..."
+              loading={loading}
+            />
+          </div>
+        </Tab>
+      </Tabs>
+
+      <AdvanceRequestAction
+        advance={selectedAdvance}
+        refetch={() => setForceRefresh(true)}
+        onCloseView={() => setSelectedAdvance(null)}
+        employee={employee}
+      />
+    </div>
   );
 }

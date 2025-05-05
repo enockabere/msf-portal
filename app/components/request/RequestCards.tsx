@@ -83,11 +83,11 @@ export default function RequestCards() {
             }}
             style={{ cursor: "pointer" }}
           >
-            <div className="ribbon4 rib4-danger">
+            {/* <div className="ribbon4 rib4-danger">
               <span className="ribbon4-band ribbon4-band-danger text-white text-center">
                 New
               </span>
-            </div>
+            </div> */}
 
             <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
               <div className="mb-2">
@@ -133,103 +133,60 @@ export default function RequestCards() {
                 <Eye size={16} /> View
               </Link>
 
-              <div className="dropdown">
-                <button
-                  className="btn btn-sm btn-outline-success dropdown-toggle d-flex align-items-center gap-1"
-                  data-bs-toggle="dropdown"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <PlusCircle size={16} /> New
-                </button>
-                <div
-                  className="dropdown-menu"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <a
-                    className="dropdown-item"
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setAdvanceType("Salary");
-                      handleOpenModal("Advance");
-                    }}
-                  >
-                    Salary Advance
-                  </a>
-                  <a
-                    className="dropdown-item"
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setAdvanceType("Operational");
-                      handleOpenModal("Advance");
-                    }}
-                  >
-                    Operational Advance
-                  </a>
-                  <a
-                    className="dropdown-item"
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setAdvanceType("Travel");
-                      handleOpenModal("Advance");
-                    }}
-                  >
-                    Travel Advance
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Record Expenses Card */}
-        <div className="col">
-          <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 1 ? "active" : ""
-            }`}
-            onClick={(e) => {
-              const target = e.target as HTMLElement;
-              if (!target.closest("a") && !target.closest("button")) {
-                setActiveIndex(activeIndex === 1 ? null : 1);
-              }
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="ribbon4 rib4-danger">
-              <span className="ribbon4-band ribbon4-band-danger text-white text-center">
-                New
-              </span>
-            </div>
-
-            <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
-              <div className="mb-2">
-                <Wallet className="text-primary card-icon" size={28} />
-                <h6 className="card-title mt-2 fw-semibold small text-uppercase">
-                  Record Expenses
-                </h6>
-              </div>
-            </div>
-
-            <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
-              <Link
-                href="/dashboard/make-request/advances"
-                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Eye size={16} /> View
-              </Link>
               <button
                 className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleOpenModal("Expense");
+                  setAdvanceType("Salary");
+                  handleOpenModal("Advance");
                 }}
               >
                 <PlusCircle size={16} /> New
               </button>
+            </div>
+          </div>
+        </div>
+        <div className="col">
+          <div
+            className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
+            style={{ opacity: 0.5, cursor: "not-allowed" }}
+          >
+            <div className="ribbon4 rib4-secondary">
+              <span className="ribbon4-band ribbon4-band-secondary text-white text-center">
+                Soon
+              </span>
+            </div>
+            <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
+              <Wallet className="text-muted card-icon" size={28} />
+              <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
+                Travel Requests
+              </h6>
+            </div>
+            <div className="card-footer border-0 bg-transparent text-muted">
+              Coming Soon
+            </div>
+          </div>
+        </div>
+
+        {/* Record Expenses Card (Muted) */}
+        <div className="col">
+          <div
+            className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
+            style={{ opacity: 0.5, cursor: "not-allowed" }}
+          >
+            <div className="ribbon4 rib4-secondary">
+              <span className="ribbon4-band ribbon4-band-secondary text-white text-center">
+                Soon
+              </span>
+            </div>
+            <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
+              <Wallet className="text-muted card-icon" size={28} />
+              <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
+                Record Expenses
+              </h6>
+            </div>
+            <div className="card-footer border-0 bg-transparent text-muted">
+              Coming Soon
             </div>
           </div>
         </div>

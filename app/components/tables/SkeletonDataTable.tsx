@@ -41,17 +41,12 @@ export default function SkeletonDataTable({
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-1">
       {title && <h5 className="fw-bold mb-3">{title}</h5>}
 
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-        <div className="d-flex gap-2 align-items-center">
-          {actions}
-          {filters}
-        </div>
-
-        <div className="d-flex gap-2 align-items-center ms-auto">
-          <div className="position-relative">
+        <div className="d-flex gap-2 align-items-center flex-grow-1">
+          <div className="position-relative me-2">
             <Search
               className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"
               size={16}
@@ -65,6 +60,11 @@ export default function SkeletonDataTable({
               disabled={loading}
             />
           </div>
+          {filters}
+          {actions}
+        </div>
+
+        <div>
           <Button variant="secondary" onClick={exportCSV} disabled={loading}>
             <Download size={16} className="me-1" /> Export CSV
           </Button>
@@ -73,7 +73,7 @@ export default function SkeletonDataTable({
 
       {loading ? (
         <div className="table-responsive">
-          <div className="table table-light">
+          <div className="table">
             {[...Array(6)].map((_, index) => (
               <div className="skeleton-row" key={index}>
                 <div className="skeleton-cell skeleton-col-1"></div>
@@ -82,6 +82,7 @@ export default function SkeletonDataTable({
                 <div className="skeleton-cell skeleton-col-4"></div>
                 <div className="skeleton-cell skeleton-col-5"></div>
                 <div className="skeleton-cell skeleton-col-6"></div>
+                <div className="skeleton-cell skeleton-col-7"></div>
               </div>
             ))}
           </div>

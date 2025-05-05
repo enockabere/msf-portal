@@ -30,6 +30,8 @@ export async function POST(request: Request) {
       applicationDate: new Date().toISOString().split("T")[0],
     };
 
+    console.log(payload);
+
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
       options.params = { company: process.env.BC_COMPANY_NAME };

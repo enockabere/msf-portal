@@ -1,55 +1,28 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import AdvanceRequestAction from "./AdvanceRequestAction";
+import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Advance } from "@/app/types/advance";
 
-interface AdvanceDataTableProps {
-  employee?: {
-    number: string;
-    nationalId: string;
-    mobilePhone: string;
-  };
+interface TravelRequestTableProps {
+  data: Advance[];
+  loading: boolean;
 }
 
-export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
-  const [data, setData] = useState<Advance[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function TravelRequestTable({
+  data,
+  loading,
+}: TravelRequestTableProps) {
   const [search, setSearch] = useState("");
-  const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
-  const [forceRefresh, setForceRefresh] = useState(false);
 
-  const employeeNo = employee?.number;
-
-  const fetchAdvances = useCallback(async () => {
-    if (!employeeNo) return;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      return (
+        item.advanceType?.toLowerCase().includes(search.toLowerCase()) ||
+        item.employeeName?.toLowerCase().includes(search.toLowerCase())
       );
-      const json = await res.json();
-      setData(json["data"]["value"] || []);
-    } catch (err) {
-      console.error("❌ Failed to fetch advances:", err);
-    } finally {
-      setLoading(false);
-      setForceRefresh(false);
-    }
-  }, [employeeNo, forceRefresh]);
-
-  useEffect(() => {
-    fetchAdvances();
-  }, [fetchAdvances]);
-
-  const filteredData = data.filter((item) => {
-    const searchValue = search.toLowerCase();
-    return (
-      item.advanceType.toLowerCase().includes(searchValue) ||
-      item.employeeName.toLowerCase().includes(searchValue)
-    );
-  });
+    });
+  }, [search, data]);
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
@@ -74,7 +47,7 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
       cell: (row: Advance) => (
         <span
           className="text-blue text-decoration-underline cursor-pointer"
-          onClick={() => setSelectedAdvance(row)}
+          onClick={() => console.log("View", row)}
         >
           {row.no}
         </span>
@@ -87,7 +60,7 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
       cell: (row: Advance) => (
         <div className="d-flex align-items-center gap-2">
           <div
-            className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
+            className="d-inline-flex justify-content-center align-items-center bg-primary-subtle rounded"
             style={{ width: 32, height: 32 }}
           >
             <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
@@ -124,22 +97,14 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
         `${
           row.currencyCode || "KES"
         } ${row.applicationAmount.toLocaleString()}`,
-      sortable: true,
-      cell: (row: Advance) => (
-        <span style={{ fontSize: "0.775rem" }}>
-          {row.currencyCode || "KES"} {row.applicationAmount.toLocaleString()}
-        </span>
-      ),
     },
     {
       name: "Application Date",
       selector: (row: Advance) => formatDate(row.applicationDate),
-      sortable: true,
     },
     {
       name: "Disbursement Date",
       selector: (row: Advance) => formatDate(row.preferredDisbursementDate),
-      sortable: true,
     },
     {
       name: "Actions",
@@ -148,39 +113,48 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
           {row.status === "Open" && (
             <button
               className="text-primary border-0 bg-transparent"
-              onClick={() => setSelectedAdvance(row)}
               title="Edit"
             >
               <i className="las la-pen fs-18" />
             </button>
           )}
-          <button
-            className="text-success border-0 bg-transparent"
-            onClick={() => setSelectedAdvance(row)}
-            title="View"
-          >
-            <i className="las la-eye fs-18" />
-          </button>
+          {row.status === "Pending Approval" && (
+            <button
+              className="text-success border-0 bg-transparent"
+              title="View"
+            >
+              <i className="las la-eye fs-18" />
+            </button>
+          )}
+          {row.status === "Released" && (
+            <>
+              <button
+                className="text-success border-0 bg-transparent"
+                title="View"
+              >
+                <i className="las la-eye fs-18" />
+              </button>
+              <button
+                className="text-warning border-0 bg-transparent"
+                title="Settle"
+              >
+                <i className="las la-coins fs-18" />
+              </button>
+            </>
+          )}
         </div>
       ),
       ignoreRowClick: true,
+      style: { minWidth: "120px" },
     },
   ];
 
   return (
     <SkeletonDataTable
-      title="Advance Requests"
+      title=""
       columns={columns}
       data={loading ? [] : filteredData}
-      actions={
-        <AdvanceRequestAction
-          advance={selectedAdvance}
-          refetch={() => setForceRefresh(true)}
-          onCloseView={() => setSelectedAdvance(null)}
-          employee={employee}
-        />
-      }
-      searchPlaceholder="Search by type or name..."
+      searchPlaceholder="Search travel requests..."
       loading={loading}
     />
   );

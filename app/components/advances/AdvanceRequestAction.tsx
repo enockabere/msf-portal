@@ -7,16 +7,10 @@ import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import TravelAdvanceForm from "./forms/TravelAdvanceForm";
-import { Wallet, Plus } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { Advance, SalaryAdvanceData } from "@/app/types/advance";
 
-type AdvanceType =
-  | "Salary"
-  | "Operational"
-  | "Settlement"
-  | "Travel"
-  | "Advance"
-  | null;
+type AdvanceType = "Salary" | "Operational" | "Settlement" | "Travel" | "Advance" | null;
 
 interface AdvanceRequestActionProps {
   advance: Advance | null;
@@ -38,8 +32,7 @@ export default function AdvanceRequestAction({
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
-  const [editingAdvance, setEditingAdvance] =
-    useState<SalaryAdvanceData | null>(null);
+  const [editingAdvance, setEditingAdvance] = useState<SalaryAdvanceData | null>(null);
 
   useEffect(() => {
     if (advance) {
@@ -48,12 +41,6 @@ export default function AdvanceRequestAction({
       setShowModal(true);
     }
   }, [advance]);
-
-  const handleNewRequest = (type: AdvanceType) => {
-    setAdvanceType(type);
-    setEditingAdvance(null);
-    setShowModal(true);
-  };
 
   const handleCloseModal = () => {
     setAdvanceType(null);
@@ -88,9 +75,7 @@ export default function AdvanceRequestAction({
 
   const modalTitle = editingAdvance
     ? `View/Edit ${editingAdvance.advanceType} Advance - ${editingAdvance.no}`
-    : advanceType === "Settlement"
-    ? "Settle Advance"
-    : `Request ${advanceType || ""} Advance`;
+    : "Advance Request Details";
 
   const renderModal = () => {
     const formType = editingAdvance?.advanceType || advanceType;
@@ -118,58 +103,5 @@ export default function AdvanceRequestAction({
     );
   };
 
-  return (
-    <>
-      {!editingAdvance && (
-        <div className="dropdown">
-          <a
-            className="btn bg-danger text-white dropdown-toggle d-flex align-items-center"
-            data-bs-toggle="dropdown"
-            href="#"
-            role="button"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <Plus size={15} className="text-white" /> New Request
-            <i className="las la-angle-down ms-1"></i>
-          </a>
-          <div className="dropdown-menu shadow">
-            <a
-              className="dropdown-item d-flex align-items-center"
-              href="#"
-              onClick={() => handleNewRequest("Salary")}
-            >
-              <i className="fa-solid fa-money-bill me-2 text-success"></i>{" "}
-              Salary Advance
-            </a>
-            <a
-              className="dropdown-item d-flex align-items-center"
-              href="#"
-              onClick={() => handleNewRequest("Travel")}
-            >
-              <i className="fa-solid fa-plane me-2 text-info"></i> Travel
-              Advance
-            </a>
-            <a
-              className="dropdown-item d-flex align-items-center"
-              href="#"
-              onClick={() => handleNewRequest("Operational")}
-            >
-              <i className="fa-solid fa-gear me-2 text-warning"></i> Operational
-              Advance
-            </a>
-            <a
-              className="dropdown-item d-flex align-items-center"
-              href="#"
-              onClick={() => handleNewRequest("Settlement")}
-            >
-              <i className="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>{" "}
-              Advance Settlement
-            </a>
-          </div>
-        </div>
-      )}
-      {renderModal()}
-    </>
-  );
+  return <>{renderModal()}</>;
 }

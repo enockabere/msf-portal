@@ -45,3 +45,18 @@
 .step-line.upcoming {
   background-color: #e9ecef;
 }
+@keyframes pulseBorder {
+  0% {
+    border-left-color: #ffc107;
+  }
+  50% {
+    border-left-color: #ff9800;
+  }
+  100% {
+    border-left-color: #ffc107;
+  }
+}
+
+.comment-highlight {
+  animation: pulseBorder 2s ease-in-out infinite;
+}

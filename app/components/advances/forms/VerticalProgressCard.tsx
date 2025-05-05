@@ -1,10 +1,12 @@
 "use client";
 
-import { FilePlus, Clock, User } from "lucide-react";
+import { FilePlus, Clock, User, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import "./VerticalProgressCard.css";
+import SimpleBar from "simplebar-react";
+import "simplebar-react/dist/simplebar.min.css";
 
 interface ApprovalEntry {
   sendByName: string;
@@ -54,6 +56,7 @@ export default function VerticalProgressCard({
             (a: ApprovalEntry, b: ApprovalEntry) =>
               (a.sequenceNo || 0) - (b.sequenceNo || 0)
           );
+          console.log("✅ Approval Entries:", sorted); // ← Add this line
           setApprovalEntries(sorted);
         } catch (err) {
           console.error("❌ Error fetching approvals", err);
@@ -105,84 +108,107 @@ export default function VerticalProgressCard({
       </div>
 
       <div className="card-body bg-primary-subtle pt-0">
-        <div className="vertical-stepper">
-          {showApprovals ? (
-            approvalEntries.map((step, i) => {
-              const isApproved = step.status === "Approved";
-              const isOpen = step.status === "Open";
-              const isCanceled = step.status === "Canceled";
+        <SimpleBar
+          style={{ maxHeight: 360, paddingRight: "8px" }}
+          autoHide={false}
+          scrollbarMaxSize={28}
+          forceVisible="y"
+        >
+          <div className="vertical-stepper pe-2">
+            {showApprovals ? (
+              approvalEntries.map((step, i) => {
+                const isApproved = step.status === "Approved";
+                const isOpen = step.status === "Open";
+                const isCanceled = step.status === "Canceled";
 
-              return (
-                <div key={i} className="step">
-                  <div
-                    className={`step-line ${
-                      isApproved
-                        ? "completed"
-                        : isOpen
-                        ? "active"
-                        : isCanceled
-                        ? "muted"
-                        : "muted"
-                    }`}
-                  ></div>
-                  <div className="step-content d-flex align-items-center">
+                return (
+                  <div key={i} className="step">
                     <div
-                      className={`step-icon-lg ${
+                      className={`step-line ${
                         isApproved
-                          ? "bg-success text-white"
-                          : isCanceled
-                          ? "bg-danger text-white"
+                          ? "completed"
                           : isOpen
-                          ? "bg-warning text-white"
-                          : "bg-secondary-subtle text-muted"
+                          ? "active"
+                          : isCanceled
+                          ? "muted"
+                          : "muted"
                       }`}
-                      title={`Status: ${step.status}`}
-                    >
-                      <User size={18} />
+                    ></div>
+                    <div className="step-content d-flex">
+                      <div
+                        className={`step-icon-lg flex-shrink-0 mt-1 ${
+                          isApproved
+                            ? "bg-success text-white"
+                            : isCanceled
+                            ? "bg-danger text-white"
+                            : isOpen
+                            ? "bg-warning text-white"
+                            : "bg-secondary-subtle text-muted"
+                        }`}
+                        title={`Status: ${step.status}`}
+                      >
+                        <User size={18} />
+                      </div>
+                      <div className="ms-3 flex-grow-1">
+                        <h6 className="mb-1 text-dark">{step.approverID}</h6>
+                        <p className={`mb-0 ${getStatusColor(step.status)}`}>
+                          {step.status}
+                        </p>
+
+                        {step.approvalComments?.length > 0 && (
+                          <div className="p-2 mt-2 rounded bg-danger-subtle border-start border-4 border-danger comment-highlight">
+                            <h6 className="text-danger d-flex align-items-center mb-2">
+                              <MessageCircle size={16} className="me-2" />{" "}
+                              Comment(s)
+                            </h6>
+                            <ul className="mb-0 ps-3 small text-dark fw-semibold">
+                              {step.approvalComments.map((c, idx) => (
+                                <li key={idx}>{c.comment}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <p className="text-muted fs-12 mb-0">
+                          {formatAgeing(step.ageing) || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <>
+                <div className="step">
+                  <div className="step-line completed"></div>
+                  <div className="step-content d-flex align-items-center">
+                    <div className="step-icon-lg bg-success text-white">
+                      <FilePlus size={18} />
                     </div>
                     <div className="ms-3">
-                      <h6 className="mb-1 text-dark">{step.approverID}</h6>
-                      <p className={`mb-0 ${getStatusColor(step.status)}`}>
-                        {step.status}
-                      </p>
-                      <p className="text-muted fs-12 mb-0">
-                        {formatAgeing(step.ageing) || "-"}
-                      </p>
+                      <h6 className="mb-1 text-dark">Application Created</h6>
+                      <p className="text-muted fs-12 mb-0">{applicationDate}</p>
                     </div>
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <>
-              <div className="step">
-                <div className="step-line completed"></div>
-                <div className="step-content d-flex align-items-center">
-                  <div className="step-icon-lg bg-success text-white">
-                    <FilePlus size={18} />
-                  </div>
-                  <div className="ms-3">
-                    <h6 className="mb-1 text-dark">Application Created</h6>
-                    <p className="text-muted fs-12 mb-0">{applicationDate}</p>
+                <div className="step">
+                  <div className="step-line active"></div>
+                  <div className="step-content d-flex align-items-center">
+                    <div className="step-icon-lg bg-warning text-white">
+                      <Clock size={18} />
+                    </div>
+                    <div className="ms-3">
+                      <h6 className="mb-1 text-dark">Pending Submission</h6>
+                      <p className="text-muted fs-12 mb-0">Save & Submit</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="step">
-                <div className="step-line active"></div>
-                <div className="step-content d-flex align-items-center">
-                  <div className="step-icon-lg bg-warning text-white">
-                    <Clock size={18} />
-                  </div>
-                  <div className="ms-3">
-                    <h6 className="mb-1 text-dark">Pending Submission</h6>
-                    <p className="text-muted fs-12 mb-0">Save & Submit</p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-4">
+              </>
+            )}
+          </div>
+        </SimpleBar>
+
+        <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-3">
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">
             {isNew
@@ -190,26 +216,6 @@ export default function VerticalProgressCard({
               : `This request was created on ${applicationDate}.`}
           </div>
         </div>
-        {allApprovalComments.length > 0 && showCommentsToast && (
-          <div
-            className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
-            role="alert"
-          >
-            <div className="toast-body d-flex flex-column gap-2">
-              {allApprovalComments.map((comment, index) => (
-                <div key={index} className="d-flex align-items-center gap-2">
-                  <FilePlus size={16} />
-                  <span>{comment}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="btn-close btn-close-white ms-auto me-2"
-              onClick={() => setShowCommentsToast(false)}
-            ></button>
-          </div>
-        )}
       </div>
     </div>
   );
