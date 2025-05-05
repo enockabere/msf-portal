@@ -21,19 +21,52 @@ const greetings = [
   { greeting: "Annyeong 👋", welcome: "다시 오신 것을 환영합니다!" },
 ];
 
+type Quote = {
+  content: string;
+  author: string;
+};
+
 export default function BreadcrumbNav() {
   const { breadcrumb } = useBreadcrumb();
   const { employee } = useEmployee();
+
   const [currentGreeting, setCurrentGreeting] = useState(greetings[0]);
+  const [quote, setQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const randomizeGreeting = () => {
       const randomIndex = Math.floor(Math.random() * greetings.length);
       setCurrentGreeting(greetings[randomIndex]);
-    }, 20000);
+    };
+
+    const interval = setInterval(randomizeGreeting, 20000);
+    randomizeGreeting();
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const res = await fetch("/api/quote");
+        const data = await res.json();
+        console.log(data);
+        setQuote({ content: data.content, author: data.author });
+      } catch (err) {
+        console.error("❌ Failed to fetch quote:", err);
+        setQuote({
+          content: "Your limitation—it’s only your imagination.",
+          author: "Unknown",
+        });
+      }
+    };
+
+    fetchQuote();
+  }, []);
+
+  const quoteText = quote
+    ? `"${quote.content}" – ${quote.author}`
+    : "Fetching a quote for you...";
 
   if (breadcrumb.length === 0) {
     return (
@@ -43,7 +76,7 @@ export default function BreadcrumbNav() {
           {employee?.firstName ? employee.firstName : <Skeleton width={100} />}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
-          "You miss 100% of the shots you don't take." – Wayne Gretzky
+          {quoteText}
         </h6>
       </li>
     );
