@@ -35,8 +35,6 @@ export default function AdvancesClient() {
     }
   }, []);
 
-  console.log(employee);
-
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"
   ) => {

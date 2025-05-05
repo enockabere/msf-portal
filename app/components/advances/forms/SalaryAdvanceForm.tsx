@@ -247,9 +247,10 @@ export default function SalaryAdvanceForm({
         setIdNumber(advanceIdNo);
       }
 
-      const validBranch = bankBranches.find(
+      const validBranch = (bankBranches as { branchNo: string }[]).find(
         (b) => b.branchNo === advanceEmployeeBranchCode
       );
+      
       if (validBranch) {
         setBranch(validBranch.branchNo);
       }
@@ -291,6 +292,7 @@ export default function SalaryAdvanceForm({
       if (eb.swiftCode) setSwiftCode(eb.swiftCode);
     }
   }, [advanceNo, employeeBanks]);
+  
   useEffect(() => {
     if (!advanceAmount) {
       setAdvanceLimit(null);

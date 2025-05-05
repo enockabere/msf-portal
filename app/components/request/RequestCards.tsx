@@ -274,7 +274,13 @@ export default function RequestCards() {
           {requestType === "Advance" && advanceType === "Salary" && (
             <>
               <div className="col-md-8">
-                <SalaryAdvanceForm />
+                <SalaryAdvanceForm
+                  employee={{
+                    number: employee?.number || "",
+                    nationalId: employee?.nationalId || "",
+                    mobilePhone: employee?.mobilePhone || "",
+                  }}
+                />
               </div>
               <div className="col-md-4">
                 <VerticalProgressCard />
