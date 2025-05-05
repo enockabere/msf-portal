@@ -55,15 +55,12 @@ export default function ActionButtons({
           "error"
         );
       } else {
-        await fetch(`/api/clearCache?employeeNo=${employeeNo}`, {
-          method: "POST",
-        });
+        onSuccess?.();
         await Swal.fire(
           "Success",
           "Cancelled approval successfully!",
           "success"
         );
-        onSuccess?.();
       }
     } catch (error) {
       console.error("Cancel approval error:", error);

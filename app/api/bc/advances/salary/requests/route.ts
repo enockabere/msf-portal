@@ -1,10 +1,6 @@
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
 
-// Simple in-memory cache for dev (Redis later)
-const memoryCache: Record<string, { data: any; expiry: number }> = {};
-const CACHE_TTL_SECONDS = 300; // 5 minutes
-
 interface AdvanceEntry {
   no: string;
   employeeName: string;
@@ -14,6 +10,16 @@ interface AdvanceEntry {
   status: string;
   applicationAmount: number;
   currencyCode: string;
+  bankCode?: string;
+  accountNo?: string;
+  mobilePhoneNo?: string;
+  identificationDocumentNo?: string;
+  employeeBankName?: string;
+  employeeBranchCode?: string;
+  employeeBranchName?: string;
+  chequeName?: string;
+  swiftCode?: string;
+  paymentMethod?: string;
 }
 
 export async function GET(req: Request) {
@@ -27,12 +33,6 @@ export async function GET(req: Request) {
     );
   }
 
-  const cacheKey = `advances-${employeeNo}`;
-  const now = Date.now();
-  const cached = memoryCache[cacheKey];
-  if (cached && cached.expiry > now) {
-    return NextResponse.json({ data: cached.data });
-  }
   try {
     const response = (await transport.get(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
@@ -49,10 +49,6 @@ export async function GET(req: Request) {
         new Date(a.applicationDate).getTime()
     );
 
-    memoryCache[cacheKey] = {
-      data: { value: sorted },
-      expiry: now + CACHE_TTL_SECONDS * 1000,
-    };
     return NextResponse.json({ data: { value: sorted } });
   } catch (error) {
     console.error("❌ Fetch Salary Advance Error:", error);
