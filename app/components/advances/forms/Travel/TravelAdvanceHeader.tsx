@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import InboundTravelNotice from "./InboundTravelNotice";
 import OutboundTravelForm from "./OutboundTravelForm";
 
@@ -41,37 +41,57 @@ const TRAVEL_REQUESTS = {
 
 type TravelRequestID = keyof typeof TRAVEL_REQUESTS;
 
+// Helper to populate travel info from request
+const getTravelRequestData = (id: TravelRequestID) => TRAVEL_REQUESTS[id];
+
 export default function TravelAdvanceHeader({
   travelInfo,
   setTravelInfo,
   onNext,
 }: TravelAdvanceHeaderProps) {
-  const handleChange = (field: string, value: any) => {
-    setTravelInfo((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleChange = useCallback(
+    (field: keyof TravelInfo, value: any) => {
+      setTravelInfo((prev) => ({ ...prev, [field]: value }));
+    },
+    [setTravelInfo]
+  );
 
   // Default "Yes" on first load
   useEffect(() => {
     if (!travelInfo.basedOnRequest) {
       setTravelInfo((prev) => ({ ...prev, basedOnRequest: "Yes" }));
     }
-  }, []);
+  }, [travelInfo.basedOnRequest, setTravelInfo]);
 
   // Populate data from request
   useEffect(() => {
     const { travelRequestId, basedOnRequest } = travelInfo;
-
-    if (basedOnRequest === "Yes" && travelRequestId in TRAVEL_REQUESTS) {
-      const selected = TRAVEL_REQUESTS[travelRequestId as TravelRequestID];
-      setTravelInfo((prev) => ({
-        ...prev,
-        destination: selected.destination,
-        tripDates: selected.tripDates,
-        currency: selected.currency,
-        paymentMethod: selected.paymentMethod,
-      }));
+    if (
+      basedOnRequest === "Yes" &&
+      travelRequestId &&
+      travelRequestId in TRAVEL_REQUESTS
+    ) {
+      const selected = getTravelRequestData(travelRequestId as TravelRequestID);
+      setTravelInfo((prev) => {
+        if (
+          prev.destination === selected.destination &&
+          prev.tripDates.from === selected.tripDates.from &&
+          prev.tripDates.to === selected.tripDates.to &&
+          prev.currency === selected.currency &&
+          prev.paymentMethod === selected.paymentMethod
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          destination: selected.destination,
+          tripDates: selected.tripDates,
+          currency: selected.currency,
+          paymentMethod: selected.paymentMethod,
+        };
+      });
     }
-  }, [travelInfo.basedOnRequest, travelInfo.travelRequestId]);
+  }, [travelInfo, setTravelInfo]);
 
   return (
     <div className="card border-0 shadow-sm mb-4">

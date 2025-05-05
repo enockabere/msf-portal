@@ -30,7 +30,7 @@ export default function ProfileDropdown() {
         <>
           <div className="d-flex align-items-center dropdown-item py-2 bg-secondary-subtle">
             <div className="flex-shrink-0">
-              <img
+              <Image
                 src="/assets/images/avatar.png"
                 alt="avatar"
                 className="thumb-md rounded-circle"
@@ -75,7 +75,7 @@ export default function ProfileDropdown() {
           <div className="dropdown-divider mb-0" />
           <button
             className="dropdown-item text-danger"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut()}
           >
             <i className="las la-power-off fs-18 me-1 align-text-bottom" />
             Logout

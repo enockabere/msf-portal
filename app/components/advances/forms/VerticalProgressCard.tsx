@@ -89,11 +89,10 @@ export default function VerticalProgressCard({
   const formatAgeing = (ageingStr: string | undefined) => {
     const match = ageingStr?.match(/P(\d+)D(?:T(\d+)H(\d+)M)?/);
     if (!match) return null;
-
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [_, days, hours, minutes] = match;
-    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${
-      minutes ? `${minutes}m` : ""
-    }`.trim();
+    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${minutes ? `${minutes}m` : ""
+      }`.trim();
   };
 
   return (
@@ -115,27 +114,25 @@ export default function VerticalProgressCard({
               return (
                 <div key={i} className="step">
                   <div
-                    className={`step-line ${
-                      isApproved
-                        ? "completed"
-                        : isOpen
+                    className={`step-line ${isApproved
+                      ? "completed"
+                      : isOpen
                         ? "active"
                         : isCanceled
-                        ? "muted"
-                        : "muted"
-                    }`}
+                          ? "muted"
+                          : "muted"
+                      }`}
                   ></div>
                   <div className="step-content d-flex align-items-center">
                     <div
-                      className={`step-icon-lg ${
-                        isApproved
-                          ? "bg-success text-white"
-                          : isCanceled
+                      className={`step-icon-lg ${isApproved
+                        ? "bg-success text-white"
+                        : isCanceled
                           ? "bg-danger text-white"
                           : isOpen
-                          ? "bg-warning text-white"
-                          : "bg-secondary-subtle text-muted"
-                      }`}
+                            ? "bg-warning text-white"
+                            : "bg-secondary-subtle text-muted"
+                        }`}
                       title={`Status: ${step.status}`}
                     >
                       <User size={18} />

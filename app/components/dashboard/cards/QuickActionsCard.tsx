@@ -2,13 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  IconoirProvider,
-  Wallet,
-  BellNotification,
-  Cash,
-  CloudDownload,
-} from "iconoir-react";
 import "./Cards.css";
 
 export default function QuickActionsCard() {

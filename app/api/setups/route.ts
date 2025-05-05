@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
 import { memoryMap } from "@/app/utils/endpointMap";

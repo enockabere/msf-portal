@@ -6,7 +6,6 @@ import React, {
   useReducer,
   useCallback,
   ReactNode,
-  useEffect,
 } from "react";
 import { toast } from "react-toastify";
 

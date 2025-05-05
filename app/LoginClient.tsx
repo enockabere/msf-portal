@@ -106,7 +106,7 @@ export default function LoginClient() {
               className="rounded-5"
               style={{ height: "100%", width: "100%", backgroundColor: "red" }}
             >
-              <img
+              <Image
                 src="/assets/images/auth-banner.png"
                 alt="msf"
                 style={{ height: "100%", width: "100%" }}

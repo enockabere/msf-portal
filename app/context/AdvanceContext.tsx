@@ -1,4 +1,4 @@
-import { createContext, useReducer, useContext, ReactNode, useCallback } from "react";
+import { createContext, useReducer, useContext, ReactNode, useCallback, useMemo } from "react";
 import { ReducerFunctionActionType } from "../types/global";
 import { RequestOptions, RequestResponse } from "../types/options";
 import { ENDPOINTMAP } from "../utils/endpointMap";
@@ -14,6 +14,7 @@ const initialState = {
         },
     ],
     actions: {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
             return Promise.resolve({ success: false })
         }
@@ -61,9 +62,19 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             })
         },
         []
-    )
+    );
+
+    const contextValue = useMemo(() => ({
+
+        advanceTypes: advance.advanceTypes,
+        actions: {
+            ...advance.actions,
+            fetchAdvanceTypes,
+        }
+    }), [advance.advanceTypes, advance.actions, fetchAdvanceTypes]);
+
     return (
-        <AdvanceContext.Provider value={advance} >
+        <AdvanceContext.Provider value={contextValue} >
             {children}
         </AdvanceContext.Provider >
     )

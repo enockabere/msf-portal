@@ -2,7 +2,7 @@
 
 import { Wallet, Eye, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../dashboard/cards/Cards.css";
@@ -35,32 +35,34 @@ export default function RequestCards() {
     setShowModal(true);
   };
 
-  const fetchAdvances = async () => {
-    if (!employee?.user?.profile?.number) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
-      );
-      const json = await res.json();
-      const data = json?.data?.value || [];
-      const pending = data.filter(
-        (a: any) => a.status === "Pending Approval"
-      ).length;
-      const released = data.filter((a: any) => a.status === "Released").length;
-      setMetrics({ pending, released });
-    } catch (err) {
-      console.error("\u274C Failed to fetch advances:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchAdvances = useCallback(
+    async () => {
+      if (!employee?.user?.profile?.number) return;
+      setIsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+        );
+        const json = await res.json();
+        const data = json?.data?.value || [];
+        const pending = data.filter(
+          (a: any) => a.status === "Pending Approval"
+        ).length;
+        const released = data.filter((a: any) => a.status === "Released").length;
+        setMetrics({ pending, released });
+      } catch (err) {
+        console.error("\u274C Failed to fetch advances:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [employee?.user?.profile?.number]
+  );
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
       fetchAdvances();
     }
-  }, [activeIndex, metrics, isLoading]);
+  }, [activeIndex, metrics, isLoading, fetchAdvances]);
 
   return (
     <>

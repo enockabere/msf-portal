@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
 
@@ -20,7 +22,7 @@ interface Payload {
 }
 
 export async function POST(request: Request) {
-  const start = performance.now();
+  // const start = performance.now();
 
   try {
     const body = await request.json();

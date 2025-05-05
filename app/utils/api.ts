@@ -3,7 +3,7 @@ import { transport } from '@brainspore/hypernexus';
 import type { HTTMETHODS, RequestOptions, RequestResponse } from '../types/options';
 import { ENDPOINTMAP, memoryMap } from './endpointMap';
 
-export async function apiFetch<T>(
+export async function apiFetch(
     method: HTTMETHODS = 'GET',
     endpoint: ENDPOINTMAP,
     options: RequestOptions = {}

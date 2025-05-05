@@ -69,7 +69,7 @@ export default function FavoriteCardsWrapper() {
       });
       setCards(updated);
     }
-  }, []);
+  }, [cards]);
 
   const handleSave = (selected: CardPreferences) => {
     const updated = { ...cards };

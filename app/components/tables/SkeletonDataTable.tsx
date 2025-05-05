@@ -3,7 +3,7 @@
 import DataTable from "react-data-table-component";
 import { Search, Download } from "lucide-react";
 import { useState } from "react";
-import { Button, Spinner } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import "./datatable-custom.css";
