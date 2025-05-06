@@ -31,12 +31,14 @@ const handler = NextAuth({
     //     signIn: '/'
     // },
     callbacks: {
-        async redirect({ url, baseUrl }) {
-            const urlObject: URL = new URL(url);
-            if (url.startsWith("/")) return `${baseUrl}${url}`
-            else if (urlObject.pathname !== "/") return url
-            else return `${baseUrl}/dashboard`
-        },
+        // async redirect({ url, baseUrl }) {
+        //     const urlObject: URL = new URL(url);
+        //     console.log('url', url)
+        //     console.log('object url', urlObject)
+        //     if (url.startsWith("/")) return `${baseUrl}${url}`
+        //     else if (urlObject.pathname !== "/") return url
+        //     else return `${baseUrl}/dashboard`
+        // },
         async session({ session, token }) {
             session.user.profile = token.profile as Record<string, any> | null;
             return session

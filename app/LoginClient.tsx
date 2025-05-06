@@ -3,14 +3,24 @@
 import { signIn } from "next-auth/react"
 import Image from "next/image";
 import { useEffect } from "react";
-import { batchRequest } from "./lib/api/http";
+import { batchRequest, getResource } from "./lib/api/http";
 
 export default function LoginClient() {
   const handleSSORedirect = () => {
-    signIn()
+    signIn('azure-ad', { callbackUrl: '/dashboard' })
   };
 
   useEffect(() => {
+    const fetchRequisition = async () => {
+      const req = await getResource('locations', {
+        options: {
+          params: {
+            '$top': 2,
+          },
+        }
+      });
+      console.log('requisitions: ', req);
+    }
     const firebatchReq = async () => {
       const resp = await batchRequest({
         batch: [
@@ -35,7 +45,8 @@ export default function LoginClient() {
       });
       console.log('Batch response: ', resp);
     }
-    firebatchReq()
+    Promise.all([firebatchReq(),
+    fetchRequisition()])
   }, [])
   return (
     <div className="bg-light container-fluid min-vh-100 d-flex flex-column">
@@ -73,7 +84,7 @@ export default function LoginClient() {
                 </p>
                 <div className="d-flex justify-content-center gap-3">
                   <button
-                    onClick={() => signIn()}
+                    onClick={() => handleSSORedirect() }
                     className="btn bg-black text-white btn-lg rounded-pill d-flex justify-content-center align-items-center w-25"
                     style={{ fontSize: "14px" }}
                   >

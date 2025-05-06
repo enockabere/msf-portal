@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, ListChecks, Globe } from "lucide-react";
+import { User, ListChecks, Globe, Plane } from "lucide-react";
 import "./TravelRequestWizard.css";
+import TravelAdvanceDetails from "./TravelAdvanceDetails";
+import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
@@ -38,12 +40,17 @@ export default function TravelRequestWizard() {
                   title: "Visa Application",
                   desc: "Visa documentation",
                 },
+                {
+                  id: "travel_advance",
+                  icon: <Plane size={20} />,
+                  title: "travel advance",
+                  desc: "travel advance",
+                }
               ].map((step) => (
                 <button
                   key={step.id}
-                  className={`nav-link text-start wizard-tab ${
-                    activeTab === step.id ? "active" : ""
-                  }`}
+                  className={`nav-link text-start wizard-tab ${activeTab === step.id ? "active" : ""
+                    }`}
                   onClick={() => setActiveTab(step.id)}
                 >
                   <div className="d-flex align-items-start gap-2">
@@ -137,6 +144,40 @@ export default function TravelRequestWizard() {
                       </button>
                     </div>
                   </form>
+                </div>
+              )}
+              {activeTab === "travel_advance" && (
+                <div>
+                  {/* Travel Advance Details */}
+                  <TravelAdvanceDetails travelInfo={{
+                    basedOnRequest: "No",
+                    travelRequestId: "TR001",
+                    tripType: "One Way",
+                    tripDates: { from: "2025-05-10", to: "2025-05-15" },
+                    origin: "Nairobi",
+                    destination: "Kampala",
+                    applyForOther: "No",
+                    recipientName: "John Doe",
+                    currency: "USD",
+                    paymentMethod: "Bank"
+                  }} />
+                  {/* Travel Advance GL Lines Table */}
+                  <TravelAdvanceGLTable glLines={[
+                    { account: "6001", description: "Flight Ticket", amount: 500, currency: "USD", department: "Finance", project: "Project A" },
+                    { account: "6002", description: "Hotel", amount: 300, currency: "USD", department: "Finance", project: "Project A" },
+                  ]} />
+                  <div className="text-end mt-3">
+                    <button
+                      type="button"
+                      className="btn btn-secondary me-2"
+                      onClick={() => setActiveTab("visa")}
+                    >
+                      Previous
+                    </button>
+                    <button className="btn btn-primary">
+                      Create New Travel Advance
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

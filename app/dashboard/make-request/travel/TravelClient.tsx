@@ -58,7 +58,7 @@ export default function TravelClient() {
       icon: <Wallet size={28} />,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
-      onClick: () => {}, // You can add modal trigger logic later
+      onClick: () => { }, // You can add modal trigger logic later
     },
     {
       title: "Open Travel Requests",
