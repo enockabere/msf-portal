@@ -16,8 +16,9 @@ interface AdvanceDataTableProps {
 export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
   const [data, setData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const search = '';
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [forceRefresh, setForceRefresh] = useState(false);
 
   const employeeNo = employee?.number;
@@ -37,7 +38,7 @@ export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
       setLoading(false);
       setForceRefresh(false);
     }
-  }, [employeeNo, forceRefresh]);
+  }, [employeeNo]);
 
   useEffect(() => {
     fetchAdvances();

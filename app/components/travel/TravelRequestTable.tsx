@@ -13,6 +13,7 @@ export default function TravelRequestTable({
   data,
   loading,
 }: TravelRequestTableProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
 
   const filteredData = useMemo(() => {

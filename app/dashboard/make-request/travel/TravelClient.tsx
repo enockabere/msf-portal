@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
@@ -10,25 +8,13 @@ import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
 import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
 
-const TravelRequestTable = dynamic(
-  () => import("@/app/components/travel/TravelRequestTable"),
-  { ssr: false }
-);
-
 export default function TravelClient() {
-  const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
 
   const [showModal, setShowModal] = useState(false);
 
   const handleNewRequestClick = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
-
-  const employeeData = {
-    number: employee?.user?.profile?.number || "",
-    nationalId: employee?.user?.profile?.nationalId || "",
-    mobilePhone: employee?.user?.profile?.mobilePhone || "",
-  };
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -44,7 +30,7 @@ export default function TravelClient() {
     if (saved && saved !== placement) {
       setPlacement(saved);
     }
-  }, []);
+  }, [placement]);
 
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"
@@ -69,7 +55,7 @@ export default function TravelClient() {
       icon: <Wallet size={28} />,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
-      onClick: () => {}, // You can add modal trigger logic later
+      onClick: () => { }, // You can add modal trigger logic later
     },
     {
       title: "Open Travel Requests",

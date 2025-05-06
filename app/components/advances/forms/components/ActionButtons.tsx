@@ -25,7 +25,6 @@ export default function ActionButtons({
   onSuccess,
   cutoffPassed = false,
   limitExceeded = false,
-  employeeNo,
 }: ActionButtonsProps) {
   const [isCancelling, setIsCancelling] = useState(false);
 

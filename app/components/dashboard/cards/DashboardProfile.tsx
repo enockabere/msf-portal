@@ -125,7 +125,7 @@ export default function DashboardProfile() {
             )}
           </div>
 
-          <div className="text-body mb-2 d-flex align-items-center">
+          <div className="text-body d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
             {isLoading ? (
@@ -134,32 +134,6 @@ export default function DashboardProfile() {
               employee?.user?.profile?.gender || "N/A"
             )}
           </div>
-          {/* <ul className="list-unstyled d-flex gap-2 mb-0">
-            <li className="list-inline-item">
-              <a
-                href="#"
-                className="d-flex justify-content-center align-items-center thumb-md rounded-circle social twitter"
-              >
-                <i className="icofont-twitter fs-18 mb-0" />
-              </a>
-            </li>
-            <li className="list-inline-item">
-              <a
-                href="#"
-                className="d-flex justify-content-center align-items-center thumb-md rounded-circle social instagram"
-              >
-                <i className="icofont-instagram fs-18 mb-0" />
-              </a>
-            </li>
-            <li className="list-inline-item">
-              <a
-                href="#"
-                className="d-flex justify-content-center align-items-center thumb-md rounded-circle social facebook"
-              >
-                <i className="icofont-facebook fs-18 mb-0" />
-              </a>
-            </li>
-          </ul> */}
         </div>
       </div>
     </div>

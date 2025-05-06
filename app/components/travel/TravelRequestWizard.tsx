@@ -17,6 +17,8 @@ import {
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
 import { TravelInfo } from "@/app/types/travel";
+import TravelAdvanceDetails from "./TravelAdvanceDetails";
+import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 
 interface WizardStep {
   id: string;
@@ -185,12 +187,11 @@ export default function TravelRequestWizard() {
             role="tabpanel"
             aria-labelledby={`${activeTab}-tab`}
           >
-            <h3 className="step-panel-title">
+            <h4 className="step-panel-title">
               {steps.find((s) => s.id === activeTab)?.title}
-            </h3>
+            </h4>
 
             <form onSubmit={handleSubmit}>
-              {/* Tab 1: Your Info */}
               {activeTab === "info" && (
                 <TravelHeaderForm
                   travelInfo={travelInfo}
@@ -198,51 +199,6 @@ export default function TravelRequestWizard() {
                 />
               )}
 
-              {/* Tab 2: Checklist */}
-              {activeTab === "checklist" && (
-                <div className="tab-content">
-                  {/* PLUG IN CHECKLIST COMPONENT HERE */}
-                  {/* Example: <TravelChecklist travelInfo={travelInfo} /> */}
-                  <div className="step-placeholder">
-                    Checklist component will go here
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 3: Ticket Booking */}
-              {activeTab === "ticket" && (
-                <div className="tab-content">
-                  {/* PLUG IN TICKET BOOKING COMPONENT HERE */}
-                  {/* Example: <TicketBooking travelInfo={travelInfo} /> */}
-                  <div className="step-placeholder">
-                    Ticket booking component will go here
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 4: Dependencies */}
-              {activeTab === "dependencies" && (
-                <div className="tab-content">
-                  {/* PLUG IN DEPENDENCIES COMPONENT HERE */}
-                  {/* Example: <TravelDependencies travelInfo={travelInfo} /> */}
-                  <div className="step-placeholder">
-                    Dependencies component will go here
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 5: Visa Application */}
-              {activeTab === "visa" && (
-                <div className="tab-content">
-                  {/* PLUG IN VISA APPLICATION COMPONENT HERE */}
-                  {/* Example: <VisaApplication travelInfo={travelInfo} /> */}
-                  <div className="step-placeholder">
-                    Visa application component will go here
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 6: Work Permit */}
               {activeTab === "permit" && (
                 <div className="permit-form">
                   <div className="permit-notice mb-4">
@@ -253,8 +209,6 @@ export default function TravelRequestWizard() {
                     </p>
                   </div>
 
-                  {/* PLUG IN WORK PERMIT COMPONENT HERE OR USE CURRENT FORM */}
-                  {/* Example: <WorkPermitForm fields={workPermitFields} /> */}
                   <div className="form-grid">
                     {workPermitFields.map((field) => (
                       <div key={field.id} className="form-group">
@@ -290,23 +244,38 @@ export default function TravelRequestWizard() {
                 </div>
               )}
 
-              {/* Tab 7: Travel Advance */}
               {activeTab === "advance" && (
-                <div className="tab-content">
-                  {/* PLUG IN TRAVEL ADVANCE COMPONENT HERE */}
-                  {/* Example: 
-                  <>
-                    <TravelAdvanceDetails travelInfo={travelInfo} />
-                    <TravelAdvanceGLTable glLines={[]} />
-                  </>
-                */}
-                  <div className="step-placeholder">
-                    Travel advance component will go here
-                  </div>
+                <div>
+                  <TravelAdvanceDetails travelInfo={travelInfo} />
+                  <TravelAdvanceGLTable
+                    glLines={[
+                      {
+                        account: "6001",
+                        description: "Flight Ticket",
+                        amount: 500,
+                        currency: travelInfo.currency,
+                        department: "",
+                        project: "",
+                      },
+                      {
+                        account: "6002",
+                        description: "Hotel",
+                        amount: 300,
+                        currency: travelInfo.currency,
+                        department: "",
+                        project: "",
+                      },
+                    ]}
+                  />
                 </div>
               )}
 
-              {/* Navigation Buttons */}
+              {!["info", "permit", "advance"].includes(activeTab) && (
+                <div className="step-placeholder">
+                  Form fields for: <strong>{activeTab}</strong>
+                </div>
+              )}
+
               <div className="step-actions">
                 {currentStepIndex > 0 && (
                   <button

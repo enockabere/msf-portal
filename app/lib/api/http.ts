@@ -16,7 +16,7 @@ export const patchResource = async (endpoint: ENDPOINTMAP, options: RequestOptio
 }
 
 export const putResource = async (endpoint: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
-    return await apiFetch('GET', endpoint, options);
+    return await apiFetch('PUT', endpoint, options);
 }
 
 export const deleteResource = async (endpoint: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
