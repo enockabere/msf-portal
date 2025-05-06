@@ -77,7 +77,7 @@ export default function ProfileDropdown() {
           <div className="dropdown-divider mb-0" />
           <button
             className="dropdown-item text-danger"
-            onClick={() => signOut()}
+            onClick={async () => await signOut({ callbackUrl: '/' })}
           >
             <i className="las la-power-off fs-18 me-1 align-text-bottom" />
             Logout
