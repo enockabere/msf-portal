@@ -1,52 +1,361 @@
-/* Wizard tab container */
-.wizard-sidebar .wizard-tab {
-  background-color: #f2f3f4;
+.travel-wizard {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.wizard-header {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.wizard-title {
+  margin: 0;
+  color: #212529;
+  font-size: 1.5rem;
+}
+
+.wizard-subtitle {
+  margin: 0.5rem 0 0;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.wizard-progress {
+  height: 4px;
+  background-color: #e9ecef;
+  margin-top: 1rem;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #0d6efd;
+  transition: width 0.3s ease;
+}
+
+.wizard-body {
+  display: flex;
+  flex-direction: row;
+  min-height: 500px;
+}
+
+.wizard-sidebar {
+  width: 280px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #e9ecef;
+  padding: 1rem 0;
+}
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.step-item {
+  margin: 0;
+}
+
+.step-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: none;
   border: none;
-  border-bottom: 1px solid #dee2e6;
-  padding: 15px 16px;
-  border-radius: 0;
   text-align: left;
+  color: #495057;
+  cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
-.wizard-sidebar .wizard-tab:not(:last-child) {
-  margin-bottom: 0;
+.step-button:hover {
+  background-color: #e9ecef;
 }
 
-/* Active tab highlighting */
-.wizard-sidebar .wizard-tab.active {
-  background-color: #f1f1f1;
-  border-left: 4px solid #dc3545;
-  border-bottom: 1px solid #dee2e6;
+.step-button:focus {
+  outline: 2px solid #86b7fe;
+  outline-offset: -2px;
 }
 
-.wizard-sidebar .wizard-tab.active h5 {
-  color: #dc3545;
-  font-weight: 600;
+.step-button.active {
+  background-color: white;
+  border-left: 4px solid #0d6efd;
+  color: #0d6efd;
 }
 
-/* Icon container */
-.wizard-icon-wrapper {
-  border: 2px solid #dee2e6;
-  border-radius: 50%;
-  padding: 6px;
-  width: 36px;
-  height: 36px;
+.step-button.completed .step-title {
+  color: #198754;
+}
+
+.step-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.wizard-icon-wrapper .wizard-icon svg {
-  color: #dc3545;
-}
-
-/* Active icon styling */
-.wizard-icon-wrapper.active {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  box-shadow: 0 0 0 3px #f8d7da;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #dee2e6;
+  border-radius: 50%;
+  margin-right: 1rem;
+  transition: all 0.2s ease;
 }
 
-.wizard-icon-wrapper.active .wizard-icon svg {
+.step-button.active .step-icon-wrapper {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.step-button.active .step-icon {
   color: white;
 }
+
+.step-button.completed .step-icon-wrapper {
+  border-color: #198754;
+}
+
+.step-icon {
+  color: #6c757d;
+  display: flex;
+}
+
+.step-button.active .step-icon {
+  color: white;
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.step-desc {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.step-button.active .step-desc {
+  color: #6c757d;
+}
+
+.step-completed-badge {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #198754;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.wizard-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.step-panel {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.step-panel-title {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  color: #212529;
+}
+
+.step-placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.primary-button,
+.secondary-button,
+.submit-button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-button {
+  background-color: #0d6efd;
+  color: white;
+  border: 1px solid #0d6efd;
+}
+
+.primary-button:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+}
+
+.secondary-button {
+  background-color: white;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+
+.secondary-button:hover {
+  background-color: #f8f9fa;
+}
+
+.submit-button {
+  background-color: #198754;
+  color: white;
+  border: 1px solid #198754;
+}
+
+.submit-button:hover {
+  background-color: #157347;
+  border-color: #146c43;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .wizard-body {
+    flex-direction: column;
+  }
+
+  .wizard-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .step-list {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .step-item {
+    min-width: 200px;
+  }
+
+  .step-button.active {
+    border-left: none;
+    border-bottom: 3px solid #0d6efd;
+  }
+}
+
+@media (max-width: 576px) {
+  .step-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .submit-button {
+    width: 100%;
+  }
+}
+/* Add to your existing CSS */
+.button-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  
+  /* Update button styles to accommodate icons */
+  .primary-button,
+  .secondary-button,
+  .submit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 576px) {
+    .button-icon {
+      margin-right: 6px;
+    }
+    
+    .primary-button,
+    .secondary-button,
+    .submit-button {
+      padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Work Permit specific styles */
+.permit-form {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .permit-notice {
+    padding: 1rem;
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+  }
+  
+  .notice-text {
+    margin: 0;
+    color: #856404;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }

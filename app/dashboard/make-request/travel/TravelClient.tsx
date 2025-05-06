@@ -109,7 +109,7 @@ export default function TravelClient() {
               onPlacementChange={handleChangePlacement}
               actionButton={
                 <button
-                  className="btn bg-danger text-white btn-sm"
+                  className="btn bg-danger text-white btn-md"
                   onClick={handleNewRequestClick}
                 >
                   <i className="fa fa-plus me-1" />
@@ -132,7 +132,7 @@ export default function TravelClient() {
                 onPlacementChange={handleChangePlacement}
                 actionButton={
                   <button
-                    className="btn bg-danger text-white btn-sm"
+                    className="btn bg-danger text-white btn-md"
                     onClick={handleNewRequestClick}
                   >
                     <i className="fa fa-plus me-1" />
@@ -164,7 +164,7 @@ export default function TravelClient() {
                 onPlacementChange={handleChangePlacement}
                 actionButton={
                   <button
-                    className="btn bg-danger text-white btn-sm"
+                    className="btn bg-danger text-white btn-md"
                     onClick={handleNewRequestClick}
                   >
                     <i className="fa fa-plus me-1" />
@@ -195,7 +195,7 @@ export default function TravelClient() {
               onPlacementChange={handleChangePlacement}
               actionButton={
                 <button
-                  className="btn bg-danger text-white btn-sm"
+                  className="btn bg-danger text-white btn-md"
                   onClick={handleNewRequestClick}
                 >
                   <i className="fa fa-plus me-1" />
