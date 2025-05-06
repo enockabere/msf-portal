@@ -113,7 +113,6 @@ export default function FavoriteCardsWrapper() {
           )}
         </div>
       </div>
-
       <FavoriteCardsModal
         show={showModal}
         onClose={() => setShowModal(false)}
