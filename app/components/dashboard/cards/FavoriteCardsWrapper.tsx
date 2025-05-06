@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
 import FavoriteCard from "./FavoriteCard";
 import FavoriteCardsModal from "./FavoriteCardsModal";
 import { FavoriteCardType } from "@/app/types/FavoriteCardType";
@@ -57,19 +57,31 @@ export default function FavoriteCardsWrapper() {
   const [cards, setCards] = useState<FavoriteCardsState>(defaultCards);
   const [showModal, setShowModal] = useState(false);
 
+  const setFavoriteCards = useCallback(() => {
+      const saved = localStorage.getItem("favoriteCards");
+      if (saved) {
+        const parsed: CardPreferences = JSON.parse(saved);
+        setCards((prevState: FavoriteCardsState) => {
+          for (const [key, value] of Object.entries(parsed)) {
+            if (prevState[key]) {
+              prevState[key].visible = value
+            }
+          }
+          return prevState;
+        })
+        // const updated = { ...cards };
+        // (Object.keys(parsed) as FavoriteCardKey[]).forEach((key) => {
+        //   if (updated[key]) {
+        //     updated[key].visible = parsed[key];
+        //   }
+        // });
+        // setCards(updated);
+      }
+  }, [])
+
   useEffect(() => {
-    const saved = localStorage.getItem("favoriteCards");
-    if (saved) {
-      const parsed: CardPreferences = JSON.parse(saved);
-      const updated = { ...cards };
-      (Object.keys(parsed) as FavoriteCardKey[]).forEach((key) => {
-        if (updated[key]) {
-          updated[key].visible = parsed[key];
-        }
-      });
-      setCards(updated);
-    }
-  }, []);
+    setFavoriteCards()
+  });
 
   const handleSave = (selected: CardPreferences) => {
     const updated = { ...cards };

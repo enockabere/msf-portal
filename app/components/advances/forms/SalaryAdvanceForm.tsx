@@ -56,9 +56,6 @@ interface SalaryAdvanceFormProps {
   isViewMode?: boolean;
   onSuccess?: () => void;
   employee?: {
-    number: string;
-    nationalId: string;
-    mobilePhone: string;
     [key: string]: any;
   };
 }

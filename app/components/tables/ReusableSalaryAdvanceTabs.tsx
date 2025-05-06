@@ -7,11 +7,7 @@ import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
 
 interface Props {
-  employee?: {
-    number: string;
-    nationalId: string;
-    mobilePhone: string;
-  };
+  employee?: Record<string, any>;
   onCountsUpdate?: (counts: {
     open: number;
     pending: number;
@@ -29,6 +25,7 @@ export default function ReusableSalaryAdvanceTabs({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [forceRefresh, setForceRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState("open");
   const employeeNo = employee?.number;
@@ -48,7 +45,7 @@ export default function ReusableSalaryAdvanceTabs({
       setLoading(false);
       setForceRefresh(false);
     }
-  }, [employeeNo, forceRefresh]);
+  }, [employeeNo]);
 
   useEffect(() => {
     fetchAdvances();

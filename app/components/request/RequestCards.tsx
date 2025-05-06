@@ -29,6 +29,7 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: employee } = useSession();
+  const { number, nationalId, mobilePhone } = employee?.user?.profile
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
@@ -253,9 +254,9 @@ export default function RequestCards() {
               <div className="col-md-8">
                 <SalaryAdvanceForm
                   employee={{
-                    number: employee?.user?.profile?.number || "",
-                    nationalId: employee?.user?.profile?.nationalId || "",
-                    mobilePhone: employee?.user?.profile?.mobilePhone || "",
+                    number: number || "",
+                    nationalId: nationalId || "",
+                    mobilePhone: mobilePhone || "",
                   }}
                 />
               </div>
