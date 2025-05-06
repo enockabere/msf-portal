@@ -10,11 +10,6 @@ import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
 import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
 
-const TravelRequestTable = dynamic(
-  () => import("@/app/components/travel/TravelRequestTable"),
-  { ssr: false }
-);
-
 export default function TravelClient() {
   const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
@@ -23,12 +18,6 @@ export default function TravelClient() {
 
   const handleNewRequestClick = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
-
-  const employeeData = {
-    number: employee?.user?.profile?.number || "",
-    nationalId: employee?.user?.profile?.nationalId || "",
-    mobilePhone: employee?.user?.profile?.mobilePhone || "",
-  };
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -44,7 +33,7 @@ export default function TravelClient() {
     if (saved && saved !== placement) {
       setPlacement(saved);
     }
-  }, []);
+  }, [placement]);
 
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"

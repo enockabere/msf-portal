@@ -16,6 +16,7 @@ interface AdvanceDataTableProps {
 export default function AdvanceDataTable({ employee }: AdvanceDataTableProps) {
   const [data, setData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [forceRefresh, setForceRefresh] = useState(false);

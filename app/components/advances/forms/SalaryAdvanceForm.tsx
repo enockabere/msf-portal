@@ -140,7 +140,6 @@ export default function SalaryAdvanceForm({
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const start = performance.now();
         await fetchSetups([
           "currencies",
           { paymentMethods: { filters: { isAdvance: true } } },

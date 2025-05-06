@@ -9,7 +9,7 @@ export async function apiFetch(
     options: RequestOptions = {}
 ): Promise<RequestResponse> {
     let response: RequestResponse = {};
-    let batchRequests = [];
+    const batchRequests = [];
     if (method) {
         if (!options.params) {
             options.params = {};
@@ -31,6 +31,8 @@ export async function apiFetch(
                     response.error.message = 'Method passed in the batch options is not whitelisted!';
                     return response
                 }
+
+                // eslint-disable-next-line prefer-const
                 let { method, endpoint, data, params, headers } = req;
                 const url = memoryMap.get(endpoint);
                 const methodUpperCase = method.toUpperCase();
