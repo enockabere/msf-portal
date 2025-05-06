@@ -9,27 +9,92 @@ export async function apiFetch(
     options: RequestOptions = {}
 ): Promise<RequestResponse> {
     let response: RequestResponse = {};
+    let batchRequests = [];
     if (method) {
         if (!options.params) {
             options.params = {};
+        }
+        if (options.params.filters && Object.keys(options.params.filters)) {
+            const { filters, ...otherParams } = options.params;
+            const filter = transport.filter(filters);
+            if (filter) {
+                options.params = {
+                    ...filter,
+                    ...otherParams,
+                }
+            }
+        }
+        const allowedMethods = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'];
+        if (options.batch && Array.isArray(options.batch) && options.batch.length) {
+            options.batch.forEach((req: Record<string, any>) => {
+                if (!allowedMethods.includes(String(req.method).toUpperCase())) {
+                    response.error.message = 'Method passed in the batch options is not whitelisted!';
+                    return response
+                }
+                let { method, endpoint, data, params, headers } = req;
+                const url = memoryMap.get(endpoint);
+                const methodUpperCase = method.toUpperCase();
+                if (!params) {
+                    params = {};
+                }
+                if (params.filters && Object.keys(params.filters)) {
+                    const { filters, ...otherParams } = params;
+                    const filter = transport.filter(filters);
+                    params = {
+                        ...filter,
+                        ...otherParams,
+                    };
+                }
+                if (methodUpperCase === 'PATCH' || methodUpperCase === 'PUT' || methodUpperCase === 'DELETE') {
+                    if (!headers) {
+                        headers = {}
+                    }
+                    headers['If-Match'] = "*";
+                }
+                batchRequests.push({
+                    method: methodUpperCase,
+                    url,
+                    params: {
+                        ...params,
+                        company: process.env.BC_COMPANY_NAME,
+                    },
+                    headers,
+                    data,
+                });
+            })
         }
         options.params = {
             ...options.params,
             company: process.env.BC_COMPANY_NAME,
         }
-        const { data, params, ...rest } = options;
+        const { data, params, batch, ...rest } = options;
         switch (method.toLowerCase()) {
             case 'get':
-                response = transport.get(memoryMap.get(endpoint), params, rest); break;
+                response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest); break;
             case 'post':
-                response = transport.post(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
             case 'put':
-                response = transport.put(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.put<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
             case 'patch':
-                response = transport.patch(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.patch<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
             case 'cu':
-                response = transport.cu(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.cu<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
+            case 'batch': {
+                const batchReponse = await transport.batch<RequestResponse>(batchRequests);
+                if (!batchReponse || !Array.isArray(batchReponse)) {
+                    response.error.message = 'Did not resolve to array of response as expected'
+                    return response;
+                }
+                batchReponse.forEach((resp, index) => {
+                    const key = batch[index]['endpoint'];
+                    if (key) {
+                        response[key] = resp?.value || []
+                    }
+                })
+
+                break;
+            }
         }
+        return response;
     }
-    return response;
 }

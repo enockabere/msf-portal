@@ -1,4 +1,5 @@
 export const endpointMap = {
+  batch: '',
   imprestTypes: "/api/KineticTechnology/CashMgt/v2.0/imprestTypeApi",
   currencies: "/api/KineticTechnology/Payroll/v2.0/currencies",
   dimensions: "/api/KineticTechnology/CashMgt/v2.0/dimensionValuesApi",

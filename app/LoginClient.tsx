@@ -2,12 +2,41 @@
 
 import { signIn } from "next-auth/react"
 import Image from "next/image";
+import { useEffect } from "react";
+import { batchRequest } from "./lib/api/http";
 
 export default function LoginClient() {
   const handleSSORedirect = () => {
     signIn()
   };
 
+  useEffect(() => {
+    const firebatchReq = async () => {
+      const resp = await batchRequest({
+        batch: [
+          {
+            method: 'GET',
+            endpoint: 'employees',
+            params: {
+              filters: {
+                number: 'EA000001',
+              },
+              '$expand': '*'
+            }
+          },
+          {
+            method: 'GET',
+            endpoint: 'salaryAdvance',
+            params: {
+              '$top': 2
+            }
+          }
+        ],
+      });
+      console.log('Batch response: ', resp);
+    }
+    firebatchReq()
+  }, [])
   return (
     <div className="bg-light container-fluid min-vh-100 d-flex flex-column">
       {/* Header */}
@@ -104,13 +133,14 @@ export default function LoginClient() {
           <div className="col-5">
             <div
               className="rounded-5"
-              style={{ height: "100%", width: "100%", backgroundColor: "red" }}
+              style={{ height: "100%", width: "100%", backgroundColor: "red", position: "relative" }}
             >
               <Image
                 src="/assets/images/auth-banner.png"
                 alt="msf"
-                style={{ height: "100%", width: "100%" }}
+                fill
                 className="rounded-5"
+                style={{ objectFit: "cover" }}
               />
             </div>
           </div>
