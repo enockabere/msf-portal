@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 
 interface GLLine {
@@ -27,10 +27,12 @@ const columns = [
 const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading }) => {
     return (
         <SkeletonDataTable
-            title="Travel Advance GL Lines"
+            title="Travel Advance Lines"
             columns={columns}
             data={glLines}
             loading={loading}
+            filters={'f' as ReactNode}
+            actions={'f' as ReactNode}
             searchPlaceholder="Search GL lines..."
         />
     );
