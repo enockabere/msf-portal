@@ -138,7 +138,7 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employee?.user?.profile}
+                  employee={employee!.user?.profile}
                   onCountsUpdate={setAdvanceCounts}
                 />
               </div>
