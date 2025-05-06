@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
-import endpointMap from "@/app/utils/endpointMap";
+import { memoryMap } from "@/app/utils/endpointMap";
 import { APIResponse } from "@/app/types/global";
-
 export async function POST(request: Request) {
   try {
     const { endpoints, resolveAll } = await request.json();
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       const requstOptions = {} as Record<string, any>;
       if (typeof endpoint === "object") {
         for (const [key, value] of Object.entries(endpoint)) {
-          requstOptions["url"] = endpointMap[key];
+          requstOptions["url"] = memoryMap.get(key);
           if (value && typeof value === "object") {
             const typedValue = value as Record<string, unknown>;
             if (typedValue.filters && typeof typedValue.filters === "object") {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       }
       if (typeof endpoint === "string") {
         requstOptions["method"] = "GET";
-        requstOptions["url"] = endpointMap[endpoint];
+        requstOptions["url"] = memoryMap.get(endpoint);
         requstOptions["params"] = {
           company: process.env.BC_COMPANY_NAME,
         };

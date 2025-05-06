@@ -3,11 +3,10 @@
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { useEmployee } from "@/app/context/EmployeeContext";
-import { logoutMicrosoft } from "@/app/utils/logout";
+import { useSession, signOut } from "next-auth/react";
 
 export default function ProfileDropdown() {
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
 
   return (
     <li className="dropdown topbar-item">
@@ -21,9 +20,9 @@ export default function ProfileDropdown() {
       >
         <Image
           src="/assets/images/avatar.png"
-          alt="Profile"
           width={40}
           height={40}
+          alt="Profile"
           className="thumb-lg rounded-circle"
         />
       </a>
@@ -31,8 +30,10 @@ export default function ProfileDropdown() {
         <>
           <div className="d-flex align-items-center dropdown-item py-2 bg-secondary-subtle">
             <div className="flex-shrink-0">
-              <img
+              <Image
                 src="/assets/images/avatar.png"
+                width={40}
+                height={40}
                 alt="avatar"
                 className="thumb-md rounded-circle"
               />
@@ -40,13 +41,13 @@ export default function ProfileDropdown() {
             <div className="flex-grow-1 ms-2 text-truncate align-self-center">
               <h6 className="my-0 fw-medium text-dark fs-13">
                 {employee ? (
-                  `${employee.firstName} ${employee.lastName}`
+                  `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
                 ) : (
                   <Skeleton width={120} />
                 )}
               </h6>
               <small className="text-muted mb-0">
-                {employee?.jobTitle || <Skeleton width={100} />}
+                {employee?.user?.profile?.jobTitle || <Skeleton width={100} />}
               </small>
             </div>
           </div>
@@ -76,7 +77,7 @@ export default function ProfileDropdown() {
           <div className="dropdown-divider mb-0" />
           <button
             className="dropdown-item text-danger"
-            onClick={logoutMicrosoft}
+            onClick={() => signOut()}
           >
             <i className="las la-power-off fs-18 me-1 align-text-bottom" />
             Logout

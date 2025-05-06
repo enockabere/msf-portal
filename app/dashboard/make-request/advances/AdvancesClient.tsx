@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
@@ -22,7 +22,7 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function AdvancesClient() {
-  const { employee } = useEmployee();
+    const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
     open: 0,
@@ -43,10 +43,11 @@ export default function AdvancesClient() {
       | "bottom"
       | "left"
       | null;
+
     if (saved && saved !== placement) {
       setPlacement(saved);
     }
-  }, []);
+  }, [placement]);
 
   useEffect(() => {
     setBreadcrumb([
@@ -137,7 +138,7 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employee}
+                  employee={employee?.user?.profile}
                   onCountsUpdate={setAdvanceCounts}
                 />
               </div>
@@ -150,7 +151,7 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employee}
+                  employee={employee?.user?.profile}
                   onCountsUpdate={setAdvanceCounts}
                 />
               </div>
@@ -163,7 +164,7 @@ export default function AdvancesClient() {
           <div className="col-12">
             <div className="card h-100 p-2">
               <ReusableSalaryAdvanceTabs
-                employee={employee}
+                employee={employee?.user?.profile}
                 onCountsUpdate={setAdvanceCounts}
               />
             </div>

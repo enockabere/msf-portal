@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logoutMicrosoft } from "@/app/utils/logout";
+import { signOut } from "next-auth/react";
 
 export default function SidebarMenu() {
   const pathname = usePathname();
@@ -44,18 +44,16 @@ export default function SidebarMenu() {
           <span>My Requests</span>
         </a>
         <div
-          className={`collapse ${
-            isGroupActive("/requests") ? "show" : ""
-          }`}
+          className={`collapse ${isGroupActive("/requests") ? "show" : ""
+            }`}
           id="sidebarMyRequests"
         >
           <ul className="nav flex-column">
             <li className="nav-item">
               <Link
                 href="/dashboard/make-request"
-                className={`nav-link ${
-                  isActive("/dashboard/make-request") ? "active" : ""
-                }`}
+                className={`nav-link ${isActive("/dashboard/make-request") ? "active" : ""
+                  }`}
               >
                 Request Dashboard
               </Link>
@@ -88,9 +86,8 @@ export default function SidebarMenu() {
           <span>HR Services</span>
         </a>
         <div
-          className={`collapse ${
-            isGroupActive("/hr") ? "show" : ""
-          }`}
+          className={`collapse ${isGroupActive("/hr") ? "show" : ""
+            }`}
           id="sidebarHRServices"
         >
           <ul className="nav flex-column">
@@ -263,7 +260,7 @@ export default function SidebarMenu() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            logoutMicrosoft();
+            signOut();
           }}
           className="nav-link"
         >

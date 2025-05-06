@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse, NextRequest } from "next/server";
 

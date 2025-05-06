@@ -92,11 +92,10 @@ export default function VerticalProgressCard({
   const formatAgeing = (ageingStr: string | undefined) => {
     const match = ageingStr?.match(/P(\d+)D(?:T(\d+)H(\d+)M)?/);
     if (!match) return null;
-
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [_, days, hours, minutes] = match;
-    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${
-      minutes ? `${minutes}m` : ""
-    }`.trim();
+    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${minutes ? `${minutes}m` : ""
+      }`.trim();
   };
 
   return (

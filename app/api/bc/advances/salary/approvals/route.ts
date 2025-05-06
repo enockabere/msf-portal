@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { transport } from "@brainspore/hypernexus";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (cached && cached.expiry > now) {
       return NextResponse.json({ data: cached.data });
     }
-    const start = performance.now(); // Start timer
+    // const start = performance.now(); // Start timer
 
     const response = await transport.get(
       "/api/Kinetics/VOYAGER/v1.0/approvalEntries",

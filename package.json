@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --fix"
+    "lint": "next lint"
   },
   "dependencies": {
     "@brainspore/hypernexus": "^5.1.7",
@@ -22,6 +22,7 @@
     "lucide-react": "^0.488.0",
     "mysql2": "^3.14.0",
     "next": "15.3.1",
+    "next-auth": "^4.24.11",
     "papaparse": "^5.5.2",
     "pg": "^8.14.1",
     "react": "^19.0.0",
@@ -47,7 +48,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9.25.1",
+    "eslint": "9.26.0",
     "eslint-config-next": "15.3.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.4",

@@ -1,4 +1,4 @@
-export {};
+export { };
 
 declare global {
   interface Window {
@@ -9,4 +9,9 @@ declare global {
 export interface APIResponse {
   value?: Array<Record<string, any>>;
   [key: string]: any;
+}
+
+export interface ReducerFunctionActionType {
+  type: string
+  payload?: any
 }

@@ -2,12 +2,12 @@
 
 import { Wallet, Eye, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../dashboard/cards/Cards.css";
 import "./RequestCards.css";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react";
 import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
@@ -28,39 +28,41 @@ export default function RequestCards() {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
     setShowModal(true);
   };
 
-  const fetchAdvances = async () => {
-    if (!employee?.number) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employee.number}`
-      );
-      const json = await res.json();
-      const data = json?.data?.value || [];
-      const pending = data.filter(
-        (a: any) => a.status === "Pending Approval"
-      ).length;
-      const released = data.filter((a: any) => a.status === "Released").length;
-      setMetrics({ pending, released });
-    } catch (err) {
-      console.error("\u274C Failed to fetch advances:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchAdvances = useCallback(
+    async () => {
+      if (!employee?.user?.profile?.number) return;
+      setIsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+        );
+        const json = await res.json();
+        const data = json?.data?.value || [];
+        const pending = data.filter(
+          (a: any) => a.status === "Pending Approval"
+        ).length;
+        const released = data.filter((a: any) => a.status === "Released").length;
+        setMetrics({ pending, released });
+      } catch (err) {
+        console.error("\u274C Failed to fetch advances:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [employee?.user?.profile?.number]
+  );
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
       fetchAdvances();
     }
-  }, [activeIndex, metrics, isLoading]);
+  }, [activeIndex, metrics, isLoading, fetchAdvances]);
 
   return (
     <>
@@ -68,9 +70,8 @@ export default function RequestCards() {
         {/* Advances Card */}
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 0 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (

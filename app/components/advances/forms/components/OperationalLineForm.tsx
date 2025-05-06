@@ -36,12 +36,12 @@ const COST_CENTERS = {
 export default function OperationalLineForm({
   expenses,
   handleChange,
-  handleFileChange,
   removeExpenseLine,
   addExpenseLine,
   onSaveLine,
 }: OperationalLineFormProps) {
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const [availableProjects, setAvailableProjects] = useState<string[]>([]);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function OperationalLineForm({
 
   const handleCostCenterChange = (index: number, value: string) => {
     handleChange(index, "costCenter", value);
-    handleChange(index, "project", ""); 
+    handleChange(index, "project", "");
     if (value && COST_CENTERS[value as keyof typeof COST_CENTERS]) {
       setAvailableProjects(COST_CENTERS[value as keyof typeof COST_CENTERS]);
     } else {

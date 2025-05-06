@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, FileCheck, Ban, CheckCircle } from "lucide-react";
+import { CalendarDays, Ban, CheckCircle } from "lucide-react";
 
 export default function LeaveStatsCard() {
   return (
