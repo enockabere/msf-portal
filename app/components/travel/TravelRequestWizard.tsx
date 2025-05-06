@@ -146,7 +146,6 @@ export default function TravelRequestWizard() {
                   </form>
                 </div>
               )}
-
               {activeTab === "travel_advance" && (
                 <div>
                   {/* Travel Advance Details */}

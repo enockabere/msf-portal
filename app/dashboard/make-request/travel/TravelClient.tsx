@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
@@ -9,6 +11,7 @@ import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
 
 export default function TravelClient() {
+  const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
 
   const [showModal, setShowModal] = useState(false);
