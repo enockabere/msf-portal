@@ -17,9 +17,6 @@ interface AdvanceRequestActionProps {
   refetch?: () => void;
   onCloseView?: () => void;
   employee?: {
-    number: string;
-    nationalId: string;
-    mobilePhone: string;
     [key: string]: any;
   };
 }
