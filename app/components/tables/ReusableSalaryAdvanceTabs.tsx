@@ -169,6 +169,22 @@ export default function ReusableSalaryAdvanceTabs({
       sortable: true,
     },
     {
+      name: "Disbursed",
+      selector: (row: Advance) => (row.disbursed ? "Yes" : "No"),
+      sortable: true,
+      cell: (row: Advance) => (
+        <span
+          className={`badge ${
+            row.disbursed
+              ? "bg-success-subtle text-success"
+              : "bg-secondary-subtle text-muted"
+          }`}
+        >
+          {row.disbursed ? "Yes" : "No"}
+        </span>
+      ),
+    },
+    {
       name: "Actions",
       cell: (row: Advance) => (
         <div className="d-flex gap-2">

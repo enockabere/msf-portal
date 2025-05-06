@@ -6,6 +6,7 @@ export type AdvanceType =
   | "Advance";
 
 export interface Advance {
+  disbursed: any;
   currencyCode: string;
   no: string;
   applicationDate: string;

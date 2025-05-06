@@ -115,7 +115,7 @@ export default function VerticalProgressCard({
           forceVisible="y"
         >
           <div className="vertical-stepper pe-2">
-            {showApprovals ? (
+            {approvalEntries.length > 0 ? (
               approvalEntries.map((step, i) => {
                 const isApproved = step.status === "Approved";
                 const isOpen = step.status === "Open";

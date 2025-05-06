@@ -17,6 +17,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
     {
       no: "TRV00102",
@@ -30,6 +31,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
   ];
 
@@ -46,6 +48,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
     {
       no: "TRV00104",
@@ -59,6 +62,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
   ];
 
@@ -75,6 +79,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
     {
       no: "TRV00106",
@@ -88,6 +93,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
   ];
 
@@ -104,6 +110,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
     {
       no: "TRV00108",
@@ -117,6 +124,7 @@ export default function TabbedTravelRequests() {
       documentStatus: "",
       repaymentAmount: 0,
       repaymentInstallments: 0,
+      disbursed: undefined,
     },
   ];
 
