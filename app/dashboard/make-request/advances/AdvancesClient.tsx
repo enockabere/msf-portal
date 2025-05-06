@@ -22,7 +22,13 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function AdvancesClient() {
-    const { data: employee } = useSession();
+  const { data: employee } = useSession();
+  const employeeData = {
+    number: employee?.user?.profile?.number || "",
+    nationalId: employee?.user?.profile?.nationalId || "",
+    mobilePhone: employee?.user?.profile?.mobilePhone || "",
+  };
+
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
     open: 0,
@@ -82,7 +88,7 @@ export default function AdvancesClient() {
       title: "Approvals",
       value: `${advanceCounts.pending} Pending`,
       description: "Pending Approval",
-      icon: <ClipboardList size={28} />, // Represents approvals/tasks pending
+      icon: <ClipboardList size={28} />,
       bgColorClass: "bg-light-success",
       textColorClass: "text-success",
     },
@@ -151,7 +157,7 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employee?.user?.profile}
+                  employee={employeeData}
                   onCountsUpdate={setAdvanceCounts}
                 />
               </div>
@@ -164,7 +170,7 @@ export default function AdvancesClient() {
           <div className="col-12">
             <div className="card h-100 p-2">
               <ReusableSalaryAdvanceTabs
-                employee={employee?.user?.profile}
+                employee={employeeData}
                 onCountsUpdate={setAdvanceCounts}
               />
             </div>
@@ -188,7 +194,7 @@ export default function AdvancesClient() {
         <div className="row">
           <div className="col-md-9">
             <SalaryAdvanceForm
-              employee={employee}
+              employee={employeeData}
               onSuccess={handleCloseModal}
             />
           </div>

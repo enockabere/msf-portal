@@ -5,9 +5,16 @@ import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
+import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
+import CustomModal from "@/app/components/modals/CustomModal";
 
 export default function TravelClient() {
   const { setBreadcrumb } = useBreadcrumb();
+
+  const [showModal, setShowModal] = useState(false);
+
+  const handleNewRequestClick = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -48,7 +55,7 @@ export default function TravelClient() {
       icon: <Wallet size={28} />,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
-      onClick: () => {}, // You can add modal trigger logic later
+      onClick: () => { }, // You can add modal trigger logic later
     },
     {
       title: "Open Travel Requests",
@@ -87,7 +94,10 @@ export default function TravelClient() {
               currentPlacement="top"
               onPlacementChange={handleChangePlacement}
               actionButton={
-                <button className="btn bg-danger text-white btn-sm">
+                <button
+                  className="btn bg-danger text-white btn-sm"
+                  onClick={handleNewRequestClick}
+                >
                   <i className="fa fa-plus me-1" />
                   New Travel Request
                 </button>
@@ -107,9 +117,12 @@ export default function TravelClient() {
                 currentPlacement="top"
                 onPlacementChange={handleChangePlacement}
                 actionButton={
-                  <button className="btn bg-danger text-white btn-sm">
+                  <button
+                    className="btn bg-danger text-white btn-sm"
+                    onClick={handleNewRequestClick}
+                  >
                     <i className="fa fa-plus me-1" />
-                    New Request
+                    New Travel Request
                   </button>
                 }
               />
@@ -136,9 +149,12 @@ export default function TravelClient() {
                 currentPlacement="top"
                 onPlacementChange={handleChangePlacement}
                 actionButton={
-                  <button className="btn bg-danger text-white btn-sm">
+                  <button
+                    className="btn bg-danger text-white btn-sm"
+                    onClick={handleNewRequestClick}
+                  >
                     <i className="fa fa-plus me-1" />
-                    New Request
+                    New Travel Request
                   </button>
                 }
               />
@@ -164,15 +180,31 @@ export default function TravelClient() {
               currentPlacement="top"
               onPlacementChange={handleChangePlacement}
               actionButton={
-                <button className="btn bg-danger text-white btn-sm">
+                <button
+                  className="btn bg-danger text-white btn-sm"
+                  onClick={handleNewRequestClick}
+                >
                   <i className="fa fa-plus me-1" />
-                  New Request
+                  New Travel Request
                 </button>
               }
             />
           </div>
         </div>
       )}
+      <CustomModal
+        show={showModal}
+        onClose={handleCloseModal}
+        title="New Travel Request"
+        size="xl"
+        titleIcon={<Wallet size={18} className="text-white" />}
+      >
+        <div className="row">
+          <div className="col-md-12">
+            <TravelRequestWizard />
+          </div>
+        </div>
+      </CustomModal>
     </div>
   );
 }
