@@ -30,14 +30,14 @@ export default function DashboardClient() {
             <DashboardProfile />
           </div>
         </div>
-        <div className="row my-2">
+        {/* <div className="row my-2">
           <div className="col-md-6 col-lg-4">
             <FavoriteCardsWrapper />
           </div>
           <div className="col-md-6 col-lg-4">
             <CarbonCreditsCard />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
