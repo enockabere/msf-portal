@@ -7,7 +7,7 @@ import { batchRequest } from "./lib/api/http";
 
 export default function LoginClient() {
   const handleSSORedirect = () => {
-    signIn()
+    signIn('azure-ad', { callbackUrl: '/dashboard' })
   };
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function LoginClient() {
                 </p>
                 <div className="d-flex justify-content-center gap-3">
                   <button
-                    onClick={() => signIn()}
+                    onClick={() => handleSSORedirect() }
                     className="btn bg-black text-white btn-lg rounded-pill d-flex justify-content-center align-items-center w-25"
                     style={{ fontSize: "14px" }}
                   >

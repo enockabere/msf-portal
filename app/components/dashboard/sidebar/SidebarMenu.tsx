@@ -258,9 +258,9 @@ export default function SidebarMenu() {
       <li className="nav-item">
         <a
           href="#"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
-            signOut();
+            await signOut({ callbackUrl: '/' });
           }}
           className="nav-link"
         >
