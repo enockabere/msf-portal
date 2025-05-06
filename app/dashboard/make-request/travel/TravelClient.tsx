@@ -1,20 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useEmployee } from "@/app/context/EmployeeContext";
-import dynamic from "next/dynamic";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
 
-const TravelRequestTable = dynamic(
-  () => import("@/app/components/travel/TravelRequestTable"),
-  { ssr: false }
-);
-
 export default function TravelClient() {
-  const { employee } = useEmployee();
   const { setBreadcrumb } = useBreadcrumb();
 
   const [placement, setPlacement] = useState<
@@ -31,7 +23,7 @@ export default function TravelClient() {
     if (saved && saved !== placement) {
       setPlacement(saved);
     }
-  }, []);
+  }, [placement]);
 
   const handleChangePlacement = (
     newPlacement: "right" | "top" | "bottom" | "left"

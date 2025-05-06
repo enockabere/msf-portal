@@ -135,7 +135,5 @@ export default function TabbedTravelRequests() {
     { key: "approvals", label: "Approval Requests", data: forApproval },
   ];
 
-  const handleNewRequest = () => {};
-
   return <ReusableTabbedAdvanceTable tabs={tabData} />;
 }

@@ -29,7 +29,6 @@ export default function VerticalProgressCard({
 }: VerticalProgressCardProps) {
   const [applicationDate, setApplicationDate] = useState<string>("");
   const [approvalEntries, setApprovalEntries] = useState<ApprovalEntry[]>([]);
-  const [showCommentsToast, setShowCommentsToast] = useState(true);
 
   const isNew = !advance;
   const isPending = advance?.status === "Pending Approval";
@@ -66,6 +65,7 @@ export default function VerticalProgressCard({
     fetchApprovals();
   }, [advance, showApprovals]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const allApprovalComments = useMemo(() => {
     const comments: string[] = [];
     approvalEntries.forEach((entry) =>
