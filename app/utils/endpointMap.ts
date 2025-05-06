@@ -32,7 +32,8 @@ export const endpointMap = {
   imprest: "/api/KineticTechnology/CashMgt/v2.0/imprestApi",
   imprestLine: "/api/KineticTechnology/CashMgt/v2.0/imprestLinesAPI",
   cashManagementAttachment: "/api/KineticTechnology/CashMgt/v2.0/attachments",
-  imprestDetailedLine: "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines"
+  imprestDetailedLine: "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines",
+  requisitions: "/api/kinetics/requisition/v1.0/requisitions",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));
