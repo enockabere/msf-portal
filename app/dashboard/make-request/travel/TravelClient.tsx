@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useEmployee } from "@/app/context/EmployeeContext";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
+import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
+import CustomModal from "@/app/components/modals/CustomModal";
 
 const TravelRequestTable = dynamic(
   () => import("@/app/components/travel/TravelRequestTable"),
@@ -14,8 +16,19 @@ const TravelRequestTable = dynamic(
 );
 
 export default function TravelClient() {
-  const { employee } = useEmployee();
+  const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
+
+  const [showModal, setShowModal] = useState(false);
+
+  const handleNewRequestClick = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
+
+  const employeeData = {
+    number: employee?.user?.profile?.number || "",
+    nationalId: employee?.user?.profile?.nationalId || "",
+    mobilePhone: employee?.user?.profile?.mobilePhone || "",
+  };
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -95,7 +108,10 @@ export default function TravelClient() {
               currentPlacement="top"
               onPlacementChange={handleChangePlacement}
               actionButton={
-                <button className="btn bg-danger text-white btn-sm">
+                <button
+                  className="btn bg-danger text-white btn-sm"
+                  onClick={handleNewRequestClick}
+                >
                   <i className="fa fa-plus me-1" />
                   New Travel Request
                 </button>
@@ -115,9 +131,12 @@ export default function TravelClient() {
                 currentPlacement="top"
                 onPlacementChange={handleChangePlacement}
                 actionButton={
-                  <button className="btn bg-danger text-white btn-sm">
+                  <button
+                    className="btn bg-danger text-white btn-sm"
+                    onClick={handleNewRequestClick}
+                  >
                     <i className="fa fa-plus me-1" />
-                    New Request
+                    New Travel Request
                   </button>
                 }
               />
@@ -144,9 +163,12 @@ export default function TravelClient() {
                 currentPlacement="top"
                 onPlacementChange={handleChangePlacement}
                 actionButton={
-                  <button className="btn bg-danger text-white btn-sm">
+                  <button
+                    className="btn bg-danger text-white btn-sm"
+                    onClick={handleNewRequestClick}
+                  >
                     <i className="fa fa-plus me-1" />
-                    New Request
+                    New Travel Request
                   </button>
                 }
               />
@@ -172,15 +194,31 @@ export default function TravelClient() {
               currentPlacement="top"
               onPlacementChange={handleChangePlacement}
               actionButton={
-                <button className="btn bg-danger text-white btn-sm">
+                <button
+                  className="btn bg-danger text-white btn-sm"
+                  onClick={handleNewRequestClick}
+                >
                   <i className="fa fa-plus me-1" />
-                  New Request
+                  New Travel Request
                 </button>
               }
             />
           </div>
         </div>
       )}
+      <CustomModal
+        show={showModal}
+        onClose={handleCloseModal}
+        title="New Travel Request"
+        size="xl"
+        titleIcon={<Wallet size={18} className="text-white" />}
+      >
+        <div className="row">
+          <div className="col-md-12">
+            <TravelRequestWizard />
+          </div>
+        </div>
+      </CustomModal>
     </div>
   );
 }

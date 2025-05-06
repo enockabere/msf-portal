@@ -35,28 +35,26 @@ export default function RequestCards() {
     setShowModal(true);
   };
 
-  const fetchAdvances = useCallback(
-    async () => {
-      if (!employee?.user?.profile?.number) return;
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
-        );
-        const json = await res.json();
-        const data = json?.data?.value || [];
-        const pending = data.filter(
-          (a: any) => a.status === "Pending Approval"
-        ).length;
-        const released = data.filter((a: any) => a.status === "Released").length;
-        setMetrics({ pending, released });
-      } catch (err) {
-        console.error("\u274C Failed to fetch advances:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }, [employee?.user?.profile?.number]
-  );
+  const fetchAdvances = useCallback(async () => {
+    if (!employee?.user?.profile?.number) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+      );
+      const json = await res.json();
+      const data = json?.data?.value || [];
+      const pending = data.filter(
+        (a: any) => a.status === "Pending Approval"
+      ).length;
+      const released = data.filter((a: any) => a.status === "Released").length;
+      setMetrics({ pending, released });
+    } catch (err) {
+      console.error("\u274C Failed to fetch advances:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [employee?.user?.profile?.number]);
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
@@ -67,11 +65,11 @@ export default function RequestCards() {
   return (
     <>
       <div className="row row-cols-1 row-cols-md-4 g-3">
-        {/* Advances Card */}
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 0 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -149,22 +147,45 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
-            style={{ opacity: 0.5, cursor: "not-allowed" }}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 1 ? "active" : ""
+            }`}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (
+                !target.closest("a") &&
+                !target.closest("button") &&
+                !target.closest(".dropdown-menu")
+              ) {
+                setActiveIndex(activeIndex === 1 ? null : 1);
+              }
+            }}
+            style={{ cursor: "pointer" }}
           >
-            <div className="ribbon4 rib4-secondary">
-              <span className="ribbon4-band ribbon4-band-secondary text-white text-center">
-                Soon
-              </span>
-            </div>
             <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
-              <Wallet className="text-muted card-icon" size={28} />
-              <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
+              <Wallet className="text-primary card-icon" size={28} />
+              <h6 className="card-title mt-2 fw-semibold small text-uppercase">
                 Travel Requests
               </h6>
             </div>
-            <div className="card-footer border-0 bg-transparent text-muted">
-              Coming Soon
+            <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
+              <Link
+                href="/dashboard/make-request/travel"
+                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Eye size={16} /> View
+              </Link>
+              <button
+                className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAdvanceType("Travel");
+                  handleOpenModal("Advance");
+                }}
+              >
+                <PlusCircle size={16} /> New
+              </button>
             </div>
           </div>
         </div>
@@ -215,8 +236,6 @@ export default function RequestCards() {
           </div>
         </div>
       </div>
-
-      {/* Modal */}
       <CustomModal
         show={showModal}
         onClose={() => setShowModal(false)}
@@ -234,9 +253,9 @@ export default function RequestCards() {
               <div className="col-md-8">
                 <SalaryAdvanceForm
                   employee={{
-                    number: employee?.number || "",
-                    nationalId: employee?.nationalId || "",
-                    mobilePhone: employee?.mobilePhone || "",
+                    number: employee?.user?.profile?.number || "",
+                    nationalId: employee?.user?.profile?.nationalId || "",
+                    mobilePhone: employee?.user?.profile?.mobilePhone || "",
                   }}
                 />
               </div>
@@ -245,19 +264,16 @@ export default function RequestCards() {
               </div>
             </>
           )}
-
           {requestType === "Advance" && advanceType === "Operational" && (
             <div className="col-md-12">
               <OperationalAdvanceForm />
             </div>
           )}
-
           {requestType === "Advance" && advanceType === "Travel" && (
             <div className="col-md-12">
               <TravelAdvanceForm />
             </div>
           )}
-
           {requestType === "Expense" && (
             <div className="col-md-12">
               <AdvanceSettlementForm />
