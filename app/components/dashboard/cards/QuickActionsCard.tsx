@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import "./Cards.css";
-import CustomModal from "../../modals/CustomModal";
-import SalaryAdvanceForm from "../../advances/forms/SalaryAdvanceForm";
+// import CustomModal from "../../modals/CustomModal";
+// import SalaryAdvanceForm from "../../advances/forms/SalaryAdvanceForm";
 
 export default function QuickActionsCard() {
   return (
