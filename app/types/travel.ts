@@ -12,6 +12,8 @@ export interface TravelDates {
 }
 
 export interface TravelInfo {
+  userType: "Inbound" | "Outbound" | "";
+  residentStatus: "Resident" | "Non-Resident" | "";
   basedOnRequest: BasedOnRequest;
   travelRequestId: TravelRequestId;
   tripType: TripType;

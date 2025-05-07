@@ -30,6 +30,10 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
     travelInfo.tripDates.to &&
     calculateDuration(travelInfo.tripDates.from, travelInfo.tripDates.to) > 7;
 
+  const showVisaField =
+    travelInfo.travelType === "Regional" ||
+    travelInfo.travelType === "International";
+
   useEffect(() => {
     if (travelInfo.travelType && travelInfo.costCenter) {
       const randomTrips = Math.floor(Math.random() * 5) + 1;
@@ -40,72 +44,128 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
   return (
     <>
       <div className="row g-3">
-        {/* Travel Type */}
+        {/* User Type */}
         <div className="col-md-6">
-          <label className="form-label">Type of Travel</label>
+          <label className="form-label">User Type</label>
           <select
             className="form-select"
-            value={travelInfo.travelType}
+            value={travelInfo.userType}
             onChange={(e) =>
-              handleChange(
-                "travelType",
-                e.target.value as TravelInfo["travelType"]
-              )
+              handleChange("userType", e.target.value as TravelInfo["userType"])
             }
           >
-            <option value="">-- Select --</option>
-            <option value="Local">Local</option>
-            <option value="Regional">Regional</option>
-            <option value="International">International</option>
+            <option value="">-- Select User Type --</option>
+            <option value="Inbound">Inbound</option>
+            <option value="Outbound">Outbound</option>
           </select>
         </div>
 
-        {/* Visa Field (6 cols) */}
-        <div className="col-md-6">
-          <label className="form-label">Visa Required?</label>
-          <select
-            className="form-select"
-            value={travelInfo.visaRequired}
-            disabled={travelInfo.travelType === "Local"}
-            onChange={(e) => handleChange("visaRequired", e.target.value)}
-          >
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </div>
+        {/* Destination (Inbound only) */}
+        {travelInfo.userType === "Inbound" && (
+          <div className="col-md-6">
+            <label className="form-label">Destination</label>
+            <input
+              type="text"
+              className="form-control"
+              value={travelInfo.destination}
+              onChange={(e) => handleChange("destination", e.target.value)}
+            />
+          </div>
+        )}
 
-        {/* Cost Center */}
-        <div className="col-md-6">
-          <label className="form-label">Cost Center</label>
-          <select
-            className="form-select"
-            value={travelInfo.costCenter || ""}
-            onChange={(e) => handleChange("costCenter", e.target.value)}
-          >
-            <option value="">-- Select Cost Center --</option>
-            {costCenters.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Are you a Resident? (Outbound only) */}
+        {travelInfo.userType === "Outbound" && (
+          <div className="col-md-6">
+            <label className="form-label">Are you a Resident?</label>
+            <select
+              className="form-select"
+              value={travelInfo.residentStatus}
+              onChange={(e) =>
+                handleChange(
+                  "residentStatus",
+                  e.target.value as "Resident" | "Non-Resident"
+                )
+              }
+            >
+              <option value="">-- Select Status --</option>
+              <option value="Resident">Resident</option>
+              <option value="Non-Resident">Non-Resident</option>
+            </select>
+          </div>
+        )}
 
-        {/* Remaining Trips */}
-        <div className="col-md-6">
-          <label className="form-label">Remaining Trips</label>
-          <input
-            type="text"
-            className="form-control"
-            value={
-              travelInfo.remainingTrips !== undefined
-                ? travelInfo.remainingTrips
-                : "--"
-            }
-            readOnly
-          />
-        </div>
+        {/* Travel Type and related details */}
+        {travelInfo.userType !== "Inbound" && (
+          <>
+            {/* Travel Type */}
+            <div className="col-md-6">
+              <label className="form-label">Type of Travel</label>
+              <select
+                className="form-select"
+                value={travelInfo.travelType}
+                onChange={(e) =>
+                  handleChange(
+                    "travelType",
+                    e.target.value as TravelInfo["travelType"]
+                  )
+                }
+              >
+                <option value="">-- Select --</option>
+                <option value="Local">Local</option>
+                <option value="Regional">Regional</option>
+                <option value="International">International</option>
+              </select>
+            </div>
+
+            {/* Visa Required — only show if type is Regional/International */}
+            {showVisaField && (
+              <div className="col-md-6">
+                <label className="form-label">Visa Required?</label>
+                <select
+                  className="form-select"
+                  value={travelInfo.visaRequired}
+                  onChange={(e) => handleChange("visaRequired", e.target.value)}
+                >
+                  <option value="">-- Select --</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            )}
+
+            {/* Cost Center */}
+            <div className="col-md-6">
+              <label className="form-label">Cost Center</label>
+              <select
+                className="form-select"
+                value={travelInfo.costCenter || ""}
+                onChange={(e) => handleChange("costCenter", e.target.value)}
+              >
+                <option value="">-- Select Cost Center --</option>
+                {costCenters.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Remaining Trips */}
+            <div className="col-md-6">
+              <label className="form-label">Remaining Trips</label>
+              <input
+                type="text"
+                className="form-control"
+                value={
+                  travelInfo.remainingTrips !== undefined
+                    ? travelInfo.remainingTrips
+                    : "--"
+                }
+                readOnly
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Trip Dates */}
@@ -155,15 +215,6 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
           </select>
         </div>
       )}
-      <div className="mt-3">
-        <label className="form-label">Destination</label>
-        <input
-          type="text"
-          className="form-control"
-          value={travelInfo.destination}
-          onChange={(e) => handleChange("destination", e.target.value)}
-        />
-      </div>
     </>
   );
 }

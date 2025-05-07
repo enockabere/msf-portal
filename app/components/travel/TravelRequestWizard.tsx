@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   User,
   ListChecks,
@@ -34,6 +34,8 @@ export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelInfo, setTravelInfo] = useState<TravelInfo>({
+    userType: "",
+    residentStatus: "",
     basedOnRequest: "Yes",
     travelRequestId: "",
     tripType: "",
@@ -50,50 +52,74 @@ export default function TravelRequestWizard() {
     workPermitRequired: "No",
   });
 
-  const steps: WizardStep[] = [
-    {
-      id: "info",
-      icon: <User size={18} />,
-      title: "Your Info",
-      desc: "Basic travel details",
-    },
-    {
-      id: "checklist",
-      icon: <ListChecks size={18} />,
-      title: "Checklist",
-      desc: "Pre-travel requirements",
-    },
-    {
-      id: "ticket",
-      icon: <Ticket size={18} />,
-      title: "Ticket Booking",
-      desc: "Flight/train reservations",
-    },
-    {
-      id: "dependencies",
-      icon: <Link size={18} />,
-      title: "Dependencies",
-      desc: "Related travel requirements",
-    },
-    {
-      id: "visa",
-      icon: <Globe size={18} />,
-      title: "Visa Application",
-      desc: "Visa documentation",
-    },
-    {
-      id: "permit",
-      icon: <FilePlus2 size={18} />,
-      title: "Work Permit",
-      desc: "Work authorization",
-    },
-    {
-      id: "advance",
-      icon: <Briefcase size={18} />,
-      title: "Travel Advance",
-      desc: "Advance request",
-    },
-  ];
+  const getSteps = useCallback((): WizardStep[] => {
+    const baseSteps: WizardStep[] = [
+      {
+        id: "info",
+        icon: <User size={18} />,
+        title: "Your Info",
+        desc: "Basic travel details",
+      },
+      {
+        id: "checklist",
+        icon: <ListChecks size={18} />,
+        title: "Checklist",
+        desc: "Pre-travel requirements",
+      },
+      {
+        id: "ticket",
+        icon: <Ticket size={18} />,
+        title: "Ticket Booking",
+        desc: "Flight/train reservations",
+      },
+      {
+        id: "dependencies",
+        icon: <Link size={18} />,
+        title: "Dependencies",
+        desc: "Related travel requirements",
+      },
+      {
+        id: "permit",
+        icon: <FilePlus2 size={18} />,
+        title: "Work Permit",
+        desc: "Work authorization",
+      },
+      {
+        id: "advance",
+        icon: <Briefcase size={18} />,
+        title: "Travel Advance",
+        desc: "Advance request",
+      },
+    ];
+
+    if (travelInfo.visaRequired === "Yes") {
+      baseSteps.splice(4, 0, {
+        id: "visa",
+        icon: <Globe size={18} />,
+        title: "Visa Application",
+        desc: "Visa documentation",
+      });
+    }
+
+    if (travelInfo.userType === "Outbound") {
+      return baseSteps.filter((s) => {
+        if (s.id === "permit") return false;
+        if (
+          (s.id === "ticket" || s.id === "dependencies") &&
+          !travelInfo.residentStatus
+        )
+          return false;
+        if (
+          (s.id === "ticket" || s.id === "dependencies") &&
+          travelInfo.residentStatus === "Resident"
+        )
+          return false;
+        return true;
+      });
+    }
+
+    return baseSteps.filter((s) => s.id !== "ticket");
+  }, [travelInfo]);
 
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
@@ -119,8 +145,16 @@ export default function TravelRequestWizard() {
     // Submit logic here
   };
 
-  const currentStepIndex = steps.findIndex((s) => s.id === activeTab);
-  const progressPercentage = (completedSteps.size / steps.length) * 100;
+  useEffect(() => {
+    const visibleStepIds = getSteps().map((s) => s.id);
+    if (!visibleStepIds.includes(activeTab)) {
+      setActiveTab("info");
+    }
+  }, [getSteps, activeTab]);
+
+  const currentStepIndex = getSteps().findIndex((s) => s.id === activeTab);
+
+  const progressPercentage = (completedSteps.size / getSteps().length) * 100;
 
   // Work Permit form fields
   const workPermitFields = [
@@ -153,7 +187,7 @@ export default function TravelRequestWizard() {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {steps.map((step) => (
+            {getSteps().map((step) => (
               <li key={step.id} className="step-item">
                 <button
                   className={`step-button ${
@@ -190,49 +224,59 @@ export default function TravelRequestWizard() {
             role="tabpanel"
             aria-labelledby={`${activeTab}-tab`}
           >
-            <div className='d-flex align-items-center justify-content-between mb-3 wizard-bg-gray'>
+            <div className="d-flex align-items-center justify-content-between mb-3 wizard-bg-gray">
               <h4 className="step-panel-title">
-                {steps.find((s) => s.id === activeTab)?.title}
+                {getSteps().find((s) => s.id === activeTab)?.title}
               </h4>
 
               {activeTab === "visa" && (
-                  <div className="btn-group">
-                    <button type="button" className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                      <DownloadIcon size={16} className="button-icon" />
-                      Download
-                    </button>
-                    <ul className="dropdown-menu">
-                      <li><button className="dropdown-item" type='button'>
+                <div className="btn-group">
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <DownloadIcon size={16} className="button-icon" />
+                    Download
+                  </button>
+                  <ul className="dropdown-menu">
+                    <li>
+                      <button className="dropdown-item" type="button">
                         <FileDownIcon size={16} className="button-icon" />
                         Dummy ticket
-                      </button></li>
-                      <li><button className="dropdown-item" type='button'>
+                      </button>
+                    </li>
+                    <li>
+                      <button className="dropdown-item" type="button">
                         <FileDownIcon size={16} className="button-icon" />
                         Accommodation voucher
-                      </button></li>
-                      <li><button className="dropdown-item" type='button'>
+                      </button>
+                    </li>
+                    <li>
+                      <button className="dropdown-item" type="button">
                         <FileDownIcon size={16} className="button-icon" />
                         Letter of intent
-                      </button></li>
-                    </ul>
-                  </div>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               )}
             </div>
 
             <form onSubmit={handleSubmit}>
               {activeTab === "info" && (
-                  <TravelHeaderForm
-                      travelInfo={travelInfo}
-                      handleChange={handleChange}
-                  />
+                <TravelHeaderForm
+                  travelInfo={travelInfo}
+                  handleChange={handleChange}
+                />
               )}
 
               {activeTab === "permit" && (
-                  <div className="permit-form">
-                    <div className="permit-notice mb-4">
-                      <p className="notice-text">
-                        <strong>Note:</strong> Work permit applications typically
+                <div className="permit-form">
+                  <div className="permit-notice mb-4">
+                    <p className="notice-text">
+                      <strong>Note:</strong> Work permit applications typically
                       take 3-4 weeks to process. Please ensure all documents are
                       uploaded completely and accurately.
                     </p>
@@ -299,9 +343,7 @@ export default function TravelRequestWizard() {
                 </div>
               )}
 
-              {activeTab === 'visa' && (
-                  <VisaApplicationForm />
-              )}
+              {activeTab === "visa" && <VisaApplicationForm />}
 
               {!["info", "permit", "advance", "visa"].includes(activeTab) && (
                 <div className="step-placeholder">
@@ -315,7 +357,7 @@ export default function TravelRequestWizard() {
                     type="button"
                     className="secondary-button"
                     onClick={() =>
-                      handleTabChange(steps[currentStepIndex - 1].id)
+                      handleTabChange(getSteps()[currentStepIndex - 1].id)
                     }
                   >
                     <ArrowLeft size={16} className="button-icon" />
@@ -328,18 +370,18 @@ export default function TravelRequestWizard() {
                     type="button"
                     className="primary-button"
                     onClick={() =>
-                      handleTabChange(steps[currentStepIndex + 1].id)
+                      handleTabChange(getSteps()[currentStepIndex + 1].id)
                     }
                   >
                     <Save size={16} className="button-icon" />
                     Save & Continue
                   </button>
-                ) : currentStepIndex < steps.length - 1 ? (
+                ) : currentStepIndex < getSteps().length - 1 ? (
                   <button
                     type="button"
                     className="primary-button"
                     onClick={() =>
-                      handleTabChange(steps[currentStepIndex + 1].id)
+                      handleTabChange(getSteps()[currentStepIndex + 1].id)
                     }
                   >
                     <ArrowRight size={16} className="button-icon" />
