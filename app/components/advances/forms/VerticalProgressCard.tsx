@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePlus, Clock, User, MessageCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import "./VerticalProgressCard.css";
@@ -62,16 +62,6 @@ export default function VerticalProgressCard({
     fetchApprovals();
   }, [advance]);
 
-  const allApprovalComments = useMemo(() => {
-    const comments: string[] = [];
-    approvalEntries.forEach((entry) =>
-      entry.approvalComments?.forEach(
-        (c) => c.comment && comments.push(c.comment)
-      )
-    );
-    return comments;
-  }, [approvalEntries]);
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
@@ -88,7 +78,7 @@ export default function VerticalProgressCard({
   const formatAgeing = (ageingStr: string | undefined) => {
     const match = ageingStr?.match(/P(\d+)D(?:T(\d+)H(\d+)M)?/);
     if (!match) return null;
-    const [_, days, hours, minutes] = match;
+    const [, days, hours, minutes] = match;
     return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${
       minutes ? `${minutes}m` : ""
     }`.trim();
