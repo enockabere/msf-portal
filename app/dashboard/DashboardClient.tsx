@@ -2,10 +2,7 @@
 
 import { useEffect } from "react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
-
-import FavoriteCardsWrapper from "../components/dashboard/cards/FavoriteCardsWrapper";
 import QuickActionsCard from "../components/dashboard/cards/QuickActionsCard";
-import CarbonCreditsCard from "../components/dashboard/cards/CarbonCreditsCard";
 import DashboardProfile from "../components/dashboard/cards/DashboardProfile";
 import LeaveStatsCard from "../components/leave/LeaveStatsCard";
 

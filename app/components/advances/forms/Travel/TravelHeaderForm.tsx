@@ -3,11 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
 
-interface TripDates {
-  from: string;
-  to: string;
-}
-
 interface Props {
   travelInfo: TravelInfo;
   handleChange: (field: keyof TravelInfo, value: any) => void;
@@ -30,23 +25,17 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
     return diff;
   };
 
-  const showVisaField =
-    travelInfo.travelType === "Regional" ||
-    travelInfo.travelType === "International";
-
   const showWorkPermit =
     travelInfo.tripDates.from &&
     travelInfo.tripDates.to &&
     calculateDuration(travelInfo.tripDates.from, travelInfo.tripDates.to) > 7;
 
   useEffect(() => {
-    // Simulated API logic
     if (travelInfo.travelType && travelInfo.costCenter) {
-      // Simulate different logic based on costCenter + travelType
       const randomTrips = Math.floor(Math.random() * 5) + 1;
       handleChange("remainingTrips", randomTrips);
     }
-  }, [travelInfo.travelType, travelInfo.costCenter]);
+  }, [travelInfo.travelType, travelInfo.costCenter, handleChange]);
 
   return (
     <>

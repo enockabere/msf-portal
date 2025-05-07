@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   User,
   ListChecks,
@@ -92,12 +92,12 @@ export default function TravelRequestWizard() {
     },
   ];
 
-  const handleChange = (field: keyof TravelInfo, value: any) => {
+  const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
       [field]: value,
     }));
-  };
+  }, []);
 
   const handleTabChange = (stepId: string) => {
     if (validateCurrentStep()) {
