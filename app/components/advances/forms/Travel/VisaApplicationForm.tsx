@@ -25,6 +25,7 @@ export default function VisaApplicationForm() {
                     <div className="col-md-6 col-12">
                         <label className="form-label">Specify visa processing fee</label>
                         <input type="number" className="form-control" value={visaFee} onChange={(e) => setVisaFee(e.target.value)}/>
+                        <div className='form-text'>A visa advance request will be raised</div>
                     </div>
                 )}
             </div>
