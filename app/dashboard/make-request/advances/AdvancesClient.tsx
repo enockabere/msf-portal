@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
