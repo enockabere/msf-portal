@@ -172,10 +172,13 @@
   margin: 0 auto;
 }
 
-.step-panel-title {
-  margin: 0 0 1.5rem;
-  padding: 0.75rem 1rem;
+.wizard-bg-gray {
   background-color: #f8f9fa;
+}
+
+.step-panel-title {
+  margin: 0 0 0.25rem;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
   color: #212529;
 }
