@@ -1,7 +1,6 @@
 "use client";
 
 import { Wallet, Eye, PlusCircle } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
