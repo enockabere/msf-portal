@@ -9,21 +9,10 @@ export default function SidebarMenu() {
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
 
-  // Improved active state checks
-  const isActive = (path: string) => {
-    return (
-      currentPath === path ||
-      (path === "/dashboard" && currentPath === "/") || // Handle root path
-      (path !== "/dashboard" && currentPath.startsWith(path))
-    );
-  };
+  const isActive = (path: string) => currentPath === path;
 
-  const isGroupActive = (prefix: string) => {
-    return (
-      currentPath.startsWith(prefix) &&
-      !currentPath.startsWith("/dashboard/make-request")
-    ); // Special case for make-request
-  };
+  const isGroupActive = (prefix: string) =>
+    currentPath.startsWith(prefix) && currentPath !== "/dashboard";
 
   const handleNav = async (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -45,19 +34,10 @@ export default function SidebarMenu() {
         </small>
         <span>Main Menu</span>
       </li>
-
-      {/* Dashboard - Now properly handles active state */}
       <li className="nav-item">
         <a
           href="/dashboard"
-          className={`nav-link ${
-            isActive("/dashboard") &&
-            !isGroupActive("/requests") &&
-            !isGroupActive("/hr") &&
-            !isGroupActive("/procurement")
-              ? "active"
-              : ""
-          }`}
+          className={`nav-link ${currentPath === "/dashboard" ? "active" : ""}`}
           onClick={(e) => handleNav(e, "/dashboard")}
         >
           <i className="iconoir-home-simple menu-icon"></i>
@@ -65,20 +45,23 @@ export default function SidebarMenu() {
         </a>
       </li>
 
-      {/* My Requests - Fixed active state logic */}
       <li className="nav-item">
         <a
-          className={`nav-link ${isGroupActive("/requests") ? "active" : ""}`}
+          className={`nav-link ${
+            currentPath.startsWith("/dashboard/make-request") ? "active" : ""
+          }`}
           href="#sidebarMyRequests"
           data-bs-toggle="collapse"
-          aria-expanded={isGroupActive("/requests")}
+          aria-expanded={currentPath.startsWith("/dashboard/make-request")}
           aria-controls="sidebarMyRequests"
         >
           <i className="iconoir-shopping-bag menu-icon"></i>
           <span>My Requests</span>
         </a>
         <div
-          className={`collapse ${isGroupActive("/requests") ? "show" : ""}`}
+          className={`collapse ${
+            currentPath.startsWith("/dashboard/make-request") ? "show" : ""
+          }`}
           id="sidebarMyRequests"
         >
           <ul className="nav flex-column">
@@ -86,29 +69,17 @@ export default function SidebarMenu() {
               <a
                 href="/dashboard/make-request"
                 className={`nav-link ${
-                  isActive("/dashboard/make-request") ? "active" : ""
+                  currentPath === "/dashboard/make-request" ? "active" : ""
                 }`}
                 onClick={(e) => handleNav(e, "/dashboard/make-request")}
               >
                 Request Dashboard
               </a>
             </li>
-            <li className="nav-item">
-              <span className="nav-link">
-                Track my Requests{" "}
-                <span className="badge bg-warning ms-2">Soon</span>
-              </span>
-            </li>
-            <li className="nav-item">
-              <span className="nav-link">
-                Invoices <span className="badge bg-warning ms-2">Soon</span>
-              </span>
-            </li>
           </ul>
         </div>
       </li>
 
-      {/* HR Services - Fixed active state logic */}
       <li className="nav-item">
         <a
           className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
