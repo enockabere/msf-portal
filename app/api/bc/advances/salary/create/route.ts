@@ -22,8 +22,6 @@ interface Payload {
 }
 
 export async function POST(request: Request) {
-  // const start = performance.now();
-
   try {
     const body = await request.json();
 
@@ -31,8 +29,6 @@ export async function POST(request: Request) {
       ...body,
       applicationDate: new Date().toISOString().split("T")[0],
     };
-
-    console.log(payload);
 
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
@@ -56,7 +52,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: response, // <-- return the whole response like PATCH
+      data: response,
       message: "Salary advance created successfully",
     });
   } catch (error: any) {
