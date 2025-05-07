@@ -70,17 +70,20 @@ export async function apiFetch(
             company: process.env.BC_COMPANY_NAME,
         }
         const { data, params, batch, ...rest } = options;
+        const otherOptions = {params, ...rest};
         switch (method.toLowerCase()) {
             case 'get':
                 response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest); break;
             case 'post':
-                response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
             case 'put':
-                response = await transport.put<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.put<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
             case 'patch':
-                response = await transport.patch<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.patch<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+            case 'delete':
+                response = await transport.delete<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
             case 'cu':
-                response = await transport.cu<RequestResponse>(memoryMap.get(endpoint), data, rest); break;
+                response = await transport.cu<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
             case 'batch': {
                 const batchReponse = await transport.batch<RequestResponse>(batchRequests);
                 if (!batchReponse || !Array.isArray(batchReponse)) {
