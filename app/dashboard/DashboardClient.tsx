@@ -2,15 +2,20 @@
 
 import { useEffect } from "react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
-
-import FavoriteCardsWrapper from "../components/dashboard/cards/FavoriteCardsWrapper";
 import QuickActionsCard from "../components/dashboard/cards/QuickActionsCard";
-import CarbonCreditsCard from "../components/dashboard/cards/CarbonCreditsCard";
 import DashboardProfile from "../components/dashboard/cards/DashboardProfile";
-import LeaveStatsCard from "../components/leave/LeaveStatsCard";
+import AdvanceStatsCard from "../components/leave/AdvanceStatsCard";
+import { useSession } from "next-auth/react";
 
 export default function DashboardClient() {
   const { setBreadcrumb } = useBreadcrumb();
+  const { data: employee } = useSession();
+
+  const employeeData = {
+    number: employee?.user?.profile?.number || "",
+    nationalId: employee?.user?.profile?.nationalId || "",
+    mobilePhone: employee?.user?.profile?.mobilePhone || "",
+  };
 
   useEffect(() => {
     setBreadcrumb([]);
@@ -21,7 +26,7 @@ export default function DashboardClient() {
       <div className="container-xxl">
         <div className="row my-2 justify-content-center">
           <div className="col-md-6 col-lg-4">
-            <LeaveStatsCard />
+            <AdvanceStatsCard employee={employeeData} />
           </div>
           <div className="col-md-6 col-lg-4">
             <QuickActionsCard />
@@ -30,14 +35,14 @@ export default function DashboardClient() {
             <DashboardProfile />
           </div>
         </div>
-        <div className="row my-2">
+        {/* <div className="row my-2">
           <div className="col-md-6 col-lg-4">
             <FavoriteCardsWrapper />
           </div>
           <div className="col-md-6 col-lg-4">
             <CarbonCreditsCard />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

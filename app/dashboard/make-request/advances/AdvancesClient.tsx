@@ -22,7 +22,7 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function AdvancesClient() {
-    const { data: employee } = useSession();
+  const { data: employee } = useSession();
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
     open: 0,
