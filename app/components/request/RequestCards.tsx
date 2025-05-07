@@ -29,35 +29,32 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: employee } = useSession();
-  const { number, nationalId, mobilePhone } = employee?.user?.profile
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
     setShowModal(true);
   };
 
-  const fetchAdvances = useCallback(
-    async () => {
-      if (!employee?.user?.profile?.number) return;
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
-        );
-        const json = await res.json();
-        const data = json?.data?.value || [];
-        const pending = data.filter(
-          (a: any) => a.status === "Pending Approval"
-        ).length;
-        const released = data.filter((a: any) => a.status === "Released").length;
-        setMetrics({ pending, released });
-      } catch (err) {
-        console.error("\u274C Failed to fetch advances:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }, [employee?.user?.profile?.number]
-  );
+  const fetchAdvances = useCallback(async () => {
+    if (!employee?.user?.profile?.number) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+      );
+      const json = await res.json();
+      const data = json?.data?.value || [];
+      const pending = data.filter(
+        (a: any) => a.status === "Pending Approval"
+      ).length;
+      const released = data.filter((a: any) => a.status === "Released").length;
+      setMetrics({ pending, released });
+    } catch (err) {
+      console.error("\u274C Failed to fetch advances:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [employee?.user?.profile?.number]);
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
@@ -71,8 +68,9 @@ export default function RequestCards() {
         {/* Advances Card */}
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 0 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -233,13 +231,7 @@ export default function RequestCards() {
           {requestType === "Advance" && advanceType === "Salary" && (
             <>
               <div className="col-md-8">
-                <SalaryAdvanceForm
-                  employee={{
-                    number: number || "",
-                    nationalId: nationalId || "",
-                    mobilePhone: mobilePhone || "",
-                  }}
-                />
+                <SalaryAdvanceForm />
               </div>
               <div className="col-md-4">
                 <VerticalProgressCard />

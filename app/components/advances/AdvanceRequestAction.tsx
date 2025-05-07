@@ -10,26 +10,29 @@ import TravelAdvanceForm from "./forms/TravelAdvanceForm";
 import { Wallet } from "lucide-react";
 import { Advance, SalaryAdvanceData } from "@/app/types/advance";
 
-type AdvanceType = "Salary" | "Operational" | "Settlement" | "Travel" | "Advance" | null;
+type AdvanceType =
+  | "Salary"
+  | "Operational"
+  | "Settlement"
+  | "Travel"
+  | "Advance"
+  | null;
 
 interface AdvanceRequestActionProps {
   advance: Advance | null;
-  refetch?: () => void;
+  refetch?: (updatedStatus?: string) => void;
   onCloseView?: () => void;
-  employee?: {
-    [key: string]: any;
-  };
 }
 
 export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
-  employee,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
-  const [editingAdvance, setEditingAdvance] = useState<SalaryAdvanceData | null>(null);
+  const [editingAdvance, setEditingAdvance] =
+    useState<SalaryAdvanceData | null>(null);
 
   useEffect(() => {
     if (advance) {
@@ -39,11 +42,11 @@ export default function AdvanceRequestAction({
     }
   }, [advance]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (updatedStatus?: string) => {
     setAdvanceType(null);
     setEditingAdvance(null);
     setShowModal(false);
-    if (refetch) refetch();
+    if (refetch) refetch(updatedStatus);
     if (onCloseView) onCloseView();
   };
 
@@ -56,7 +59,6 @@ export default function AdvanceRequestAction({
           <SalaryAdvanceForm
             advance={editingAdvance}
             onSuccess={handleCloseModal}
-            employee={employee}
           />
         );
       case "Operational":

@@ -5,9 +5,9 @@ import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
+import { useSession } from "next-auth/react";
 
 interface Props {
-  employee?: Record<string, any>;
   onCountsUpdate?: (counts: {
     open: number;
     pending: number;
@@ -17,7 +17,6 @@ interface Props {
 }
 
 export default function ReusableSalaryAdvanceTabs({
-  employee,
   onCountsUpdate,
 }: Props) {
   const [data, setData] = useState<Advance[]>([]);
@@ -28,7 +27,8 @@ export default function ReusableSalaryAdvanceTabs({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [forceRefresh, setForceRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState("open");
-  const employeeNo = employee?.number;
+  const { data: session } = useSession();
+  const employeeNo = session?.user?.profile?.number;
 
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
@@ -40,7 +40,7 @@ export default function ReusableSalaryAdvanceTabs({
       const json = await res.json();
       setData(json["data"]["value"] || []);
     } catch (err) {
-      console.error("❌ Failed to fetch advances:", err);
+      console.log(err);
     } finally {
       setLoading(false);
       setForceRefresh(false);
@@ -50,6 +50,12 @@ export default function ReusableSalaryAdvanceTabs({
   useEffect(() => {
     fetchAdvances();
   }, [fetchAdvances]);
+
+  useEffect(() => {
+    if (forceRefresh) {
+      fetchAdvances();
+    }
+  }, [forceRefresh, fetchAdvances]);
 
   const filteredByStatus = useMemo(() => {
     const lowerSearch = search.toLowerCase();
@@ -251,9 +257,18 @@ export default function ReusableSalaryAdvanceTabs({
 
       <AdvanceRequestAction
         advance={selectedAdvance}
-        refetch={() => setForceRefresh(true)}
+        refetch={(updatedStatus) => {
+          setForceRefresh(true);
+          const statusTabMap: Record<string, string> = {
+            Open: "open",
+            "Pending Approval": "pending",
+            Released: "released",
+          };
+          if (updatedStatus && statusTabMap[updatedStatus]) {
+            setActiveTab(statusTabMap[updatedStatus]);
+          }
+        }}
         onCloseView={() => setSelectedAdvance(null)}
-        employee={employee}
       />
     </div>
   );

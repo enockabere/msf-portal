@@ -18,6 +18,7 @@ import SalaryAdvanceHeader from "./components/SalaryAdvanceHeader";
 import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -54,17 +55,13 @@ const LoadingOverlay = () => (
 interface SalaryAdvanceFormProps {
   advance?: SalaryAdvanceData | null;
   isViewMode?: boolean;
-  onSuccess?: () => void;
-  employee?: {
-    [key: string]: any;
-  };
+  onSuccess?: (updatedStatus?: string) => void;
 }
 
 export default function SalaryAdvanceForm({
   advance = null,
   isViewMode = false,
   onSuccess,
-  employee,
 }: SalaryAdvanceFormProps) {
   const advanceNo = advance?.no;
   const advanceBankCode = advance?.bankCode;
@@ -103,7 +100,8 @@ export default function SalaryAdvanceForm({
   const didInitDefaults = useRef(false);
   const didSetInitialAmount = useRef(false);
 
-  const employeeNo = employee?.number;
+  const { data: session } = useSession();
+  const employeeNo = session?.user?.profile?.number;
 
   const {
     currencies,
@@ -231,7 +229,7 @@ export default function SalaryAdvanceForm({
       }
 
       const validBranch = (bankBranches as { branchNo: string }[]).find(
-          (b: Record<string, any>) => b.branchNo === advanceEmployeeBranchCode
+        (b: Record<string, any>) => b.branchNo === advanceEmployeeBranchCode
       ) as Record<string, any> | undefined;
 
       if (validBranch) {
@@ -325,20 +323,19 @@ export default function SalaryAdvanceForm({
         ? advanceMobilePhoneNo.slice(4)
         : advanceMobilePhoneNo;
       setPhone(cleanPhone);
-    } else if (!advance && employee?.mobilePhone) {
-      // Prefill from employee only if NOT editing
-      const cleanEmpPhone = employee.mobilePhone.startsWith("+254")
-        ? employee.mobilePhone.slice(4)
-        : employee.mobilePhone;
+    } else if (!advance && session?.user?.profile?.mobilePhone) {
+      const cleanEmpPhone = session.user.profile.mobilePhone.startsWith("+254")
+        ? session.user.profile.mobilePhone.slice(4)
+        : session.user.profile.mobilePhone;
       setPhone(cleanEmpPhone);
     }
 
     if (advanceIdNo) {
       setIdNumber(advanceIdNo);
-    } else if (!advance && employee?.nationalId) {
-      setIdNumber(employee.nationalId);
+    } else if (!advance && session?.user?.profile?.nationalId) {
+      setIdNumber(session.user.profile.nationalId);
     }
-  }, [advanceMobilePhoneNo, advanceIdNo, advance, employee]);
+  }, [advanceMobilePhoneNo, advanceIdNo, advance, session]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -370,9 +367,7 @@ export default function SalaryAdvanceForm({
         Swal.fire("Error", "MPESA is only valid for KES currency", "error");
         return;
       }
-
       setIsSubmitting(true);
-
       try {
         if (!advanceAmount || isNaN(Number(advanceAmount))) {
           Swal.fire("Error", "Please enter a valid advance amount.", "error");
@@ -391,7 +386,8 @@ export default function SalaryAdvanceForm({
           applicationDate:
             advanceApplicationDate || new Date().toISOString().split("T")[0],
           paymentMethod,
-          payrollPeriod: (payrollPeriods[0] as Record<string, any>).startingDate,
+          payrollPeriod: (payrollPeriods[0] as Record<string, any>)
+            .startingDate,
         };
 
         if (paymentMethod === "MPESA") {
@@ -402,7 +398,8 @@ export default function SalaryAdvanceForm({
           payload.bankCode = bank;
           payload.employeeBranchCode = branch;
           payload.employeeBranchName =
-            bankBranches.find((b: Record<string, any>) => b.branchNo === branch)?.name || "";
+            bankBranches.find((b: Record<string, any>) => b.branchNo === branch)
+              ?.name || "";
           payload.employeeBankName =
             banks.find((b: Record<string, any>) => b.no === bank)?.name || "";
           payload.chequeName = chequeName;
@@ -446,9 +443,7 @@ export default function SalaryAdvanceForm({
         if (!newAdvanceNo) {
           throw new Error("No advance number returned from server");
         }
-
         setSavedAdvanceNo(newAdvanceNo);
-
         Swal.fire(
           "Success",
           isEdit
@@ -456,19 +451,6 @@ export default function SalaryAdvanceForm({
             : `Salary advance #${newAdvanceNo} created successfully!`,
           "success"
         );
-
-        try {
-          const clearCacheRes = await fetch(
-            `/api/clearCache?employeeNo=${employeeNo}`,
-            { method: "POST" }
-          );
-          if (!clearCacheRes.ok) {
-            console.warn("⚠️ Failed to clear cache after save");
-          }
-        } catch (err) {
-          console.warn("⚠️ Cache clear request failed", err);
-        }
-
         try {
           const approvalRes = await fetch(
             "/api/bc/advances/salary/sendApproval",
@@ -509,7 +491,7 @@ export default function SalaryAdvanceForm({
           );
         }
 
-        onSuccess?.();
+        onSuccess?.(response?.data?.status || "Pending Approval");
       } catch (error: any) {
         console.error("❌ Error in form submission:", error);
 
