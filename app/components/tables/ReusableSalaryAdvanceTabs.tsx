@@ -40,7 +40,7 @@ export default function ReusableSalaryAdvanceTabs({
       const json = await res.json();
       setData(json["data"]["value"] || []);
     } catch (err) {
-      console.error("❌ Failed to fetch advances:", err);
+      console.log(err);
     } finally {
       setLoading(false);
       setForceRefresh(false);
@@ -50,6 +50,12 @@ export default function ReusableSalaryAdvanceTabs({
   useEffect(() => {
     fetchAdvances();
   }, [fetchAdvances]);
+
+  useEffect(() => {
+    if (forceRefresh) {
+      fetchAdvances();
+    }
+  }, [forceRefresh, fetchAdvances]);
 
   const filteredByStatus = useMemo(() => {
     const lowerSearch = search.toLowerCase();
@@ -251,7 +257,17 @@ export default function ReusableSalaryAdvanceTabs({
 
       <AdvanceRequestAction
         advance={selectedAdvance}
-        refetch={() => setForceRefresh(true)}
+        refetch={(updatedStatus) => {
+          setForceRefresh(true);
+          const statusTabMap: Record<string, string> = {
+            Open: "open",
+            "Pending Approval": "pending",
+            Released: "released",
+          };
+          if (updatedStatus && statusTabMap[updatedStatus]) {
+            setActiveTab(statusTabMap[updatedStatus]);
+          }
+        }}
         onCloseView={() => setSelectedAdvance(null)}
         employee={employee}
       />
