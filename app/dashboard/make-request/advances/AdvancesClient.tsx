@@ -80,7 +80,7 @@ export default function AdvancesClient() {
       title: "Approvals",
       value: `${advanceCounts.pending} Pending`,
       description: "Pending Approval",
-      icon: <ClipboardList size={28} />, // Represents approvals/tasks pending
+      icon: <ClipboardList size={28} />,
       bgColorClass: "bg-light-success",
       textColorClass: "text-success",
     },
