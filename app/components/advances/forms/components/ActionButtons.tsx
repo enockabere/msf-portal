@@ -10,7 +10,7 @@ interface ActionButtonsProps {
   isViewMode?: boolean;
   status: string;
   advanceNo?: string;
-  onSuccess?: () => void;
+  onSuccess?: (updatedStatus?: string) => void;
   cutoffPassed?: boolean;
   limitExceeded?: boolean;
   employeeNo?: string;
@@ -54,7 +54,7 @@ export default function ActionButtons({
           "error"
         );
       } else {
-        onSuccess?.();
+        onSuccess?.("Open");
         await Swal.fire(
           "Success",
           "Cancelled approval successfully!",
