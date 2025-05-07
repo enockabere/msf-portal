@@ -19,11 +19,11 @@ export default function SidebarMenu() {
   const handleNav = async (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
-      setIsNavigating(true); // 🟡 start navigating
+      setIsNavigating(true);
       showLoader();
       await new Promise((resolve) => setTimeout(resolve, 50));
       router.push(href);
-      setTimeout(() => setIsNavigating(false), 300); // 🟢 after slight delay
+      setTimeout(() => setIsNavigating(false), 300);
     }
   };
 
