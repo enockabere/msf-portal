@@ -35,11 +35,11 @@ export async function POST(request: Request) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
-    const response = await transport.post(
+    const response = (await transport.post(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
-    );
+    )) as { no?: string; status?: string; value?: { no?: string } };
     if ((response as any)?.error) {
       return NextResponse.json(
         {
@@ -52,7 +52,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: response,
+      data: {
+        no: response?.no || response?.value?.no || "",
+        status: response?.status || "Pending Approval", // add this
+      },
       message: "Salary advance created successfully",
     });
   } catch (error: any) {

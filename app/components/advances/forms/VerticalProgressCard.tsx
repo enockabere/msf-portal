@@ -52,7 +52,6 @@ export default function VerticalProgressCard({
             (a: ApprovalEntry, b: ApprovalEntry) =>
               (a.sequenceNo || 0) - (b.sequenceNo || 0)
           );
-          console.log("✅ Approval Entries:", sorted);
           setApprovalEntries(sorted);
         } catch (err) {
           console.error("❌ Error fetching approvals", err);
@@ -194,7 +193,6 @@ export default function VerticalProgressCard({
             )}
           </div>
         </SimpleBar>
-
         <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-3">
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">
