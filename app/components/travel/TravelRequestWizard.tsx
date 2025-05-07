@@ -13,12 +13,15 @@ import {
   Check,
   Ticket,
   Link,
+  DownloadIcon,
+  FileDownIcon,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
 import { TravelInfo } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
+import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 
 interface WizardStep {
   id: string;
@@ -187,23 +190,49 @@ export default function TravelRequestWizard() {
             role="tabpanel"
             aria-labelledby={`${activeTab}-tab`}
           >
-            <h4 className="step-panel-title">
-              {steps.find((s) => s.id === activeTab)?.title}
-            </h4>
+            <div className='d-flex align-items-center justify-content-between mb-3 wizard-bg-gray'>
+              <h4 className="step-panel-title">
+                {steps.find((s) => s.id === activeTab)?.title}
+              </h4>
+
+              {activeTab === "visa" && (
+                  <div className="btn-group">
+                    <button type="button" className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                      <DownloadIcon size={16} className="button-icon" />
+                      Download
+                    </button>
+                    <ul className="dropdown-menu">
+                      <li><button className="dropdown-item" type='button'>
+                        <FileDownIcon size={16} className="button-icon" />
+                        Dummy ticket
+                      </button></li>
+                      <li><button className="dropdown-item" type='button'>
+                        <FileDownIcon size={16} className="button-icon" />
+                        Accommodation voucher
+                      </button></li>
+                      <li><button className="dropdown-item" type='button'>
+                        <FileDownIcon size={16} className="button-icon" />
+                        Letter of intent
+                      </button></li>
+                    </ul>
+                  </div>
+              )}
+            </div>
 
             <form onSubmit={handleSubmit}>
               {activeTab === "info" && (
-                <TravelHeaderForm
-                  travelInfo={travelInfo}
-                  handleChange={handleChange}
-                />
+                  <TravelHeaderForm
+                      travelInfo={travelInfo}
+                      handleChange={handleChange}
+                  />
               )}
 
               {activeTab === "permit" && (
-                <div className="permit-form">
-                  <div className="permit-notice mb-4">
-                    <p className="notice-text">
-                      <strong>Note:</strong> Work permit applications typically
+                  <div className="permit-form">
+                    <div className="permit-notice mb-4">
+                      <p className="notice-text">
+                        <strong>Note:</strong> Work permit applications typically
                       take 3-4 weeks to process. Please ensure all documents are
                       uploaded completely and accurately.
                     </p>
@@ -270,7 +299,11 @@ export default function TravelRequestWizard() {
                 </div>
               )}
 
-              {!["info", "permit", "advance"].includes(activeTab) && (
+              {activeTab === 'visa' && (
+                  <VisaApplicationForm />
+              )}
+
+              {!["info", "permit", "advance", "visa"].includes(activeTab) && (
                 <div className="step-placeholder">
                   Form fields for: <strong>{activeTab}</strong>
                 </div>
