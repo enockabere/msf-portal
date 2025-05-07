@@ -14,11 +14,15 @@ import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import TravelAdvanceForm from "../advances/forms/TravelAdvanceForm";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { useRouter } from "next/navigation";
 
 type AdvanceType = "Salary" | "Operational" | "Travel" | null;
 type RequestType = "Advance" | "Expense" | null;
 
 export default function RequestCards() {
+  const router = useRouter();
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<{
     pending: number;
@@ -29,7 +33,15 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: employee } = useSession();
-  const { number, nationalId, mobilePhone } = employee?.user?.profile
+  const { number, nationalId, mobilePhone } = employee?.user?.profile;
+  const { showLoader } = usePageLoader();
+
+  const handleNavigate = async (e: React.MouseEvent, href: string) => {
+    e.stopPropagation();
+    showLoader();
+    await new Promise((r) => setTimeout(r, 50));
+    router.push(href); 
+  };
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
@@ -125,13 +137,14 @@ export default function RequestCards() {
             </div>
 
             <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
-              <Link
-                href="/dashboard/make-request/advances"
+              <button
                 className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) =>
+                  handleNavigate(e, "/dashboard/make-request/advances")
+                }
               >
                 <Eye size={16} /> View
-              </Link>
+              </button>
 
               <button
                 className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
@@ -170,13 +183,15 @@ export default function RequestCards() {
               </h6>
             </div>
             <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
-              <Link
-                href="/dashboard/make-request/travel"
+              <button
                 className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) =>
+                  handleNavigate(e, "/dashboard/make-request/travel")
+                }
               >
                 <Eye size={16} /> View
-              </Link>
+              </button>
+
               <button
                 className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
                 onClick={(e) => {

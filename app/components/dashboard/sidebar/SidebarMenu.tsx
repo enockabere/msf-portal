@@ -9,8 +9,6 @@ export default function SidebarMenu() {
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
 
-  const isActive = (path: string) => currentPath === path;
-
   const isGroupActive = (prefix: string) =>
     currentPath.startsWith(prefix) && currentPath !== "/dashboard";
 
@@ -18,7 +16,6 @@ export default function SidebarMenu() {
     e.preventDefault();
     if (href !== currentPath) {
       showLoader();
-      // Small delay to ensure loader shows before navigation
       await new Promise((resolve) => setTimeout(resolve, 50));
       router.push(href);
     }

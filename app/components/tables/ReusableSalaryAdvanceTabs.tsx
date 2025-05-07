@@ -40,6 +40,7 @@ export default function ReusableSalaryAdvanceTabs({
       const json = await res.json();
       setData(json["data"]["value"] || []);
     } catch (err) {
+      console.log(err);
     } finally {
       setLoading(false);
       setForceRefresh(false);
