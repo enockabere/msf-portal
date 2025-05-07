@@ -8,7 +8,6 @@ interface ClientNavLinkProps {
   children: React.ReactNode;
   className?: string;
 }
-
 export default function ClientNavLink({
   href,
   children,

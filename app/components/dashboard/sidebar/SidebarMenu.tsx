@@ -9,13 +9,28 @@ export default function SidebarMenu() {
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
 
-  const isActive = (path: string) => currentPath === path;
-  const isGroupActive = (prefix: string) => currentPath.startsWith(prefix);
+  // Improved active state checks
+  const isActive = (path: string) => {
+    return (
+      currentPath === path ||
+      (path === "/dashboard" && currentPath === "/") || // Handle root path
+      (path !== "/dashboard" && currentPath.startsWith(path))
+    );
+  };
 
-  const handleNav = (e: React.MouseEvent, href: string) => {
+  const isGroupActive = (prefix: string) => {
+    return (
+      currentPath.startsWith(prefix) &&
+      !currentPath.startsWith("/dashboard/make-request")
+    ); // Special case for make-request
+  };
+
+  const handleNav = async (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
       showLoader();
+      // Small delay to ensure loader shows before navigation
+      await new Promise((resolve) => setTimeout(resolve, 50));
       router.push(href);
     }
   };
@@ -31,11 +46,18 @@ export default function SidebarMenu() {
         <span>Main Menu</span>
       </li>
 
-      {/* Dashboard */}
+      {/* Dashboard - Now properly handles active state */}
       <li className="nav-item">
         <a
           href="/dashboard"
-          className={`nav-link ${isActive("/dashboard") ? "active" : ""}`}
+          className={`nav-link ${
+            isActive("/dashboard") &&
+            !isGroupActive("/requests") &&
+            !isGroupActive("/hr") &&
+            !isGroupActive("/procurement")
+              ? "active"
+              : ""
+          }`}
           onClick={(e) => handleNav(e, "/dashboard")}
         >
           <i className="iconoir-home-simple menu-icon"></i>
@@ -43,10 +65,10 @@ export default function SidebarMenu() {
         </a>
       </li>
 
-      {/* My Requests */}
+      {/* My Requests - Fixed active state logic */}
       <li className="nav-item">
         <a
-          className="nav-link"
+          className={`nav-link ${isGroupActive("/requests") ? "active" : ""}`}
           href="#sidebarMyRequests"
           data-bs-toggle="collapse"
           aria-expanded={isGroupActive("/requests")}
@@ -86,10 +108,10 @@ export default function SidebarMenu() {
         </div>
       </li>
 
-      {/* HR Services */}
+      {/* HR Services - Fixed active state logic */}
       <li className="nav-item">
         <a
-          className="nav-link"
+          className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
           href="#sidebarHRServices"
           data-bs-toggle="collapse"
           aria-expanded={isGroupActive("/hr")}
@@ -124,10 +146,12 @@ export default function SidebarMenu() {
         </div>
       </li>
 
-      {/* Procurement & Finance */}
+      {/* Procurement & Finance - Fixed active state logic */}
       <li className="nav-item">
         <a
-          className="nav-link"
+          className={`nav-link ${
+            isGroupActive("/procurement") ? "active" : ""
+          }`}
           href="#sidebarProcFinance"
           data-bs-toggle="collapse"
           role="button"
