@@ -3,21 +3,27 @@
 import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { useState } from "react";
 
 export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const isGroupActive = (prefix: string) =>
-    currentPath.startsWith(prefix) && currentPath !== "/dashboard";
+    !isNavigating &&
+    currentPath.startsWith(prefix) &&
+    currentPath !== "/dashboard";
 
   const handleNav = async (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
+      setIsNavigating(true); // 🟡 start navigating
       showLoader();
       await new Promise((resolve) => setTimeout(resolve, 50));
       router.push(href);
+      setTimeout(() => setIsNavigating(false), 300); // 🟢 after slight delay
     }
   };
 
