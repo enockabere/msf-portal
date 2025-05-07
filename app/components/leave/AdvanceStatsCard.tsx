@@ -48,8 +48,7 @@ export default function AdvanceStatsCard({ employee }: Props) {
     icon: JSX.Element,
     title: string,
     statusKey: string,
-    subtitle: string,
-    colorClass: string
+    subtitle: string
   ) => (
     <div className="card shadow-none border mb-3">
       <div className="card-body">
@@ -109,8 +108,7 @@ export default function AdvanceStatsCard({ employee }: Props) {
               <Send size={24} className="text-primary" />,
               "Open Requests",
               "Open",
-              "Awaiting Submission",
-              "text-primary"
+              "Awaiting Submission"
             )}
           </div>
           <div className="col-md-12">
@@ -118,8 +116,7 @@ export default function AdvanceStatsCard({ employee }: Props) {
               <Clock size={24} className="text-warning" />,
               "Pending Approval",
               "Pending Approval",
-              "Under Review",
-              "text-warning"
+              "Under Review"
             )}
           </div>
           <div className="col-md-12">
@@ -127,8 +124,7 @@ export default function AdvanceStatsCard({ employee }: Props) {
               <CheckCircle size={24} className="text-success" />,
               "Released Advances",
               "Released",
-              "Successfully Processed",
-              "text-success"
+              "Successfully Processed"
             )}
           </div>
         </div>
