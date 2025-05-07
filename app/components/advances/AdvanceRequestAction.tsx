@@ -22,16 +22,12 @@ interface AdvanceRequestActionProps {
   advance: Advance | null;
   refetch?: (updatedStatus?: string) => void;
   onCloseView?: () => void;
-  employee?: {
-    [key: string]: any;
-  };
 }
 
 export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
-  employee,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
@@ -63,7 +59,6 @@ export default function AdvanceRequestAction({
           <SalaryAdvanceForm
             advance={editingAdvance}
             onSuccess={handleCloseModal}
-            employee={employee}
           />
         );
       case "Operational":

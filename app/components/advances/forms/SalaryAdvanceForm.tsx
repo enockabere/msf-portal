@@ -18,6 +18,7 @@ import SalaryAdvanceHeader from "./components/SalaryAdvanceHeader";
 import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -55,16 +56,12 @@ interface SalaryAdvanceFormProps {
   advance?: SalaryAdvanceData | null;
   isViewMode?: boolean;
   onSuccess?: (updatedStatus?: string) => void;
-  employee?: {
-    [key: string]: any;
-  };
 }
 
 export default function SalaryAdvanceForm({
   advance = null,
   isViewMode = false,
   onSuccess,
-  employee,
 }: SalaryAdvanceFormProps) {
   const advanceNo = advance?.no;
   const advanceBankCode = advance?.bankCode;
@@ -103,7 +100,8 @@ export default function SalaryAdvanceForm({
   const didInitDefaults = useRef(false);
   const didSetInitialAmount = useRef(false);
 
-  const employeeNo = employee?.number;
+  const { data: session } = useSession();
+  const employeeNo = session?.user?.profile?.number;
 
   const {
     currencies,
@@ -325,19 +323,19 @@ export default function SalaryAdvanceForm({
         ? advanceMobilePhoneNo.slice(4)
         : advanceMobilePhoneNo;
       setPhone(cleanPhone);
-    } else if (!advance && employee?.mobilePhone) {
-      const cleanEmpPhone = employee.mobilePhone.startsWith("+254")
-        ? employee.mobilePhone.slice(4)
-        : employee.mobilePhone;
+    } else if (!advance && session?.user?.profile?.mobilePhone) {
+      const cleanEmpPhone = session.user.profile.mobilePhone.startsWith("+254")
+        ? session.user.profile.mobilePhone.slice(4)
+        : session.user.profile.mobilePhone;
       setPhone(cleanEmpPhone);
     }
 
     if (advanceIdNo) {
       setIdNumber(advanceIdNo);
-    } else if (!advance && employee?.nationalId) {
-      setIdNumber(employee.nationalId);
+    } else if (!advance && session?.user?.profile?.nationalId) {
+      setIdNumber(session.user.profile.nationalId);
     }
-  }, [advanceMobilePhoneNo, advanceIdNo, advance, employee]);
+  }, [advanceMobilePhoneNo, advanceIdNo, advance, session]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
