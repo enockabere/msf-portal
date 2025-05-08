@@ -15,6 +15,8 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
+  Pencil,
+  FileX,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -366,16 +368,49 @@ export default function TravelRequestWizard() {
                 )}
 
                 {currentStepIndex === 0 ? (
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={() =>
-                      handleTabChange(getSteps()[currentStepIndex + 1].id)
-                    }
-                  >
-                    <Save size={16} className="button-icon" />
-                    Save & Continue
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={() =>
+                        handleTabChange(getSteps()[currentStepIndex + 1].id)
+                      }
+                    >
+                      <Save size={16} className="button-icon" />
+                      Save & Continue
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => {
+                        // TODO: add actual logic for enabling edit mode
+                        console.log("Edit Travel Request clicked");
+                      }}
+                    >
+                      <Pencil size={16} className="button-icon" /> Edit Travel
+                      Request
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        // TODO: add actual logic for canceling the request
+                        console.log("Cancel Request clicked");
+                      }}
+                    >
+                      <FileX size={16} className="button-icon" /> Cancel Request
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-info"
+                      onClick={() => {
+                        console.log("Download Request clicked");
+                      }}
+                    >
+                      <DownloadIcon size={16} className="button-icon" />{" "}
+                      Download Travel Request
+                    </button>
+                  </div>
                 ) : currentStepIndex < getSteps().length - 1 ? (
                   <button
                     type="button"
