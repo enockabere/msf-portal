@@ -422,15 +422,11 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
-        console.log("✅ Create Advance Response:", response);
-
         if (!res.ok || response.error || response.success === false) {
           const rawMsg =
             response?.rawResponse?.error?.message ||
             response?.error?.message ||
             response?.error?.details?.[0]?.message;
-
-          console.error("🔴 API returned error:", response);
           Swal.fire("Error", rawMsg || "Unknown API error", "error");
           return;
         }
@@ -474,29 +470,28 @@ export default function SalaryAdvanceForm({
               approvalJson?.error?.message ||
               approvalJson?.error?.details?.[0]?.message ||
               "Approval failed.";
-            console.error("🔴 Approval API error:", approvalJson);
             Swal.fire("Warning", approvalError, "warning");
+            const finalStatus =
+              response?.data?.status || advanceStatus || "Open";
+            onSuccess?.(finalStatus);
           } else {
-            onSuccess?.("Pending Approval");
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
               "success"
             );
+            onSuccess?.("Pending Approval");
           }
         } catch (approvalError: any) {
-          console.error("❌ Error submitting for approval:", approvalError);
           Swal.fire(
             "Warning",
             approvalError.message || "Saved but failed to submit for approval.",
             "warning"
           );
+          const finalStatus = response?.data?.status || advanceStatus || "Open";
+          onSuccess?.(finalStatus);
         }
-
-        onSuccess?.(response?.data?.status || "Pending Approval");
       } catch (error: any) {
-        console.error("❌ Error in form submission:", error);
-
         let message = "An unexpected error occurred.";
         try {
           const parsed =
@@ -537,6 +532,7 @@ export default function SalaryAdvanceForm({
       payrollPeriods,
       swiftCode,
       advanceApplicationDate,
+      advanceStatus,
     ]
   );
 

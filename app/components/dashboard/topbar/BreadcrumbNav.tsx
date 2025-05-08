@@ -49,7 +49,6 @@ export default function BreadcrumbNav() {
       try {
         const res = await fetch("/api/quote");
         const data = await res.json();
-        console.log(data);
         setQuote({ content: data.content, author: data.author });
       } catch (err) {
         console.error("❌ Failed to fetch quote:", err);
