@@ -28,7 +28,9 @@ export default function ReusableTabbedAdvanceTable({
                 eventKey={tab.key}
                 title={`${tab.label} (${tab.data.length})`}
               >
-                <TravelRequestTable data={tab.data} loading={false} />
+                <div className="pt-3">
+                  <TravelRequestTable data={tab.data} loading={false} />
+                </div>
               </Tab>
             ))}
           </Tabs>
