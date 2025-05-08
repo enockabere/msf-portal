@@ -28,6 +28,8 @@ export default function ReusableSalaryAdvanceTabs({ onCountsUpdate }: Props) {
   const { data: session } = useSession();
   const employeeNo = session?.user?.profile?.number;
 
+  console.log(selectedAdvance);
+
   const fetchAdvances = useCallback(async () => {
     if (!employeeNo) return;
     setLoading(true);
