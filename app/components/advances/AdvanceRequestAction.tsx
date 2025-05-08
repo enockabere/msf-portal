@@ -43,7 +43,7 @@ export default function AdvanceRequestAction({
       setShowModal(true);
     } else if (showCreate) {
       console.log("🔄 Opening modal for creation");
-      setAdvanceType("Salary"); // or dynamic if needed
+      setAdvanceType("Salary");
       setEditingAdvance(null);
       setShowModal(true);
     }
