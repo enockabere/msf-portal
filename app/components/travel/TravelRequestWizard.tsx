@@ -394,7 +394,6 @@ export default function TravelRequestWizard() {
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => {
-                        // TODO: add actual logic for canceling the request
                         console.log("Cancel Request clicked");
                       }}
                     >

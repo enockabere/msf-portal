@@ -12,9 +12,9 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
-import TravelAdvanceForm from "../advances/forms/TravelAdvanceForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
+import TravelRequestWizard from "../travel/TravelRequestWizard";
 
 type AdvanceType = "Salary" | "Operational" | "Travel" | null;
 type RequestType = "Advance" | "Expense" | null;
@@ -39,7 +39,7 @@ export default function RequestCards() {
     e.stopPropagation();
     showLoader();
     await new Promise((r) => setTimeout(r, 50));
-    router.push(href); 
+    router.push(href);
   };
 
   const handleOpenModal = (type: RequestType) => {
@@ -286,7 +286,7 @@ export default function RequestCards() {
           )}
           {requestType === "Advance" && advanceType === "Travel" && (
             <div className="col-md-12">
-              <TravelAdvanceForm />
+              <TravelRequestWizard />
             </div>
           )}
           {requestType === "Expense" && (
