@@ -254,8 +254,10 @@ export default function ReusableSalaryAdvanceTabs({ onCountsUpdate }: Props) {
       </Tabs>
 
       <AdvanceRequestAction
-        advance={selectedAdvance}
+        advance={null}
+        showCreate={true}
         refetch={(updatedStatus) => {
+          console.log("🟢 Refetch triggered with status:", updatedStatus);
           setForceRefresh(true);
           const statusTabMap: Record<string, string> = {
             Open: "open",

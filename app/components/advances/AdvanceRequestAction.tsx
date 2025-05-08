@@ -29,6 +29,7 @@ export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
+  showCreate,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
@@ -40,15 +41,20 @@ export default function AdvanceRequestAction({
       setAdvanceType(advance.advanceType);
       setEditingAdvance(advance as SalaryAdvanceData);
       setShowModal(true);
+    } else if (showCreate) {
+      console.log("🔄 Opening modal for creation");
+      setAdvanceType("Salary"); // or dynamic if needed
+      setEditingAdvance(null);
+      setShowModal(true);
     }
-  }, [advance]);
+  }, [advance, showCreate]);
 
   const handleCloseModal = (updatedStatus?: string) => {
     setAdvanceType(null);
     setEditingAdvance(null);
     setShowModal(false);
     if (refetch) refetch(updatedStatus);
-    if (onCloseView) onCloseView();
+    if (onCloseView) onCloseView?.();
   };
 
   const renderForm = () => {
