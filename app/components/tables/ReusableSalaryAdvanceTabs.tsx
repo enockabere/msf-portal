@@ -16,9 +16,7 @@ interface Props {
   }) => void;
 }
 
-export default function ReusableSalaryAdvanceTabs({
-  onCountsUpdate,
-}: Props) {
+export default function ReusableSalaryAdvanceTabs({ onCountsUpdate }: Props) {
   const [data, setData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
