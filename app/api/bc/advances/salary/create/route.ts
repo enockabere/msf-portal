@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       success: true,
       data: {
         no: response?.no || response?.value?.no || "",
-        status: response?.status || "Pending Approval", // add this
+        status: "Pending Approval",
       },
       message: "Salary advance created successfully",
     });
