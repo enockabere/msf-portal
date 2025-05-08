@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
@@ -22,13 +21,6 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function AdvancesClient() {
-  const { data: employee } = useSession();
-  const employeeData = {
-    number: employee?.user?.profile?.number || "",
-    nationalId: employee?.user?.profile?.nationalId || "",
-    mobilePhone: employee?.user?.profile?.mobilePhone || "",
-  };
-
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
     open: 0,
@@ -143,10 +135,7 @@ export default function AdvancesClient() {
             <div className="col-lg-3">{renderSummary()}</div>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <ReusableSalaryAdvanceTabs
-                  employee={employeeData}
-                  onCountsUpdate={setAdvanceCounts}
-                />
+                <ReusableSalaryAdvanceTabs onCountsUpdate={setAdvanceCounts} />
               </div>
             </div>
           </>
@@ -156,10 +145,7 @@ export default function AdvancesClient() {
           <>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <ReusableSalaryAdvanceTabs
-                  employee={employeeData}
-                  onCountsUpdate={setAdvanceCounts}
-                />
+                <ReusableSalaryAdvanceTabs onCountsUpdate={setAdvanceCounts} />
               </div>
             </div>
             <div className="col-lg-3">{renderSummary()}</div>
@@ -169,10 +155,7 @@ export default function AdvancesClient() {
         {(placement === "top" || placement === "bottom") && (
           <div className="col-12">
             <div className="card h-100 p-2">
-              <ReusableSalaryAdvanceTabs
-                employee={employeeData}
-                onCountsUpdate={setAdvanceCounts}
-              />
+              <ReusableSalaryAdvanceTabs onCountsUpdate={setAdvanceCounts} />
             </div>
           </div>
         )}
@@ -193,10 +176,7 @@ export default function AdvancesClient() {
       >
         <div className="row">
           <div className="col-md-9">
-            <SalaryAdvanceForm
-              employee={employeeData}
-              onSuccess={handleCloseModal}
-            />
+            <SalaryAdvanceForm onSuccess={handleCloseModal} />
           </div>
           <div className="col-md-3">
             <VerticalProgressCard advance={null} />
