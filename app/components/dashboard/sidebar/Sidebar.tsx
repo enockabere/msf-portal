@@ -11,7 +11,6 @@ export default function Sidebar() {
 
   return (
     <div className="startbar d-print-none">
-      {/* Overlay - only clickable when sidebar is open */}
       {isSidebarOpen && (
         <div
           className="startbar-overlay d-print-none"

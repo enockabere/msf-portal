@@ -1,0 +1,13 @@
+.logo-bounce {
+  animation: zoomInOut 1.5s infinite ease-in-out;
+}
+
+@keyframes zoomInOut {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}

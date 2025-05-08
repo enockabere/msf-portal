@@ -63,7 +63,7 @@ export async function apiFetch(
                     headers,
                     data,
                 });
-            })
+            });
         }
         options.params = {
             ...options.params,

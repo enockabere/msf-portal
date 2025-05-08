@@ -1,7 +1,6 @@
 "use client";
 
 import { Wallet, Eye, PlusCircle } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -13,12 +12,16 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
-import TravelAdvanceForm from "../advances/forms/TravelAdvanceForm";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { useRouter } from "next/navigation";
+import TravelRequestWizard from "../travel/TravelRequestWizard";
 
 type AdvanceType = "Salary" | "Operational" | "Travel" | null;
 type RequestType = "Advance" | "Expense" | null;
 
 export default function RequestCards() {
+  const router = useRouter();
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<{
     pending: number;
@@ -29,6 +32,14 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: employee } = useSession();
+  const { showLoader } = usePageLoader();
+
+  const handleNavigate = async (e: React.MouseEvent, href: string) => {
+      e.stopPropagation();
+      showLoader();
+      await new Promise((r) => setTimeout(r, 50));
+      router.push(href);
+  };
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
@@ -65,7 +76,6 @@ export default function RequestCards() {
   return (
     <>
       <div className="row row-cols-1 row-cols-md-4 g-3">
-        {/* Advances Card */}
         <div className="col">
           <div
             className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
@@ -125,13 +135,14 @@ export default function RequestCards() {
             </div>
 
             <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
-              <Link
-                href="/dashboard/make-request/advances"
+              <button
                 className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) =>
+                  handleNavigate(e, "/dashboard/make-request/advances")
+                }
               >
                 <Eye size={16} /> View
-              </Link>
+              </button>
 
               <button
                 className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
@@ -148,22 +159,47 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
-            style={{ opacity: 0.5, cursor: "not-allowed" }}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 1 ? "active" : ""
+            }`}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (
+                !target.closest("a") &&
+                !target.closest("button") &&
+                !target.closest(".dropdown-menu")
+              ) {
+                setActiveIndex(activeIndex === 1 ? null : 1);
+              }
+            }}
+            style={{ cursor: "pointer" }}
           >
-            <div className="ribbon4 rib4-secondary">
-              <span className="ribbon4-band ribbon4-band-secondary text-white text-center">
-                Soon
-              </span>
-            </div>
             <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
-              <Wallet className="text-muted card-icon" size={28} />
-              <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
+              <Wallet className="text-primary card-icon" size={28} />
+              <h6 className="card-title mt-2 fw-semibold small text-uppercase">
                 Travel Requests
               </h6>
             </div>
-            <div className="card-footer border-0 bg-transparent text-muted">
-              Coming Soon
+            <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
+              <button
+                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
+                onClick={(e) =>
+                  handleNavigate(e, "/dashboard/make-request/travel")
+                }
+              >
+                <Eye size={16} /> View
+              </button>
+
+              <button
+                className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAdvanceType("Travel");
+                  handleOpenModal("Advance");
+                }}
+              >
+                <PlusCircle size={16} /> New
+              </button>
             </div>
           </div>
         </div>
@@ -214,8 +250,6 @@ export default function RequestCards() {
           </div>
         </div>
       </div>
-
-      {/* Modal */}
       <CustomModal
         show={showModal}
         onClose={() => setShowModal(false)}
@@ -243,19 +277,16 @@ export default function RequestCards() {
               </div>
             </>
           )}
-
           {requestType === "Advance" && advanceType === "Operational" && (
             <div className="col-md-12">
               <OperationalAdvanceForm />
             </div>
           )}
-
           {requestType === "Advance" && advanceType === "Travel" && (
             <div className="col-md-12">
-              <TravelAdvanceForm />
+              <TravelRequestWizard />
             </div>
           )}
-
           {requestType === "Expense" && (
             <div className="col-md-12">
               <AdvanceSettlementForm />
