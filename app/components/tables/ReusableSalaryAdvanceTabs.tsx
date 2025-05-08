@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
@@ -15,7 +15,7 @@ interface Props {
     released: number;
     total: number;
   }) => void;
-  initialTab?: string; // <--- ADD THIS
+  initialTab?: string;
   refetch: (updatedStatus?: string) => void;
 }
 
@@ -28,16 +28,18 @@ export default function ReusableSalaryAdvanceTabs({
 }: Props) {
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [activeTab, setActiveTab] = useState("open");
+  const didSetInitialTab = useRef(false);
 
   useEffect(() => {
     if (
+      !didSetInitialTab.current &&
       initialTab &&
-      ["open", "pending", "released"].includes(initialTab) &&
-      initialTab !== activeTab
+      ["open", "pending", "released"].includes(initialTab)
     ) {
       setActiveTab(initialTab);
+      didSetInitialTab.current = true;
     }
-  }, [initialTab, activeTab]);
+  }, [initialTab]);
 
   const filteredByStatus = useMemo(() => {
     const filterBy = (status: string) =>

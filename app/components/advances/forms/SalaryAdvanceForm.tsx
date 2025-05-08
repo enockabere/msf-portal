@@ -80,8 +80,8 @@ export default function SalaryAdvanceForm({
   const [advanceLimit, setAdvanceLimit] = useState<number | null | undefined>(
     null
   );
-  const [currency, setCurrency] = useState("KES"); // Default to KES
-  const [paymentMethod, setPaymentMethod] = useState("MPESA"); // Default to MPESA
+  const [currency, setCurrency] = useState("KES"); 
+  const [paymentMethod, setPaymentMethod] = useState("MPESA"); 
 
   const [accountNo, setAccountNo] = useState("");
   const [bank, setBank] = useState("");
@@ -126,7 +126,7 @@ export default function SalaryAdvanceForm({
       paymentMethods.length
     ) {
       setCurrency("KES");
-      setPaymentMethod("MPESA"); // MPESA default for KES
+      setPaymentMethod("MPESA"); 
       didInitDefaults.current = true;
     }
   }, [advanceCurrencyCode, currencies.length, paymentMethods.length]);
@@ -210,13 +210,10 @@ export default function SalaryAdvanceForm({
         setCurrency("KES");
         setPaymentMethod("MPESA");
       }
-
       setAccountNo(advanceAccountNo || "");
       setBank(advanceBankCode || "");
       setChequeName(advanceChequeName || "");
       setSwiftCode(advanceSwiftCode || "");
-
-      // ❗ Fix: Only set phone/idNumber if available in advance
       if (advanceMobilePhoneNo) {
         const cleanPhone = advanceMobilePhoneNo.startsWith("+254")
           ? advanceMobilePhoneNo.slice(4)
@@ -247,18 +244,18 @@ export default function SalaryAdvanceForm({
     advanceBankCode,
     advanceChequeName,
     advanceSwiftCode,
-    advanceMobilePhoneNo, // ok to include
-    advanceIdNo, // ok to include
+    advanceMobilePhoneNo, 
+    advanceIdNo,
     advanceEmployeeBranchCode,
   ]);
 
   useEffect(() => {
     if (currency && currency !== "KES") {
       if (paymentMethod === "MPESA" || paymentMethod === "") {
-        setPaymentMethod("RTGS"); // or default to first non-MPESA method
+        setPaymentMethod("RTGS");
       }
     } else if (currency === "KES" && paymentMethod === "") {
-      setPaymentMethod("MPESA"); // Default for KES
+      setPaymentMethod("MPESA"); 
     }
   }, [currency, paymentMethod]);
 

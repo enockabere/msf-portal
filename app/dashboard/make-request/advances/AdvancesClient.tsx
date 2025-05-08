@@ -60,7 +60,7 @@ export default function AdvancesClient() {
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
-  >("bottom");
+  >("top");
   const [showModal, setShowModal] = useState(false);
 
   const handleChangePlacement = (newPlacement: typeof placement) => {
@@ -160,11 +160,12 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
+                  key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
-                  refetch={fetchAdvances} // ✅ correctly pass refetch
+                  refetch={fetchAdvances}
                 />
               </div>
             </div>
@@ -176,11 +177,12 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
+                  key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
-                  refetch={fetchAdvances} // ✅ correctly pass refetch
+                  refetch={fetchAdvances}
                 />
               </div>
             </div>
@@ -192,11 +194,12 @@ export default function AdvancesClient() {
           <div className="col-12">
             <div className="card h-100 p-2">
               <ReusableSalaryAdvanceTabs
+                key={activeStatusTab}
                 data={advanceData}
                 loading={loading}
                 onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
-                refetch={fetchAdvances} // ✅ correctly pass refetch
+                refetch={fetchAdvances}
               />
             </div>
           </div>
