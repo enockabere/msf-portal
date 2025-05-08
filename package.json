@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:4000": "next start --port 4000",
     "lint": "next lint"
   },
   "dependencies": {
