@@ -22,6 +22,7 @@ interface AdvanceRequestActionProps {
   advance: Advance | null;
   refetch?: (updatedStatus?: string) => void;
   onCloseView?: () => void;
+  showCreate?: boolean;
 }
 
 export default function AdvanceRequestAction({

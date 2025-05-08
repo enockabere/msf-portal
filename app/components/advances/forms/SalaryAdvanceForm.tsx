@@ -422,6 +422,7 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
+        console.log("✅ Create Advance Response:", response);
 
         if (!res.ok || response.error || response.success === false) {
           const rawMsg =
@@ -476,6 +477,7 @@ export default function SalaryAdvanceForm({
             console.error("🔴 Approval API error:", approvalJson);
             Swal.fire("Warning", approvalError, "warning");
           } else {
+            onSuccess?.("Pending Approval");
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
