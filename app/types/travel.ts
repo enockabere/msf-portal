@@ -3,6 +3,8 @@ export type BasedOnRequest = "Yes" | "No";
 export type TravelRequestId = "TR001" | "TR002" | "";
 export type Currency = "" | "KES" | "USD" | "EUR";
 export type PaymentMethod = "" | "Cash" | "Mpesa" | "Bank";
+export type TripType = "" | "Local" | "Foreign" | "Regional" | "International";
+export type YesNo = "Yes" | "No";
 
 export interface TravelDates {
   from: string;
@@ -10,14 +12,21 @@ export interface TravelDates {
 }
 
 export interface TravelInfo {
+  userType: "Inbound" | "Outbound" | "";
+  residentStatus: "Resident" | "Non-Resident" | "";
   basedOnRequest: BasedOnRequest;
   travelRequestId: TravelRequestId;
-  tripType: string;
+  tripType: TripType;
+  costCenter: string;
+  remainingTrips: string;
   tripDates: TravelDates;
   destination: string;
   applyForOther: "Yes" | "No";
   recipientName: string;
   currency: Currency;
   paymentMethod: PaymentMethod;
+  travelType: TripType;
+  visaRequired: YesNo;
+  workPermitRequired: YesNo;
   [key: string]: any;
 }
