@@ -3,13 +3,15 @@
 import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
-import { useState } from "react";
+import {useEffect, useState} from "react";
+import {getResource} from "@/app/lib/api/http";
 
 export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [approvalCount, setApprovalCount] = useState(0)
 
   const isGroupActive = (prefix: string) =>
     !isNavigating &&
@@ -26,6 +28,28 @@ export default function SidebarMenu() {
       setTimeout(() => setIsNavigating(false), 300);
     }
   };
+
+  useEffect(() => {
+    const fetchApprovalCount =  async () => {
+      try {
+        const res = await getResource('approvalEntries', {
+          params: {
+            filters: {
+              status: "Open",
+              approverID: "KINETIC"
+            },
+            "$count": true
+          }
+        })
+
+        setApprovalCount(res["@odata.count"] || 0);
+      } catch (error) {
+        console.error("Failed to fetch approval count:", error);
+      }
+    }
+
+    fetchApprovalCount()
+  }, []);
 
   return (
     <ul className="navbar-nav mb-auto w-100">
@@ -160,21 +184,46 @@ export default function SidebarMenu() {
 
       {/* Static Links */}
       {[
-        { label: "Planning & Budgeting", icon: "page" },
-        { label: "Admin & Travel", icon: "airplane", soon: true },
-        { label: "IT & Facilities", icon: "server-connection", soon: true },
-        { label: "Learning & Development", icon: "graduation-cap" },
+        { label: "Planning & Budgeting",
+          icon: "page",
+          link: "#",
+        },
+        {
+          label: "Admin & Travel",
+          icon: "airplane",
+          soon: true,
+          link: "#",
+        },
+        {
+          label: "IT & Facilities",
+          icon: "server-connection",
+          soon: true,
+          link: "#",
+        },
+        {
+          label: "Learning & Development",
+          icon: "graduation-cap",
+          link: "#",
+        },
         {
           label: "Approvals & Reviews",
           icon: "check-circle",
-          badge: "8",
+          link: "/dashboard/approvals",
+          badge: approvalCount,
           badgeClass: "bg-danger",
         },
-        { label: "Reports & Insights", icon: "doc-star", soon: true },
-        { label: "Social Center", icon: "chat-bubble", soon: true },
-      ].map(({ label, icon, soon, badge, badgeClass }) => (
+        { label: "Reports & Insights",
+          icon: "doc-star", soon: true,
+          link: "#",
+        },
+        { label: "Social Center",
+          icon: "chat-bubble",
+          soon: true ,
+          link: "#",
+        },
+      ].map(({ label, icon, soon, link, badge, badgeClass }) => (
         <li className="nav-item" key={label}>
-          <a className="nav-link" href="#">
+          <a className="nav-link" href={ link }>
             <i className={`iconoir-${icon} menu-icon`}></i>
             <span>
               {label}

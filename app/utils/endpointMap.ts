@@ -9,6 +9,7 @@ export const endpointMap = {
   unitsOfMeasure: "/api/v2.0/unitsOfMeasure",
   dimensionSpeedKeys: "/api/KineticTechnology/Amber/v1.0/dimensionSpeedKeyApi",
   projects: "/api/kinetics/timeSheet/v1.0/projects",
+  approvalEntries: "/api/Kinetics/VOYAGER/v1.0/approvalEntries",
   approvalEntry: "/api/kinetics/voyager/v1.0/approvalEntriesReport",
   approvalAttachments: "/api/kinetics/voyager/v1.0/documentAttachments",
   paymentMethods: "/api/KineticTechnology/Payroll/v2.0/paymentMethod",
@@ -34,6 +35,9 @@ export const endpointMap = {
   cashManagementAttachment: "/api/KineticTechnology/CashMgt/v2.0/attachments",
   imprestDetailedLine: "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines",
   requisitions: "/api/kinetics/requisition/v1.0/requisitions",
+  delegateApproval: "/ODataV4/ApprovalsManagement_delegateDoc",
+  approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
+  rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc"
   createTravelAdvanceFromTravel: "/ODataV4/TravelManager_createImprest",
 } as const;
 
