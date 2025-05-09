@@ -11,14 +11,12 @@ interface AdvanceRequestActionProps {
   advance: Advance | null;
   refetch?: (updatedStatus?: string) => void;
   onCloseView?: () => void;
-  showCreate?: boolean;
 }
 
 export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
-  showCreate,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [editingAdvance, setEditingAdvance] =
@@ -28,13 +26,8 @@ export default function AdvanceRequestAction({
     if (advance) {
       setEditingAdvance(advance as SalaryAdvanceData);
       setShowModal(true);
-    } else if (showCreate) {
-      console.log("🔄 Opening modal for creation");
-      setAdvanceType("Salary"); // or dynamic if needed
-      setEditingAdvance(null);
-      setShowModal(true);
     }
-  }, [advance, showCreate]);
+  }, [advance]);
 
   const handleCloseModal = (updatedStatus?: string) => {
     setEditingAdvance(null);
