@@ -31,11 +31,11 @@ const state = {
   employees: [] as Array<Record<string, any>>,
   employeeBanks: [] as Array<Record<string, any>>,
   payrollPeriods: [] as Array<Record<string, any>>,
-}
+};
 
-type MySetupsState = typeof state
+type MySetupsState = typeof state;
 const initialState: MySetupsState = {
-  ...state
+  ...state,
 };
 
 type Action =
@@ -80,9 +80,6 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const start = performance.now();
-
-        // Filter setups to only those missing in the local cache
         const missingEndpoints = setupsArray.filter((setup) => {
           const key = typeof setup === "string" ? setup : Object.keys(setup)[0];
           return !localSetupCache.has(key);
@@ -92,8 +89,6 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
           console.log("✅ All requested setups loaded from cache.");
           return;
         }
-
-        console.log("🔄 Fetching missing setups:", missingEndpoints);
 
         const res = await fetch("/api/setups", {
           method: "POST",
@@ -110,11 +105,6 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
         for (const key of Object.keys(json)) {
           localSetupCache.set(key, json[key]);
         }
-
-        const end = performance.now();
-        console.log(
-          `⚡ fetchSetups completed in ${(end - start).toFixed(2)} ms`
-        );
       } catch (err) {
         console.error(err);
         toast.error("Failed to fetch setups.");

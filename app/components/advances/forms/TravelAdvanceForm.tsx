@@ -24,7 +24,6 @@ export default function TravelAdvanceForm() {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
-    console.log("Submitted Travel Advance", { travelInfo, lines });
   };
 
   return (
