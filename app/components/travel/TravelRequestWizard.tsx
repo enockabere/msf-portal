@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, MouseEventHandler } from "react";
 import {
   User,
   ListChecks,
@@ -24,12 +24,20 @@ import { TravelInfo } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
+import { codeUnit } from "@/app/lib/api/http";
+import Swal from "sweetalert2";
 
 interface WizardStep {
   id: string;
   icon: React.ReactNode;
   title: string;
   desc: string;
+  actions?: stepAction[]
+}
+interface stepAction {
+  id: any,
+  fn: MouseEventHandler<HTMLButtonElement>
+  caption: string
 }
 
 export default function TravelRequestWizard() {
@@ -91,6 +99,15 @@ export default function TravelRequestWizard() {
         icon: <Briefcase size={18} />,
         title: "Travel Advance",
         desc: "Advance request",
+        actions: [
+          {
+            id: 'action-create-advance',
+            caption: 'Create Advance',
+            fn: async () => {
+              await handleCreateTravelAdvance()
+            },
+          }
+        ],
       },
     ];
 
@@ -122,7 +139,30 @@ export default function TravelRequestWizard() {
 
     return baseSteps.filter((s) => s.id !== "ticket");
   }, [travelInfo]);
+  const handleCreateTravelAdvance = useCallback(
+    async () => {
+      try {
+        //@TODO Add global loading context
+        const res = await codeUnit('createTravelAdvanceFromTravel', {
+          data: {
+            no: '',
+          },
+        });
+        if (res.error) {
 
+          Swal.fire('Error Creating Travel Advance!', res.error.message);
+        } else {
+          Swal.fire('Success', 'You have successfully created travel advance!');
+        }
+
+
+      } catch (error) {
+        Swal.fire('Error', error.message);
+      } finally {
+        // @TODO stop global loading state.
+      }
+    }, []
+  )
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
@@ -192,9 +232,8 @@ export default function TravelRequestWizard() {
             {getSteps().map((step) => (
               <li key={step.id} className="step-item">
                 <button
-                  className={`step-button ${
-                    activeTab === step.id ? "active" : ""
-                  } ${completedSteps.has(step.id) ? "completed" : ""}`}
+                  className={`step-button ${activeTab === step.id ? "active" : ""
+                    } ${completedSteps.has(step.id) ? "completed" : ""}`}
                   onClick={() => handleTabChange(step.id)}
                   role="tab"
                   aria-selected={activeTab === step.id}
@@ -230,7 +269,16 @@ export default function TravelRequestWizard() {
               <h4 className="step-panel-title">
                 {getSteps().find((s) => s.id === activeTab)?.title}
               </h4>
-
+              {
+                getSteps().find((s) => s.id === activeTab)?.actions &&
+                getSteps().find((s) => s.id === activeTab)?.actions.map((action: stepAction) => {
+                  return (
+                    <button key={action.id} className="primary-button" onClick={action.fn}>
+                      {action.caption}
+                    </button>
+                  )
+                })
+              }
               {activeTab === "visa" && (
                 <div className="btn-group">
                   <button
