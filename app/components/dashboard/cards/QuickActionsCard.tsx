@@ -53,10 +53,20 @@ export default function QuickActionsCard() {
           <div className="col-6">
             <Link
               href="/dashboard/make-request/advances"
-              className="action-card bg-warning p-3 rounded text-center d-block text-white"
+              className="action-card bg-success p-3 rounded text-center d-block text-white"
             >
               <i className="iconoir-wallet h4 mb-2"></i>
               <h5 className="mb-1 fw-bold">Salary Advances</h5>
+              <p className="mb-0 fs-13">View</p>
+            </Link>
+          </div>
+          <div className="col-6">
+            <Link
+                href="/dashboard/make-request/travel"
+                className="action-card bg-warning p-3 rounded text-center d-block text-white"
+            >
+              <i className="iconoir-airplane h4 mb-2"></i>
+              <h5 className="mb-1 fw-bold">Admin & Travel</h5>
               <p className="mb-0 fs-13">View</p>
             </Link>
           </div>

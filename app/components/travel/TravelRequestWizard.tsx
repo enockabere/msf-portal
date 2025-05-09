@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, MouseEventHandler } from "react";
+import React, { useCallback, useMemo, useState, MouseEventHandler } from "react";
 import {
   User,
   ListChecks,
@@ -15,8 +15,7 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Pencil,
-  FileX,
+  Plus,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -24,6 +23,9 @@ import { TravelInfo } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
+import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
+import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
+import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import { codeUnit } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 
@@ -38,6 +40,28 @@ interface stepAction {
   id: any,
   fn: MouseEventHandler<HTMLButtonElement>
   caption: string
+}
+
+interface DestinationItem {
+  id: string;
+  country: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface TicketItem {
+  id: string;
+  ticketNumber: string;
+  departure: string;
+  destination: string;
+  travelDate: string;
+  airline: string;
+}
+
+interface Dependency {
+  id: string;
+  fullName: string;
+  relationship: string;
 }
 
 export default function TravelRequestWizard() {
@@ -60,15 +84,101 @@ export default function TravelRequestWizard() {
     travelType: "",
     visaRequired: "No",
     workPermitRequired: "No",
+    destinations: [],
   });
 
-  const getSteps = useCallback((): WizardStep[] => {
-    const baseSteps: WizardStep[] = [
+  const [submitted, setSubmitted] = useState(false);
+
+  console.log(submitted);
+
+  const [availableTickets] = useState<TicketItem[]>([
+    {
+      id: "1",
+      ticketNumber: "TK123456",
+      departure: "Nairobi",
+      destination: "London",
+      travelDate: "2025-06-10",
+      airline: "Kenya Airways",
+    },
+    {
+      id: "2",
+      ticketNumber: "TK654321",
+      departure: "Nairobi",
+      destination: "Dubai",
+      travelDate: "2025-07-02",
+      airline: "Emirates",
+    },
+  ]);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+
+  const handleSelectTicket = useCallback((ticketId: string) => {
+    setSelectedTicketId(ticketId);
+  }, []);
+
+  const [availableDependencies] = useState<Dependency[]>([
+    {
+      id: "01",
+      fullName: "Alice Mwangi",
+      relationship: "Wife",
+    },
+    {
+      id: "02",
+      fullName: "James Otieno",
+      relationship: "Son",
+    },
+    {
+      id: "03",
+      fullName: "Sarah Wanjiku",
+      relationship: "Daughter",
+    },
+  ]);
+
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    []
+  );
+
+  const handleSelectDependency = (id: string) => {
+    setSelectedDependencies((prev) => [...prev, id]);
+  };
+
+  const handleDeselectDependency = (id: string) => {
+    setSelectedDependencies((prev) => prev.filter((d) => d !== id));
+  };
+
+  const allSteps = useMemo<WizardStep[]>(
+    () => [
       {
         id: "info",
         icon: <User size={18} />,
         title: "Your Info",
         desc: "Basic travel details",
+      },
+      {
+        id: "destinations",
+        icon: <Globe size={18} />,
+        title: "Travel Destinations",
+        desc: "Travel destination details",
+        actions: [
+          {
+              id: 'action-add-destination',
+              caption: 'Add Destination',
+              fn: () => {
+                  handleAddDestination()
+              },
+          }
+        ],
+      },
+      {
+        id: "dependencies",
+        icon: <Link size={18} />,
+        title: "Travel Dependencies",
+        desc: "Related travel requirements",
+      },
+      {
+        id: "ticket",
+        icon: <Ticket size={18} />,
+        title: "Annual Travel Ticket",
+        desc: "Flight/train reservations",
       },
       {
         id: "checklist",
@@ -77,16 +187,10 @@ export default function TravelRequestWizard() {
         desc: "Pre-travel requirements",
       },
       {
-        id: "ticket",
-        icon: <Ticket size={18} />,
-        title: "Ticket Booking",
-        desc: "Flight/train reservations",
-      },
-      {
-        id: "dependencies",
-        icon: <Link size={18} />,
-        title: "Dependencies",
-        desc: "Related travel requirements",
+        id: "visa",
+        icon: <Globe size={18} />,
+        title: "Visa Application",
+        desc: "Visa documentation",
       },
       {
         id: "permit",
@@ -109,36 +213,30 @@ export default function TravelRequestWizard() {
           }
         ],
       },
-    ];
+    ],
+    []
+  );
 
-    if (travelInfo.visaRequired === "Yes") {
-      baseSteps.splice(4, 0, {
-        id: "visa",
-        icon: <Globe size={18} />,
-        title: "Visa Application",
-        desc: "Visa documentation",
-      });
-    }
-
+  // Get the appropriate steps based on user type
+  const currentSteps = useMemo((): WizardStep[] => {
     if (travelInfo.userType === "Outbound") {
-      return baseSteps.filter((s) => {
-        if (s.id === "permit") return false;
-        if (
-          (s.id === "ticket" || s.id === "dependencies") &&
-          !travelInfo.residentStatus
-        )
-          return false;
-        if (
-          (s.id === "ticket" || s.id === "dependencies") &&
-          travelInfo.residentStatus === "Resident"
-        )
-          return false;
-        return true;
-      });
+      return [
+        "info",
+        "destinations",
+        "dependencies",
+        "ticket",
+        "checklist",
+        "visa",
+        "advance",
+      ].map((id) => allSteps.find((s) => s.id === id)!);
+    } else if (travelInfo.userType === "Inbound") {
+      return ["info", "checklist", "permit", "advance"].map(
+        (id) => allSteps.find((s) => s.id === id)!
+      );
     }
+    return [allSteps.find((s) => s.id === "info")!];
+  }, [travelInfo.userType, allSteps]);
 
-    return baseSteps.filter((s) => s.id !== "ticket");
-  }, [travelInfo]);
   const handleCreateTravelAdvance = useCallback(
     async () => {
       try {
@@ -178,34 +276,75 @@ export default function TravelRequestWizard() {
   };
 
   const validateCurrentStep = (): boolean => {
-    // Add your validation logic here
     return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Submit logic here
   };
-
-  useEffect(() => {
-    const visibleStepIds = getSteps().map((s) => s.id);
-    if (!visibleStepIds.includes(activeTab)) {
-      setActiveTab("info");
-    }
-  }, [getSteps, activeTab]);
-
-  const currentStepIndex = getSteps().findIndex((s) => s.id === activeTab);
-
-  const progressPercentage = (completedSteps.size / getSteps().length) * 100;
+  const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
+  const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
   // Work Permit form fields
   const workPermitFields = [
     { id: "country", label: "Country of Work", type: "text" },
     { id: "duration", label: "Duration (days)", type: "number" },
-    { id: "purpose", label: "Purpose of Work", type: "text" },
-    { id: "sponsor", label: "Local Sponsor", type: "text" },
     { id: "documents", label: "Required Documents", type: "file" },
   ];
+
+  const handleInitialSubmit = () => {
+    setCompletedSteps((prev) => new Set(prev).add("info"));
+    setSubmitted(true);
+
+    if (travelInfo.userType === "Inbound") {
+      setActiveTab("checklist");
+    } else if (travelInfo.userType === "Outbound") {
+      setActiveTab("destinations");
+    }
+  };
+
+  const handleAddDestination = useCallback(() => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      destinations: [
+        ...prev.destinations,
+        {
+          id: Date.now().toString(),
+          country: "",
+          startDate: "",
+          endDate: "",
+        },
+      ],
+    }));
+  }, []);
+
+  const handleDestinationChange = useCallback(
+    <K extends keyof DestinationItem>(
+      index: number,
+      field: K,
+      value: DestinationItem[K]
+    ) => {
+      setTravelInfo((prev) => {
+        const newDestinations = [...prev.destinations];
+        newDestinations[index] = {
+          ...newDestinations[index],
+          [field]: value,
+        };
+        return {
+          ...prev,
+          destinations: newDestinations,
+        };
+      });
+    },
+    []
+  );
+
+  const handleRemoveDestination = useCallback((index: number) => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      destinations: prev.destinations.filter((_, i) => i !== index),
+    }));
+  }, []);
 
   return (
     <div className="travel-wizard">
@@ -229,7 +368,7 @@ export default function TravelRequestWizard() {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {getSteps().map((step) => (
+            {currentSteps.map((step) => (
               <li key={step.id} className="step-item">
                 <button
                   className={`step-button ${activeTab === step.id ? "active" : ""
@@ -265,15 +404,16 @@ export default function TravelRequestWizard() {
             role="tabpanel"
             aria-labelledby={`${activeTab}-tab`}
           >
-            <div className="d-flex align-items-center justify-content-between mb-3 wizard-bg-gray">
+            <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
               <h4 className="step-panel-title">
-                {getSteps().find((s) => s.id === activeTab)?.title}
+                {currentSteps.find((s) => s.id === activeTab)?.title}
               </h4>
               {
-                getSteps().find((s) => s.id === activeTab)?.actions &&
-                getSteps().find((s) => s.id === activeTab)?.actions.map((action: stepAction) => {
+                currentSteps.find((s) => s.id === activeTab)?.actions &&
+                currentSteps.find((s) => s.id === activeTab)?.actions.map((action: stepAction) => {
                   return (
                     <button key={action.id} className="primary-button" onClick={action.fn}>
+                      <Plus size={16} />
                       {action.caption}
                     </button>
                   )
@@ -319,6 +459,31 @@ export default function TravelRequestWizard() {
                 <TravelHeaderForm
                   travelInfo={travelInfo}
                   handleChange={handleChange}
+                />
+              )}
+
+              {activeTab === "destinations" && (
+                <TravelDestinations
+                  destinations={travelInfo.destinations}
+                  onDestinationChange={handleDestinationChange}
+                  onRemoveDestination={handleRemoveDestination}
+                />
+              )}
+
+              {activeTab === "ticket" && (
+                <TravelTicketSelector
+                  tickets={availableTickets}
+                  selectedTicketId={selectedTicketId}
+                  onSelectTicket={handleSelectTicket}
+                />
+              )}
+
+              {activeTab === "dependencies" && (
+                <TravelDependencies
+                  availableDependencies={availableDependencies}
+                  selectedDependencies={selectedDependencies}
+                  onSelectDependency={handleSelectDependency}
+                  onDeselectDependency={handleDeselectDependency}
                 />
               )}
 
@@ -395,85 +560,93 @@ export default function TravelRequestWizard() {
 
               {activeTab === "visa" && <VisaApplicationForm />}
 
-              {!["info", "permit", "advance", "visa"].includes(activeTab) && (
-                <div className="step-placeholder">
-                  Form fields for: <strong>{activeTab}</strong>
+              {activeTab === "checklist" && (
+                <div className="mb-3">
+                  <div className="bg-light-subtle p-3 rounded">
+                    <p className="fw-bold mb-2">Checklist</p>
+                    <ul className="mb-0">
+                      {travelInfo.userType === "Inbound" ? (
+                        <li>Work Permit is required for this trip.</li>
+                      ) : (
+                        <li>Visa is required for this trip.</li>
+                      )}
+                    </ul>
+                  </div>
                 </div>
               )}
-
               <div className="step-actions">
-                {currentStepIndex > 0 && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      handleTabChange(getSteps()[currentStepIndex - 1].id)
-                    }
-                  >
-                    <ArrowLeft size={16} className="button-icon" />
-                    Previous
-                  </button>
-                )}
-
-                {currentStepIndex === 0 ? (
-                  <div className="d-flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() =>
-                        handleTabChange(getSteps()[currentStepIndex + 1].id)
-                      }
-                    >
-                      <Save size={16} className="button-icon" />
-                      Save & Continue
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => {
-                        // TODO: add actual logic for enabling edit mode
-                        console.log("Edit Travel Request clicked");
-                      }}
-                    >
-                      <Pencil size={16} className="button-icon" /> Edit Travel
-                      Request
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        console.log("Cancel Request clicked");
-                      }}
-                    >
-                      <FileX size={16} className="button-icon" /> Cancel Request
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-info"
-                      onClick={() => {
-                        console.log("Download Request clicked");
-                      }}
-                    >
-                      <DownloadIcon size={16} className="button-icon" />{" "}
-                      Download Travel Request
-                    </button>
-                  </div>
-                ) : currentStepIndex < getSteps().length - 1 ? (
+                {activeTab === "info" ? (
                   <button
                     type="button"
                     className="primary-button"
-                    onClick={() =>
-                      handleTabChange(getSteps()[currentStepIndex + 1].id)
-                    }
+                    onClick={handleInitialSubmit}
                   >
-                    <ArrowRight size={16} className="button-icon" />
-                    Next
+                    <Save size={16} className="button-icon" />
+                    Save & Continue
                   </button>
                 ) : (
-                  <button type="submit" className="submit-button">
-                    <Check size={16} className="button-icon" />
-                    Submit Request
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    {currentStepIndex > 0 && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() =>
+                          handleTabChange(currentSteps[currentStepIndex - 1].id)
+                        }
+                      >
+                        <ArrowLeft size={16} className="button-icon" />
+                        Previous
+                      </button>
+                    )}
+
+                    {activeTab === "visa" &&
+                    travelInfo.userType === "Outbound" ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => {
+                          setCompletedSteps((prev) =>
+                            new Set(prev).add("visa")
+                          );
+                          setActiveTab("advance");
+                        }}
+                      >
+                        <Check size={16} className="button-icon" />
+                        Submit Travel Request
+                      </button>
+                    ) : activeTab === "permit" &&
+                      travelInfo.userType === "Inbound" ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => {
+                          setCompletedSteps((prev) =>
+                            new Set(prev).add("permit")
+                          );
+                          setActiveTab("advance");
+                        }}
+                      >
+                        <Check size={16} className="button-icon" />
+                        Submit Travel Request
+                      </button>
+                    ) : currentStepIndex < currentSteps.length - 1 ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() =>
+                          handleTabChange(currentSteps[currentStepIndex + 1].id)
+                        }
+                      >
+                        <ArrowRight size={16} className="button-icon" />
+                        Next
+                      </button>
+                    ) : (
+                      <button type="submit" className="submit-button">
+                        <Check size={16} className="button-icon" />
+                        Submit Request
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </form>

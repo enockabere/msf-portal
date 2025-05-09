@@ -138,8 +138,6 @@ export default function AdvanceSummaryCard({
           )}
         </div>
       </div>
-
-      {/* Modal with Settlement Form */}
       <CustomModal
         show={showModal}
         onClose={() => setShowModal(false)}
