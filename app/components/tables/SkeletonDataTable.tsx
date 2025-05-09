@@ -8,7 +8,6 @@ import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import "./datatable-custom.css";
 import { useSession } from "next-auth/react";
-import { now } from "next-auth/client/_utils";
 
 interface SkeletonDataTableProps {
   title?: string;
