@@ -80,8 +80,8 @@ export default function SalaryAdvanceForm({
   const [advanceLimit, setAdvanceLimit] = useState<number | null | undefined>(
     null
   );
-  const [currency, setCurrency] = useState("KES"); // Default to KES
-  const [paymentMethod, setPaymentMethod] = useState("MPESA"); // Default to MPESA
+  const [currency, setCurrency] = useState("KES");
+  const [paymentMethod, setPaymentMethod] = useState("MPESA");
 
   const [accountNo, setAccountNo] = useState("");
   const [bank, setBank] = useState("");
@@ -126,7 +126,7 @@ export default function SalaryAdvanceForm({
       paymentMethods.length
     ) {
       setCurrency("KES");
-      setPaymentMethod("MPESA"); // MPESA default for KES
+      setPaymentMethod("MPESA");
       didInitDefaults.current = true;
     }
   }, [advanceCurrencyCode, currencies.length, paymentMethods.length]);
@@ -210,13 +210,10 @@ export default function SalaryAdvanceForm({
         setCurrency("KES");
         setPaymentMethod("MPESA");
       }
-
       setAccountNo(advanceAccountNo || "");
       setBank(advanceBankCode || "");
       setChequeName(advanceChequeName || "");
       setSwiftCode(advanceSwiftCode || "");
-
-      // ❗ Fix: Only set phone/idNumber if available in advance
       if (advanceMobilePhoneNo) {
         const cleanPhone = advanceMobilePhoneNo.startsWith("+254")
           ? advanceMobilePhoneNo.slice(4)
@@ -247,18 +244,18 @@ export default function SalaryAdvanceForm({
     advanceBankCode,
     advanceChequeName,
     advanceSwiftCode,
-    advanceMobilePhoneNo, // ok to include
-    advanceIdNo, // ok to include
+    advanceMobilePhoneNo,
+    advanceIdNo,
     advanceEmployeeBranchCode,
   ]);
 
   useEffect(() => {
     if (currency && currency !== "KES") {
       if (paymentMethod === "MPESA" || paymentMethod === "") {
-        setPaymentMethod("RTGS"); // or default to first non-MPESA method
+        setPaymentMethod("RTGS");
       }
     } else if (currency === "KES" && paymentMethod === "") {
-      setPaymentMethod("MPESA"); // Default for KES
+      setPaymentMethod("MPESA");
     }
   }, [currency, paymentMethod]);
 
@@ -422,15 +419,11 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
-        console.log("✅ Create Advance Response:", response);
-
         if (!res.ok || response.error || response.success === false) {
           const rawMsg =
             response?.rawResponse?.error?.message ||
             response?.error?.message ||
             response?.error?.details?.[0]?.message;
-
-          console.error("🔴 API returned error:", response);
           Swal.fire("Error", rawMsg || "Unknown API error", "error");
           return;
         }
@@ -474,29 +467,28 @@ export default function SalaryAdvanceForm({
               approvalJson?.error?.message ||
               approvalJson?.error?.details?.[0]?.message ||
               "Approval failed.";
-            console.error("🔴 Approval API error:", approvalJson);
             Swal.fire("Warning", approvalError, "warning");
+            const finalStatus =
+              response?.data?.status || advanceStatus || "Open";
+            onSuccess?.(finalStatus);
           } else {
-            onSuccess?.("Pending Approval");
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
               "success"
             );
+            onSuccess?.("Pending Approval");
           }
         } catch (approvalError: any) {
-          console.error("❌ Error submitting for approval:", approvalError);
           Swal.fire(
             "Warning",
             approvalError.message || "Saved but failed to submit for approval.",
             "warning"
           );
+          const finalStatus = response?.data?.status || advanceStatus || "Open";
+          onSuccess?.(finalStatus);
         }
-
-        onSuccess?.(response?.data?.status || "Pending Approval");
       } catch (error: any) {
-        console.error("❌ Error in form submission:", error);
-
         let message = "An unexpected error occurred.";
         try {
           const parsed =
@@ -537,6 +529,7 @@ export default function SalaryAdvanceForm({
       payrollPeriods,
       swiftCode,
       advanceApplicationDate,
+      advanceStatus,
     ]
   );
 
