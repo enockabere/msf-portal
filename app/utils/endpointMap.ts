@@ -9,6 +9,7 @@ export const endpointMap = {
   unitsOfMeasure: "/api/v2.0/unitsOfMeasure",
   dimensionSpeedKeys: "/api/KineticTechnology/Amber/v1.0/dimensionSpeedKeyApi",
   projects: "/api/kinetics/timeSheet/v1.0/projects",
+  approvalEntries: "/api/Kinetics/VOYAGER/v1.0/approvalEntries",
   approvalEntry: "/api/kinetics/voyager/v1.0/approvalEntriesReport",
   approvalAttachments: "/api/kinetics/voyager/v1.0/documentAttachments",
   paymentMethods: "/api/KineticTechnology/Payroll/v2.0/paymentMethod",
