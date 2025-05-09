@@ -1,25 +1,46 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useReducer } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import { Approval } from "@/app/types/approval";
-import {getResource} from "@/app/lib/api/http";
+import { getResource } from "@/app/lib/api/http";
 import ApprovalDetailsModal from "@/app/components/approvals/ApprovalDetailsModal";
 import ApprovalStatsCard from "@/app/components/approvals/StatsCard";
 import Swal from "sweetalert2";
+import { Approval, ApprovalDocs } from "@/app/types/approval";
 
 interface ApprovalDataTableProps {
     employeeNo?: string;
 }
 
+interface ApprovalReducerAction {
+    type: string
+    payload: Array<Record<string, any>>
+}
+
+export const approvalDocumentsReducer = (state: ApprovalDocs[], action: ApprovalReducerAction) => {
+    if (!action.payload) return;
+    switch (action.type) {
+        case 'MERGE_DOCS': {
+            return [
+                ...state,
+                ...action.payload,
+            ];
+        }
+    }
+}
+
+const initialState: ApprovalDocs[] = [];
+
 export default function ApprovalDataTable({
-                                             employeeNo,
-                                         }: ApprovalDataTableProps) {
+    employeeNo,
+}: ApprovalDataTableProps) {
     const [data, setData] = useState<Approval[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
     const [selectedApprovalDocument, setSelectedApprovalDocument] = useState(null);
     const [selectedApprovalAttachments, setSelectedApprovalAttachments] = useState(null);
+    const [allApprovalDocuments, dispatch] = useReducer(approvalDocumentsReducer, initialState);
+    const [currentDocument, setCurrentDocument] = useState(0)
 
     const [showModal, setShowModal] = useState(false);
 
@@ -27,16 +48,16 @@ export default function ApprovalDataTable({
         if (!employeeNo) return;
         setLoading(true);
         try {
-           const res = await getResource('approvalEntries', {
-                    params: {
-                        filters: {
-                            status: "Open",
-                            approverID: "KINETIC"
-                        }
+            const res = await getResource('approvalEntries', {
+                params: {
+                    filters: {
+                        status: "Open",
+                        approverID: "KINETIC"
                     }
+                }
             })
 
-            const advanceData =  res.value;
+            const advanceData = res.value;
             console.log('approval entries', advanceData)
             const sorted = [...advanceData].sort(
                 (a, b) =>
@@ -51,6 +72,10 @@ export default function ApprovalDataTable({
         }
     }, [employeeNo]);
 
+    const documentNavigationHandler = (index: number) => {
+        setCurrentDocument((prev) => prev + index)
+    }
+
 
     async function fetchApprovalAttactments(approval: Approval) {
         const approvalAttachment = await getResource('approvalAttachments', {
@@ -61,28 +86,36 @@ export default function ApprovalDataTable({
             }
         })
 
-        setSelectedApprovalAttachments(approvalAttachment)
+        return approvalAttachment.value;
     }
 
     const fetchApprovalDetails = async (approval: Approval) => {
-       setShowModal(true)
-       setLoading(true);
-       const approvalDocument = await getResource('approvalEntry', {
-           params: {
-               filters: {
-                   entryNo: approval.entryNo
-               }
-           }
+        setShowModal(true)
+        setLoading(true);
+        const approvalDocument = await getResource('approvalEntry', {
+            params: {
+                filters: {
+                    entryNo: approval.entryNo
+                }
+            }
         })
 
         setLoading(false);
-        if(approvalDocument.error) {
+        if (approvalDocument.error) {
+            setShowModal(false);
             Swal.fire("Error", "Error fetching approval document", "error");
-            return;
+            return
         }
 
-        setSelectedApprovalDocument(approvalDocument)
-        await fetchApprovalAttactments(approval);
+        dispatch({ type: 'MERGE_DOCS', payload: approvalDocument?.value });
+        let res = await fetchApprovalAttactments(approval);
+
+        if (!Array.isArray(res)) res = [res];
+        res = res.map(function (item: Record<string, any>) {
+            item.pdfAttachment = item.base64Attachment;
+            return item;
+        })
+        dispatch({ type: "MERGE_DOCS", payload: res })
     }
 
     const formatDate = (date: string) =>
@@ -146,8 +179,8 @@ export default function ApprovalDataTable({
                 };
                 return (
                     <span className={badgeMap[row.status]}>
-            <i className={iconMap[row.status]} /> {row.status}
-          </span>
+                        <i className={iconMap[row.status]} /> {row.status}
+                    </span>
                 );
             },
         },
@@ -158,7 +191,7 @@ export default function ApprovalDataTable({
             grow: 1.2,
             cell: (row: Approval) => (
                 <span>
-                  {row.dueDate ?? ""}
+                    {row.dueDate ?? ""}
                 </span>
             ),
         },
@@ -198,7 +231,7 @@ export default function ApprovalDataTable({
 
     useEffect(() => {
 
-    }, [selectedApprovalDocument]);
+    }, [selectedApprovalDocument, currentDocument]);
 
     return (
         <>
@@ -219,7 +252,7 @@ export default function ApprovalDataTable({
                         <div className="col-lg-12">
                             <div className="row g-1">
                                 {Object.entries(grouped).map(([groupKey, groupData]) => (
-                                    <ApprovalStatsCard key={groupKey} header={groupKey} headerCount={groupData?.count}/>
+                                    <ApprovalStatsCard key={groupKey} header={groupKey} headerCount={groupData?.count} />
                                 ))}
                             </div>
 
@@ -230,19 +263,21 @@ export default function ApprovalDataTable({
 
 
             <div className="card h-100 p-2">
-            <ApprovalDetailsModal showModal={ showModal }
-                                  setShowModal={ setShowModal }
-                                  loading={loading}
-                                  selectedApprovalDocument={selectedApprovalDocument} selectedApprovalAttachments={selectedApprovalAttachments}>
-                <div></div>
-            </ApprovalDetailsModal>
-            <SkeletonDataTable
-                title="Approval Requests"
-                columns={columns}
-                data={loading ? [] : filteredData}
-                searchPlaceholder="Search by Document Number"
-                loading={loading}
-            />
+                <ApprovalDetailsModal showModal={showModal}
+                    setShowModal={setShowModal}
+                    loading={loading}
+                    currentDocument={currentDocument}
+                    documentNavigationHandler={documentNavigationHandler}
+                    allApprovalDocuments={allApprovalDocuments}>
+                    <div></div>
+                </ApprovalDetailsModal>
+                <SkeletonDataTable
+                    title="Approval Requests"
+                    columns={columns}
+                    data={loading ? [] : filteredData}
+                    searchPlaceholder="Search by Document Number"
+                    loading={loading}
+                />
 
 
             </div>

@@ -1,16 +1,32 @@
 import CustomModal from "@/app/components/modals/CustomModal";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useRef } from "react";
 import { PlusCircle } from "lucide-react";
 import { codeUnit } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
+import { ApprovalDocs } from "@/app/types/approval";
 
-export default ({showModal, setShowModal, selectedApprovalDocument, selectedApprovalAttachments, loading,children}: {showModal: boolean, setShowModal: (value: boolean) => void, selectedApprovalDocument: object, selectedApprovalAttachments: Array<Record<string, any>>, loading: boolean,children: ReactNode}) => {
-    const approvalDocument = selectedApprovalDocument?.value[0];
-
-    console.log('attachments', selectedApprovalAttachments)
+export default ({
+    showModal,
+    setShowModal,
+    allApprovalDocuments,
+    loading,
+    currentDocument,
+    documentNavigationHandler,
+    children
+}: {
+    showModal: boolean,
+    setShowModal: (value: boolean) => void,
+    allApprovalDocuments: ApprovalDocs[],
+    loading: boolean,
+    currentDocument: number,
+    documentNavigationHandler: (value: number) => void,
+    children: ReactNode
+}) => {
+    const approvalDocument = allApprovalDocuments?.[0];
+    const comment = useRef<HTMLElement | null>(null);
 
     const delegateApproval = async () => {
-        const res =  await codeUnit('delegateApproval', {
+        const res = await codeUnit('delegateApproval', {
             data: {
                 docNo: approvalDocument?.documentNo,
                 employeeNo: approvalDocument?.approverID,
@@ -35,9 +51,8 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
         );
     }
 
+    let inputValue = ""
     const rejectApproval = async () => {
-        const ipAPI = "//api.ipify.org?format=json";
-        const inputValue = ipAPI;
         const result = await Swal.fire({
             title: "Do you want to Reject this Request?",
             showCancelButton: true,
@@ -54,7 +69,7 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
             }
         });
 
-        console.log('input value', result.value)
+        console.log('input value', inputValue)
 
         if (result.isConfirmed) {
             try {
@@ -62,7 +77,7 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
                     data: {
                         docNo: approvalDocument?.documentNo,
                         employeeNo: approvalDocument?.approverID,
-                        rejectReason: result.value, // use input value
+                        rejectReason: comment.current, // use input value
                     }
                 });
 
@@ -92,7 +107,7 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
     }
 
     const approveRequest = async () => {
-        const res =  await codeUnit('approveDocument', {
+        const res = await codeUnit('approveDocument', {
             data: {
                 docNo: approvalDocument?.documentNo,
                 employeeNo: approvalDocument?.approverID,
@@ -117,13 +132,14 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
         );
     }
 
+
     return (
         <CustomModal
-        show={showModal}
-        size={"xl"}
-        onClose={() => setShowModal(false)}
-        title={'Approval Details'}
-        titleIcon={<PlusCircle size={18} className="text-white" />}
+            show={showModal}
+            size={"xl"}
+            onClose={() => setShowModal(false)}
+            title={'Approval Details'}
+            titleIcon={<PlusCircle size={18} className="text-white" />}
         >
             <div className="mb-2 gap-x-2 d-flex justify-content-end">
                 <button className="btn btn-warning" onClick={delegateApproval}>Delegate</button>
@@ -139,26 +155,10 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
                     <>
                         <iframe
                             loading="eager"
-                            src={`data:application/pdf;base64,${selectedApprovalDocument?.value[0]?.pdfAttachment}`}
+                            src={`data:application/pdf;base64,${allApprovalDocuments.at(currentDocument)?.pdfAttachment}`}
                             width="100%"
                             height="600px">
                         </iframe>
-
-                        {
-                            selectedApprovalAttachments?.value.map(attachment => {
-                                    const src = `data:application/pdf;base64,${attachment.base64Attachment}`;
-                                    <>
-                                        <p key={ attachment?.attachedDate } className="">{ attachment?.attachedDate }</p>
-                                        <iframe key={ attachment?.attachedDate }
-                                                src={`data:application/pdf;base64,${src}`}
-                                                width="100%"
-                                                height="600px">
-                                        </iframe>
-                                    </>
-
-
-                                }
-                            )}
                     </>
 
                 )}
@@ -166,7 +166,11 @@ export default ({showModal, setShowModal, selectedApprovalDocument, selectedAppr
             </div>
             {children}
 
+            <div className="mb-2 gap-x-2 d-flex justify-content-end">
+                <button className="btn btn-warning" disabled={currentDocument === 0} onClick={() => documentNavigationHandler(-1)}>Prev</button>
+                <button className="btn btn-primary ms-2" disabled={currentDocument === (allApprovalDocuments.length - 1)} onClick={() => documentNavigationHandler(+1)}>Next</button>
+            </div>
+
         </CustomModal>
     )
 }
-
