@@ -32,14 +32,13 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: employee } = useSession();
-  const { number, nationalId, mobilePhone } = employee?.user?.profile;
   const { showLoader } = usePageLoader();
 
   const handleNavigate = async (e: React.MouseEvent, href: string) => {
-    e.stopPropagation();
-    showLoader();
-    await new Promise((r) => setTimeout(r, 50));
-    router.push(href);
+      e.stopPropagation();
+      showLoader();
+      await new Promise((r) => setTimeout(r, 50));
+      router.push(href);
   };
 
   const handleOpenModal = (type: RequestType) => {
@@ -267,10 +266,9 @@ export default function RequestCards() {
             <>
               <div className="col-md-8">
                 <SalaryAdvanceForm
-                  employee={{
-                    number: number || "",
-                    nationalId: nationalId || "",
-                    mobilePhone: mobilePhone || "",
+                  onSuccess={() => {
+                    setShowModal(false);
+                    fetchAdvances();
                   }}
                 />
               </div>

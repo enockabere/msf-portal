@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, MouseEventHandler } from "react";
 import {
   User,
   ListChecks,
@@ -26,12 +26,20 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
+import { codeUnit } from "@/app/lib/api/http";
+import Swal from "sweetalert2";
 
 interface WizardStep {
   id: string;
   icon: React.ReactNode;
   title: string;
   desc: string;
+  actions?: stepAction[]
+}
+interface stepAction {
+  id: any,
+  fn: MouseEventHandler<HTMLButtonElement>
+  caption: string
 }
 
 interface DestinationItem {
@@ -58,7 +66,6 @@ interface Dependency {
 
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
-
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelInfo, setTravelInfo] = useState<TravelInfo>({
     userType: "",
@@ -151,6 +158,15 @@ export default function TravelRequestWizard() {
         icon: <Globe size={18} />,
         title: "Travel Destinations",
         desc: "Travel destination details",
+        actions: [
+          {
+              id: 'action-add-destination',
+              caption: 'Add Destination',
+              fn: () => {
+                  handleAddDestination()
+              },
+          }
+        ],
       },
       {
         id: "dependencies",
@@ -187,6 +203,15 @@ export default function TravelRequestWizard() {
         icon: <Briefcase size={18} />,
         title: "Travel Advance",
         desc: "Advance request",
+        actions: [
+          {
+            id: 'action-create-advance',
+            caption: 'Create Advance',
+            fn: async () => {
+              await handleCreateTravelAdvance()
+            },
+          }
+        ],
       },
     ],
     []
@@ -212,6 +237,30 @@ export default function TravelRequestWizard() {
     return [allSteps.find((s) => s.id === "info")!];
   }, [travelInfo.userType, allSteps]);
 
+  const handleCreateTravelAdvance = useCallback(
+    async () => {
+      try {
+        //@TODO Add global loading context
+        const res = await codeUnit('createTravelAdvanceFromTravel', {
+          data: {
+            no: '',
+          },
+        });
+        if (res.error) {
+
+          Swal.fire('Error Creating Travel Advance!', res.error.message);
+        } else {
+          Swal.fire('Success', 'You have successfully created travel advance!');
+        }
+
+
+      } catch (error) {
+        Swal.fire('Error', error.message);
+      } finally {
+        // @TODO stop global loading state.
+      }
+    }, []
+  )
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
@@ -322,9 +371,8 @@ export default function TravelRequestWizard() {
             {currentSteps.map((step) => (
               <li key={step.id} className="step-item">
                 <button
-                  className={`step-button ${
-                    activeTab === step.id ? "active" : ""
-                  } ${completedSteps.has(step.id) ? "completed" : ""}`}
+                  className={`step-button ${activeTab === step.id ? "active" : ""
+                    } ${completedSteps.has(step.id) ? "completed" : ""}`}
                   onClick={() => handleTabChange(step.id)}
                   role="tab"
                   aria-selected={activeTab === step.id}
@@ -360,18 +408,17 @@ export default function TravelRequestWizard() {
               <h4 className="step-panel-title">
                 {currentSteps.find((s) => s.id === activeTab)?.title}
               </h4>
-
-              {activeTab === "destinations" && (
-                <button
-                  type="button"
-                  className="btn btn-success d-flex align-items-center gap-1"
-                  onClick={handleAddDestination}
-                >
-                  <Plus size={16} />
-                  Add Destination
-                </button>
-              )}
-
+              {
+                currentSteps.find((s) => s.id === activeTab)?.actions &&
+                currentSteps.find((s) => s.id === activeTab)?.actions.map((action: stepAction) => {
+                  return (
+                    <button key={action.id} className="primary-button" onClick={action.fn}>
+                      <Plus size={16} />
+                      {action.caption}
+                    </button>
+                  )
+                })
+              }
               {activeTab === "visa" && (
                 <div className="btn-group">
                   <button

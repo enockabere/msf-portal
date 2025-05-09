@@ -30,18 +30,16 @@ export async function POST(request: Request) {
       applicationDate: new Date().toISOString().split("T")[0],
     };
 
-    console.log(payload);
-
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
-    const response = await transport.post(
+    const response = (await transport.post(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
-    );
+    )) as { no?: string; status?: string; value?: { no?: string } };
     if ((response as any)?.error) {
       return NextResponse.json(
         {
@@ -51,9 +49,13 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
     return NextResponse.json({
       success: true,
-      data: response,
+      data: {
+        no: response?.no || response?.value?.no || "",
+        status: "Pending Approval",
+      },
       message: "Salary advance created successfully",
     });
   } catch (error: any) {
