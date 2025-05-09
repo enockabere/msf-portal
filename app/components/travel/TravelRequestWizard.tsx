@@ -24,6 +24,8 @@ import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
+import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
+import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 
 interface WizardStep {
   id: string;
@@ -37,6 +39,21 @@ interface DestinationItem {
   country: string;
   startDate: string;
   endDate: string;
+}
+
+interface TicketItem {
+  id: string;
+  ticketNumber: string;
+  departure: string;
+  destination: string;
+  travelDate: string;
+  airline: string;
+}
+
+interface Dependency {
+  id: string;
+  fullName: string;
+  relationship: string;
 }
 
 export default function TravelRequestWizard() {
@@ -67,6 +84,60 @@ export default function TravelRequestWizard() {
 
   console.log(submitted);
 
+  const [availableTickets] = useState<TicketItem[]>([
+    {
+      id: "1",
+      ticketNumber: "TK123456",
+      departure: "Nairobi",
+      destination: "London",
+      travelDate: "2025-06-10",
+      airline: "Kenya Airways",
+    },
+    {
+      id: "2",
+      ticketNumber: "TK654321",
+      departure: "Nairobi",
+      destination: "Dubai",
+      travelDate: "2025-07-02",
+      airline: "Emirates",
+    },
+  ]);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+
+  const handleSelectTicket = useCallback((ticketId: string) => {
+    setSelectedTicketId(ticketId);
+  }, []);
+
+  const [availableDependencies] = useState<Dependency[]>([
+    {
+      id: "01",
+      fullName: "Alice Mwangi",
+      relationship: "Wife",
+    },
+    {
+      id: "02",
+      fullName: "James Otieno",
+      relationship: "Son",
+    },
+    {
+      id: "03",
+      fullName: "Sarah Wanjiku",
+      relationship: "Daughter",
+    },
+  ]);
+
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    []
+  );
+
+  const handleSelectDependency = (id: string) => {
+    setSelectedDependencies((prev) => [...prev, id]);
+  };
+
+  const handleDeselectDependency = (id: string) => {
+    setSelectedDependencies((prev) => prev.filter((d) => d !== id));
+  };
+
   const allSteps = useMemo<WizardStep[]>(
     () => [
       {
@@ -84,7 +155,7 @@ export default function TravelRequestWizard() {
       {
         id: "dependencies",
         icon: <Link size={18} />,
-        title: "Dependencies",
+        title: "Travel Dependencies",
         desc: "Related travel requirements",
       },
       {
@@ -156,13 +227,11 @@ export default function TravelRequestWizard() {
   };
 
   const validateCurrentStep = (): boolean => {
-    // Add your validation logic here
     return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Submit logic here
   };
   const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
@@ -351,14 +420,24 @@ export default function TravelRequestWizard() {
                   destinations={travelInfo.destinations}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
-                  onPrevious={() => handleTabChange("info")}
-                  onNext={() => handleTabChange("dependencies")}
                 />
               )}
-              {["dependencies", "ticket"].includes(activeTab) && (
-                <div className="step-placeholder">
-                  Form fields for: <strong>{activeTab}</strong>
-                </div>
+
+              {activeTab === "ticket" && (
+                <TravelTicketSelector
+                  tickets={availableTickets}
+                  selectedTicketId={selectedTicketId}
+                  onSelectTicket={handleSelectTicket}
+                />
+              )}
+
+              {activeTab === "dependencies" && (
+                <TravelDependencies
+                  availableDependencies={availableDependencies}
+                  selectedDependencies={selectedDependencies}
+                  onSelectDependency={handleSelectDependency}
+                  onDeselectDependency={handleDeselectDependency}
+                />
               )}
 
               {activeTab === "permit" && (
@@ -448,13 +527,6 @@ export default function TravelRequestWizard() {
                   </div>
                 </div>
               )}
-
-              {["dependencies", "ticket"].includes(activeTab) && (
-                <div className="step-placeholder">
-                  Form fields for: <strong>{activeTab}</strong>
-                </div>
-              )}
-
               <div className="step-actions">
                 {activeTab === "info" ? (
                   <button

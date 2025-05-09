@@ -18,8 +18,6 @@ interface TravelDestinationsProps {
     value: DestinationItem[K]
   ) => void;
   onRemoveDestination: (index: number) => void;
-  onPrevious: () => void;
-  onNext: () => void;
 }
 
 const COUNTRIES = [
