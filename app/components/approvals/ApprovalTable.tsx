@@ -40,9 +40,7 @@ export default function ApprovalDataTable({
 }: ApprovalDataTableProps) {
     const [data, setData] = useState<Approval[]>([]);
     const [loading, setLoading] = useState(false);
-    const [search, setSearch] = useState("");
-    const [selectedApprovalDocument, setSelectedApprovalDocument] = useState(null);
-    const [selectedApprovalAttachments, setSelectedApprovalAttachments] = useState(null);
+    const [search] = useState("");
     const [allApprovalDocuments, dispatch] = useReducer(approvalDocumentsReducer, initialState);
     const [currentDocument, setCurrentDocument] = useState(0)
 
@@ -122,23 +120,19 @@ export default function ApprovalDataTable({
         dispatch({ type: "MERGE_DOCS", payload: res })
     }
 
-    const formatDate = (date: string) =>
-        new Date(date).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        });
-
-    const groupAndCountBy = (array, key) => {
+    const groupAndCountBy = <T extends Record<string, any>>(
+        array: T[],
+        key: keyof T
+    ): Record<string, { count: number; items: T[] }> => {
         return array.reduce((acc, item) => {
-            const groupKey = item[key];
+            const groupKey = item[key] as string;
             if (!acc[groupKey]) {
                 acc[groupKey] = { count: 0, items: [] };
             }
             acc[groupKey].count += 1;
             acc[groupKey].items.push(item);
             return acc;
-        }, {});
+        }, {} as Record<string, { count: number; items: T[] }>);
     };
 
     const grouped = groupAndCountBy(data, 'approveForType');
@@ -226,12 +220,12 @@ export default function ApprovalDataTable({
         return data.filter((item) => {
             const matchesSearch =
                 item.sendByName.toLowerCase().includes(search.toLowerCase());
-            const itemDate = new Date(item.dueDate);
+            // const itemDate = new Date(item.dueDate);
             return (
                 matchesSearch
             );
         });
-    }, [search, status, data]);
+    }, [search, data]);
 
     const handleModalToggle = (value: boolean) => {
         if (!value) {
@@ -243,7 +237,7 @@ export default function ApprovalDataTable({
 
     useEffect(() => {
 
-    }, [selectedApprovalDocument, currentDocument]);
+    }, [currentDocument]);
 
     return (
         <>

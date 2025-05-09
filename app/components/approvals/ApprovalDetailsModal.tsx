@@ -5,7 +5,7 @@ import { codeUnit } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { ApprovalDocs } from "@/app/types/approval";
 
-export default ({
+const ApprovalDetailsModal = ({
     showModal,
     setShowModal,
     allApprovalDocuments,
@@ -52,14 +52,12 @@ export default ({
         );
     }
 
-    let inputValue = ""
     const rejectApproval = async () => {
-        const result = await Swal.fire({
+        const { value: text } = await Swal.fire({
             title: "Do you want to Reject this Request?",
             showCancelButton: true,
             confirmButtonText: "Reject",
             input: "text",
-            inputValue,
             inputLabel: "Comment on the reason of rejecting this request",
             inputPlaceholder: "Enter your comment here...",
 
@@ -70,9 +68,9 @@ export default ({
             }
         });
 
-        console.log('input value', inputValue)
+        console.log('input value', text)
 
-        if (result.isConfirmed) {
+        if (text) {
             try {
                 const res = await codeUnit('rejectApprovalDocument', {
                     data: {
@@ -104,7 +102,7 @@ export default ({
                 console.error("❌ Exception:", err);
                 Swal.fire("Error", "An unexpected error occurred.", "error");
             }
-        } else if (result.isDenied) {
+        } else if (text.isDenied) {
             Swal.fire("Changes are not saved", "", "info");
         }
     }
@@ -179,3 +177,5 @@ export default ({
         </CustomModal>
     )
 }
+
+export default ApprovalDetailsModal;
