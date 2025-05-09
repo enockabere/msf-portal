@@ -23,7 +23,6 @@ const ApprovalDetailsModal = ({
     children: ReactNode
 }) => {
     const approvalDocument = allApprovalDocuments?.[0];
-    const comment = useRef<HTMLElement | null>(null);
 
     const delegateApproval = async () => {
         const res = await codeUnit('delegateApproval', {
@@ -53,59 +52,48 @@ const ApprovalDetailsModal = ({
     }
 
     const rejectApproval = async () => {
-        const { value: text } = await Swal.fire({
-            title: "Do you want to Reject this Request?",
-            showCancelButton: true,
-            confirmButtonText: "Reject",
-            input: "text",
-            inputLabel: "Comment on the reason of rejecting this request",
-            inputPlaceholder: "Enter your comment here...",
+        // Close the modal first
+        setShowModal(false);
 
-            inputValidator: (value) => {
-                if (!value) {
-                    return "You need to write something!";
-                }
-            }
-        });
+        setTimeout(async () => {
+            const result = await Swal.fire({
+                title: "Do you want to Reject this Request?",
+                input: "text",
+                inputLabel: "Comment on the reason of rejecting this request",
+                inputPlaceholder: "Enter your comment here...",
+                showCancelButton: true,
+                confirmButtonText: "Reject",
+                cancelButtonText: "Cancel",
+                preConfirm: (value) => {
+                    if (!value || value.trim() === "") {
+                        Swal.showValidationMessage("You need to write something!");
+                        return false;
+                    }
+                    return value;
+                },
+            });
 
-        console.log('input value', text)
-
-        if (text) {
-            try {
-                const res = await codeUnit('rejectApprovalDocument', {
+            if (result.isConfirmed && result.value) {
+                const res = await codeUnit("rejectApprovalDocument", {
                     data: {
                         docNo: approvalDocument?.documentNo,
                         employeeNo: approvalDocument?.approverID,
-                        rejectReason: comment.current, // use input value
-                    }
+                        rejectReason: result.value,
+                    },
                 });
 
-                console.log('reject res', res)
-
                 if (res.error || res.success === false) {
-                    const rawMsg =
-                        res?.rawResponse?.error?.message ||
-                        res?.error?.message ||
-                        res?.error?.details?.[0]?.message;
-
-                    console.error("🔴 API returned error:", res);
-                    Swal.fire("Error", rawMsg || "Reject approval request failed!", "error");
+                    Swal.fire("Error", "Reject approval request failed!", "error");
                     return;
                 }
 
-                Swal.fire(
-                    "Success",
-                    `Approval Document #${approvalDocument?.documentNo} rejected successfully!`,
-                    "success"
-                );
-            } catch (err) {
-                console.error("❌ Exception:", err);
-                Swal.fire("Error", "An unexpected error occurred.", "error");
+                Swal.fire("Success", "Document rejected successfully!", "success");
             }
-        } else if (text.isDenied) {
-            Swal.fire("Changes are not saved", "", "info");
-        }
-    }
+        }, 300); // Give time for modal to unmount
+    };
+
+
+
 
     const approveRequest = async () => {
         const res = await codeUnit('approveDocument', {
