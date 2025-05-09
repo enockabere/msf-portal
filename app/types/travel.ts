@@ -29,4 +29,10 @@ export interface TravelInfo {
   visaRequired: YesNo;
   workPermitRequired: YesNo;
   [key: string]: any;
+  destinations: {
+    id: string;
+    country: string;
+    startDate: string;
+    endDate: string;
+  }[];
 }

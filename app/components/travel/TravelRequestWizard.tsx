@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   User,
   ListChecks,
@@ -15,6 +15,7 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
+  Plus,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -22,6 +23,7 @@ import { TravelInfo } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
+import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 
 interface WizardStep {
   id: string;
@@ -30,8 +32,16 @@ interface WizardStep {
   desc: string;
 }
 
+interface DestinationItem {
+  id: string;
+  country: string;
+  startDate: string;
+  endDate: string;
+}
+
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
+
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelInfo, setTravelInfo] = useState<TravelInfo>({
     userType: "",
@@ -50,84 +60,86 @@ export default function TravelRequestWizard() {
     travelType: "",
     visaRequired: "No",
     workPermitRequired: "No",
+    destinations: [],
   });
 
   const [submitted, setSubmitted] = useState(false);
 
-  // Define all possible steps
-  const allSteps: WizardStep[] = [
-    {
-      id: "info",
-      icon: <User size={18} />,
-      title: "Your Info",
-      desc: "Basic travel details",
-    },
-    {
-      id: "destinations",
-      icon: <Globe size={18} />,
-      title: "Destinations",
-      desc: "Travel destination details",
-    },
-    {
-      id: "dependencies",
-      icon: <Link size={18} />,
-      title: "Dependencies",
-      desc: "Related travel requirements",
-    },
-    {
-      id: "ticket",
-      icon: <Ticket size={18} />,
-      title: "Ticket Booking",
-      desc: "Flight/train reservations",
-    },
-    {
-      id: "checklist",
-      icon: <ListChecks size={18} />,
-      title: "Checklist",
-      desc: "Pre-travel requirements",
-    },
-    {
-      id: "visa",
-      icon: <Globe size={18} />,
-      title: "Visa Application",
-      desc: "Visa documentation",
-    },
-    {
-      id: "permit",
-      icon: <FilePlus2 size={18} />,
-      title: "Work Permit",
-      desc: "Work authorization",
-    },
-    {
-      id: "advance",
-      icon: <Briefcase size={18} />,
-      title: "Travel Advance",
-      desc: "Advance request",
-    },
-  ];
+  console.log(submitted);
+
+  const allSteps = useMemo<WizardStep[]>(
+    () => [
+      {
+        id: "info",
+        icon: <User size={18} />,
+        title: "Your Info",
+        desc: "Basic travel details",
+      },
+      {
+        id: "destinations",
+        icon: <Globe size={18} />,
+        title: "Travel Destinations",
+        desc: "Travel destination details",
+      },
+      {
+        id: "dependencies",
+        icon: <Link size={18} />,
+        title: "Dependencies",
+        desc: "Related travel requirements",
+      },
+      {
+        id: "ticket",
+        icon: <Ticket size={18} />,
+        title: "Annual Travel Ticket",
+        desc: "Flight/train reservations",
+      },
+      {
+        id: "checklist",
+        icon: <ListChecks size={18} />,
+        title: "Checklist",
+        desc: "Pre-travel requirements",
+      },
+      {
+        id: "visa",
+        icon: <Globe size={18} />,
+        title: "Visa Application",
+        desc: "Visa documentation",
+      },
+      {
+        id: "permit",
+        icon: <FilePlus2 size={18} />,
+        title: "Work Permit",
+        desc: "Work authorization",
+      },
+      {
+        id: "advance",
+        icon: <Briefcase size={18} />,
+        title: "Travel Advance",
+        desc: "Advance request",
+      },
+    ],
+    []
+  );
 
   // Get the appropriate steps based on user type
-  const getSteps = useCallback((): WizardStep[] => {
+  const currentSteps = useMemo((): WizardStep[] => {
     if (travelInfo.userType === "Outbound") {
       return [
-        allSteps.find((step) => step.id === "info")!,
-        allSteps.find((step) => step.id === "destinations")!,
-        allSteps.find((step) => step.id === "dependencies")!,
-        allSteps.find((step) => step.id === "ticket")!,
-        allSteps.find((step) => step.id === "checklist")!,
-        allSteps.find((step) => step.id === "visa")!,
-        allSteps.find((step) => step.id === "advance")!,
-      ];
+        "info",
+        "destinations",
+        "dependencies",
+        "ticket",
+        "checklist",
+        "visa",
+        "advance",
+      ].map((id) => allSteps.find((s) => s.id === id)!);
     } else if (travelInfo.userType === "Inbound") {
-      return [
-        allSteps.find((step) => step.id === "info")!,
-        allSteps.find((step) => step.id === "checklist")!,
-        allSteps.find((step) => step.id === "permit")!,
-        allSteps.find((step) => step.id === "advance")!,
-      ];
+      return ["info", "checklist", "permit", "advance"].map(
+        (id) => allSteps.find((s) => s.id === id)!
+      );
     }
-    return [allSteps.find((step) => step.id === "info")!];
-  }, [travelInfo.userType]);
+    return [allSteps.find((s) => s.id === "info")!];
+  }, [travelInfo.userType, allSteps]);
 
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
@@ -152,8 +164,6 @@ export default function TravelRequestWizard() {
     e.preventDefault();
     // Submit logic here
   };
-
-  const currentSteps = getSteps();
   const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
@@ -164,7 +174,6 @@ export default function TravelRequestWizard() {
     { id: "documents", label: "Required Documents", type: "file" },
   ];
 
-  // Handle the initial submission from the info step
   const handleInitialSubmit = () => {
     setCompletedSteps((prev) => new Set(prev).add("info"));
     setSubmitted(true);
@@ -175,6 +184,49 @@ export default function TravelRequestWizard() {
       setActiveTab("destinations");
     }
   };
+
+  const handleAddDestination = useCallback(() => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      destinations: [
+        ...prev.destinations,
+        {
+          id: Date.now().toString(),
+          country: "",
+          startDate: "",
+          endDate: "",
+        },
+      ],
+    }));
+  }, []);
+
+  const handleDestinationChange = useCallback(
+    <K extends keyof DestinationItem>(
+      index: number,
+      field: K,
+      value: DestinationItem[K]
+    ) => {
+      setTravelInfo((prev) => {
+        const newDestinations = [...prev.destinations];
+        newDestinations[index] = {
+          ...newDestinations[index],
+          [field]: value,
+        };
+        return {
+          ...prev,
+          destinations: newDestinations,
+        };
+      });
+    },
+    []
+  );
+
+  const handleRemoveDestination = useCallback((index: number) => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      destinations: prev.destinations.filter((_, i) => i !== index),
+    }));
+  }, []);
 
   return (
     <div className="travel-wizard">
@@ -235,10 +287,21 @@ export default function TravelRequestWizard() {
             role="tabpanel"
             aria-labelledby={`${activeTab}-tab`}
           >
-            <div className="d-flex align-items-center justify-content-between mb-3 wizard-bg-gray">
+            <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
               <h4 className="step-panel-title">
                 {currentSteps.find((s) => s.id === activeTab)?.title}
               </h4>
+
+              {activeTab === "destinations" && (
+                <button
+                  type="button"
+                  className="btn btn-success d-flex align-items-center gap-1"
+                  onClick={handleAddDestination}
+                >
+                  <Plus size={16} />
+                  Add Destination
+                </button>
+              )}
 
               {activeTab === "visa" && (
                 <div className="btn-group">
@@ -281,6 +344,21 @@ export default function TravelRequestWizard() {
                   travelInfo={travelInfo}
                   handleChange={handleChange}
                 />
+              )}
+
+              {activeTab === "destinations" && (
+                <TravelDestinations
+                  destinations={travelInfo.destinations}
+                  onDestinationChange={handleDestinationChange}
+                  onRemoveDestination={handleRemoveDestination}
+                  onPrevious={() => handleTabChange("info")}
+                  onNext={() => handleTabChange("dependencies")}
+                />
+              )}
+              {["dependencies", "ticket"].includes(activeTab) && (
+                <div className="step-placeholder">
+                  Form fields for: <strong>{activeTab}</strong>
+                </div>
               )}
 
               {activeTab === "permit" && (
@@ -371,9 +449,7 @@ export default function TravelRequestWizard() {
                 </div>
               )}
 
-              {["destinations", "dependencies", "ticket"].includes(
-                activeTab
-              ) && (
+              {["dependencies", "ticket"].includes(activeTab) && (
                 <div className="step-placeholder">
                   Form fields for: <strong>{activeTab}</strong>
                 </div>
