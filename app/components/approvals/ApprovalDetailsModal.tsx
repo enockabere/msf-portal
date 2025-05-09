@@ -33,14 +33,15 @@ export default ({
             }
         })
 
-        if (!res.ok || res.error || res.success === false) {
+
+        if (res.error || res.success === false) {
             const rawMsg =
                 res?.rawResponse?.error?.message ||
                 res?.error?.message ||
                 res?.error?.details?.[0]?.message;
 
             console.error("🔴 API returned error:", res);
-            Swal.fire("Error", rawMsg || "Rejcet approval requst failed!", "error");
+            Swal.fire("Error", rawMsg || "Delegate approval request failed!", "error");
             return;
         }
 
@@ -81,7 +82,9 @@ export default ({
                     }
                 });
 
-                if (!res.ok || res.error || res.success === false) {
+                console.log('reject res', res)
+
+                if (res.error || res.success === false) {
                     const rawMsg =
                         res?.rawResponse?.error?.message ||
                         res?.error?.message ||
@@ -114,14 +117,16 @@ export default ({
             }
         })
 
-        if (res.error) {
+        console.log('approve res', res)
+
+        if (res.error || res.success === false) {
             const rawMsg =
                 res?.rawResponse?.error?.message ||
                 res?.error?.message ||
                 res?.error?.details?.[0]?.message;
 
             console.error("🔴 API returned error:", res);
-            Swal.fire("Error", rawMsg || "Rejcet approval requst failed!", "error");
+            Swal.fire("Error", rawMsg || "Approval request failed!", "error");
             return;
         }
 
@@ -142,9 +147,9 @@ export default ({
             titleIcon={<PlusCircle size={18} className="text-white" />}
         >
             <div className="mb-2 gap-x-2 d-flex justify-content-end">
-                <button className="btn btn-warning" onClick={delegateApproval}>Delegate</button>
-                <button className="btn btn-primary ms-2" onClick={rejectApproval}>Reject</button>
-                <button className="btn btn-success ms-2" onClick={approveRequest}>Approve</button>
+                <button className="btn btn-warning" disabled={ !allApprovalDocuments.length } onClick={delegateApproval}>Delegate</button>
+                <button className="btn btn-primary ms-2" disabled={ !allApprovalDocuments.length } onClick={rejectApproval}>Reject</button>
+                <button className="btn btn-success ms-2" disabled={ !allApprovalDocuments.length } onClick={approveRequest}>Approve</button>
             </div>
 
             <div className="">
