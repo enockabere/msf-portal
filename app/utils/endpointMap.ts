@@ -37,7 +37,7 @@ export const endpointMap = {
   requisitions: "/api/kinetics/requisition/v1.0/requisitions",
   delegateApproval: "/ODataV4/ApprovalsManagement_delegateDoc",
   approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
-  rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc"
+  rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc",
   createTravelAdvanceFromTravel: "/ODataV4/TravelManager_createImprest",
 } as const;
 
