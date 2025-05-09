@@ -18,7 +18,7 @@ interface ApprovalReducerAction {
 }
 
 export const approvalDocumentsReducer = (state: ApprovalDocs[], action: ApprovalReducerAction) => {
-    if (!action.payload) return;
+    if (!action.payload && action.type !== 'CLEAR_DOCS') return;
     switch (action.type) {
         case 'MERGE_DOCS': {
             return [
@@ -26,6 +26,10 @@ export const approvalDocumentsReducer = (state: ApprovalDocs[], action: Approval
                 ...action.payload,
             ];
         }
+        case 'CLEAR_DOCS':
+            return [];
+        default:
+            return state;
     }
 }
 
@@ -229,6 +233,14 @@ export default function ApprovalDataTable({
         });
     }, [search, status, data]);
 
+    const handleModalToggle = (value: boolean) => {
+        if (!value) {
+            dispatch({ type: 'CLEAR_DOCS', payload: [] }); // Clear docs on modal close
+            setCurrentDocument(0); // Reset navigation index
+        }
+        setShowModal(value);
+    };
+
     useEffect(() => {
 
     }, [selectedApprovalDocument, currentDocument]);
@@ -264,7 +276,7 @@ export default function ApprovalDataTable({
 
             <div className="card h-100 p-2">
                 <ApprovalDetailsModal showModal={showModal}
-                    setShowModal={setShowModal}
+                    setShowModal={handleModalToggle}
                     loading={loading}
                     currentDocument={currentDocument}
                     documentNavigationHandler={documentNavigationHandler}
