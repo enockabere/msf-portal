@@ -15,8 +15,6 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Pencil,
-  FileX,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -54,74 +52,82 @@ export default function TravelRequestWizard() {
     workPermitRequired: "No",
   });
 
+  const [submitted, setSubmitted] = useState(false);
+
+  // Define all possible steps
+  const allSteps: WizardStep[] = [
+    {
+      id: "info",
+      icon: <User size={18} />,
+      title: "Your Info",
+      desc: "Basic travel details",
+    },
+    {
+      id: "destinations",
+      icon: <Globe size={18} />,
+      title: "Destinations",
+      desc: "Travel destination details",
+    },
+    {
+      id: "dependencies",
+      icon: <Link size={18} />,
+      title: "Dependencies",
+      desc: "Related travel requirements",
+    },
+    {
+      id: "ticket",
+      icon: <Ticket size={18} />,
+      title: "Ticket Booking",
+      desc: "Flight/train reservations",
+    },
+    {
+      id: "checklist",
+      icon: <ListChecks size={18} />,
+      title: "Checklist",
+      desc: "Pre-travel requirements",
+    },
+    {
+      id: "visa",
+      icon: <Globe size={18} />,
+      title: "Visa Application",
+      desc: "Visa documentation",
+    },
+    {
+      id: "permit",
+      icon: <FilePlus2 size={18} />,
+      title: "Work Permit",
+      desc: "Work authorization",
+    },
+    {
+      id: "advance",
+      icon: <Briefcase size={18} />,
+      title: "Travel Advance",
+      desc: "Advance request",
+    },
+  ];
+
+  // Get the appropriate steps based on user type
   const getSteps = useCallback((): WizardStep[] => {
-    const baseSteps: WizardStep[] = [
-      {
-        id: "info",
-        icon: <User size={18} />,
-        title: "Your Info",
-        desc: "Basic travel details",
-      },
-      {
-        id: "checklist",
-        icon: <ListChecks size={18} />,
-        title: "Checklist",
-        desc: "Pre-travel requirements",
-      },
-      {
-        id: "ticket",
-        icon: <Ticket size={18} />,
-        title: "Ticket Booking",
-        desc: "Flight/train reservations",
-      },
-      {
-        id: "dependencies",
-        icon: <Link size={18} />,
-        title: "Dependencies",
-        desc: "Related travel requirements",
-      },
-      {
-        id: "permit",
-        icon: <FilePlus2 size={18} />,
-        title: "Work Permit",
-        desc: "Work authorization",
-      },
-      {
-        id: "advance",
-        icon: <Briefcase size={18} />,
-        title: "Travel Advance",
-        desc: "Advance request",
-      },
-    ];
-
-    if (travelInfo.visaRequired === "Yes") {
-      baseSteps.splice(4, 0, {
-        id: "visa",
-        icon: <Globe size={18} />,
-        title: "Visa Application",
-        desc: "Visa documentation",
-      });
-    }
-
     if (travelInfo.userType === "Outbound") {
-      return baseSteps.filter((s) => {
-        if (s.id === "permit") return false;
-        if (
-          (s.id === "ticket" || s.id === "dependencies") &&
-          !travelInfo.residentStatus
-        )
-          return false;
-        if (
-          (s.id === "ticket" || s.id === "dependencies") &&
-          travelInfo.residentStatus === "Resident"
-        )
-          return false;
-        return true;
-      });
+      return [
+        allSteps.find((step) => step.id === "info")!,
+        allSteps.find((step) => step.id === "destinations")!,
+        allSteps.find((step) => step.id === "dependencies")!,
+        allSteps.find((step) => step.id === "ticket")!,
+        allSteps.find((step) => step.id === "checklist")!,
+        allSteps.find((step) => step.id === "visa")!,
+        allSteps.find((step) => step.id === "advance")!,
+      ];
+    } else if (travelInfo.userType === "Inbound") {
+      return [
+        allSteps.find((step) => step.id === "info")!,
+        allSteps.find((step) => step.id === "checklist")!,
+        allSteps.find((step) => step.id === "permit")!,
+        allSteps.find((step) => step.id === "advance")!,
+      ];
     }
-
-    return baseSteps.filter((s) => s.id !== "ticket");
-  }, [travelInfo]);
+    return [allSteps.find((step) => step.id === "info")!];
+  }, [travelInfo.userType]);
 
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
@@ -147,25 +153,28 @@ export default function TravelRequestWizard() {
     // Submit logic here
   };
 
-  useEffect(() => {
-    const visibleStepIds = getSteps().map((s) => s.id);
-    if (!visibleStepIds.includes(activeTab)) {
-      setActiveTab("info");
-    }
-  }, [getSteps, activeTab]);
-
-  const currentStepIndex = getSteps().findIndex((s) => s.id === activeTab);
-
-  const progressPercentage = (completedSteps.size / getSteps().length) * 100;
+  const currentSteps = getSteps();
+  const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
+  const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
   // Work Permit form fields
   const workPermitFields = [
     { id: "country", label: "Country of Work", type: "text" },
     { id: "duration", label: "Duration (days)", type: "number" },
-    { id: "purpose", label: "Purpose of Work", type: "text" },
-    { id: "sponsor", label: "Local Sponsor", type: "text" },
     { id: "documents", label: "Required Documents", type: "file" },
   ];
+
+  // Handle the initial submission from the info step
+  const handleInitialSubmit = () => {
+    setCompletedSteps((prev) => new Set(prev).add("info"));
+    setSubmitted(true);
+
+    if (travelInfo.userType === "Inbound") {
+      setActiveTab("checklist");
+    } else if (travelInfo.userType === "Outbound") {
+      setActiveTab("destinations");
+    }
+  };
 
   return (
     <div className="travel-wizard">
@@ -189,7 +198,7 @@ export default function TravelRequestWizard() {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {getSteps().map((step) => (
+            {currentSteps.map((step) => (
               <li key={step.id} className="step-item">
                 <button
                   className={`step-button ${
@@ -228,7 +237,7 @@ export default function TravelRequestWizard() {
           >
             <div className="d-flex align-items-center justify-content-between mb-3 wizard-bg-gray">
               <h4 className="step-panel-title">
-                {getSteps().find((s) => s.id === activeTab)?.title}
+                {currentSteps.find((s) => s.id === activeTab)?.title}
               </h4>
 
               {activeTab === "visa" && (
@@ -347,85 +356,102 @@ export default function TravelRequestWizard() {
 
               {activeTab === "visa" && <VisaApplicationForm />}
 
-              {!["info", "permit", "advance", "visa"].includes(activeTab) && (
+              {activeTab === "checklist" && (
+                <div className="mb-3">
+                  <div className="bg-light-subtle p-3 rounded">
+                    <p className="fw-bold mb-2">Checklist</p>
+                    <ul className="mb-0">
+                      {travelInfo.userType === "Inbound" ? (
+                        <li>Work Permit is required for this trip.</li>
+                      ) : (
+                        <li>Visa is required for this trip.</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {["destinations", "dependencies", "ticket"].includes(
+                activeTab
+              ) && (
                 <div className="step-placeholder">
                   Form fields for: <strong>{activeTab}</strong>
                 </div>
               )}
 
               <div className="step-actions">
-                {currentStepIndex > 0 && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      handleTabChange(getSteps()[currentStepIndex - 1].id)
-                    }
-                  >
-                    <ArrowLeft size={16} className="button-icon" />
-                    Previous
-                  </button>
-                )}
-
-                {currentStepIndex === 0 ? (
-                  <div className="d-flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() =>
-                        handleTabChange(getSteps()[currentStepIndex + 1].id)
-                      }
-                    >
-                      <Save size={16} className="button-icon" />
-                      Save & Continue
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => {
-                        // TODO: add actual logic for enabling edit mode
-                        console.log("Edit Travel Request clicked");
-                      }}
-                    >
-                      <Pencil size={16} className="button-icon" /> Edit Travel
-                      Request
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        console.log("Cancel Request clicked");
-                      }}
-                    >
-                      <FileX size={16} className="button-icon" /> Cancel Request
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-info"
-                      onClick={() => {
-                        console.log("Download Request clicked");
-                      }}
-                    >
-                      <DownloadIcon size={16} className="button-icon" />{" "}
-                      Download Travel Request
-                    </button>
-                  </div>
-                ) : currentStepIndex < getSteps().length - 1 ? (
+                {activeTab === "info" ? (
                   <button
                     type="button"
                     className="primary-button"
-                    onClick={() =>
-                      handleTabChange(getSteps()[currentStepIndex + 1].id)
-                    }
+                    onClick={handleInitialSubmit}
                   >
-                    <ArrowRight size={16} className="button-icon" />
-                    Next
+                    <Save size={16} className="button-icon" />
+                    Save & Continue
                   </button>
                 ) : (
-                  <button type="submit" className="submit-button">
-                    <Check size={16} className="button-icon" />
-                    Submit Request
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    {currentStepIndex > 0 && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() =>
+                          handleTabChange(currentSteps[currentStepIndex - 1].id)
+                        }
+                      >
+                        <ArrowLeft size={16} className="button-icon" />
+                        Previous
+                      </button>
+                    )}
+
+                    {activeTab === "visa" &&
+                    travelInfo.userType === "Outbound" ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => {
+                          setCompletedSteps((prev) =>
+                            new Set(prev).add("visa")
+                          );
+                          setActiveTab("advance");
+                        }}
+                      >
+                        <Check size={16} className="button-icon" />
+                        Submit Travel Request
+                      </button>
+                    ) : activeTab === "permit" &&
+                      travelInfo.userType === "Inbound" ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => {
+                          setCompletedSteps((prev) =>
+                            new Set(prev).add("permit")
+                          );
+                          setActiveTab("advance");
+                        }}
+                      >
+                        <Check size={16} className="button-icon" />
+                        Submit Travel Request
+                      </button>
+                    ) : currentStepIndex < currentSteps.length - 1 ? (
+                      <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() =>
+                          handleTabChange(currentSteps[currentStepIndex + 1].id)
+                        }
+                      >
+                        <ArrowRight size={16} className="button-icon" />
+                        Next
+                      </button>
+                    ) : (
+                      <button type="submit" className="submit-button">
+                        <Check size={16} className="button-icon" />
+                        Submit Request
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </form>
