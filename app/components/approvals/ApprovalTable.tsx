@@ -54,13 +54,12 @@ export default function ApprovalDataTable({
                 params: {
                     filters: {
                         status: "Open",
-                        approverID: "KINETIC"
+                        approverID: employeeNo
                     }
                 }
             })
 
             const advanceData = res.value;
-            console.log('approval entries', advanceData)
             const sorted = [...advanceData].sort(
                 (a, b) =>
                     new Date(b.dateTimeSentForApproval).getTime() -
@@ -274,6 +273,7 @@ export default function ApprovalDataTable({
                     loading={loading}
                     currentDocument={currentDocument}
                     documentNavigationHandler={documentNavigationHandler}
+                    onActionCompleted={fetchApprovals}
                     allApprovalDocuments={allApprovalDocuments}>
                     <div></div>
                 </ApprovalDetailsModal>

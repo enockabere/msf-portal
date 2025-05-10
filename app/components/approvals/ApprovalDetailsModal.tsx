@@ -12,6 +12,7 @@ const ApprovalDetailsModal = ({
     loading,
     currentDocument,
     documentNavigationHandler,
+    onActionCompleted,
     children
 }: {
     showModal: boolean,
@@ -20,6 +21,7 @@ const ApprovalDetailsModal = ({
     loading: boolean,
     currentDocument: number,
     documentNavigationHandler: (value: number) => void,
+    onActionCompleted: () => void,
     children: ReactNode
 }) => {
     const approvalDocument = allApprovalDocuments?.[0];
@@ -89,6 +91,8 @@ const ApprovalDetailsModal = ({
 
                 Swal.fire("Success", "Document rejected successfully!", "success");
             }
+
+            onActionCompleted();
         }, 300); // Give time for modal to unmount
     };
 
