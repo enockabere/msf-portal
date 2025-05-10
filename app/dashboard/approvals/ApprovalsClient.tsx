@@ -11,9 +11,6 @@ const ApprovalDataTableTable = dynamic(
 export default function ApprovalsClient() {
     const { data:employee } = useSession();
 
-
-
-
     return (
         <div className="page-content dashboard-container p-3">
             <ToastContainer position="top-right" autoClose={5000} />

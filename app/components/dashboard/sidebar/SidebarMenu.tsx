@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import {useEffect, useState} from "react";
 import {getResource} from "@/app/lib/api/http";
@@ -12,6 +12,7 @@ export default function SidebarMenu() {
   const { showLoader } = usePageLoader();
   const [isNavigating, setIsNavigating] = useState(false);
   const [approvalCount, setApprovalCount] = useState(0)
+  const { data:employee } = useSession();
 
   const isGroupActive = (prefix: string) =>
     !isNavigating &&
@@ -36,7 +37,7 @@ export default function SidebarMenu() {
           params: {
             filters: {
               status: "Open",
-              approverID: "KINETIC"
+              approverID: employee?.user?.profile?.number
             },
             "$count": true
           }
@@ -228,8 +229,8 @@ export default function SidebarMenu() {
             <span>
               {label}
               {soon && <span className="badge bg-warning ms-2">Soon</span>}
-              {badge && (
-                <span className={`badge ${badgeClass} rounded-pill ms-2`}>
+              {badge >= 0 && (
+                <span className={`badge ${badgeClass} text-white rounded-pill ms-2`}>
                   {badge}
                 </span>
               )}
