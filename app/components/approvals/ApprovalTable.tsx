@@ -274,6 +274,7 @@ export default function ApprovalDataTable({
                     loading={loading}
                     currentDocument={currentDocument}
                     documentNavigationHandler={documentNavigationHandler}
+                    onActionCompleted={fetchApprovals}
                     allApprovalDocuments={allApprovalDocuments}>
                     <div></div>
                 </ApprovalDetailsModal>
