@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useCallback, useMemo, useState, MouseEventHandler } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  MouseEventHandler,
+} from "react";
 import {
   User,
   ListChecks,
@@ -34,19 +39,23 @@ interface WizardStep {
   icon: React.ReactNode;
   title: string;
   desc: string;
-  actions?: stepAction[]
+  actions?: stepAction[];
 }
 interface stepAction {
-  id: any,
-  fn: MouseEventHandler<HTMLButtonElement>
-  caption: string
+  id: any;
+  fn: MouseEventHandler<HTMLButtonElement>;
+  caption: string;
 }
 
 interface DestinationItem {
   id: string;
-  country: string;
-  startDate: string;
-  endDate: string;
+  originCountry: string;
+  originCity: string;
+  destinationCountry: string;
+  destinationCity: string;
+  travelDate: string;
+  transportMode: string;
+  visaRequired: string;
 }
 
 interface TicketItem {
@@ -145,6 +154,42 @@ export default function TravelRequestWizard() {
     setSelectedDependencies((prev) => prev.filter((d) => d !== id));
   };
 
+  const handleCreateTravelAdvance = useCallback(async () => {
+    try {
+      const res = await codeUnit("createTravelAdvanceFromTravel", {
+        data: {
+          no: "",
+        },
+      });
+      if (res.error) {
+        Swal.fire("Error Creating Travel Advance!", res.error.message);
+      } else {
+        Swal.fire("Success", "You have successfully created travel advance!");
+      }
+    } catch (error) {
+      Swal.fire("Error", error.message);
+    }
+  }, []);
+
+  const handleAddDestination = useCallback(() => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      destinations: [
+        ...prev.destinations,
+        {
+          id: Date.now().toString(),
+          originCountry: "",
+          originCity: "",
+          destinationCountry: "",
+          destinationCity: "",
+          travelDate: "",
+          transportMode: "",
+          visaRequired: "No",
+        } as any,
+      ],
+    }));
+  }, []);
+
   const allSteps = useMemo<WizardStep[]>(
     () => [
       {
@@ -160,12 +205,12 @@ export default function TravelRequestWizard() {
         desc: "Travel destination details",
         actions: [
           {
-              id: 'action-add-destination',
-              caption: 'Add Destination',
-              fn: () => {
-                  handleAddDestination()
-              },
-          }
+            id: "action-add-destination",
+            caption: "Add Destination",
+            fn: () => {
+              handleAddDestination();
+            },
+          },
         ],
       },
       {
@@ -205,17 +250,17 @@ export default function TravelRequestWizard() {
         desc: "Advance request",
         actions: [
           {
-            id: 'action-create-advance',
-            caption: 'Create Advance',
+            id: "action-create-advance",
+            caption: "Create Advance",
             fn: async () => {
-              await handleCreateTravelAdvance()
+              await handleCreateTravelAdvance();
             },
-          }
+          },
         ],
       },
     ],
-    []
-  );
+    [handleAddDestination, handleCreateTravelAdvance]
+  ); // ✅ Correct dependencies
 
   // Get the appropriate steps based on user type
   const currentSteps = useMemo((): WizardStep[] => {
@@ -237,30 +282,6 @@ export default function TravelRequestWizard() {
     return [allSteps.find((s) => s.id === "info")!];
   }, [travelInfo.userType, allSteps]);
 
-  const handleCreateTravelAdvance = useCallback(
-    async () => {
-      try {
-        //@TODO Add global loading context
-        const res = await codeUnit('createTravelAdvanceFromTravel', {
-          data: {
-            no: '',
-          },
-        });
-        if (res.error) {
-
-          Swal.fire('Error Creating Travel Advance!', res.error.message);
-        } else {
-          Swal.fire('Success', 'You have successfully created travel advance!');
-        }
-
-
-      } catch (error) {
-        Swal.fire('Error', error.message);
-      } finally {
-        // @TODO stop global loading state.
-      }
-    }, []
-  )
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
@@ -302,21 +323,6 @@ export default function TravelRequestWizard() {
       setActiveTab("destinations");
     }
   };
-
-  const handleAddDestination = useCallback(() => {
-    setTravelInfo((prev) => ({
-      ...prev,
-      destinations: [
-        ...prev.destinations,
-        {
-          id: Date.now().toString(),
-          country: "",
-          startDate: "",
-          endDate: "",
-        },
-      ],
-    }));
-  }, []);
 
   const handleDestinationChange = useCallback(
     <K extends keyof DestinationItem>(
@@ -371,8 +377,9 @@ export default function TravelRequestWizard() {
             {currentSteps.map((step) => (
               <li key={step.id} className="step-item">
                 <button
-                  className={`step-button ${activeTab === step.id ? "active" : ""
-                    } ${completedSteps.has(step.id) ? "completed" : ""}`}
+                  className={`step-button ${
+                    activeTab === step.id ? "active" : ""
+                  } ${completedSteps.has(step.id) ? "completed" : ""}`}
                   onClick={() => handleTabChange(step.id)}
                   role="tab"
                   aria-selected={activeTab === step.id}
@@ -408,17 +415,21 @@ export default function TravelRequestWizard() {
               <h4 className="step-panel-title">
                 {currentSteps.find((s) => s.id === activeTab)?.title}
               </h4>
-              {
-                currentSteps.find((s) => s.id === activeTab)?.actions &&
-                currentSteps.find((s) => s.id === activeTab)?.actions.map((action: stepAction) => {
-                  return (
-                    <button key={action.id} className="primary-button" onClick={action.fn}>
-                      <Plus size={16} />
-                      {action.caption}
-                    </button>
-                  )
-                })
-              }
+              {currentSteps.find((s) => s.id === activeTab)?.actions &&
+                currentSteps
+                  .find((s) => s.id === activeTab)
+                  ?.actions.map((action: stepAction) => {
+                    return (
+                      <button
+                        key={action.id}
+                        className="primary-button"
+                        onClick={action.fn}
+                      >
+                        <Plus size={16} />
+                        {action.caption}
+                      </button>
+                    );
+                  })}
               {activeTab === "visa" && (
                 <div className="btn-group">
                   <button
@@ -464,7 +475,7 @@ export default function TravelRequestWizard() {
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={travelInfo.destinations}
+                  destinations={travelInfo.destinations as any}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
                 />
