@@ -51,7 +51,7 @@ const handler = NextAuth({
                 const employee = await transport.get(
                     "/api/KineticTechnology/ESS/v1.0/leavemployees",
                     {
-                        $filter: `email eq '${profile?.email}'`,
+                        $filter: `companyEmail eq '${profile?.email}' and companyEmail ne ''`,
                         company: process.env.BC_COMPANY_NAME
                     }
                 ) as Record<string, any> | null;
