@@ -38,7 +38,7 @@ export default function RequestCards() {
   useEffect(() => {
     router.prefetch("/dashboard/make-request/advances");
     router.prefetch("/dashboard/make-request/travel");
-  }, []);
+  }, [router]); //
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();

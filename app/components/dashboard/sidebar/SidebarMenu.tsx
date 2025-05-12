@@ -10,7 +10,7 @@ export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating] = useState(false);
 
   const isGroupActive = (prefix: string) =>
     !isNavigating &&
