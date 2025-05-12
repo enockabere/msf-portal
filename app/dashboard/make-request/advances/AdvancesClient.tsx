@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
@@ -15,6 +15,7 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
+import { Advance } from "@/app/types/advance";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -22,12 +23,32 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function AdvancesClient() {
-  const { data: employee } = useSession();
-  const employeeData = {
-    number: employee?.user?.profile?.number || "",
-    nationalId: employee?.user?.profile?.nationalId || "",
-    mobilePhone: employee?.user?.profile?.mobilePhone || "",
-  };
+  const { data: session } = useSession();
+  const [advanceData, setAdvanceData] = useState<Advance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeStatusTab, setActiveStatusTab] = useState<string>("open");
+
+  const fetchAdvances = useCallback(async () => {
+    const employeeNo = session?.user?.profile?.number;
+    if (!employeeNo) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
+      );
+      const json = await res.json();
+      setAdvanceData(json["data"]["value"] || []);
+    } catch (err) {
+      console.error("❌ Parent failed to fetch advances:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    fetchAdvances();
+  }, [fetchAdvances]);
 
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
@@ -39,17 +60,18 @@ export default function AdvancesClient() {
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
-  >("bottom");
+  >("top");
   const [showModal, setShowModal] = useState(false);
+
+  const handleChangePlacement = (newPlacement: typeof placement) => {
+    setPlacement(newPlacement);
+    localStorage.setItem("advancePlacement", newPlacement);
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("advancePlacement") as
-      | "right"
-      | "top"
-      | "bottom"
-      | "left"
+      | typeof placement
       | null;
-
     if (saved && saved !== placement) {
       setPlacement(saved);
     }
@@ -66,15 +88,9 @@ export default function AdvancesClient() {
     ]);
   }, [setBreadcrumb]);
 
-  const handleChangePlacement = (
-    newPlacement: "right" | "top" | "bottom" | "left"
-  ) => {
-    setPlacement(newPlacement);
-    localStorage.setItem("advancePlacement", newPlacement);
-  };
-
   const handleNewRequestClick = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
   const cards = [
     {
       title: "Open",
@@ -131,7 +147,7 @@ export default function AdvancesClient() {
 
   return (
     <div className="page-content dashboard-container p-3">
-      {placement === "top" && (
+      {(placement === "top" || placement === "bottom") && (
         <div className="row gx-1 mb-2">
           <div className="col-12">{renderSummary()}</div>
         </div>
@@ -144,8 +160,12 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employeeData}
+                  key={activeStatusTab}
+                  data={advanceData}
+                  loading={loading}
                   onCountsUpdate={setAdvanceCounts}
+                  initialTab={activeStatusTab}
+                  refetch={fetchAdvances}
                 />
               </div>
             </div>
@@ -157,8 +177,12 @@ export default function AdvancesClient() {
             <div className="col-lg-9">
               <div className="card h-100 p-2">
                 <ReusableSalaryAdvanceTabs
-                  employee={employeeData}
+                  key={activeStatusTab}
+                  data={advanceData}
+                  loading={loading}
                   onCountsUpdate={setAdvanceCounts}
+                  initialTab={activeStatusTab}
+                  refetch={fetchAdvances}
                 />
               </div>
             </div>
@@ -166,23 +190,21 @@ export default function AdvancesClient() {
           </>
         )}
 
-        {(placement === "top" || placement === "bottom") && (
+        {placement === "top" || placement === "bottom" ? (
           <div className="col-12">
             <div className="card h-100 p-2">
               <ReusableSalaryAdvanceTabs
-                employee={employeeData}
+                key={activeStatusTab}
+                data={advanceData}
+                loading={loading}
                 onCountsUpdate={setAdvanceCounts}
+                initialTab={activeStatusTab}
+                refetch={fetchAdvances}
               />
             </div>
           </div>
-        )}
+        ) : null}
       </div>
-
-      {placement === "bottom" && (
-        <div className="row gx-1 mt-2">
-          <div className="col-12">{renderSummary()}</div>
-        </div>
-      )}
 
       <CustomModal
         show={showModal}
@@ -194,8 +216,18 @@ export default function AdvancesClient() {
         <div className="row">
           <div className="col-md-9">
             <SalaryAdvanceForm
-              employee={employeeData}
-              onSuccess={handleCloseModal}
+              onSuccess={(status) => {
+                const statusToTab: Record<string, string> = {
+                  Open: "open",
+                  "Pending Approval": "pending",
+                  Released: "released",
+                };
+                if (status && statusToTab[status]) {
+                  setActiveStatusTab(statusToTab[status]);
+                }
+                handleCloseModal();
+                fetchAdvances();
+              }}
             />
           </div>
           <div className="col-md-3">

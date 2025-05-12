@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePlus, Clock, User, MessageCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import "./VerticalProgressCard.css";
@@ -31,9 +31,6 @@ export default function VerticalProgressCard({
   const [approvalEntries, setApprovalEntries] = useState<ApprovalEntry[]>([]);
 
   const isNew = !advance;
-  const isPending = advance?.status === "Pending Approval";
-  const isReleased = advance?.status === "Released";
-  const showApprovals = isPending || isReleased;
 
   useEffect(() => {
     setApplicationDate(
@@ -45,17 +42,16 @@ export default function VerticalProgressCard({
 
   useEffect(() => {
     const fetchApprovals = async () => {
-      if (showApprovals) {
+      if (advance?.no) {
         try {
           const res = await fetch(
-            `/api/bc/advances/salary/approvals?documentNo=${advance?.no}`
+            `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
           );
           const json = await res.json();
           const sorted = (json?.data?.value || []).sort(
             (a: ApprovalEntry, b: ApprovalEntry) =>
               (a.sequenceNo || 0) - (b.sequenceNo || 0)
           );
-          console.log("✅ Approval Entries:", sorted); // ← Add this line
           setApprovalEntries(sorted);
         } catch (err) {
           console.error("❌ Error fetching approvals", err);
@@ -63,18 +59,7 @@ export default function VerticalProgressCard({
       }
     };
     fetchApprovals();
-  }, [advance, showApprovals]);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const allApprovalComments = useMemo(() => {
-    const comments: string[] = [];
-    approvalEntries.forEach((entry) =>
-      entry.approvalComments?.forEach(
-        (c) => c.comment && comments.push(c.comment)
-      )
-    );
-    return comments;
-  }, [approvalEntries]);
+  }, [advance]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -92,17 +77,19 @@ export default function VerticalProgressCard({
   const formatAgeing = (ageingStr: string | undefined) => {
     const match = ageingStr?.match(/P(\d+)D(?:T(\d+)H(\d+)M)?/);
     if (!match) return null;
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [_, days, hours, minutes] = match;
-    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${minutes ? `${minutes}m` : ""
-      }`.trim();
+    const [, days, hours, minutes] = match;
+    return `${days ? `${days}d ` : ""}${hours ? `${hours}h ` : ""}${
+      minutes ? `${minutes}m` : ""
+    }`.trim();
   };
 
   return (
     <div className="card h-100 border-0 shadow-sm">
       <div className="card-header bg-primary-subtle">
         <h4 className="card-title fw-semibold mb-0 text-dark">
-          {showApprovals ? "Advance Approvers" : "Application Progress"}
+          {approvalEntries.length > 0
+            ? "Advance Approvers"
+            : "Application Progress"}
         </h4>
       </div>
 
@@ -206,7 +193,6 @@ export default function VerticalProgressCard({
             )}
           </div>
         </SimpleBar>
-
         <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-3">
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">

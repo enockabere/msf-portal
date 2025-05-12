@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       {
         $filter: `employeeCode eq '${employeeNo}'`,
         $select:
-          "no,employeeName,applicationDate,preferredDisbursementDate,advanceType,status,applicationAmount,currencyCode,bankCode,accountNo,mobilePhoneNo,identificationDocumentNo,employeeBankName,employeeBranchCode,employeeBranchName,chequeName,swiftCode,paymentMethod",
+          "no,employeeName,applicationDate,preferredDisbursementDate,advanceType,status,applicationAmount,currencyCode,bankCode,accountNo,mobilePhoneNo,identificationDocumentNo,employeeBankName,employeeBranchCode,employeeBranchName,chequeName,swiftCode,paymentMethod,disbursed",
       }
     )) as { value: AdvanceEntry[] };
 
