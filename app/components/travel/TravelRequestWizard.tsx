@@ -272,7 +272,7 @@ export default function TravelRequestWizard() {
           travelDate: "",
           transportMode: "",
           visaRequired: "No",
-        } as any, // <-- cast to any to suppress TS shape conflict
+        } as any, 
       ],
     }));
   }, []);
