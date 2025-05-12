@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useState } from "react";
+import { startTransition } from "react";
 
 export default function SidebarMenu() {
   const router = useRouter();
@@ -16,14 +17,13 @@ export default function SidebarMenu() {
     currentPath.startsWith(prefix) &&
     currentPath !== "/dashboard";
 
-  const handleNav = async (e: React.MouseEvent, href: string) => {
+  const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
-      setIsNavigating(true);
       showLoader();
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      router.push(href);
-      setTimeout(() => setIsNavigating(false), 300);
+      startTransition(() => {
+        router.push(href);
+      });
     }
   };
 
