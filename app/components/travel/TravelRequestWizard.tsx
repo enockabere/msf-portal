@@ -71,6 +71,7 @@ interface Dependency {
   id: string;
   fullName: string;
   relationship: string;
+  nationality: string;
 }
 
 export default function TravelRequestWizard() {
@@ -129,30 +130,21 @@ export default function TravelRequestWizard() {
       id: "01",
       fullName: "Alice Mwangi",
       relationship: "Wife",
+      nationality: "Kenyan",
     },
     {
       id: "02",
       fullName: "James Otieno",
       relationship: "Son",
+      nationality: "Kenyan",
     },
     {
       id: "03",
       fullName: "Sarah Wanjiku",
       relationship: "Daughter",
+      nationality: "Kenyan",
     },
   ]);
-
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    []
-  );
-
-  const handleSelectDependency = (id: string) => {
-    setSelectedDependencies((prev) => [...prev, id]);
-  };
-
-  const handleDeselectDependency = (id: string) => {
-    setSelectedDependencies((prev) => prev.filter((d) => d !== id));
-  };
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
@@ -216,7 +208,7 @@ export default function TravelRequestWizard() {
       {
         id: "dependencies",
         icon: <Link size={18} />,
-        title: "Travel Dependencies",
+        title: "Dependants",
         desc: "Related travel requirements",
       },
       {
@@ -492,9 +484,6 @@ export default function TravelRequestWizard() {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
-                  selectedDependencies={selectedDependencies}
-                  onSelectDependency={handleSelectDependency}
-                  onDeselectDependency={handleDeselectDependency}
                 />
               )}
 
