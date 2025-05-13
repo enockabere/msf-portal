@@ -2,13 +2,29 @@
 
 import React from "react";
 
-const RECIPIENTS = [
-  "John Doe",
-  "Jane Smith",
-  "Michael Johnson",
-  "Sarah Williams",
-  "David Brown",
+const COST_CENTERS = [
+  { code: "HR", name: "Human Resources" },
+  { code: "FIN", name: "Finance" },
+  { code: "OPS", name: "Operations" },
+  { code: "IT", name: "Information Technology" },
 ];
+
+const REASONS = [
+  "Conference",
+  "Training",
+  "Client Meeting",
+  "Internal Meeting",
+  "Project Work",
+];
+
+const ACCOMMODATION_TYPES = [
+  "Self Arranged",
+  "Full Board",
+  "Half Board",
+  "Bed & Breakfast",
+];
+
+const TRIP_TYPES = ["One Way", "Return", "Multi-City"];
 
 interface Props {
   travelInfo: any;
@@ -20,107 +36,138 @@ export default function OutboundTravelForm({
   handleChange,
 }: Props) {
   return (
-    <>
+    <div className="border rounded p-3 bg-light-subtle mt-3">
+      <h6 className="text-dark fw-bold">Travel Details</h6>
       <div className="row g-3">
-        <div className="col-md-6">
-          <label className="form-label">Trip From</label>
-          <input
-            type="date"
-            className="form-control"
-            value={travelInfo.tripDates.from}
-            onChange={(e) =>
-              handleChange("tripDates", {
-                ...travelInfo.tripDates,
-                from: e.target.value,
-              })
-            }
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">Trip To</label>
-          <input
-            type="date"
-            className="form-control"
-            value={travelInfo.tripDates.to}
-            onChange={(e) =>
-              handleChange("tripDates", {
-                ...travelInfo.tripDates,
-                to: e.target.value,
-              })
-            }
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <label className="form-label">Destination</label>
-        <input
-          type="text"
-          className="form-control"
-          value={travelInfo.destination}
-          onChange={(e) => handleChange("destination", e.target.value)}
-        />
-      </div>
-
-      <div className="mt-3">
-        <label className="form-label">Apply on behalf of someone else?</label>
-        <select
-          className="form-select"
-          value={travelInfo.applyForOther}
-          onChange={(e) => handleChange("applyForOther", e.target.value)}
-        >
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-
-      {travelInfo.applyForOther === "Yes" && (
-        <div className="mt-2">
-          <label className="form-label">Recipient Name</label>
+        {/* Travel Type */}
+        <div className="col-md-4">
+          <label className="form-label">
+            Type of Travel <span className="text-danger">*</span>
+          </label>
           <select
             className="form-select"
-            value={travelInfo.recipientName}
-            onChange={(e) => handleChange("recipientName", e.target.value)}
+            value={travelInfo.travelType}
+            onChange={(e) => handleChange("travelType", e.target.value)}
           >
-            <option value="">-- Select Recipient --</option>
-            {RECIPIENTS.map((r) => (
+            <option value="">-- Select --</option>
+            <option value="Local">Local</option>
+            <option value="Regional">Regional</option>
+            <option value="International">International</option>
+          </select>
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">
+            Cost Center <span className="text-danger">*</span>
+          </label>
+          <select
+            className="form-select"
+            value={travelInfo.costCenter || ""}
+            onChange={(e) => handleChange("costCenter", e.target.value)}
+          >
+            <option value="">-- Select Cost Center --</option>
+            {COST_CENTERS.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <div className="form-text mt-1 text-info">
+            Remaining Trips:{" "}
+            <strong>
+              {travelInfo.remainingTrips !== undefined
+                ? travelInfo.remainingTrips
+                : "--"}
+            </strong>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <label className="form-label">
+            Purpose of Travel <span className="text-danger">*</span>
+          </label>
+          <select
+            className="form-select"
+            value={travelInfo.reason || ""}
+            onChange={(e) => handleChange("reason", e.target.value)}
+          >
+            <option value="">-- Select Reason --</option>
+            {REASONS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
           </select>
         </div>
-      )}
-
-      <div className="row mt-3">
-        <div className="col-md-6">
-          <label className="form-label">Currency</label>
+        <div className="col-md-4">
+          <label className="form-label">Accommodation Type</label>
           <select
             className="form-select"
-            value={travelInfo.currency}
-            onChange={(e) => handleChange("currency", e.target.value)}
+            value={travelInfo.accommodationType || ""}
+            onChange={(e) => handleChange("accommodationType", e.target.value)}
           >
-            <option value="">-- Select Currency --</option>
-            <option value="KES">KES - Kenyan Shilling</option>
-            <option value="USD">USD - US Dollar</option>
-            <option value="EUR">EUR - Euro</option>
+            <option value="">-- Select Type --</option>
+            {ACCOMMODATION_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-4">
+          <label className="form-label">Require Per Diem</label>
+          <select
+            className="form-select"
+            value={travelInfo.requirePerDiem || "No"}
+            onChange={(e) => handleChange("requirePerDiem", e.target.value)}
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div className="col-md-4">
+          <label className="form-label">Trip Type</label>
+          <select
+            className="form-select"
+            value={travelInfo.tripType || ""}
+            onChange={(e) => handleChange("tripType", e.target.value)}
+          >
+            <option value="">-- Select Trip Type --</option>
+            {TRIP_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
         </div>
 
+        {/* Require Security Money - Only if Local */}
+        {travelInfo.travelType === "Local" && (
+          <div className="col-md-6">
+            <label className="form-label">Require Security Money</label>
+            <select
+              className="form-select"
+              value={travelInfo.requireSecurityMoney || "No"}
+              onChange={(e) =>
+                handleChange("requireSecurityMoney", e.target.value)
+              }
+            >
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+        )}
         <div className="col-md-6">
-          <label className="form-label">Payment Method</label>
+          <label className="form-label">Annual Trip</label>
           <select
             className="form-select"
-            value={travelInfo.paymentMethod}
-            onChange={(e) => handleChange("paymentMethod", e.target.value)}
+            value={travelInfo.annualTrip || "No"}
+            onChange={(e) => handleChange("annualTrip", e.target.value)}
           >
-            <option value="">-- Select Method --</option>
-            <option value="Cash">Cash</option>
-            <option value="Mpesa">Mpesa</option>
-            <option value="Bank">Bank Transfer</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
           </select>
         </div>
       </div>
-    </>
+    </div>
   );
 }

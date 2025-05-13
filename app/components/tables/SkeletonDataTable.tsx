@@ -7,6 +7,7 @@ import { Button } from "react-bootstrap";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import "./datatable-custom.css";
+import { useSession } from "next-auth/react";
 
 interface SkeletonDataTableProps {
   title?: string;
@@ -28,7 +29,7 @@ export default function SkeletonDataTable({
   loading = false,
 }: SkeletonDataTableProps) {
   const [search, setSearch] = useState("");
-
+  const { data: session } = useSession();
   const filtered = data.filter((item) => {
     const values = Object.values(item).join(" ").toLowerCase();
     return values.includes(search.toLowerCase());
@@ -37,7 +38,7 @@ export default function SkeletonDataTable({
   const exportCSV = () => {
     const csv = Papa.unparse(filtered);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    saveAs(blob, "data-export.csv");
+    saveAs(blob, `${title.split(" ").join("")}-${session.user.profile.number}-${Date.now()}.csv`);
   };
 
   return (

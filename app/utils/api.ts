@@ -63,14 +63,14 @@ export async function apiFetch(
                     headers,
                     data,
                 });
-            })
+            });
         }
         options.params = {
             ...options.params,
             company: process.env.BC_COMPANY_NAME,
         }
         const { data, params, batch, ...rest } = options;
-        const otherOptions = {params, ...rest};
+        const otherOptions = {params: params as never, ...rest};
         switch (method.toLowerCase()) {
             case 'get':
                 response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest); break;

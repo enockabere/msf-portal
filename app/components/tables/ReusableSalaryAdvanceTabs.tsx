@@ -1,77 +1,56 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
-import { useSession } from "next-auth/react";
 
 interface Props {
+  data: Advance[];
+  loading: boolean;
   onCountsUpdate?: (counts: {
     open: number;
     pending: number;
     released: number;
     total: number;
   }) => void;
+  initialTab?: string;
+  refetch: (updatedStatus?: string) => void;
 }
 
-export default function ReusableSalaryAdvanceTabs({ onCountsUpdate }: Props) {
-  const [data, setData] = useState<Advance[]>([]);
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [search, setSearch] = useState("");
+export default function ReusableSalaryAdvanceTabs({
+  data,
+  loading,
+  onCountsUpdate,
+  initialTab,
+  refetch,
+}: Props) {
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [forceRefresh, setForceRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState("open");
-  const { data: session } = useSession();
-  const employeeNo = session?.user?.profile?.number;
-
-  console.log(selectedAdvance);
-
-  const fetchAdvances = useCallback(async () => {
-    if (!employeeNo) return;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
-      );
-      const json = await res.json();
-      setData(json["data"]["value"] || []);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-      setForceRefresh(false);
-    }
-  }, [employeeNo]);
+  const didSetInitialTab = useRef(false);
 
   useEffect(() => {
-    fetchAdvances();
-  }, [fetchAdvances]);
-
-  useEffect(() => {
-    if (forceRefresh) {
-      fetchAdvances();
+    if (
+      !didSetInitialTab.current &&
+      initialTab &&
+      ["open", "pending", "released"].includes(initialTab)
+    ) {
+      setActiveTab(initialTab);
+      didSetInitialTab.current = true;
     }
-  }, [forceRefresh, fetchAdvances]);
+  }, [initialTab]);
 
   const filteredByStatus = useMemo(() => {
-    const lowerSearch = search.toLowerCase();
     const filterBy = (status: string) =>
-      data.filter(
-        (item) =>
-          item.status === status &&
-          (item.advanceType.toLowerCase().includes(lowerSearch) ||
-            item.employeeName.toLowerCase().includes(lowerSearch))
-      );
+      data.filter((item) => item.status === status);
+
     return {
       open: filterBy("Open"),
       pending: filterBy("Pending Approval"),
       released: filterBy("Released"),
     };
-  }, [data, search]);
+  }, [data]);
 
   useEffect(() => {
     if (onCountsUpdate) {
@@ -256,19 +235,10 @@ export default function ReusableSalaryAdvanceTabs({ onCountsUpdate }: Props) {
       </Tabs>
 
       <AdvanceRequestAction
-        advance={null}
-        showCreate={true}
+        advance={selectedAdvance}
         refetch={(updatedStatus) => {
-          console.log("🟢 Refetch triggered with status:", updatedStatus);
-          setForceRefresh(true);
-          const statusTabMap: Record<string, string> = {
-            Open: "open",
-            "Pending Approval": "pending",
-            Released: "released",
-          };
-          if (updatedStatus && statusTabMap[updatedStatus]) {
-            setActiveTab(statusTabMap[updatedStatus]);
-          }
+          setSelectedAdvance(null);
+          refetch(updatedStatus);
         }}
         onCloseView={() => setSelectedAdvance(null)}
       />

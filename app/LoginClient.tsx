@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react"
 import Image from "next/image";
 import { useEffect } from "react";
-import { batchRequest } from "./lib/api/http";
+import { batchRequest, getResource } from "./lib/api/http";
 
 export default function LoginClient() {
   const handleSSORedirect = () => {
@@ -11,6 +11,16 @@ export default function LoginClient() {
   };
 
   useEffect(() => {
+    const fetchRequisition = async () => {
+      const req = await getResource('locations', {
+        options: {
+          params: {
+            '$top': 2,
+          },
+        }
+      });
+      console.log('requisitions: ', req);
+    }
     const firebatchReq = async () => {
       const resp = await batchRequest({
         batch: [
@@ -35,7 +45,8 @@ export default function LoginClient() {
       });
       console.log('Batch response: ', resp);
     }
-    firebatchReq()
+    Promise.all([firebatchReq(),
+    fetchRequisition()])
   }, [])
   return (
     <div className="bg-light container-fluid min-vh-100 d-flex flex-column">

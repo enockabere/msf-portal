@@ -49,7 +49,6 @@ export default function BreadcrumbNav() {
       try {
         const res = await fetch("/api/quote");
         const data = await res.json();
-        console.log(data);
         setQuote({ content: data.content, author: data.author });
       } catch (err) {
         console.error("❌ Failed to fetch quote:", err);
@@ -72,7 +71,11 @@ export default function BreadcrumbNav() {
       <li className="mx-3 welcome-text">
         <h3 className="mb-0 fw-bold text-truncate">
           {currentGreeting.greeting},{" "}
-          {employee?.user?.profile?.firstName ? employee?.user?.profile?.firstName : <Skeleton width={100} />}
+          {employee?.user?.profile?.firstName ? (
+            employee?.user?.profile?.firstName
+          ) : (
+            <Skeleton width={100} />
+          )}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
           {quoteText}
@@ -107,8 +110,9 @@ export default function BreadcrumbNav() {
               <ChevronRight className="text-danger" size={15} />
               <Link
                 href={item.path}
-                className={`text-decoration-none ${isLast ? "text-danger" : "text-dark"
-                  }`}
+                className={`text-decoration-none ${
+                  isLast ? "text-danger" : "text-dark"
+                }`}
                 style={{ fontSize: ".7rem" }}
               >
                 {item.label}

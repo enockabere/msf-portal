@@ -2,6 +2,7 @@
 
 import { JSX, useEffect, useState } from "react";
 import { Send, Clock, CheckCircle } from "lucide-react";
+import React from "react";
 
 interface Advance {
   status: "Open" | "Released" | "Pending Approval";

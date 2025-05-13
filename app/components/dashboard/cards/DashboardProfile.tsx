@@ -4,10 +4,10 @@ import Image from "next/image";
 import { User, Mail, Phone, Calendar, Briefcase } from "lucide-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { useSession } from "next-auth/react"
+import { useSession } from "next-auth/react";
 
 export default function DashboardProfile() {
-  const { data: employee } = useSession()
+  const { data: employee } = useSession();
 
   const isLoading = !employee;
 
@@ -58,7 +58,8 @@ export default function DashboardProfile() {
                   {isLoading ? (
                     <Skeleton width={140} />
                   ) : (
-                    employee?.user?.profile?.jobTitle || "Employee?.user?.profile?"
+                    employee?.user?.profile?.jobTitle ||
+                    "Employee?.user?.profile?"
                   )}
                 </p>
               </div>
@@ -95,7 +96,11 @@ export default function DashboardProfile() {
           <div className="text-body mb-2 d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Staff No.:</span>
-            {isLoading ? <Skeleton width={100} /> : employee?.user?.profile?.number}
+            {isLoading ? (
+              <Skeleton width={100} />
+            ) : (
+              employee?.user?.profile?.number
+            )}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
@@ -104,7 +109,9 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={140} />
             ) : (
-              new Date(employee?.user?.profile?.employmentDate).toLocaleDateString()
+              new Date(
+                employee?.user?.profile?.employmentDate
+              ).toLocaleDateString()
             )}
           </div>
 
@@ -121,35 +128,12 @@ export default function DashboardProfile() {
           <div className="text-body d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
-            {isLoading ? <Skeleton width={80} /> : employee?.user?.profile?.gender || "N/A"}
+            {isLoading ? (
+              <Skeleton width={80} />
+            ) : (
+              employee?.user?.profile?.gender || "N/A"
+            )}
           </div>
-
-          {/*<ul className="list-unstyled d-flex gap-2 mb-0">*/}
-          {/*  <li className="list-inline-item">*/}
-          {/*    <a*/}
-          {/*      href="#"*/}
-          {/*      className="d-flex justify-content-center align-items-center thumb-md rounded-circle social twitter"*/}
-          {/*    >*/}
-          {/*      <i className="icofont-twitter fs-18 mb-0" />*/}
-          {/*    </a>*/}
-          {/*  </li>*/}
-          {/*  <li className="list-inline-item">*/}
-          {/*    <a*/}
-          {/*      href="#"*/}
-          {/*      className="d-flex justify-content-center align-items-center thumb-md rounded-circle social instagram"*/}
-          {/*    >*/}
-          {/*      <i className="icofont-instagram fs-18 mb-0" />*/}
-          {/*    </a>*/}
-          {/*  </li>*/}
-          {/*  <li className="list-inline-item">*/}
-          {/*    <a*/}
-          {/*      href="#"*/}
-          {/*      className="d-flex justify-content-center align-items-center thumb-md rounded-circle social facebook"*/}
-          {/*    >*/}
-          {/*      <i className="icofont-facebook fs-18 mb-0" />*/}
-          {/*    </a>*/}
-          {/*  </li>*/}
-          {/*</ul>*/}
         </div>
       </div>
     </div>
