@@ -26,7 +26,17 @@ export default function OperationalHeaderStep({
       <div className="card-body">
         <form className="p-2 pt-3">
           <div className="row">
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
+              <label htmlFor="advance_type" className="form-label">
+                Advance Type
+              </label>
+              <select id="advance_type" className="form-select">
+                <option value="0">--select--</option>
+                <option value="1">Operational</option>
+                <option value="2">Travel</option>
+              </select>
+            </div>
+            <div className="col-md-4 mb-3">
               <label htmlFor="currency" className="form-label">
                 Currency
               </label>
@@ -42,7 +52,7 @@ export default function OperationalHeaderStep({
               </select>
             </div>
 
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
               <label htmlFor="payment-method" className="form-label">
                 Payment Method
               </label>
@@ -58,7 +68,6 @@ export default function OperationalHeaderStep({
               </select>
             </div>
           </div>
-
           {formData.paymentMethod === "Cash" && (
             <div className="fade-in">
               <div className="row">

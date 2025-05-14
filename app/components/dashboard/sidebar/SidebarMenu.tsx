@@ -3,8 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
-import { startTransition } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { getResource } from "@/app/lib/api/http";
 
 export default function SidebarMenu() {
