@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
+import { useMySetups } from "@/app/context/SetupContext";
 
 interface DestinationItem {
   id: string;
@@ -27,31 +28,18 @@ interface TravelDestinationsProps {
   onRemoveDestination: (index: number) => void;
 }
 
-const COUNTRIES = [
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Italy",
-  "Japan",
-  "China",
-  "Australia",
-  "South Africa",
-  "Kenya",
-  "Uganda",
-  "Tanzania",
-  "Rwanda",
-  "Ethiopia",
-];
-
-const TRANSPORT_MODES = ["Air", "Rail", "Road"];
-
 export default function TravelDestinations({
   destinations,
   onDestinationChange,
   onRemoveDestination,
 }: TravelDestinationsProps) {
+  const {
+    countries,
+    cities,
+    modeOfTransport,
+    fetchSetups,
+  } = useMySetups();
+
   const columns: TableColumn<DestinationItem>[] = [
     {
       name: "#",
@@ -69,9 +57,9 @@ export default function TravelDestinations({
           }
         >
           <option value="">-- Select --</option>
-          {COUNTRIES.map((country) => (
-            <option key={country} value={country}>
-              {country}
+          {countries.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country?.name}
             </option>
           ))}
         </select>
@@ -80,14 +68,29 @@ export default function TravelDestinations({
     {
       name: "Origin City",
       cell: (row, index) => (
-        <input
-          type="text"
-          className="form-control"
-          value={row.originCity}
-          onChange={(e) =>
-            onDestinationChange(index, "originCity", e.target.value)
-          }
-        />
+        // <input
+        //   type="text"
+        //   className="form-control"
+        //   value={row.originCity}
+        //   onChange={(e) =>
+        //     onDestinationChange(index, "originCity", e.target.value)
+        //   }
+        // />
+
+        <select
+            className="form-select"
+            value={row.originCity}
+            onChange={(e) =>
+                onDestinationChange(index, "originCity", e.target.value)
+            }
+        >
+          <option value="">-- Select --</option>
+          {cities.map((city) => (
+              <option key={city.code} value={city.code}>
+                {city?.name}
+              </option>
+          ))}
+        </select>
       ),
     },
     {
@@ -101,9 +104,9 @@ export default function TravelDestinations({
           }
         >
           <option value="">-- Select --</option>
-          {COUNTRIES.map((country) => (
-            <option key={country} value={country}>
-              {country}
+          {cities.map((city) => (
+            <option key={city.code} value={city.code}>
+              {city.name}
             </option>
           ))}
         </select>
@@ -112,14 +115,29 @@ export default function TravelDestinations({
     {
       name: "Destination City",
       cell: (row, index) => (
-        <input
-          type="text"
-          className="form-control"
-          value={row.destinationCity}
-          onChange={(e) =>
-            onDestinationChange(index, "destinationCity", e.target.value)
-          }
-        />
+        // <input
+        //   type="text"
+        //   className="form-control"
+        //   value={row.destinationCity}
+        //   onChange={(e) =>
+        //     onDestinationChange(index, "destinationCity", e.target.value)
+        //   }
+        // />
+
+          <select
+              className="form-select"
+              value={row.destinationCity}
+              onChange={(e) =>
+                  onDestinationChange(index, "destinationCity", e.target.value)
+              }
+          >
+            <option value="">-- Select --</option>
+            {cities.map((city) => (
+                <option key={city.code} value={city.code}>
+                  {city?.name}
+                </option>
+            ))}
+          </select>
       ),
     },
     {
@@ -146,9 +164,9 @@ export default function TravelDestinations({
           }
         >
           <option value="">-- Select --</option>
-          {TRANSPORT_MODES.map((mode) => (
-            <option key={mode} value={mode}>
-              {mode}
+          {modeOfTransport.map((mode) => (
+            <option key={mode.code} value={mode.code}>
+              {mode.description	}
             </option>
           ))}
         </select>
@@ -193,6 +211,22 @@ export default function TravelDestinations({
       ),
     },
   ];
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await fetchSetups([
+          "countries",
+          "cities",
+          "modeOfTransport",
+        ]);
+      } catch (err) {
+        console.log(err)
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <div className="card mb-4">

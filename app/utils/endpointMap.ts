@@ -39,6 +39,9 @@ export const endpointMap = {
   approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
   rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc",
   createTravelAdvanceFromTravel: "/ODataV4/TravelManager_createImprest",
+  countries: "/api/KineticTechnology/CashMgt/v2.0/countries",
+  cities: "/api/KineticTechnology/CashMgt/v2.0/cities",
+  modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport"
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

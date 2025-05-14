@@ -31,6 +31,9 @@ const state = {
   employees: [] as Array<Record<string, any>>,
   employeeBanks: [] as Array<Record<string, any>>,
   payrollPeriods: [] as Array<Record<string, any>>,
+  countries: [] as Array<Record<string, any>>,
+  cities: [] as Array<Record<string, any>>,
+  modeOfTransport: [] as Array<Record<string, any>>,
 };
 
 type MySetupsState = typeof state;
