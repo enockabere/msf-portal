@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { User, Mail, Phone, Calendar, Briefcase } from "lucide-react";
+import {User, Mail, Phone, Calendar, TypeIcon} from "lucide-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useSession } from "next-auth/react";
 
 export default function DashboardProfile() {
-  const { data: employee } = useSession();
+  const { data: session } = useSession()
 
-  const isLoading = !employee;
+  const isLoading = !session;
 
   return (
     <div className="card h-100">
@@ -51,16 +51,16 @@ export default function DashboardProfile() {
                   {isLoading ? (
                     <Skeleton width={180} />
                   ) : (
-                      employee?.user?.profile
-                          ? `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
-                          : employee?.user.name
+                      session?.user?.profile
+                          ? `${session?.user?.profile?.searchName}`
+                          : session?.user.name
                   )}
                 </h5>
                 <p className="text-muted mb-0">
                   {isLoading ? (
                     <Skeleton width={140} />
                   ) : (
-                    employee?.user?.profile?.jobTitle || ''
+                    session?.user?.profile?.title || ''
                   )}
                 </p>
               </div>
@@ -76,10 +76,10 @@ export default function DashboardProfile() {
               <Skeleton width={180} />
             ) : (
               <a
-                href={`mailto:${employee?.user?.profile?.email || employee?.user?.email}`}
+                href={`mailto:${session?.user?.profile?.eMail || session?.user?.email}`}
                 className="text-primary text-decoration-underline"
               >
-                {employee?.user?.profile?.email || employee?.user?.email}
+                {session?.user?.profile?.eMail || session?.user?.email}
               </a>
             )}
           </div>
@@ -90,7 +90,7 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={120} />
             ) : (
-              employee?.user?.profile?.mobilePhone || "N/A"
+              session?.user?.profile?.phoneNo || "N/A"
             )}
           </div>
 
@@ -100,40 +100,36 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
-              employee?.user?.profile?.number || 'N/A'
+              session?.user?.profile?.no || 'N/A'
             )}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
             <Calendar size={20} className="me-2 text-muted" />
-            <span className="fw-semibold me-1">Employment Date:</span>
+            <span className="fw-semibold me-1">Date of Birth:</span>
             {isLoading ? (
               <Skeleton width={140} />
             ) : (
-                employee?.user?.profile?.employmentDate
-                    ? new Date(employee?.user?.profile?.employmentDate).toLocaleDateString()
+                session?.user?.profile?.dateOfBirth
+                    ? new Date(session?.user?.profile?.dateOfBirth).toLocaleDateString()
                     : 'N/A'
             )}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
-            <Briefcase size={20} className="me-2 text-muted" />
-            <span className="fw-semibold me-1">Department:</span>
+            <TypeIcon size={20} className="me-2 text-muted" />
+            <span className="fw-semibold me-1">Type:</span>
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
-              employee?.user?.profile?.globalDimension2Code || "N/A"
+              session?.user?.profile?.type || "N/A"
             )}
           </div>
 
           <div className="text-body d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
-            {isLoading ? (
-              <Skeleton width={80} />
-            ) : (
-              employee?.user?.profile?.gender || "N/A"
-            )}
+            {isLoading ? <Skeleton width={80} /> : session?.user?.profile?.gender || "N/A"}
           </div>
         </div>
       </div>
