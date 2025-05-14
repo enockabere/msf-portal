@@ -48,17 +48,17 @@ const handler = NextAuth({
                 token.accessToken = account.access_token
                 // Note: for Azure AD, profile.oid is the unique user ID
                 // and profile.email or profile.preferred_username contains the email
-                const employee = await transport.get(
-                    "/api/KineticTechnology/ESS/v1.0/leavemployees",
+                const user = await transport.get(
+                    "/api/kinetics/enigma/v1.0/userProfiles",
                     {
-                        $filter: `companyEmail eq '${profile?.email}' and companyEmail ne ''`,
+                        $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
                         company: process.env.BC_COMPANY_NAME
                     }
                 ) as Record<string, any> | null;
-                if (employee && Object.keys(employee)) {
-                    if (Array.isArray(employee?.value) && employee?.value.length) {
+                if (user && Object.keys(user)) {
+                    if (Array.isArray(user?.value) && user?.value.length) {
 
-                        token.profile = employee?.value.at(0)
+                        token.profile = user?.value.at(0)
                     } else {
                         token.profile = {
                             role: "Other User"

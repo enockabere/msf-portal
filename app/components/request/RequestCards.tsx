@@ -28,7 +28,7 @@ export default function RequestCards() {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
-  const { data: employee } = useSession();
+  const { data: session } = useSession();
 
   const handleOpenModal = (type: RequestType) => {
     setRequestType(type);
@@ -36,11 +36,11 @@ export default function RequestCards() {
   };
 
   const fetchAdvances = useCallback(async () => {
-    if (!employee?.user?.profile?.number) return;
+    if (!session?.user?.profile?.no) return;
     setIsLoading(true);
     try {
       const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+        `/api/bc/advances/salary/requests?employeeNo=${session?.user?.profile?.no}`
       );
       const json = await res.json();
       const data = json?.data?.value || [];
@@ -54,7 +54,7 @@ export default function RequestCards() {
     } finally {
       setIsLoading(false);
     }
-  }, [employee?.user?.profile?.number]);
+  }, [session?.user?.profile?.no]);
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {

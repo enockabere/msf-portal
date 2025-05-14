@@ -6,7 +6,8 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { useSession, signOut } from "next-auth/react";
 
 export default function ProfileDropdown() {
-  const { data: employee } = useSession();
+  const { data: session } = useSession();
+  const isLoading = !session
 
   return (
     <li className="dropdown topbar-item">
@@ -40,14 +41,17 @@ export default function ProfileDropdown() {
             </div>
             <div className="flex-grow-1 ms-2 text-truncate align-self-center">
               <h6 className="my-0 fw-medium text-dark fs-13">
-                {employee ? (
-                  `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
+                {session ? (
+                  `${session?.user?.profile?.searchName}`
                 ) : (
                   <Skeleton width={120} />
                 )}
               </h6>
               <small className="text-muted mb-0">
-                {employee?.user?.profile?.jobTitle || <Skeleton width={100} />}
+                {isLoading
+                    ? (<Skeleton width={100} />)
+                    : session?.user?.profile?.title || ''
+                }
               </small>
             </div>
           </div>
