@@ -15,6 +15,7 @@ import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
 import TravelRequestWizard from "../travel/TravelRequestWizard";
+import { startTransition } from "react";
 
 type AdvanceType = "Salary" | "Operational" | "Travel" | null;
 type RequestType = "Advance" | "Expense" | null;
@@ -34,11 +35,17 @@ export default function RequestCards() {
   const { data: employee } = useSession();
   const { showLoader } = usePageLoader();
 
-  const handleNavigate = async (e: React.MouseEvent, href: string) => {
-      e.stopPropagation();
-      showLoader();
-      await new Promise((r) => setTimeout(r, 50));
-      router.push(href);
+  useEffect(() => {
+    router.prefetch("/dashboard/make-request/advances");
+    router.prefetch("/dashboard/make-request/travel");
+  }, [router]); //
+
+  const handleNavigate = (e: React.MouseEvent, href: string) => {
+    e.stopPropagation();
+    showLoader();
+    requestAnimationFrame(() => {
+      startTransition(() => router.push(href));
+    });
   };
 
   const handleOpenModal = (type: RequestType) => {
