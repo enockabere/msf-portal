@@ -6,12 +6,14 @@ import { Save, Trash2 } from "lucide-react";
 
 interface DestinationItem {
   id: string;
-  originCountry: string;
+  documentType: string;
+  documentNo: string;
+  originCountryCode: string;
   originCity: string;
-  destinationCountry: string;
+  destinationCountryCode: string;
   destinationCity: string;
   travelDate: string;
-  transportMode: string;
+  modeOfTransport: string;
   visaRequired: string;
 }
 
@@ -61,9 +63,9 @@ export default function TravelDestinations({
       cell: (row, index) => (
         <select
           className="form-select"
-          value={row.originCountry}
+          value={row.originCountryCode}
           onChange={(e) =>
-            onDestinationChange(index, "originCountry", e.target.value)
+            onDestinationChange(index, "originCountryCode", e.target.value)
           }
         >
           <option value="">-- Select --</option>
@@ -93,9 +95,9 @@ export default function TravelDestinations({
       cell: (row, index) => (
         <select
           className="form-select"
-          value={row.destinationCountry}
+          value={row.destinationCountryCode}
           onChange={(e) =>
-            onDestinationChange(index, "destinationCountry", e.target.value)
+            onDestinationChange(index, "destinationCountryCode", e.target.value)
           }
         >
           <option value="">-- Select --</option>
@@ -138,9 +140,9 @@ export default function TravelDestinations({
       cell: (row, index) => (
         <select
           className="form-select"
-          value={row.transportMode}
+          value={row.modeOfTransport}
           onChange={(e) =>
-            onDestinationChange(index, "transportMode", e.target.value)
+            onDestinationChange(index, "modeOfTransport", e.target.value)
           }
         >
           <option value="">-- Select --</option>
