@@ -21,13 +21,12 @@ export default function OperationalHeaderStep({
 
 
   const { imprestTypes, currencies, paymentMethods } = useMySetups();
-  const { data } = useSession();
 
   const renderViewByTypes = (method: string) => {
-    let type: string = findObjectFromArray(paymentMethods, "code", method)?.type as string || 'Mpesa';
+    if (!method) return null;
+    let type: string = findObjectFromArray(paymentMethods, "code", method)?.type as string;
     switch (type) {
       case "Mpesa": {
-        onFormChange("phone", data.user?.profile?.phoneNo);
         return (
           <div className="fade-in">
             <div className="row">
@@ -41,8 +40,8 @@ export default function OperationalHeaderStep({
                     type="tel"
                     className="form-control"
                     id="mpesa-phone"
-                    value={formData.phone}
-                    onChange={(e) => onFormChange("phone", e.target.value)}
+                    value={formData.phoneNo}
+                    onChange={(e) => onFormChange("phoneNo", e.target.value)}
                     maxLength={9}
                   />
                 </div>
