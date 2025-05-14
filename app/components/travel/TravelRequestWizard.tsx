@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
   MouseEventHandler,
+  useEffect,
 } from "react";
 import {
   User,
@@ -31,8 +32,9 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit } from "@/app/lib/api/http";
+import { codeUnit, getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
+import { Dependency } from "@/app/types/global";
 
 interface WizardStep {
   id: string;
@@ -65,12 +67,6 @@ interface TicketItem {
   destination: string;
   travelDate: string;
   airline: string;
-}
-
-interface Dependency {
-  id: string;
-  fullName: string;
-  relationship: string;
 }
 
 export default function TravelRequestWizard() {
@@ -119,32 +115,16 @@ export default function TravelRequestWizard() {
     },
   ]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    []
+  );
 
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
   }, []);
 
-  const [availableDependencies] = useState<Dependency[]>([
-    {
-      id: "01",
-      fullName: "Alice Mwangi",
-      relationship: "Wife",
-    },
-    {
-      id: "02",
-      fullName: "James Otieno",
-      relationship: "Son",
-    },
-    {
-      id: "03",
-      fullName: "Sarah Wanjiku",
-      relationship: "Daughter",
-    },
-  ]);
-
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    []
-  );
 
   const handleSelectDependency = (id: string) => {
     setSelectedDependencies((prev) => [...prev, id]);
@@ -282,6 +262,18 @@ export default function TravelRequestWizard() {
     return [allSteps.find((s) => s.id === "info")!];
   }, [travelInfo.userType, allSteps]);
 
+    const profileDipendencies = async () => {
+    console.log('Dependency tab: 2 ', activeTab);
+  const res = await getResource('travelDependancies', {});
+  if (res.error) {
+    Swal.fire({
+      title: 'Error!',
+      text: 'Error fetching profile dependecies!',
+    });
+    return
+  }
+  setAvailableDependencies(res.value);
+}
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
@@ -289,10 +281,13 @@ export default function TravelRequestWizard() {
     }));
   }, []);
 
-  const handleTabChange = (stepId: string) => {
+  const handleTabChange = async(stepId: string) => {
     if (validateCurrentStep()) {
       setActiveTab(stepId);
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
+    }
+    if (stepId === "dependencies") {
+       await profileDipendencies();
     }
   };
 
@@ -312,18 +307,18 @@ export default function TravelRequestWizard() {
     { id: "duration", label: "Duration (days)", type: "number" },
     { id: "documents", label: "Required Documents", type: "file" },
   ];
-
+  
   const handleInitialSubmit = () => {
     setCompletedSteps((prev) => new Set(prev).add("info"));
     setSubmitted(true);
-
+    
     if (travelInfo.userType === "Inbound") {
       setActiveTab("checklist");
     } else if (travelInfo.userType === "Outbound") {
       setActiveTab("destinations");
     }
   };
-
+  
   const handleDestinationChange = useCallback(
     <K extends keyof DestinationItem>(
       index: number,
@@ -351,6 +346,10 @@ export default function TravelRequestWizard() {
       destinations: prev.destinations.filter((_, i) => i !== index),
     }));
   }, []);
+
+  useEffect(() => {
+
+  }, [activeTab, availableDependencies]);
 
   return (
     <div className="travel-wizard">

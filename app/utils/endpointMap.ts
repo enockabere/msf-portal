@@ -39,6 +39,7 @@ export const endpointMap = {
   approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
   rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc",
   createTravelAdvanceFromTravel: "/ODataV4/TravelManager_createImprest",
+  travelDependancies: "/api/kinetics/adminTravel/v1.0/profileDependant",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

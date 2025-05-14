@@ -15,3 +15,14 @@ export interface ReducerFunctionActionType {
   type: string
   payload?: any
 }
+
+export interface Dependency {
+visitorNo: string;
+lineNo: number;
+dob: string;
+name: string;
+relation: string;
+gender: string;
+countryOfOrigin: string;
+[key: string]: any;
+}

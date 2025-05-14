@@ -29,7 +29,7 @@ type Quote = {
 export default function BreadcrumbNav() {
   const { breadcrumb } = useBreadcrumb();
   const { data: session } = useSession();
-  const isLoading = !session;
+  // const isLoading = !session;
   const [currentGreeting, setCurrentGreeting] = useState(greetings[0]);
   const [quote, setQuote] = useState<Quote | null>(null);
 
