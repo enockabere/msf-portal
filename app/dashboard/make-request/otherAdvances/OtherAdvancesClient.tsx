@@ -5,8 +5,7 @@ import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
-import SalaryAdvanceForm from "@/app/components/advances/forms/SalaryAdvanceForm";
-import VerticalProgressCard from "@/app/components/advances/forms/VerticalProgressCard";
+import OperationalAdvanceForm from "@/app/components/advances/forms/OperationalAdvanceForm";
 import CustomModal from "@/app/components/modals/CustomModal";
 import {
   FileClock,
@@ -22,14 +21,14 @@ const ReusableSalaryAdvanceTabs = dynamic(
   { ssr: false }
 );
 
-export default function AdvancesClient() {
+export default function OtherAdvancesClient() {
   const { data: session } = useSession();
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeStatusTab, setActiveStatusTab] = useState<string>("open");
+  const [activeStatusTab] = useState<string>("open");
 
   const fetchAdvances = useCallback(async () => {
-    const employeeNo = session?.user?.profile?.no;
+    const employeeNo = session?.user?.profile?.number;
     if (!employeeNo) return;
     setLoading(true);
 
@@ -82,7 +81,7 @@ export default function AdvancesClient() {
       { label: "Dashboard", path: "/dashboard" },
       { label: "Make Request", path: "/dashboard/make-request" },
       {
-        label: "Salary Advance",
+        label: "Advance Requests",
         path: "/dashboard/make-request/advance requests",
       },
     ]);
@@ -209,29 +208,13 @@ export default function AdvancesClient() {
       <CustomModal
         show={showModal}
         onClose={handleCloseModal}
-        title="Request Salary Advance"
+        title="Request Advance"
         size="xl"
         titleIcon={<Wallet size={18} className="text-white" />}
       >
         <div className="row">
-          <div className="col-md-9">
-            <SalaryAdvanceForm
-              onSuccess={(status) => {
-                const statusToTab: Record<string, string> = {
-                  Open: "open",
-                  "Pending Approval": "pending",
-                  Released: "released",
-                };
-                if (status && statusToTab[status]) {
-                  setActiveStatusTab(statusToTab[status]);
-                }
-                handleCloseModal();
-                fetchAdvances();
-              }}
-            />
-          </div>
-          <div className="col-md-3">
-            <VerticalProgressCard advance={null} />
+          <div className="col-md-12">
+            <OperationalAdvanceForm />
           </div>
         </div>
       </CustomModal>

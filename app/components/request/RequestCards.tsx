@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, Eye, PlusCircle } from "lucide-react";
+import { Wallet, Eye, PlusCircle, ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -22,6 +22,8 @@ type RequestType = "Advance" | "Expense" | null;
 
 export default function RequestCards() {
   const router = useRouter();
+  const [showViewDropdown, setShowViewDropdown] = useState(false);
+  const [showNewDropdown, setShowNewDropdown] = useState(false);
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<{
@@ -32,7 +34,7 @@ export default function RequestCards() {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
-  const { data: employee } = useSession();
+  const { data: session } = useSession();
   const { showLoader } = usePageLoader();
 
   useEffect(() => {
@@ -54,11 +56,11 @@ export default function RequestCards() {
   };
 
   const fetchAdvances = useCallback(async () => {
-    if (!employee?.user?.profile?.number) return;
+    if (!session?.user?.profile?.no) return;
     setIsLoading(true);
     try {
       const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employee?.user?.profile?.number}`
+        `/api/bc/advances/salary/requests?employeeNo=${session?.user?.profile?.no}`
       );
       const json = await res.json();
       const data = json?.data?.value || [];
@@ -72,7 +74,7 @@ export default function RequestCards() {
     } finally {
       setIsLoading(false);
     }
-  }, [employee?.user?.profile?.number]);
+  }, [session?.user?.profile?.no]);
 
   useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
@@ -141,26 +143,98 @@ export default function RequestCards() {
               </div>
             </div>
 
-            <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0">
-              <button
-                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
-                onClick={(e) =>
-                  handleNavigate(e, "/dashboard/make-request/advances")
-                }
-              >
-                <Eye size={16} /> View
-              </button>
-
-              <button
-                className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAdvanceType("Salary");
-                  handleOpenModal("Advance");
-                }}
-              >
-                <PlusCircle size={16} /> New
-              </button>
+            <div className="card-footer border-0 bg-transparent d-flex justify-content-center gap-3 pb-3 pt-0 position-relative">
+              <div className="dropdown position-relative">
+                <button
+                  className="btn btn-sm btn-outline-info d-flex align-items-center gap-1 dropdown-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowViewDropdown(!showViewDropdown);
+                    setShowNewDropdown(false);
+                  }}
+                >
+                  <Eye size={16} /> View <ChevronDown size={14} />
+                </button>
+                {showViewDropdown && (
+                  <div
+                    className="dropdown-menu show shadow-sm"
+                    style={{
+                      top: "100%",
+                      left: 0,
+                      zIndex: 1000,
+                    }}
+                  >
+                    <button
+                      className="dropdown-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowViewDropdown(false);
+                        handleNavigate(e, "/dashboard/make-request/advances");
+                      }}
+                    >
+                      Salary Advances
+                    </button>
+                    <button
+                      className="dropdown-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowViewDropdown(false);
+                        handleNavigate(
+                          e,
+                          "/dashboard/make-request/otherAdvances"
+                        );
+                      }}
+                    >
+                      Other Advances
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="dropdown position-relative">
+                <button
+                  className="btn btn-sm btn-outline-success d-flex align-items-center gap-1 dropdown-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowNewDropdown(!showNewDropdown);
+                    setShowViewDropdown(false);
+                  }}
+                >
+                  <PlusCircle size={16} /> New <ChevronDown size={14} />
+                </button>
+                {showNewDropdown && (
+                  <div
+                    className="dropdown-menu show shadow-sm"
+                    style={{
+                      top: "100%",
+                      left: 0,
+                      zIndex: 1000,
+                    }}
+                  >
+                    <button
+                      className="dropdown-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAdvanceType("Salary");
+                        setShowNewDropdown(false);
+                        handleOpenModal("Advance");
+                      }}
+                    >
+                      Salary Advance
+                    </button>
+                    <button
+                      className="dropdown-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAdvanceType("Operational");
+                        setShowNewDropdown(false);
+                        handleOpenModal("Advance");
+                      }}
+                    >
+                      Other Advance
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -210,8 +284,6 @@ export default function RequestCards() {
             </div>
           </div>
         </div>
-
-        {/* Record Expenses Card (Muted) */}
         <div className="col">
           <div
             className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"

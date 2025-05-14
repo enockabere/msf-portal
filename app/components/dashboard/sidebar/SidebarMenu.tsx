@@ -11,8 +11,8 @@ export default function SidebarMenu() {
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
   const [isNavigating] = useState(false);
-  const [approvalCount, setApprovalCount] = useState(0)
-  const { data:employee } = useSession();
+  const [approvalCount, setApprovalCount] = useState(0);
+  const { data: employee } = useSession();
 
   const isGroupActive = (prefix: string) =>
     !isNavigating &&
@@ -30,26 +30,26 @@ export default function SidebarMenu() {
   };
 
   useEffect(() => {
-    const fetchApprovalCount =  async () => {
+    const fetchApprovalCount = async () => {
       try {
-        const res = await getResource('approvalEntries', {
+        const res = await getResource("approvalEntries", {
           params: {
             filters: {
               status: "Open",
-              approverID: employee?.user?.profile?.number
+              approverID: employee?.user?.profile?.number,
             },
-            "$count": true
-          }
-        })
+            $count: true,
+          },
+        });
 
         setApprovalCount(res["@odata.count"] || 0);
       } catch (error) {
         console.error("Failed to fetch approval count:", error);
       }
-    }
+    };
 
-    fetchApprovalCount()
-  }, []);
+    fetchApprovalCount();
+  }, [employee?.user?.profile?.number]);
 
   return (
     <ul className="navbar-nav mb-auto w-100">
@@ -184,10 +184,7 @@ export default function SidebarMenu() {
 
       {/* Static Links */}
       {[
-        { label: "Planning & Budgeting",
-          icon: "page",
-          link: "#",
-        },
+        { label: "Planning & Budgeting", icon: "page", link: "#" },
         {
           label: "Admin & Travel",
           icon: "airplane",
@@ -212,24 +209,24 @@ export default function SidebarMenu() {
           badge: approvalCount,
           badgeClass: "bg-danger",
         },
-        { label: "Reports & Insights",
-          icon: "doc-star", soon: true,
+        {
+          label: "Reports & Insights",
+          icon: "doc-star",
+          soon: true,
           link: "#",
         },
-        { label: "Social Center",
-          icon: "chat-bubble",
-          soon: true ,
-          link: "#",
-        },
+        { label: "Social Center", icon: "chat-bubble", soon: true, link: "#" },
       ].map(({ label, icon, soon, link, badge, badgeClass }) => (
         <li className="nav-item" key={label}>
-          <a className="nav-link" href={ link }>
+          <a className="nav-link" href={link}>
             <i className={`iconoir-${icon} menu-icon`}></i>
             <span>
               {label}
               {soon && <span className="badge bg-warning ms-2">Soon</span>}
               {badge >= 0 && (
-                <span className={`badge ${badgeClass} text-white rounded-pill ms-2`}>
+                <span
+                  className={`badge ${badgeClass} text-white rounded-pill ms-2`}
+                >
                   {badge}
                 </span>
               )}
