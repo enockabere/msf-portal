@@ -77,6 +77,23 @@ export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelInfo, setTravelInfo] = useState<TravelInfo>({
+    documentType: '',
+    no: '',
+    travellerNo: '',
+    TypeOfTravel: '',
+    purposeOfTravel: '',
+    departureDate: '',
+    returnDate: '',
+    annualTrip: false,
+    modeOfTransport: '',
+    arrivalDate: '',
+    estimatedTimeOfArrival: '',
+    pickupLocation: '',
+    dropOffLocation: '',
+    passportNo: '',
+    requirePerDiem: '',
+    shortcutDimension1Code: '',
+
     userType: "",
     residentStatus: "",
     basedOnRequest: "Yes",
