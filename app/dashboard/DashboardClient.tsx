@@ -17,6 +17,8 @@ export default function DashboardClient() {
     mobilePhone: employee?.user?.profile?.mobilePhone || "",
   };
 
+  console.log(employee);
+
   useEffect(() => {
     setBreadcrumb([]);
   }, [setBreadcrumb]);

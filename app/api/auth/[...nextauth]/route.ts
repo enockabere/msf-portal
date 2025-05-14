@@ -7,12 +7,28 @@ declare module "next-auth" {
   interface Session {
     accessToken?: string;
     user: {
+      citizenNonCitizen: string;
+      postCode: string;
+      city: string;
+      passportIDNo: string;
+      title: string;
+      countryRegionCode: string;
+      gender: string;
+      dateOfBirth: string;
+      lastName: string;
+      middleName: string;
+      firstName: string;
+      location: string;
+      position: string;
+      department: string;
+      phone: string;
       id?: string;
       name?: string | null;
       email?: string | null;
       image?: string | null;
       profile?: Record<string, any> | null;
     };
+    error?: string;
   }
 }
 
@@ -27,42 +43,34 @@ const handler = NextAuth({
   session: {
     maxAge: 1 * 24 * 60 * 60,
   },
-  // pages: {
-  //     signIn: '/'
-  // },
   callbacks: {
-    // async redirect({ url, baseUrl }) {
-    //     const urlObject: URL = new URL(url);
-    //     console.log('url', url)
-    //     console.log('object url', urlObject)
-    //     if (url.startsWith("/")) return `${baseUrl}${url}`
-    //     else if (urlObject.pathname !== "/") return url
-    //     else return `${baseUrl}/dashboard`
-    // },
     async session({ session, token }) {
-      session.user.profile = token.profile as Record<string, any> | null;
+      session.user.profile = token.profile as any;
+      if (token.error) session.error = token.error as string;
       return session;
     },
     async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
-        const employee = (await transport.get(
-          "/api/KineticTechnology/ESS/v1.0/leavemployees",
-          {
-            $filter: `companyEmail eq '${profile?.email}' and companyEmail ne ''`,
-            company: process.env.BC_COMPANY_NAME,
-          }
-        )) as Record<string, any> | null;
-        if (employee && Object.keys(employee)) {
-          if (Array.isArray(employee?.value) && employee?.value.length) {
-            token.profile = employee?.value.at(0);
+        try {
+          const response = (await transport.get(
+            "/api/kinetics/adminTravel/v1.0/userProfiles",
+            {
+              $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
+              company: process.env.BC_COMPANY_NAME,
+            }
+          )) as any;
+          if (Array.isArray(response?.value) && response.value.length > 0) {
+            token.profile = response.value[0];
           } else {
-            token.profile = {
-              role: "Other User",
-            };
+            token.profile = null;
           }
+        } catch (error: any) {
+          console.error("Error fetching user profile:", error);
+          token.error = "Failed to fetch user profile. Please try again later.";
         }
       }
+
       return token;
     },
   },

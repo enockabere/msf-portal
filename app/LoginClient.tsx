@@ -15,36 +15,21 @@ import "./tailwind.css";
 import Particles from "react-particles";
 import { loadSlim } from "tsparticles-slim";
 import type { ISourceOptions } from "tsparticles-engine";
+import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
+import PageLoader from "./components/loaders/PageLoader";
 
 export default function LandingPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
   const particlesInit = async (main: any) => {
     await loadSlim(main);
   };
 
-  const particleOptions: ISourceOptions = {
-    fullScreen: { enable: false },
-    background: { color: "transparent" },
-    particles: {
-      number: { value: 30 },
-      color: { value: "#e52129" },
-      size: { value: 1.5 },
-      opacity: {
-        value: 0.2,
-        random: true,
-        anim: { enable: false },
-      },
-      move: {
-        enable: true,
-        speed: 0.4,
-        direction: "none" as const,
-        outModes: { default: "out" },
-      },
-    },
-  };
+  const { data: session, status } = useSession();
 
   const features = [
     {
@@ -69,6 +54,7 @@ export default function LandingPage() {
     },
   ];
 
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -77,6 +63,7 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Feature rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
@@ -84,13 +71,73 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [features.length]);
 
+  // Loaded state
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
+  // Session handling
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    const attemptedLogin = sessionStorage.getItem("loginAttempt");
+    if (!attemptedLogin) return;
+
+    sessionStorage.removeItem("loginAttempt");
+
+    const profile = session.user?.profile;
+
+    if (session.error) {
+      Swal.fire({
+        icon: "error",
+        title: "Access Denied",
+        text: session.error,
+      });
+      return;
+    }
+
+    if (profile?.type === "Employee") {
+      window.location.replace("/dashboard");
+    } else {
+      localStorage.setItem("showProfileToast", "true");
+      window.location.replace("/inbound");
+    }
+  }, [session, status]);
+
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="bg-light h-screen flex justify-center items-center">
+        <PageLoader />
+      </div>
+    );
+  }
+
+  const particleOptions: ISourceOptions = {
+    fullScreen: { enable: false },
+    background: { color: "transparent" },
+    particles: {
+      number: { value: 30 },
+      color: { value: "#e52129" },
+      size: { value: 1.5 },
+      opacity: {
+        value: 0.2,
+        random: true,
+        anim: { enable: false },
+      },
+      move: {
+        enable: true,
+        speed: 0.4,
+        direction: "none" as const,
+        outModes: { default: "out" },
+      },
+    },
+  };
+
   const handleSSORedirect = () => {
+    sessionStorage.setItem("loginAttempt", "true");
     setIsLoggingIn(true);
-    signIn("azure-ad", { callbackUrl: "/dashboard" });
+    signIn("azure-ad");
   };
 
   return (
