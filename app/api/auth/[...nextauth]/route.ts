@@ -59,10 +59,6 @@ const handler = NextAuth({
                     if (Array.isArray(employee?.value) && employee?.value.length) {
 
                         token.profile = employee?.value.at(0)
-                    } else {
-                        token.profile = {
-                            role: "Other User"
-                        }
                     }
                 }
             }

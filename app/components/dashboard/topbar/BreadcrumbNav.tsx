@@ -29,6 +29,7 @@ type Quote = {
 export default function BreadcrumbNav() {
   const { breadcrumb } = useBreadcrumb();
   const { data: employee } = useSession();
+  const isLoading = !employee;
   const [currentGreeting, setCurrentGreeting] = useState(greetings[0]);
   const [quote, setQuote] = useState<Quote | null>(null);
 
@@ -71,10 +72,10 @@ export default function BreadcrumbNav() {
       <li className="mx-3 welcome-text">
         <h3 className="mb-0 fw-bold text-truncate">
           {currentGreeting.greeting},{" "}
-          {employee?.user?.profile?.firstName ? (
-            employee?.user?.profile?.firstName
+          {isLoading ? (
+              <Skeleton width={100} />
           ) : (
-            <Skeleton width={100} />
+              employee?.user?.profile?.firstName || employee?.user?.name
           )}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
