@@ -1,7 +1,7 @@
 "use client";
 
 import { Wallet, Eye, PlusCircle, ChevronDown } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, startTransition } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../dashboard/cards/Cards.css";
@@ -14,17 +14,40 @@ import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
-import TravelRequestWizard from "../travel/TravelRequestWizard";
-import { startTransition } from "react";
+import { useMySetups } from "@/app/context/SetupContext";
+import { ENDPOINTMAP } from "@/app/utils/endpointMap";
+import { EndpointOptions } from "@/app/types/global";
+import Swal from "sweetalert2";
 
-type AdvanceType = "Salary" | "Operational" | "Travel" | null;
+
+type AdvanceTypeKey = "Salary" | "Other" | null;
 type RequestType = "Advance" | "Expense" | null;
+
+interface AdvanceType {
+  title: string;
+  key: AdvanceTypeKey;
+  [key: string]: any;
+}
+
+const captions = {
+  Other: "",
+}
+
+const advances: AdvanceType[] = [
+  {
+    title: 'Salary Advance',
+    key: 'Salary'
+  },
+  {
+    title: 'Other Advance',
+    key: 'Other'
+  },
+];
 
 export default function RequestCards() {
   const router = useRouter();
   const [showViewDropdown, setShowViewDropdown] = useState(false);
   const [showNewDropdown, setShowNewDropdown] = useState(false);
-
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<{
     pending: number;
@@ -32,15 +55,12 @@ export default function RequestCards() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
+  const [advanceType, setAdvanceType] = useState<AdvanceTypeKey>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: session } = useSession();
   const { showLoader } = usePageLoader();
+  const { fetchSetups } = useMySetups()
 
-  useEffect(() => {
-    router.prefetch("/dashboard/make-request/advances");
-    router.prefetch("/dashboard/make-request/travel");
-  }, [router]); //
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -54,6 +74,41 @@ export default function RequestCards() {
     setRequestType(type);
     setShowModal(true);
   };
+  const handleSetAdvanceType = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const dataType = event.currentTarget.getAttribute('datatype') as AdvanceTypeKey
+    switch (dataType) {
+      case 'Salary': {
+        setAdvanceType(dataType);
+        setShowNewDropdown(false);
+        handleOpenModal("Advance");
+        break;
+      }
+      case 'Other': {
+        //setloader
+        await fetchSetups([
+          'imprestTypes',
+          'currencies',
+          {
+            paymentMethods: {
+              filters: {
+                isImprest: true,
+              }
+            } as EndpointOptions,
+          } as Record<ENDPOINTMAP, EndpointOptions>,
+        ]).catch((err) => {
+          Swal.fire({
+            title: "Error Fetching setups!",
+            text: "Please try again later. " + err.message,
+          });
+        });
+        setAdvanceType(dataType);
+        setShowNewDropdown(false);
+        handleOpenModal("Advance");
+        break;
+      }
+    }
+  }
 
   const fetchAdvances = useCallback(async () => {
     if (!session?.user?.profile?.no) return;
@@ -77,6 +132,10 @@ export default function RequestCards() {
   }, [session?.user?.profile?.no]);
 
   useEffect(() => {
+    router.prefetch("/dashboard/make-request/advances");
+    router.prefetch("/dashboard/make-request/travel");
+  }, [router]); //
+  useEffect(() => {
     if (activeIndex === 0 && !metrics && !isLoading) {
       fetchAdvances();
     }
@@ -87,9 +146,8 @@ export default function RequestCards() {
       <div className="row row-cols-1 row-cols-md-4 g-3">
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 0 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -210,28 +268,20 @@ export default function RequestCards() {
                       zIndex: 1000,
                     }}
                   >
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAdvanceType("Salary");
-                        setShowNewDropdown(false);
-                        handleOpenModal("Advance");
-                      }}
-                    >
-                      Salary Advance
-                    </button>
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAdvanceType("Operational");
-                        setShowNewDropdown(false);
-                        handleOpenModal("Advance");
-                      }}
-                    >
-                      Other Advance
-                    </button>
+                    {
+                      advances.map((advance: AdvanceType) => {
+                        return (
+                          <button
+                            className="dropdown-item"
+                            key={advance.key}
+                            datatype={advance.key}
+                            onClick={handleSetAdvanceType}
+                          >
+                            {advance.title}
+                          </button>
+                        )
+                      })
+                    }
                   </div>
                 )}
               </div>
@@ -240,9 +290,8 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 1 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 1 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -271,7 +320,7 @@ export default function RequestCards() {
                 <Eye size={16} /> View
               </button>
 
-              <button
+              {/* <button
                 className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -280,7 +329,7 @@ export default function RequestCards() {
                 }}
               >
                 <PlusCircle size={16} /> New
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -335,7 +384,7 @@ export default function RequestCards() {
         title={
           requestType === "Expense"
             ? "Record Expense"
-            : `Request ${advanceType} Advance`
+            : `Request ${captions[advanceType]} Advance`
         }
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
@@ -356,14 +405,9 @@ export default function RequestCards() {
               </div>
             </>
           )}
-          {requestType === "Advance" && advanceType === "Operational" && (
+          {requestType === "Advance" && advanceType === "Other" && (
             <div className="col-md-12">
               <OperationalAdvanceForm />
-            </div>
-          )}
-          {requestType === "Advance" && advanceType === "Travel" && (
-            <div className="col-md-12">
-              <TravelRequestWizard />
             </div>
           )}
           {requestType === "Expense" && (

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
-import { memoryMap } from "@/app/utils/endpointMap";
-import { APIResponse } from "@/app/types/global";
+import { ENDPOINTMAP, memoryMap } from "@/app/utils/endpointMap";
+import { APIResponse, EndpointOptions } from "@/app/types/global";
 export async function POST(request: Request) {
   try {
     const { endpoints, resolveAll } = await request.json();
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const batchRequest = endpoints.map((endpoint: string) => {
+    const batchRequest = endpoints.map((endpoint: Record<ENDPOINTMAP, EndpointOptions> | string) => {
       const requstOptions = {} as Record<string, any>;
       if (typeof endpoint === "object") {
         for (const [key, value] of Object.entries(endpoint)) {
@@ -40,15 +40,19 @@ export async function POST(request: Request) {
               company: process.env.BC_COMPANY_NAME,
             };
             requstOptions["method"] = "GET";
+          } else {
+            throw new Error('Endpoint Value must be an object!', { cause: 400 });
           }
         }
       }
-      if (typeof endpoint === "string") {
+      else if (typeof endpoint === "string") {
         requstOptions["method"] = "GET";
         requstOptions["url"] = memoryMap.get(endpoint);
         requstOptions["params"] = {
           company: process.env.BC_COMPANY_NAME,
         };
+      } else {
+        throw new Error("endpoint can only be of type string or object!", { cause: 400 });
       }
       return requstOptions;
     });
@@ -83,11 +87,34 @@ export async function POST(request: Request) {
       }
     });
     return NextResponse.json(result);
-  } catch (e) {
-    console.log(e);
+  } catch (e: any) {
+    let status: number = 500;
+    let statusCode: string = 'Internal Server Error!';
+    switch (e.cause) {
+      case 400: {
+        status = 400;
+        statusCode = 'Invalid Request!';
+        break;
+      }
+      case 404: {
+        status = 404;
+        statusCode = 'Not Found!';
+        break;
+      }
+      case 415: {
+        status = 415;
+        statusCode = 'Huge payload!';
+        break;
+      }
+      case 302: {
+        status = 302;
+        statusCode = 'Redirect!';
+        break;
+      }
+    }
     return NextResponse.json(
-      { error: "Internal Server Error', 'Internal Server Error!" },
-      { status: 500 }
+      { error: `${statusCode}, ${e.message || 'Server Error!'}` },
+      { status: status }
     );
   }
 }

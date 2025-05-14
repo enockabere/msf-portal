@@ -6,6 +6,11 @@ import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
 import OperationalLineStep from "./Operational/OperationalLineStep";
 import { ExpenseItem, FormData } from "@/app/types/advance";
+import { findObjectFromArray } from "@/app/utils/helpers";
+import { useMySetups } from "@/app/context/SetupContext";
+import { useSession } from "next-auth/react";
+import { EndpointOptions } from "@/app/types/global";
+import { ENDPOINTMAP } from "@/app/utils/endpointMap";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
@@ -13,7 +18,7 @@ export default function OperationalAdvanceForm() {
     purpose: "",
     amount: "0",
     currency: "KES",
-    paymentMethod: "Mpesa",
+    paymentMethod: "",
     cashCollectionDate: "",
     cashHours: "morning",
     idPassportNumber: "",
@@ -22,10 +27,12 @@ export default function OperationalAdvanceForm() {
     branch: "Westlands",
     chequeName: "",
     swiftCode: "",
-    phone: "712345678",
+    phoneNo: "712345678",
   });
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { paymentMethods, fetchSetups } = useMySetups();
+  const { data } = useSession()
 
   const handleFormChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,6 +98,34 @@ export default function OperationalAdvanceForm() {
     console.log("Apply for surrender");
   };
 
+  const getProfileValues = async () => {
+    if (!formData.paymentMethod) return null;
+    const type: string = findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type as string;
+    switch (type) {
+      case 'Mpesa': {
+        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+        handleFormChange('idPassportNumber', String(data.user?.profile?.identificationDocumentNo));
+        break;
+      }
+      case "Cheques":
+      case "Bank_x0020_Transfer": {
+        if (data.user?.profile?.type !== 'Employee') return
+        await fetchSetups([
+          {
+            'employeeBanks': {
+              filters: {
+                employee: data.user?.profile?.no
+              }
+            } as EndpointOptions
+          } as Record<ENDPOINTMAP, EndpointOptions>
+        ]);
+        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+      }
+    }
+  }
+
   useEffect(() => {
     const total = expenses.reduce(
       (acc, item) => acc + (isNaN(item.amount) ? 0 : item.amount),
@@ -98,6 +133,10 @@ export default function OperationalAdvanceForm() {
     );
     setFormData((prev) => ({ ...prev, amount: total.toString() }));
   }, [expenses]);
+
+  useEffect(() => {
+    getProfileValues();
+  }, [formData.paymentMethod, formData.phoneNo])
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
@@ -134,9 +173,8 @@ export default function OperationalAdvanceForm() {
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${
-              currentStep === step ? "bg-danger" : "bg-secondary"
-            }`}
+            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
+              }`}
             style={{
               width: "10px",
               height: "10px",

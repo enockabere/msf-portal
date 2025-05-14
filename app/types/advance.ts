@@ -57,5 +57,5 @@ export interface FormData {
   branch: string;
   chequeName: string;
   swiftCode: string;
-  phone: string;
+  phoneNo: string;
 }

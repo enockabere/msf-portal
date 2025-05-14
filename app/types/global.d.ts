@@ -17,12 +17,17 @@ export interface ReducerFunctionActionType {
 }
 
 export interface Dependency {
-visitorNo: string;
-lineNo: number;
-dob: string;
-name: string;
-relation: string;
-gender: string;
-countryOfOrigin: string;
-[key: string]: any;
+  visitorNo: string;
+  lineNo: number;
+  dob: string;
+  name: string;
+  relation: string;
+  gender: string;
+  countryOfOrigin: string;
+  [key: string]: any;
+}
+export interface EndpointOptions {
+  filters?: Record<string, any>;
+  select?: Array<string>;
+  [key: string]: any;
 }
