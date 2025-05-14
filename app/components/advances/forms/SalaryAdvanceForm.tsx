@@ -101,7 +101,7 @@ export default function SalaryAdvanceForm({
   const didSetInitialAmount = useRef(false);
 
   const { data: session } = useSession();
-  const employeeNo = session?.user?.profile?.number;
+  const employeeNo = session?.user?.profile?.no;
 
   const {
     currencies,
@@ -320,17 +320,17 @@ export default function SalaryAdvanceForm({
         ? advanceMobilePhoneNo.slice(4)
         : advanceMobilePhoneNo;
       setPhone(cleanPhone);
-    } else if (!advance && session?.user?.profile?.mobilePhone) {
-      const cleanEmpPhone = session.user.profile.mobilePhone.startsWith("+254")
-        ? session.user.profile.mobilePhone.slice(4)
-        : session.user.profile.mobilePhone;
+    } else if (!advance && session?.user?.profile?.phoneNo) {
+      const cleanEmpPhone = session.user.profile.phoneNo.startsWith("+254")
+        ? session.user.profile.phoneNo.slice(4)
+        : session.user.profile.phoneNo;
       setPhone(cleanEmpPhone);
     }
 
     if (advanceIdNo) {
       setIdNumber(advanceIdNo);
-    } else if (!advance && session?.user?.profile?.nationalId) {
-      setIdNumber(session.user.profile.nationalId);
+    } else if (!advance && session?.user?.profile?.identificationDocumentNo) {
+      setIdNumber(session.user.profile.identificationDocumentNo);
     }
   }, [advanceMobilePhoneNo, advanceIdNo, advance, session]);
 

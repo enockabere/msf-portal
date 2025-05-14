@@ -29,7 +29,7 @@ export default function AdvancesClient() {
   const [activeStatusTab, setActiveStatusTab] = useState<string>("open");
 
   const fetchAdvances = useCallback(async () => {
-    const employeeNo = session?.user?.profile?.number;
+    const employeeNo = session?.user?.profile?.no;
     if (!employeeNo) return;
     setLoading(true);
 
