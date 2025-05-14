@@ -9,12 +9,12 @@ import { useSession } from "next-auth/react";
 
 export default function DashboardClient() {
   const { setBreadcrumb } = useBreadcrumb();
-  const { data: employee } = useSession();
+  const { data: session } = useSession();
 
   const employeeData = {
-    number: employee?.user?.profile?.number || "",
-    nationalId: employee?.user?.profile?.nationalId || "",
-    mobilePhone: employee?.user?.profile?.mobilePhone || "",
+    number: session?.user?.profile?.no || "",
+    nationalId: session?.user?.profile?.identificationDocumentNo || "",
+    mobilePhone: session?.user?.profile?.phoneNo || "",
   };
 
   useEffect(() => {

@@ -28,7 +28,7 @@ type Quote = {
 
 export default function BreadcrumbNav() {
   const { breadcrumb } = useBreadcrumb();
-  const { data: employee } = useSession();
+  const { data: session } = useSession();
   const [currentGreeting, setCurrentGreeting] = useState(greetings[0]);
   const [quote, setQuote] = useState<Quote | null>(null);
 
@@ -71,11 +71,7 @@ export default function BreadcrumbNav() {
       <li className="mx-3 welcome-text">
         <h3 className="mb-0 fw-bold text-truncate">
           {currentGreeting.greeting},{" "}
-          {employee?.user?.profile?.firstName ? (
-            employee?.user?.profile?.firstName
-          ) : (
-            <Skeleton width={100} />
-          )}
+          {session?.user?.profile?.firstName ? session?.user?.profile?.firstName : <Skeleton width={100} />}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
           {quoteText}
@@ -88,7 +84,7 @@ export default function BreadcrumbNav() {
     <li className="mx-3">
       <h3 className="mb-0 fw-bold text-truncate">
         {currentGreeting.greeting},{" "}
-        {employee?.user?.profile?.firstName || <Skeleton width={100} />}
+        {session?.user?.profile?.firstName || <Skeleton width={100} />}
       </h3>
       <div className="d-flex align-items-center py-2 rounded-3">
         <Link
