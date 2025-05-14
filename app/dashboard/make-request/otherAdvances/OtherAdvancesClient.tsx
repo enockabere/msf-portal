@@ -25,7 +25,7 @@ export default function OtherAdvancesClient() {
   const { data: session } = useSession();
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeStatusTab, setActiveStatusTab] = useState<string>("open");
+  const [activeStatusTab] = useState<string>("open");
 
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.number;
