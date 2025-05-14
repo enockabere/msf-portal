@@ -2,39 +2,19 @@
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
 
-interface UserProfilePayload {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  gender: string;
-  countryRegionCode: string;
-  title?: string;
-  passportIDNo?: string;
-  city: string;
-  postCode?: string;
-  citizenNonCitizen: string;
-  image?: string;
-}
-
 export async function POST(request: Request) {
   try {
-    // Log the incoming request
-    console.log("Incoming request to /api/bc/user-profiles");
-
     const body = await request.json();
     console.log("Received form data:", JSON.stringify(body, null, 2));
 
     const payload: Record<string, any> = {
-      type: body.type || "Visitor", // or "Employee" based on your logic
-      no: body.no || "", // required field, empty for new creation
+      type: body.type || "51650",
+      no: body.no || "",
       firstName: body.firstName,
       middleName: body.middleName || "",
       lastName: body.lastName,
-      phoneNo: body.phone, // mapped correctly
-      eMail: body.email, // mapped correctly
+      phoneNo: body.phone,
+      eMail: body.email,
       dateOfBirth: body.dateOfBirth,
       gender: body.gender,
       countryRegionCode: body.countryRegionCode,
