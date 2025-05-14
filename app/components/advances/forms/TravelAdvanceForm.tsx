@@ -15,7 +15,6 @@ export default function TravelAdvanceForm() {
     tripDates: { from: "", to: "" },
     destination: "",
     applyForOther: "No",
-    recipientName: "",
     currency: "",
     paymentMethod: "",
   });

@@ -2,21 +2,13 @@
 
 import { useEffect } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
-// import InboundTravelNotice from "./InboundTravelNotice";
-// import OutboundTravelForm from "./OutboundTravelForm";
+import { useMySetups } from "@/app/context/SetupContext";
 
 const COST_CENTERS = [
   { code: "HR", name: "Human Resources" },
   { code: "FIN", name: "Finance" },
   { code: "OPS", name: "Operations" },
   { code: "IT", name: "Information Technology" },
-];
-
-const TRAVEL_REASONS = [
-  { code: "CONFERENCE", name: "Conference" },
-  { code: "EVENT", name: "Event" },
-  { code: "WORK", name: "Work" },
-  { code: "WORKSHOP", name: "Workshop" },
 ];
 
 const ACCOMMODATION_TYPES = [
@@ -34,6 +26,25 @@ interface Props {
 }
 
 export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
+  const {
+    purposeOfTravel,
+    fetchSetups,
+  } = useMySetups();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await fetchSetups([
+          'purposeOfTravel',
+        ]);
+      } finally {
+        //
+      }
+    };
+
+    loadData();
+  }, [fetchSetups]);
+
   useEffect(() => {
     if (travelInfo.travelType && travelInfo.costCenter) {
       const randomTrips = Math.floor(Math.random() * 5) + 1;
@@ -43,56 +54,6 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
 
   return (
     <>
-      {/* User Info Section */}
-      <div className="border rounded p-3 mb-4">
-        <h6 className="text-dark fw-bold">User Information</h6>
-        <small className="text-muted">
-          Fields for test purposes. Data to come from BC user profile on
-          integration. <span className="text-danger">*</span>
-        </small>
-
-        <div className="row g-3 mt-2">
-          {/* User Type */}
-          <div className="col-md-6">
-            <label className="form-label">User Type</label>
-            <select
-              className="form-select"
-              value={travelInfo.userType}
-              onChange={(e) =>
-                handleChange(
-                  "userType",
-                  e.target.value as TravelInfo["userType"]
-                )
-              }
-            >
-              <option value="">-- Select User Type --</option>
-              <option value="Inbound">Inbound</option>
-              <option value="Outbound">Outbound</option>
-            </select>
-          </div>
-
-          {/* Are you a Resident? */}
-          <div className="col-md-6">
-            <label className="form-label">Nationality?</label>
-            <select
-              className="form-select"
-              value={travelInfo.residentStatus}
-              onChange={(e) =>
-                handleChange(
-                  "residentStatus",
-                  e.target.value as "Resident" | "Non-Resident"
-                )
-              }
-              disabled={travelInfo.userType !== "Outbound"}
-            >
-              <option value="">-- Select Status --</option>
-              <option value="Resident">Kenyan</option>
-              <option value="Non-Resident">Foreigner</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <div className="border rounded p-3 bg-light-subtle mt-3">
         <h6 className="text-dark fw-bold">Travel Details</h6>
         <div className="row g-3">
@@ -144,13 +105,13 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
             </label>
             <select
                 className="form-select"
-                value={travelInfo.reason || ""}
+                value={travelInfo.purposeOfTravel}
                 onChange={(e) => handleChange("reason", e.target.value)}
             >
-              <option value="">-- Select Reason --</option>
-              {TRAVEL_REASONS.map((item) => (
+              <option value="">-- Select Purpose --</option>
+              {purposeOfTravel.map((item) => (
                   <option key={item.code} value={item.code}>
-                    {item.name}
+                    {item.description}
                   </option>
               ))}
             </select>
@@ -226,15 +187,6 @@ export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
           </div>
         </div>
       </div>
-
-      {/*/!* Conditional Form Rendering *!/*/}
-      {/*{travelInfo.userType === "Inbound" && <InboundTravelNotice />}*/}
-      {/*{travelInfo.userType === "Outbound" && (*/}
-      {/*  <OutboundTravelForm*/}
-      {/*    travelInfo={travelInfo}*/}
-      {/*    handleChange={handleChange}*/}
-      {/*  />*/}
-      {/*)}*/}
     </>
   );
 }

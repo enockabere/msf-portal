@@ -72,11 +72,9 @@ export default function BreadcrumbNav() {
       <li className="mx-3 welcome-text">
         <h3 className="mb-0 fw-bold text-truncate">
           {currentGreeting.greeting},{" "}
-          {session?.user?.profile?.firstName ? (
-              session?.user?.profile?.firstName
-          ) : (
-            <Skeleton width={100} />
-          )}
+          {isLoading
+              ? <Skeleton width={100} />
+              : (session?.user?.profile?.firstName || session?.user?.name)}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
           {quoteText}

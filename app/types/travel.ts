@@ -12,22 +12,6 @@ export interface TravelDates {
 }
 
 export interface TravelInfo {
-  userType: "Inbound" | "Outbound" | "";
-  residentStatus: "Resident" | "Non-Resident" | "";
-  basedOnRequest: BasedOnRequest;
-  travelRequestId: TravelRequestId;
-  tripType: TripType;
-  costCenter: string;
-  remainingTrips: string;
-  tripDates: TravelDates;
-  destination: string;
-  applyForOther: "Yes" | "No";
-  recipientName: string;
-  currency: Currency;
-  paymentMethod: PaymentMethod;
-  travelType: TripType;
-  visaRequired: YesNo;
-  workPermitRequired: YesNo;
   [key: string]: any;
   destinations: {
     id: string;
