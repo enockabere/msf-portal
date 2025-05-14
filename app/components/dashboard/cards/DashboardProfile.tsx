@@ -51,15 +51,16 @@ export default function DashboardProfile() {
                   {isLoading ? (
                     <Skeleton width={180} />
                   ) : (
-                    `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
+                      employee?.user?.profile
+                          ? `${employee?.user?.profile?.firstName} ${employee?.user?.profile?.lastName}`
+                          : employee?.user.name
                   )}
                 </h5>
                 <p className="text-muted mb-0">
                   {isLoading ? (
                     <Skeleton width={140} />
                   ) : (
-                    employee?.user?.profile?.jobTitle ||
-                    "Employee?.user?.profile?"
+                    employee?.user?.profile?.jobTitle || ''
                   )}
                 </p>
               </div>
@@ -68,22 +69,22 @@ export default function DashboardProfile() {
         </div>
 
         <div className="mt-3">
-          <div className="text-muted mb-2 d-flex align-items-center">
+          <div className="text-body mb-2 d-flex align-items-center">
             <Mail size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Email:</span>
             {isLoading ? (
               <Skeleton width={180} />
             ) : (
               <a
-                href={`mailto:${employee?.user?.profile?.email}`}
+                href={`mailto:${employee?.user?.profile?.email || employee?.user?.email}`}
                 className="text-primary text-decoration-underline"
               >
-                {employee?.user?.profile?.email}
+                {employee?.user?.profile?.email || employee?.user?.email}
               </a>
             )}
           </div>
 
-          <div className="text-body mb-3 d-flex align-items-center">
+          <div className="text-body mb-2 d-flex align-items-center">
             <Phone size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Phone:</span>
             {isLoading ? (
@@ -99,7 +100,7 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
-              employee?.user?.profile?.number
+              employee?.user?.profile?.number || 'N/A'
             )}
           </div>
 
@@ -109,9 +110,9 @@ export default function DashboardProfile() {
             {isLoading ? (
               <Skeleton width={140} />
             ) : (
-              new Date(
                 employee?.user?.profile?.employmentDate
-              ).toLocaleDateString()
+                    ? new Date(employee?.user?.profile?.employmentDate).toLocaleDateString()
+                    : 'N/A'
             )}
           </div>
 

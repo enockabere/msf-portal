@@ -1,16 +1,16 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import {signOut, useSession} from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
-import {useEffect, useState} from "react";
-import {getResource} from "@/app/lib/api/http";
+import { useEffect, useState, startTransition } from "react";
+import { getResource } from "@/app/lib/api/http";
 
 export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating] = useState(false);
   const [approvalCount, setApprovalCount] = useState(0)
   const { data:employee } = useSession();
 
@@ -19,14 +19,13 @@ export default function SidebarMenu() {
     currentPath.startsWith(prefix) &&
     currentPath !== "/dashboard";
 
-  const handleNav = async (e: React.MouseEvent, href: string) => {
+  const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
-      setIsNavigating(true);
       showLoader();
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      router.push(href);
-      setTimeout(() => setIsNavigating(false), 300);
+      startTransition(() => {
+        router.push(href);
+      });
     }
   };
 
