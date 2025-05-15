@@ -6,32 +6,36 @@ import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
 import OperationalLineStep from "./Operational/OperationalLineStep";
 import { ExpenseItem, FormData } from "@/app/types/advance";
-import { findObjectFromArray } from "@/app/utils/helpers";
+import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
 import { EndpointOptions } from "@/app/types/global";
 import { ENDPOINTMAP } from "@/app/utils/endpointMap";
+import { createResource } from "@/app/lib/api/http";
+import Swal from "sweetalert2";
+import { formatDate } from "@/app/utils/dateFormats";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [formData, setFormData] = useState<FormData>({
-    purpose: "",
-    amount: "0",
-    currency: "KES",
+    imprestType: "",
+    Purpose: "",
+    amountToPayHeader: null,
+    currencyCode: "",
     paymentMethod: "",
     cashCollectionDate: "",
-    cashHours: "morning",
+    cashHours: "",
     idPassportNumber: "",
-    accountNo: "1234567890",
-    bank: "Equity Bank",
-    branch: "Westlands",
-    chequeName: "",
+    accountNo: "",
+    bankNo: "",
+    branch: "",
     swiftCode: "",
-    phoneNo: "712345678",
+    phoneNo: "",
+    accountName: "",
   });
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { paymentMethods, fetchSetups } = useMySetups();
+  const { paymentMethods, employeeBanks, fetchSetups } = useMySetups();
   const { data } = useSession()
 
   const handleFormChange = (field: keyof FormData, value: string) => {
@@ -81,8 +85,36 @@ export default function OperationalAdvanceForm() {
     setExpenses(updated);
   };
 
-  const handleNext = () => {
-    setCurrentStep(2);
+  const handleNext = async () => {
+    try {
+      const pDate = new Date().toString();
+
+      const presets: Record<string, any> = {
+        documentType: 'Imprest',
+        postingDate: formatDate(pDate, 'YYYY-MM-DD'),
+        employeeNo: data.user?.profile?.no,
+        requestedBy: data.user?.profile?.no,
+        requestedByFor: data.user?.profile?.no
+      };
+      const strippedPayLoad = removeNullAndUndefinedFromObject({ ...formData, ...presets });
+      const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode']);
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode']);
+      console.log('validation: ', isMissingRequiredProp)
+      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
+      if (isMissingRequiredProp.missing) {
+        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
+      }
+      const res = await createResource('imprest', {
+        data: knownSchema,
+      });
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message);
+      }
+      console.log('created resource', res);
+      setCurrentStep(2);
+    } catch (error: any) {
+      Swal.fire('Error!', error.message)
+    }
   };
 
   const handlePrev = () => {
@@ -111,32 +143,53 @@ export default function OperationalAdvanceForm() {
       case "Bank_x0020_Transfer": {
         if (data.user?.profile?.type !== 'Employee') return
         await fetchSetups([
+          "banks",
+          "bankBranches",
           {
             'employeeBanks': {
               filters: {
-                employee: data.user?.profile?.no
+                employee: data.user?.profile?.no,
+                default: true,
               }
             } as EndpointOptions
           } as Record<ENDPOINTMAP, EndpointOptions>
         ]);
-        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
-        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
-        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+        handleFormChange('accountNo', String(employeeBanks?.[0]?.accountNo));
+        handleFormChange('accountName', String(employeeBanks?.[0]?.name));
+        handleFormChange('bankNo', String(employeeBanks?.[0]?.bankCode));
+        handleFormChange('branch', String(employeeBanks?.[0]?.bankBranch));
+        handleFormChange('swiftCode', String(employeeBanks?.[0]?.swiftCode));
       }
     }
   }
 
+  const getBankBranches = async () => {
+    if (!formData.bankNo) return null;
+    await fetchSetups([
+      {
+        'bankBranches': {
+          filters: {
+            mainBank: formData.bankNo,
+          }
+        } as EndpointOptions
+      } as Record<ENDPOINTMAP, EndpointOptions>
+    ]);
+  }
   useEffect(() => {
     const total = expenses.reduce(
       (acc, item) => acc + (isNaN(item.amount) ? 0 : item.amount),
       0
     );
-    setFormData((prev) => ({ ...prev, amount: total.toString() }));
+    setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
   }, [expenses]);
 
   useEffect(() => {
     getProfileValues();
-  }, [formData.paymentMethod, formData.phoneNo])
+  }, [formData.paymentMethod]);
+
+  useEffect(() => {
+    getBankBranches();
+  }, [formData.bankNo]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
