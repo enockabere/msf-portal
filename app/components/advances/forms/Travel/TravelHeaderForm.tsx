@@ -22,10 +22,11 @@ const TRIP_TYPES = ["One Way", "Return", "Multi-City"];
 
 interface Props {
   travelInfo: TravelInfo;
+  profile: Record<string, any>;
   handleChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ travelInfo, handleChange }: Props) {
+export default function TravelHeaderForm({ travelInfo, profile, handleChange }: Props) {
   const {
     purposeOfTravel,
     fetchSetups,

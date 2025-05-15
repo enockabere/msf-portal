@@ -94,9 +94,10 @@ export default function TravelRequestWizard() {
         pickupLocation: '',
         dropOffLocation: '',
         passportNo: '',
-        requirePerDiem: '',
+        requirePerDiem: false,
         shortcutDimension1Code: '',
         shortcutDimension2Code: '',
+        travelRequestRoutes: [],
 
         basedOnRequest: "Yes",
         travelRequestId: "",
@@ -530,6 +531,7 @@ export default function TravelRequestWizard() {
                             {activeTab === "info" && (
                                 <TravelHeaderForm
                                     travelInfo={travelInfo}
+                                    profile={profile}
                                     handleChange={handleChange}
                                 />
                             )}
