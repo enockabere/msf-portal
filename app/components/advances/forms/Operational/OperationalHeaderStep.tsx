@@ -5,7 +5,6 @@ import { ArrowDown } from "lucide-react";
 import { FormData } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
-import { useSession } from "next-auth/react";
 
 interface OperationalHeaderStepProps {
   formData: FormData;
@@ -20,7 +19,7 @@ export default function OperationalHeaderStep({
 }: OperationalHeaderStepProps) {
 
 
-  const { imprestTypes, currencies, paymentMethods } = useMySetups();
+  const { imprestTypes, currencies, banks, bankBranches, paymentMethods } = useMySetups();
 
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
@@ -89,12 +88,22 @@ export default function OperationalHeaderStep({
                 <select
                   className="form-select"
                   id="bank"
-                  value={formData.bank}
-                  onChange={(e) => onFormChange("bank", e.target.value)}
+                  value={formData.bankNo}
+                  onChange={(e) => onFormChange("bankNo", e.target.value)}
                 >
-                  <option>Equity Bank</option>
-                  <option>Co-operative Bank</option>
-                  <option>NCBA</option>
+                  <option defaultValue={'Select bank'}> --Select bank --</option>
+                  {
+                    banks.map((bank: Record<string, any>) => {
+                      return (
+                        <option
+                          key={bank.no}
+                          value={bank.no}
+                        >
+                          {bank.name}
+                        </option>
+                      )
+                    })
+                  }
                 </select>
               </div>
               <div className="col-md-5 mb-3">
@@ -107,26 +116,25 @@ export default function OperationalHeaderStep({
                   value={formData.branch}
                   onChange={(e) => onFormChange("branch", e.target.value)}
                 >
-                  <option>Westlands</option>
-                  <option>Kisumu</option>
+                  <option> --Select branch-- </option>
+                  {
+                    bankBranches.map((branch: Record<string, any>) => {
+                      return (
+                        <option
+                          key={branch.branchNo}
+                          value={branch.branchNo}
+                        >
+                          {branch.name}
+                        </option>
+                      )
+                    })
+                  }
                   <option>Nakuru</option>
                 </select>
               </div>
             </div>
 
             <div className="row">
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cheque-name" className="form-label">
-                  Cheque Name
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="cheque-name"
-                  value={formData.chequeName}
-                  onChange={(e) => onFormChange("chequeName", e.target.value)}
-                />
-              </div>
               <div className="col-6 mb-3">
                 <label htmlFor="swift-code" className="form-label">
                   Swift Code
@@ -176,10 +184,10 @@ export default function OperationalHeaderStep({
                   }
                   required
                 >
-                  <option value="morning">
+                  <option value="Morning">
                     Morning (8:00 AM - 12:00 PM)
                   </option>
-                  <option value="afternoon">
+                  <option value="Afternoon">
                     Afternoon (1:00 PM - 5:00 PM)
                   </option>
                 </select>
@@ -196,9 +204,12 @@ export default function OperationalHeaderStep({
     <div className="card mb-4 border-secondary">
       <div className="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
         <h5 className="mb-0 text-dark">Step 1: Advance Request</h5>
-        <div className="badge text-dark fs-6">
-          Total Advance: {formData.currency} {formData.amount}
-        </div>
+        {formData.amountToPayHeader &&
+          (
+            <div className="badge text-dark fs-6">
+              Total Advance: {formData.currencyCode} {formData.amountToPayHeader}
+            </div>
+          )}
       </div>
       <div className="card-body">
         <form className="p-2 pt-3">
@@ -207,8 +218,15 @@ export default function OperationalHeaderStep({
               <label htmlFor="advance_type" className="form-label">
                 Advance Type
               </label>
-              <select id="advance_type" className="form-select">
-                <option disabled aria-disabled selected>--select imprest type--</option>
+              <select
+                id="advance_type"
+                className="form-select"
+                value={formData.imprestType}
+                onChange={(e) =>
+                  onFormChange("imprestType", e.target.value)
+                }
+              >
+                <option defaultValue={'Select imprest type'}>--select imprest type--</option>
                 {
                   imprestTypes.map((type: Record<string, any>) => {
                     return (
@@ -230,9 +248,9 @@ export default function OperationalHeaderStep({
               <select
                 id="currency"
                 className="form-select"
-                onChange={(e) => onFormChange("currency", e.target.value)}
+                onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
-                <option disabled aria-disabled selected> -- Select Currency -- </option>
+                <option defaultValue={'Select currency'}> -- Select Currency -- </option>
                 {
                   currencies.map((currency: Record<string, any>) => {
                     return (
@@ -252,7 +270,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
-                <option disabled aria-disabled selected> --Select paymeny method-- </option>
+                <option defaultValue={'Select payment method'}> --Select paymeny method-- </option>
                 {
                   paymentMethods.map((method: Record<string, any>) => {
                     return (
@@ -276,8 +294,8 @@ export default function OperationalHeaderStep({
                 id="purpose"
                 className="form-control"
                 placeholder="e.g. Fuel, petty cash..."
-                value={formData.purpose}
-                onChange={(e) => onFormChange("purpose", e.target.value)}
+                value={formData.Purpose}
+                onChange={(e) => onFormChange("Purpose", e.target.value)}
               />
             </div>
           </div>
