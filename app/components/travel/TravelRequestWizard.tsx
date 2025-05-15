@@ -1,10 +1,11 @@
 "use client";
 
 import React, {
-    useCallback,
-    useMemo,
-    useState,
-    MouseEventHandler, useEffect,
+  useCallback,
+  useMemo,
+  useState,
+  MouseEventHandler,
+  useEffect,
 } from "react";
 import {
     User,
@@ -24,17 +25,18 @@ import {
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
-import {TravelInfo} from "@/app/types/travel";
+import { TravelInfo } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import {codeUnit, getResource} from "@/app/lib/api/http";
+import { codeUnit, getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import {useSession} from "next-auth/react";
 import {toast} from "react-toastify";
+import { Dependency } from "@/app/types/global";
 
 interface WizardStep {
     id: string;
@@ -68,12 +70,6 @@ interface TicketItem {
     destination: string;
     travelDate: string;
     airline: string;
-}
-
-interface Dependency {
-    id: string;
-    fullName: string;
-    relationship: string;
 }
 
 export default function TravelRequestWizard() {
@@ -119,24 +115,24 @@ export default function TravelRequestWizard() {
 
     console.log(submitted);
 
-    const [availableTickets] = useState<TicketItem[]>([
-        {
-            id: "1",
-            ticketNumber: "TK123456",
-            departure: "Nairobi",
-            destination: "London",
-            travelDate: "2025-06-10",
-            airline: "Kenya Airways",
-        },
-        {
-            id: "2",
-            ticketNumber: "TK654321",
-            departure: "Nairobi",
-            destination: "Dubai",
-            travelDate: "2025-07-02",
-            airline: "Emirates",
-        },
-    ]);
+  const [availableTickets] = useState<TicketItem[]>([
+    {
+      id: "1",
+      ticketNumber: "TK123456",
+      departure: "Nairobi",
+      destination: "London",
+      travelDate: "2025-06-10",
+      airline: "Kenya Airways",
+    },
+    {
+      id: "2",
+      ticketNumber: "TK654321",
+      departure: "Nairobi",
+      destination: "Dubai",
+      travelDate: "2025-07-02",
+      airline: "Emirates",
+    },
+  ]);
 
     const {data: session} = useSession();
     const profileNo = session?.user?.profile?.no
@@ -180,33 +176,17 @@ export default function TravelRequestWizard() {
         }
     }, [profile]);
 
-    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    []
+  );
 
     const handleSelectTicket = useCallback((ticketId: string) => {
         setSelectedTicketId(ticketId);
     }, []);
 
-    const [availableDependencies] = useState<Dependency[]>([
-        {
-            id: "01",
-            fullName: "Alice Mwangi",
-            relationship: "Wife",
-        },
-        {
-            id: "02",
-            fullName: "James Otieno",
-            relationship: "Son",
-        },
-        {
-            id: "03",
-            fullName: "Sarah Wanjiku",
-            relationship: "Daughter",
-        },
-    ]);
-
-    const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-        []
-    );
 
     const handleSelectDependency = (id: string) => {
         setSelectedDependencies((prev) => [...prev, id]);
@@ -344,29 +324,44 @@ export default function TravelRequestWizard() {
         return [allSteps.find((s) => s.id === "info")!];
     }, [travelInfo.documentType, allSteps]);
 
-    const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
-        setTravelInfo((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    }, []);
+    const profileDipendencies = async () => {
+    console.log('Dependency tab: 2 ', activeTab);
+  const res = await getResource('travelDependancies', {});
+  if (res.error) {
+    Swal.fire({
+      title: 'Error!',
+      text: 'Error fetching profile dependecies!',
+    });
+    return
+  }
+  setAvailableDependencies(res.value);
+}
+  const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
+    setTravelInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }, []);
 
-    const handleTabChange = (stepId: string) => {
-        if (validateCurrentStep()) {
-            setActiveTab(stepId);
-            setCompletedSteps((prev) => new Set(prev).add(activeTab));
-        }
-    };
+  const handleTabChange = async(stepId: string) => {
+    if (validateCurrentStep()) {
+      setActiveTab(stepId);
+      setCompletedSteps((prev) => new Set(prev).add(activeTab));
+    }
+    if (stepId === "dependencies") {
+       await profileDipendencies();
+    }
+  };
 
-    const validateCurrentStep = (): boolean => {
-        return true;
-    };
+  const validateCurrentStep = (): boolean => {
+    return true;
+  };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-    };
-    const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
-    const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+  const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
+  const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
     // Work Permit form fields
     const workPermitFields = [
@@ -414,13 +409,17 @@ export default function TravelRequestWizard() {
         }));
     }, []);
 
-    return (
-        <div className="travel-wizard">
-            <div className="wizard-header">
-                <h2 className="wizard-title">Travel Request Application</h2>
-                <p className="wizard-subtitle">
-                    Fill out your travel request in steps.
-                </p>
+  useEffect(() => {
+
+  }, [activeTab, availableDependencies]);
+
+  return (
+    <div className="travel-wizard">
+      <div className="wizard-header">
+        <h2 className="wizard-title">Travel Request Application</h2>
+        <p className="wizard-subtitle">
+          Fill out your travel request in steps.
+        </p>
 
                 <div className="wizard-progress">
                     <div

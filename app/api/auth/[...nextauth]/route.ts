@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { memoryMap } from "@/app/utils/endpointMap";
 import { transport } from "@brainspore/hypernexus";
 import NextAuth from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";
@@ -27,18 +28,7 @@ const handler = NextAuth({
     session: {
         maxAge: 1 * 24 * 60 * 60,
     },
-    // pages: {
-    //     signIn: '/'
-    // },
     callbacks: {
-        // async redirect({ url, baseUrl }) {
-        //     const urlObject: URL = new URL(url);
-        //     console.log('url', url)
-        //     console.log('object url', urlObject)
-        //     if (url.startsWith("/")) return `${baseUrl}${url}`
-        //     else if (urlObject.pathname !== "/") return url
-        //     else return `${baseUrl}/dashboard`
-        // },
         async session({ session, token }) {
             session.user.profile = token.profile as Record<string, any> | null;
             return session
@@ -46,10 +36,8 @@ const handler = NextAuth({
         async jwt({ token, account, profile }) {
             if (account) {
                 token.accessToken = account.access_token
-                // Note: for Azure AD, profile.oid is the unique user ID
-                // and profile.email or profile.preferred_username contains the email
                 const user = await transport.get(
-                    "/api/kinetics/enigma/v1.0/userProfiles",
+                    memoryMap.get("userProfiles"),
                     {
                         $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
                         company: process.env.BC_COMPANY_NAME

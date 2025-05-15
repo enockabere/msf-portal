@@ -8,6 +8,8 @@ import React, {
   ReactNode,
 } from "react";
 import { toast } from "react-toastify";
+import type { ENDPOINTMAP } from "../utils/endpointMap";
+import { EndpointOptions } from "../types/global";
 
 // 🚀 Local in-memory cache for setups
 const localSetupCache = new Map<string, any>();
@@ -56,7 +58,7 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
 
 interface MySetupsContextValue extends MySetupsState {
   fetchSetups: (
-    endpoints: Array<string | Record<string, unknown>>,
+    endpoints: Array<ENDPOINTMAP | Record<ENDPOINTMAP, EndpointOptions>>,
     resolveAll?: boolean
   ) => Promise<void>;
 }
@@ -70,8 +72,8 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchSetups = useCallback(
     async (
-      setupsArray: Array<string | Record<string, unknown>>,
-      resolveAll = false
+      setupsArray: Array<ENDPOINTMAP | Record<ENDPOINTMAP, EndpointOptions>>,
+      resolveAll: boolean = false
     ) => {
       if (!Array.isArray(setupsArray) || setupsArray.length === 0) {
         toast.error(
@@ -94,7 +96,7 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
         const res = await fetch("/api/setups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoints: missingEndpoints, resolveAll }),
+          body: JSON.stringify({ endpoints: setupsArray, resolveAll }),
         });
 
         const json = await res.json();
