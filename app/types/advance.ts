@@ -59,4 +59,5 @@ export interface FormData {
   swiftCode: string;
   phoneNo: string;
   accountName: string;
+  [key: string]: any;
 }
