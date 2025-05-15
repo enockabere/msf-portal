@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
   MouseEventHandler,
+  useEffect,
 } from "react";
 import {
   User,
@@ -31,8 +32,11 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit } from "@/app/lib/api/http";
+import { codeUnit, getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
+import { Dependency } from "@/app/types/global";
 
 interface WizardStep {
   id: string;
@@ -41,6 +45,7 @@ interface WizardStep {
   desc: string;
   actions?: stepAction[];
 }
+
 interface stepAction {
   id: any;
   fn: MouseEventHandler<HTMLButtonElement>;
@@ -67,27 +72,37 @@ interface TicketItem {
   airline: string;
 }
 
-interface Dependency {
-  id: string;
-  fullName: string;
-  relationship: string;
-}
-
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelInfo, setTravelInfo] = useState<TravelInfo>({
-    userType: "",
-    residentStatus: "",
+    documentType: '',
+    no: '',
+    travellerNo: '',
+    TypeOfTravel: '',
+    purposeOfTravel: '',
+    departureDate: '',
+    returnDate: '',
+    annualTrip: false,
+    modeOfTransport: '',
+    arrivalDate: '',
+    estimatedTimeOfArrival: '',
+    pickupLocation: '',
+    dropOffLocation: '',
+    passportNo: '',
+    requirePerDiem: false,
+    shortcutDimension1Code: '',
+    shortcutDimension2Code: '',
+    travelRequestRoutes: [],
+
     basedOnRequest: "Yes",
     travelRequestId: "",
     tripType: "",
     costCenter: "",
     remainingTrips: "",
-    tripDates: { from: "", to: "" },
+    tripDates: {from: "", to: ""},
     destination: "",
     applyForOther: "No",
-    recipientName: "",
     currency: "",
     paymentMethod: "",
     travelType: "",
@@ -118,33 +133,60 @@ export default function TravelRequestWizard() {
       airline: "Emirates",
     },
   ]);
+
+  const {data: session} = useSession();
+  const profileNo = session?.user?.profile?.no
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getResource('travelProfile', {
+          params: {
+            filters: {
+              no: profileNo
+            }
+          }
+        });
+
+        if (res.error) {
+          console.log("Response Error: ", res.error);
+          toast.error(res.error.message)
+        } else {
+          setProfile(res.value.at(0))
+        }
+      } finally {
+        //
+      }
+    };
+
+    fetchProfile();
+  }, [profileNo]);
+
+  useEffect(() => {
+    if (profile) {
+      setTravelInfo((prev) => ({
+        ...prev,
+        documentType: profile.type,
+        travellerNo: profile.no,
+        passportNo: profile.passportIDNo,
+        shortcutDimension1Code: profile.shortcutDimension1Code,
+        shortcutDimension2Code: profile.shortcutDimension2Code,
+      }))
+    }
+  }, [profile]);
+
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    []
+  );
 
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
   }, []);
 
-  const [availableDependencies] = useState<Dependency[]>([
-    {
-      id: "01",
-      fullName: "Alice Mwangi",
-      relationship: "Wife",
-    },
-    {
-      id: "02",
-      fullName: "James Otieno",
-      relationship: "Son",
-    },
-    {
-      id: "03",
-      fullName: "Sarah Wanjiku",
-      relationship: "Daughter",
-    },
-  ]);
-
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    []
-  );
 
   const handleSelectDependency = (id: string) => {
     setSelectedDependencies((prev) => [...prev, id]);
@@ -194,13 +236,13 @@ export default function TravelRequestWizard() {
     () => [
       {
         id: "info",
-        icon: <User size={18} />,
+        icon: <User size={18}/>,
         title: "Your Info",
         desc: "Basic travel details",
       },
       {
         id: "destinations",
-        icon: <Globe size={18} />,
+        icon: <Globe size={18}/>,
         title: "Travel Destinations",
         desc: "Travel destination details",
         actions: [
@@ -215,37 +257,37 @@ export default function TravelRequestWizard() {
       },
       {
         id: "dependencies",
-        icon: <Link size={18} />,
+        icon: <Link size={18}/>,
         title: "Travel Dependencies",
         desc: "Related travel requirements",
       },
       {
         id: "ticket",
-        icon: <Ticket size={18} />,
+        icon: <Ticket size={18}/>,
         title: "Annual Travel Ticket",
         desc: "Flight/train reservations",
       },
       {
         id: "checklist",
-        icon: <ListChecks size={18} />,
+        icon: <ListChecks size={18}/>,
         title: "Checklist",
         desc: "Pre-travel requirements",
       },
       {
         id: "visa",
-        icon: <Globe size={18} />,
+        icon: <Globe size={18}/>,
         title: "Visa Application",
         desc: "Visa documentation",
       },
       {
         id: "permit",
-        icon: <FilePlus2 size={18} />,
+        icon: <FilePlus2 size={18}/>,
         title: "Work Permit",
         desc: "Work authorization",
       },
       {
         id: "advance",
-        icon: <Briefcase size={18} />,
+        icon: <Briefcase size={18}/>,
         title: "Travel Advance",
         desc: "Advance request",
         actions: [
@@ -264,7 +306,7 @@ export default function TravelRequestWizard() {
 
   // Get the appropriate steps based on user type
   const currentSteps = useMemo((): WizardStep[] => {
-    if (travelInfo.userType === "Outbound") {
+    if (travelInfo.documentType === "Employee") {
       return [
         "info",
         "destinations",
@@ -274,14 +316,26 @@ export default function TravelRequestWizard() {
         "visa",
         "advance",
       ].map((id) => allSteps.find((s) => s.id === id)!);
-    } else if (travelInfo.userType === "Inbound") {
+    } else if (travelInfo.documentType === "Visitor") {
       return ["info", "checklist", "permit", "advance"].map(
         (id) => allSteps.find((s) => s.id === id)!
       );
     }
     return [allSteps.find((s) => s.id === "info")!];
-  }, [travelInfo.userType, allSteps]);
+  }, [travelInfo.documentType, allSteps]);
 
+  const profileDipendencies = async () => {
+    console.log('Dependency tab: 2 ', activeTab);
+    const res = await getResource('travelDependancies', {});
+    if (res.error) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Error fetching profile dependecies!',
+      });
+      return
+    }
+    setAvailableDependencies(res.value);
+  }
   const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
     setTravelInfo((prev) => ({
       ...prev,
@@ -289,10 +343,13 @@ export default function TravelRequestWizard() {
     }));
   }, []);
 
-  const handleTabChange = (stepId: string) => {
+  const handleTabChange = async (stepId: string) => {
     if (validateCurrentStep()) {
       setActiveTab(stepId);
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
+    }
+    if (stepId === "dependencies") {
+      await profileDipendencies();
     }
   };
 
@@ -308,18 +365,18 @@ export default function TravelRequestWizard() {
 
   // Work Permit form fields
   const workPermitFields = [
-    { id: "country", label: "Country of Work", type: "text" },
-    { id: "duration", label: "Duration (days)", type: "number" },
-    { id: "documents", label: "Required Documents", type: "file" },
+    {id: "country", label: "Country of Work", type: "text"},
+    {id: "duration", label: "Duration (days)", type: "number"},
+    {id: "documents", label: "Required Documents", type: "file"},
   ];
 
   const handleInitialSubmit = () => {
     setCompletedSteps((prev) => new Set(prev).add("info"));
     setSubmitted(true);
 
-    if (travelInfo.userType === "Inbound") {
+    if (travelInfo.documentType === "Visitor") {
       setActiveTab("checklist");
-    } else if (travelInfo.userType === "Outbound") {
+    } else if (travelInfo.documentType === "Employee") {
       setActiveTab("destinations");
     }
   };
@@ -352,6 +409,10 @@ export default function TravelRequestWizard() {
     }));
   }, []);
 
+  useEffect(() => {
+
+  }, [activeTab, availableDependencies]);
+
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
@@ -363,7 +424,7 @@ export default function TravelRequestWizard() {
         <div className="wizard-progress">
           <div
             className="progress-bar"
-            style={{ width: `${progressPercentage}%` }}
+            style={{width: `${progressPercentage}%`}}
             aria-valuenow={progressPercentage}
             aria-valuemin={0}
             aria-valuemax={100}
@@ -419,17 +480,17 @@ export default function TravelRequestWizard() {
                 currentSteps
                   .find((s) => s.id === activeTab)
                   ?.actions.map((action: stepAction) => {
-                    return (
-                      <button
-                        key={action.id}
-                        className="primary-button"
-                        onClick={action.fn}
-                      >
-                        <Plus size={16} />
-                        {action.caption}
-                      </button>
-                    );
-                  })}
+                  return (
+                    <button
+                      key={action.id}
+                      className="primary-button"
+                      onClick={action.fn}
+                    >
+                      <Plus size={16}/>
+                      {action.caption}
+                    </button>
+                  );
+                })}
               {activeTab === "visa" && (
                 <div className="btn-group">
                   <button
@@ -438,25 +499,25 @@ export default function TravelRequestWizard() {
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                   >
-                    <DownloadIcon size={16} className="button-icon" />
+                    <DownloadIcon size={16} className="button-icon"/>
                     Download
                   </button>
                   <ul className="dropdown-menu">
                     <li>
                       <button className="dropdown-item" type="button">
-                        <FileDownIcon size={16} className="button-icon" />
+                        <FileDownIcon size={16} className="button-icon"/>
                         Dummy ticket
                       </button>
                     </li>
                     <li>
                       <button className="dropdown-item" type="button">
-                        <FileDownIcon size={16} className="button-icon" />
+                        <FileDownIcon size={16} className="button-icon"/>
                         Accommodation voucher
                       </button>
                     </li>
                     <li>
                       <button className="dropdown-item" type="button">
-                        <FileDownIcon size={16} className="button-icon" />
+                        <FileDownIcon size={16} className="button-icon"/>
                         Letter of intent
                       </button>
                     </li>
@@ -469,6 +530,7 @@ export default function TravelRequestWizard() {
               {activeTab === "info" && (
                 <TravelHeaderForm
                   travelInfo={travelInfo}
+                  profile={profile}
                   handleChange={handleChange}
                 />
               )}
@@ -545,7 +607,7 @@ export default function TravelRequestWizard() {
 
               {activeTab === "advance" && (
                 <div>
-                  <TravelAdvanceDetails travelInfo={travelInfo} />
+                  <TravelAdvanceDetails travelInfo={travelInfo}/>
                   <TravelAdvanceGLTable
                     glLines={[
                       {
@@ -569,14 +631,14 @@ export default function TravelRequestWizard() {
                 </div>
               )}
 
-              {activeTab === "visa" && <VisaApplicationForm />}
+              {activeTab === "visa" && <VisaApplicationForm/>}
 
               {activeTab === "checklist" && (
                 <div className="mb-3">
                   <div className="bg-light-subtle p-3 rounded">
                     <p className="fw-bold mb-2">Checklist</p>
                     <ul className="mb-0">
-                      {travelInfo.userType === "Inbound" ? (
+                      {travelInfo.documentType === "Visitor" ? (
                         <li>Work Permit is required for this trip.</li>
                       ) : (
                         <li>Visa is required for this trip.</li>
@@ -592,7 +654,7 @@ export default function TravelRequestWizard() {
                     className="primary-button"
                     onClick={handleInitialSubmit}
                   >
-                    <Save size={16} className="button-icon" />
+                    <Save size={16} className="button-icon"/>
                     Save & Continue
                   </button>
                 ) : (
@@ -605,13 +667,13 @@ export default function TravelRequestWizard() {
                           handleTabChange(currentSteps[currentStepIndex - 1].id)
                         }
                       >
-                        <ArrowLeft size={16} className="button-icon" />
+                        <ArrowLeft size={16} className="button-icon"/>
                         Previous
                       </button>
                     )}
 
                     {activeTab === "visa" &&
-                    travelInfo.userType === "Outbound" ? (
+                    travelInfo.documentType === "Employee" ? (
                       <button
                         type="button"
                         className="primary-button"
@@ -622,11 +684,11 @@ export default function TravelRequestWizard() {
                           setActiveTab("advance");
                         }}
                       >
-                        <Check size={16} className="button-icon" />
+                        <Check size={16} className="button-icon"/>
                         Submit Travel Request
                       </button>
                     ) : activeTab === "permit" &&
-                      travelInfo.userType === "Inbound" ? (
+                    travelInfo.documentType === "Visitor" ? (
                       <button
                         type="button"
                         className="primary-button"
@@ -637,7 +699,7 @@ export default function TravelRequestWizard() {
                           setActiveTab("advance");
                         }}
                       >
-                        <Check size={16} className="button-icon" />
+                        <Check size={16} className="button-icon"/>
                         Submit Travel Request
                       </button>
                     ) : currentStepIndex < currentSteps.length - 1 ? (
@@ -648,12 +710,12 @@ export default function TravelRequestWizard() {
                           handleTabChange(currentSteps[currentStepIndex + 1].id)
                         }
                       >
-                        <ArrowRight size={16} className="button-icon" />
+                        <ArrowRight size={16} className="button-icon"/>
                         Next
                       </button>
                     ) : (
                       <button type="submit" className="submit-button">
-                        <Check size={16} className="button-icon" />
+                        <Check size={16} className="button-icon"/>
                         Submit Request
                       </button>
                     )}

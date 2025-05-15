@@ -19,6 +19,8 @@ import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import { ENDPOINTMAP } from "@/app/utils/endpointMap";
+import { EndpointOptions } from "@/app/types/global";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -137,12 +139,10 @@ export default function SalaryAdvanceForm({
         setIsLoading(true);
         await fetchSetups([
           "currencies",
-          { paymentMethods: { filters: { isAdvance: true } } },
-          { payrollPeriods: { filters: { current: true } } },
-        ]);
-        fetchSetups([
           "banks",
           "bankBranches",
+          { paymentMethods: { filters: { isAdvance: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
+          { payrollPeriods: { filters: { current: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
           {
             employeeBanks: {
               filters: {
@@ -151,9 +151,9 @@ export default function SalaryAdvanceForm({
                   ? { bankCode: advanceBankCode }
                   : { default: true }),
               },
-            },
-          } as any,
-        ]).then(() => {});
+            } as EndpointOptions,
+          } as Record<ENDPOINTMAP, EndpointOptions>
+        ]);
       } finally {
         setIsLoading(false);
       }

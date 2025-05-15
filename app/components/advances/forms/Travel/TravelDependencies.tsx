@@ -2,12 +2,7 @@
 
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
-
-interface Dependency {
-  id: string;
-  fullName: string;
-  relationship: string;
-}
+import { Dependency } from "@/app/types/global";
 
 interface TravelDependenciesProps {
   availableDependencies: Dependency[];
@@ -29,7 +24,6 @@ export default function TravelDependencies({
       onSelectDependency(id);
     }
   };
-
   return (
     <div className="card mb-4">
       <div className="card-body">
@@ -46,8 +40,8 @@ export default function TravelDependencies({
             {availableDependencies.map((dep, idx) => (
               <tr key={dep.id}>
                 <td>{idx + 1}</td>
-                <td>{dep.fullName}</td>
-                <td>{dep.relationship}</td>
+                <td>{dep.name}</td>
+                <td>{dep.relation}</td>
                 <td className="text-center">
                   <button
                     type="button"

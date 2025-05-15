@@ -45,17 +45,18 @@ export interface ExpenseItem {
 }
 
 export interface FormData {
-  purpose: string;
-  amount: string;
-  currency: string;
+  imprestType: string,
+  Purpose: string;
+  amountToPayHeader: number;
+  currencyCode: string;
   paymentMethod: string;
   cashCollectionDate: string;
   cashHours: string;
   idPassportNumber: string;
   accountNo: string;
-  bank: string;
+  bankNo: string;
   branch: string;
-  chequeName: string;
   swiftCode: string;
-  phone: string;
+  phoneNo: string;
+  accountName: string;
 }
