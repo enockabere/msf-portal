@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
+import { TravelRequest } from "@/app/types/travel";
 
 const COST_CENTERS = [
   { code: "HR", name: "Human Resources" },
@@ -11,24 +12,32 @@ const COST_CENTERS = [
   { code: "IT", name: "Information Technology" },
 ];
 
-const ACCOMMODATION_TYPES = [
-  { code: "Self-Arranged", name: "Self Arranged" },
-  { code: "Full Board", name: "Full Board" },
-  { code: "Half Board", name: "Half Board" },
-  { code: "Bed & Breakfast", name: "Bed & Breakfast" },
+const travelTypes = [
+  { code: "Local", description: "Local" },
+  { code: "International", description: "International" },
 ];
 
-const TRIP_TYPES = ["One Way", "Return", "Multi-City"];
+const accommodationTypes = [
+  { code: "Self-Arranged", description: "Self Arranged" },
+  { code: "Full Board", description: "Full Board" },
+  { code: "Half Board", description: "Half Board" },
+  { code: "Bed & Breakfast", description: "Bed & Breakfast" },
+];
+
+const yesNoOptions = [
+  { code: 'true', description: 'Yes' },
+  { code: 'false', description: 'No' },
+];
 
 interface Props {
-  travelInfo: TravelInfo;
-  profile: Record<string, any>;
-  handleChange: (field: keyof TravelInfo, value: any) => void;
+  formData: TravelRequest;
+  onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ travelInfo, profile, handleChange }: Props) {
+export default function TravelHeaderForm({ formData, onFormChange }: Props) {
   const {
     purposeOfTravel,
+    modesOfTransport,
     fetchSetups,
   } = useMySetups();
 
@@ -37,6 +46,7 @@ export default function TravelHeaderForm({ travelInfo, profile, handleChange }: 
       try {
         await fetchSetups([
           'purposeOfTravel',
+          'modesOfTransport',
         ]);
       } finally {
         //
@@ -47,33 +57,101 @@ export default function TravelHeaderForm({ travelInfo, profile, handleChange }: 
   }, [fetchSetups]);
 
   useEffect(() => {
-    if (travelInfo.travelType && travelInfo.costCenter) {
+    if (formData.travelType && formData.costCenter) {
       const randomTrips = Math.floor(Math.random() * 5) + 1;
-      handleChange("remainingTrips", randomTrips);
+      onFormChange("remainingTrips", randomTrips);
     }
-  }, [travelInfo.travelType, travelInfo.costCenter, handleChange]);
+  }, [formData.travelType, formData.costCenter, onFormChange]);
 
   return (
     <>
       <div className="border rounded p-3 bg-light-subtle mt-3">
         <h6 className="text-dark fw-bold">Travel Details</h6>
         <div className="row g-3">
-          {/* Travel Type */}
           <div className="col-md-4">
             <label className="form-label">
               Type of Travel <span className="text-danger">*</span>
             </label>
             <select
-                className="form-select"
-                value={travelInfo.travelType}
-                onChange={(e) => handleChange("travelType", e.target.value)}
+              className="form-select"
+              value={formData.TypeOfTravel}
+              onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
             >
-              <option value="">-- Select --</option>
-              <option value="Local">Local</option>
-              <option value="Regional">Regional</option>
-              <option value="International">International</option>
+              <option value="">-- Select Type --</option>
+              {travelTypes.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.description}
+                </option>
+              ))}
             </select>
           </div>
+
+          <div className="col-md-4">
+            <label className="form-label">
+              Mode of Transport <span className="text-danger">*</span>
+            </label>
+            <select
+              className="form-select"
+              value={formData.modeOfTransport}
+              onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
+            >
+              <option value="">-- Select Mode --</option>
+              {modesOfTransport.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">
+              Purpose of Travel <span className="text-danger">*</span>
+            </label>
+            <select
+              className="form-select"
+              value={formData.purposeOfTravel}
+              onChange={(e) => onFormChange("reason", e.target.value)}
+            >
+              <option value="">-- Select Purpose --</option>
+              {purposeOfTravel.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Annual Trip</label>
+            <select
+              className="form-select"
+              value={String(formData.annualTrip)}
+              onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
+            >
+              {yesNoOptions.map((item) => (
+                <option key={item.code} value={item.code}>{item.description}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">
+              ID/Passport Number
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.passportNo}
+              onChange={(e) =>
+                onFormChange("passportNo", e.target.value)
+              }
+              placeholder="Enter ID or Passport number"
+            />
+          </div>
+
+
+
 
           <div className="col-md-4">
             <label className="form-label">
@@ -81,8 +159,8 @@ export default function TravelHeaderForm({ travelInfo, profile, handleChange }: 
             </label>
             <select
                 className="form-select"
-                value={travelInfo.costCenter || ""}
-                onChange={(e) => handleChange("costCenter", e.target.value)}
+                value={formData.costCenter || ""}
+                onChange={(e) => onFormChange("costCenter", e.target.value)}
             >
               <option value="">-- Select Cost Center --</option>
               {COST_CENTERS.map((c) => (
@@ -94,40 +172,23 @@ export default function TravelHeaderForm({ travelInfo, profile, handleChange }: 
             <div className="form-text mt-1 text-info">
               Remaining Trips:{" "}
               <strong>
-                {travelInfo.remainingTrips !== undefined
-                    ? travelInfo.remainingTrips
+                {formData.remainingTrips !== undefined
+                    ? formData.remainingTrips
                     : "--"}
               </strong>
             </div>
           </div>
           <div className="col-md-4">
-            <label className="form-label">
-              Purpose of Travel <span className="text-danger">*</span>
-            </label>
-            <select
-                className="form-select"
-                value={travelInfo.purposeOfTravel}
-                onChange={(e) => handleChange("reason", e.target.value)}
-            >
-              <option value="">-- Select Purpose --</option>
-              {purposeOfTravel.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.description}
-                  </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4">
             <label className="form-label">Accommodation Type</label>
             <select
                 className="form-select"
-                value={travelInfo.accommodationType || ""}
-                onChange={(e) => handleChange("accommodationType", e.target.value)}
+                value={formData.accommodationType || ""}
+                onChange={(e) => onFormChange("accommodationType", e.target.value)}
             >
               <option value="">-- Select Type --</option>
-              {ACCOMMODATION_TYPES.map((type) => (
+              {accommodationTypes.map((type) => (
                   <option key={type.code} value={type.code}>
-                    {type.name}
+                    {type.description}
                   </option>
               ))}
             </select>
@@ -136,51 +197,8 @@ export default function TravelHeaderForm({ travelInfo, profile, handleChange }: 
             <label className="form-label">Require Per Diem</label>
             <select
                 className="form-select"
-                value={travelInfo.requirePerDiem || "No"}
-                onChange={(e) => handleChange("requirePerDiem", e.target.value)}
-            >
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <div className="col-md-4">
-            <label className="form-label">Trip Type</label>
-            <select
-                className="form-select"
-                value={travelInfo.tripType || ""}
-                onChange={(e) => handleChange("tripType", e.target.value)}
-            >
-              <option value="">-- Select Trip Type --</option>
-              {TRIP_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Require Security Money - Only if Local */}
-          {travelInfo.travelType === "Local" && (
-              <div className="col-md-6">
-                <label className="form-label">Require Security Money</label>
-                <select
-                    className="form-select"
-                    value={travelInfo.requireSecurityMoney || "No"}
-                    onChange={(e) =>
-                        handleChange("requireSecurityMoney", e.target.value)
-                    }
-                >
-                  <option value="No">No</option>
-                  <option value="Yes">Yes</option>
-                </select>
-              </div>
-          )}
-          <div className="col-md-6">
-            <label className="form-label">Annual Trip</label>
-            <select
-                className="form-select"
-                value={travelInfo.annualTrip || "No"}
-                onChange={(e) => handleChange("annualTrip", e.target.value)}
+                value={formData.requirePerDiem || "No"}
+                onChange={(e) => onFormChange("requirePerDiem", e.target.value)}
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>

@@ -125,7 +125,7 @@ export default function TravelAdvanceHeader({
         {/* If Yes + Request is selected => show outbound */}
         {travelInfo.basedOnRequest === "Yes" && travelInfo.travelRequestId && (
           <OutboundTravelForm
-            travelInfo={travelInfo}
+            formData={travelInfo}
             handleChange={handleChange}
           />
         )}

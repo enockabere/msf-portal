@@ -11,12 +11,6 @@ export interface TravelDates {
   to: string;
 }
 
-export interface TravelInfo {
+export interface TravelRequest {
   [key: string]: any;
-  destinations: {
-    id: string;
-    country: string;
-    startDate: string;
-    endDate: string;
-  }[];
 }

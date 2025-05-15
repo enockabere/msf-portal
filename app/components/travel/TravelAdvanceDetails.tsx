@@ -1,8 +1,8 @@
 import React from "react";
-import { TravelInfo } from "../../types/travel";
+import { TravelRequest } from "../../types/travel";
 
 interface TravelAdvanceDetailsProps {
-    travelInfo: TravelInfo;
+    travelInfo: TravelRequest;
 }
 
 const TravelAdvanceDetails: React.FC<TravelAdvanceDetailsProps> = ({ travelInfo }) => {
