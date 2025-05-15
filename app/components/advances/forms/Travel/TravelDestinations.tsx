@@ -205,9 +205,9 @@ export default function TravelDestinations({
   const saveDestination = async (index: number) => {
     let destination = destinations[index];
     destination['documentType'] = 'Employee';
-    destination['documentNo'] = '8w45ndfgn';
-    destination['sequenceNo'] = '12349213';
-    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'visaRequired'];
+    destination['documentNo'] = 'ETR003';
+    // destination['sequenceNo'] = '';
+    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'visaRequired', 'sequenceNo'];
 
     keysToRemove.forEach((key) => {
       delete destination[key as keyof typeof destination];
