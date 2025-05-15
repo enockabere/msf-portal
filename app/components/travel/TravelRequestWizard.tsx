@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
-import { TravelInfo } from "@/app/types/travel";
+import { TravelRequest } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
@@ -75,7 +75,7 @@ interface TicketItem {
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [travelInfo, setTravelInfo] = useState<TravelInfo>({
+  const [formData, setFormData] = useState<TravelRequest>({
     documentType: '',
     no: '',
     travellerNo: '',
@@ -165,7 +165,7 @@ export default function TravelRequestWizard() {
 
   useEffect(() => {
     if (profile) {
-      setTravelInfo((prev) => ({
+      setFormData((prev) => ({
         ...prev,
         documentType: profile.type,
         travellerNo: profile.no,
@@ -214,7 +214,7 @@ export default function TravelRequestWizard() {
   }, []);
 
   const handleAddDestination = useCallback(() => {
-    setTravelInfo((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       destinations: [
         ...prev.destinations,
@@ -306,7 +306,7 @@ export default function TravelRequestWizard() {
 
   // Get the appropriate steps based on user type
   const currentSteps = useMemo((): WizardStep[] => {
-    if (travelInfo.documentType === "Employee") {
+    if (formData.documentType === "Employee") {
       return [
         "info",
         "destinations",
@@ -316,13 +316,13 @@ export default function TravelRequestWizard() {
         "visa",
         "advance",
       ].map((id) => allSteps.find((s) => s.id === id)!);
-    } else if (travelInfo.documentType === "Visitor") {
-      return ["info", "checklist", "permit", "advance"].map(
+    } else if (formData.documentType === "Visitor") {
+      return ["info", "dependencies", "checklist", "permit", "advance"].map(
         (id) => allSteps.find((s) => s.id === id)!
       );
     }
     return [allSteps.find((s) => s.id === "info")!];
-  }, [travelInfo.documentType, allSteps]);
+  }, [formData.documentType, allSteps]);
 
   const profileDipendencies = async () => {
     console.log('Dependency tab: 2 ', activeTab);
@@ -336,8 +336,8 @@ export default function TravelRequestWizard() {
     }
     setAvailableDependencies(res.value);
   }
-  const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
-    setTravelInfo((prev) => ({
+  const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -374,9 +374,9 @@ export default function TravelRequestWizard() {
     setCompletedSteps((prev) => new Set(prev).add("info"));
     setSubmitted(true);
 
-    if (travelInfo.documentType === "Visitor") {
+    if (formData.documentType === "Visitor") {
       setActiveTab("checklist");
-    } else if (travelInfo.documentType === "Employee") {
+    } else if (formData.documentType === "Employee") {
       setActiveTab("destinations");
     }
   };
@@ -387,7 +387,7 @@ export default function TravelRequestWizard() {
       field: K,
       value: DestinationItem[K]
     ) => {
-      setTravelInfo((prev) => {
+      setFormData((prev) => {
         const newDestinations = [...prev.destinations];
         newDestinations[index] = {
           ...newDestinations[index],
@@ -403,7 +403,7 @@ export default function TravelRequestWizard() {
   );
 
   const handleRemoveDestination = useCallback((index: number) => {
-    setTravelInfo((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       destinations: prev.destinations.filter((_, i) => i !== index),
     }));
@@ -529,15 +529,14 @@ export default function TravelRequestWizard() {
             <form onSubmit={handleSubmit}>
               {activeTab === "info" && (
                 <TravelHeaderForm
-                  travelInfo={travelInfo}
-                  profile={profile}
-                  handleChange={handleChange}
+                  formData={formData}
+                  onFormChange={handleFormChange}
                 />
               )}
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={travelInfo.destinations as any}
+                  destinations={formData.destinations as any}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
                 />
@@ -580,8 +579,8 @@ export default function TravelRequestWizard() {
                             id={field.id}
                             className="form-control"
                             onChange={(e) =>
-                              handleChange(
-                                field.id as keyof TravelInfo,
+                              handleFormChange(
+                                field.id as keyof TravelRequest,
                                 e.target.files
                               )
                             }
@@ -592,8 +591,8 @@ export default function TravelRequestWizard() {
                             id={field.id}
                             className="form-control"
                             onChange={(e) =>
-                              handleChange(
-                                field.id as keyof TravelInfo,
+                              handleFormChange(
+                                field.id as keyof TravelRequest,
                                 e.target.value
                               )
                             }
@@ -607,14 +606,14 @@ export default function TravelRequestWizard() {
 
               {activeTab === "advance" && (
                 <div>
-                  <TravelAdvanceDetails travelInfo={travelInfo}/>
+                  <TravelAdvanceDetails travelInfo={formData}/>
                   <TravelAdvanceGLTable
                     glLines={[
                       {
                         account: "6001",
                         description: "Flight Ticket",
                         amount: 500,
-                        currency: travelInfo.currency,
+                        currency: formData.currency,
                         department: "",
                         project: "",
                       },
@@ -622,7 +621,7 @@ export default function TravelRequestWizard() {
                         account: "6002",
                         description: "Hotel",
                         amount: 300,
-                        currency: travelInfo.currency,
+                        currency: formData.currency,
                         department: "",
                         project: "",
                       },
@@ -638,7 +637,7 @@ export default function TravelRequestWizard() {
                   <div className="bg-light-subtle p-3 rounded">
                     <p className="fw-bold mb-2">Checklist</p>
                     <ul className="mb-0">
-                      {travelInfo.documentType === "Visitor" ? (
+                      {formData.documentType === "Visitor" ? (
                         <li>Work Permit is required for this trip.</li>
                       ) : (
                         <li>Visa is required for this trip.</li>
@@ -673,7 +672,7 @@ export default function TravelRequestWizard() {
                     )}
 
                     {activeTab === "visa" &&
-                    travelInfo.documentType === "Employee" ? (
+                    formData.documentType === "Employee" ? (
                       <button
                         type="button"
                         className="primary-button"
@@ -688,7 +687,7 @@ export default function TravelRequestWizard() {
                         Submit Travel Request
                       </button>
                     ) : activeTab === "permit" &&
-                    travelInfo.documentType === "Visitor" ? (
+                    formData.documentType === "Visitor" ? (
                       <button
                         type="button"
                         className="primary-button"

@@ -27,12 +27,12 @@ const ACCOMMODATION_TYPES = [
 const TRIP_TYPES = ["One Way", "Return", "Multi-City"];
 
 interface Props {
-  travelInfo: any;
+  formData: any;
   handleChange: (field: string, value: any) => void;
 }
 
 export default function OutboundTravelForm({
-  travelInfo,
+  formData,
   handleChange,
 }: Props) {
   return (
@@ -46,7 +46,7 @@ export default function OutboundTravelForm({
           </label>
           <select
             className="form-select"
-            value={travelInfo.travelType}
+            value={formData.travelType}
             onChange={(e) => handleChange("travelType", e.target.value)}
           >
             <option value="">-- Select --</option>
@@ -62,7 +62,7 @@ export default function OutboundTravelForm({
           </label>
           <select
             className="form-select"
-            value={travelInfo.costCenter || ""}
+            value={formData.costCenter || ""}
             onChange={(e) => handleChange("costCenter", e.target.value)}
           >
             <option value="">-- Select Cost Center --</option>
@@ -75,8 +75,8 @@ export default function OutboundTravelForm({
           <div className="form-text mt-1 text-info">
             Remaining Trips:{" "}
             <strong>
-              {travelInfo.remainingTrips !== undefined
-                ? travelInfo.remainingTrips
+              {formData.remainingTrips !== undefined
+                ? formData.remainingTrips
                 : "--"}
             </strong>
           </div>
@@ -87,7 +87,7 @@ export default function OutboundTravelForm({
           </label>
           <select
             className="form-select"
-            value={travelInfo.reason || ""}
+            value={formData.reason || ""}
             onChange={(e) => handleChange("reason", e.target.value)}
           >
             <option value="">-- Select Reason --</option>
@@ -102,7 +102,7 @@ export default function OutboundTravelForm({
           <label className="form-label">Accommodation Type</label>
           <select
             className="form-select"
-            value={travelInfo.accommodationType || ""}
+            value={formData.accommodationType || ""}
             onChange={(e) => handleChange("accommodationType", e.target.value)}
           >
             <option value="">-- Select Type --</option>
@@ -117,7 +117,7 @@ export default function OutboundTravelForm({
           <label className="form-label">Require Per Diem</label>
           <select
             className="form-select"
-            value={travelInfo.requirePerDiem || "No"}
+            value={formData.requirePerDiem || "No"}
             onChange={(e) => handleChange("requirePerDiem", e.target.value)}
           >
             <option value="No">No</option>
@@ -128,7 +128,7 @@ export default function OutboundTravelForm({
           <label className="form-label">Trip Type</label>
           <select
             className="form-select"
-            value={travelInfo.tripType || ""}
+            value={formData.tripType || ""}
             onChange={(e) => handleChange("tripType", e.target.value)}
           >
             <option value="">-- Select Trip Type --</option>
@@ -141,12 +141,12 @@ export default function OutboundTravelForm({
         </div>
 
         {/* Require Security Money - Only if Local */}
-        {travelInfo.travelType === "Local" && (
+        {formData.travelType === "Local" && (
           <div className="col-md-6">
             <label className="form-label">Require Security Money</label>
             <select
               className="form-select"
-              value={travelInfo.requireSecurityMoney || "No"}
+              value={formData.requireSecurityMoney || "No"}
               onChange={(e) =>
                 handleChange("requireSecurityMoney", e.target.value)
               }
@@ -160,7 +160,7 @@ export default function OutboundTravelForm({
           <label className="form-label">Annual Trip</label>
           <select
             className="form-select"
-            value={travelInfo.annualTrip || "No"}
+            value={formData.annualTrip || "No"}
             onChange={(e) => handleChange("annualTrip", e.target.value)}
           >
             <option value="No">No</option>
