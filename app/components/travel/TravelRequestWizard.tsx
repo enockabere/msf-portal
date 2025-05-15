@@ -21,7 +21,7 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Plus,
+  Plus, Loader,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -32,11 +32,16 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit, getResource } from "@/app/lib/api/http";
+import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { Dependency } from "@/app/types/global";
+import {
+  checkIfMissingRequiredProperty,
+  removeNullAndUndefinedFromObject,
+  removeObjectProps
+} from "@/app/utils/helpers";
 
 interface WizardStep {
   id: string;
@@ -79,12 +84,18 @@ export default function TravelRequestWizard() {
     documentType: '',
     no: '',
     travellerNo: '',
+    createdbyProfileNo: '',
+    originCountryCode: '',
+    originCity: '',
+    destinationCountryCode: '',
+    destinationCity: '',
     TypeOfTravel: '',
     purposeOfTravel: '',
+    accommodationType: '',
     departureDate: '',
     returnDate: '',
     annualTrip: false,
-    modeOfTransport: '',
+    modeOfTransport: 'AIR',
     arrivalDate: '',
     estimatedTimeOfArrival: '',
     pickupLocation: '',
@@ -94,26 +105,11 @@ export default function TravelRequestWizard() {
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
-
-    basedOnRequest: "Yes",
-    travelRequestId: "",
-    tripType: "",
-    costCenter: "",
-    remainingTrips: "",
-    tripDates: {from: "", to: ""},
-    destination: "",
-    applyForOther: "No",
-    currency: "",
-    paymentMethod: "",
-    travelType: "",
-    visaRequired: "No",
-    workPermitRequired: "No",
-    destinations: [],
   });
 
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  console.log(submitted);
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
 
   const [availableTickets] = useState<TicketItem[]>([
     {
@@ -137,6 +133,27 @@ export default function TravelRequestWizard() {
   const {data: session} = useSession();
   const profileNo = session?.user?.profile?.no
   const [profile, setProfile] = useState(null)
+  const fetchTravelRequest = async (requestNo) => {
+    try {
+      const res = await getResource('travelRequests', {
+        params: {
+          filters: {
+            no: requestNo
+          },
+          '$expand': '*',
+        }
+      });
+
+      if (res.error) {
+        console.log('Travel request error: ', res.error);
+        toast.error(res.error.message)
+      } else {
+        setFormData(res.value.at(0))
+      }
+    } catch (error: any) {
+      console.log('Error fetching travel request!', error.message)
+    }
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -155,8 +172,8 @@ export default function TravelRequestWizard() {
         } else {
           setProfile(res.value.at(0))
         }
-      } finally {
-        //
+      } catch (error: any) {
+        console.log('Error fetching profile!', error.message)
       }
     };
 
@@ -169,10 +186,20 @@ export default function TravelRequestWizard() {
         ...prev,
         documentType: profile.type,
         travellerNo: profile.no,
+        createdbyProfileNo: profile.no,
         passportNo: profile.passportIDNo,
         shortcutDimension1Code: profile.shortcutDimension1Code,
         shortcutDimension2Code: profile.shortcutDimension2Code,
       }))
+
+      setHeaderRequiredFields((prev) => {
+        if (profile.type === 'Employee') {
+          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+        } else if (profile.type === 'Visitor') {
+          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+        }
+        return [...prev]
+      })
     }
   }, [profile]);
 
@@ -216,8 +243,8 @@ export default function TravelRequestWizard() {
   const handleAddDestination = useCallback(() => {
     setFormData((prev) => ({
       ...prev,
-      destinations: [
-        ...prev.destinations,
+      travelRequestRoutes: [
+        ...prev.travelRequestRoutes,
         {
           id: Date.now().toString(),
           originCountry: "",
@@ -370,14 +397,54 @@ export default function TravelRequestWizard() {
     {id: "documents", label: "Required Documents", type: "file"},
   ];
 
-  const handleInitialSubmit = () => {
-    setCompletedSteps((prev) => new Set(prev).add("info"));
-    setSubmitted(true);
+  const handleInitialSubmit = async () => {
+    try {
+      const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
+      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
 
-    if (formData.documentType === "Visitor") {
-      setActiveTab("checklist");
-    } else if (formData.documentType === "Employee") {
-      setActiveTab("destinations");
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
+
+      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
+
+      if (isMissingRequiredProp.missing) {
+        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
+      }
+
+      setIsSubmitting(true)
+
+      console.log(knownSchema)
+
+      const res = knownSchema.no
+        ? await patchResource('travelRequests', {
+          data: knownSchema,
+          primaryKey: ['no'],
+        })
+        : await createResource('travelRequests', {
+          data: knownSchema,
+        });
+
+      if (res.error) {
+        setIsSubmitting(false)
+        return Swal.fire(res.error.code, res.error.message);
+      }
+
+      // Fetch created travel request
+      await fetchTravelRequest(res.no)
+
+      setIsSubmitting(false)
+
+      console.log('created travel request', formData);
+
+      setCompletedSteps((prev) => new Set(prev).add("info"));
+
+      if (formData.documentType === 'Visitor') {
+        setActiveTab('checklist');
+      } else if (formData.documentType === 'Employee') {
+        setActiveTab('destinations');
+      }
+    } catch (error: any) {
+      await Swal.fire('Error!', error.message)
+      setIsSubmitting(false)
     }
   };
 
@@ -388,14 +455,14 @@ export default function TravelRequestWizard() {
       value: DestinationItem[K]
     ) => {
       setFormData((prev) => {
-        const newDestinations = [...prev.destinations];
+        const newDestinations = [...prev.travelRequestRoutes];
         newDestinations[index] = {
           ...newDestinations[index],
           [field]: value,
         };
         return {
           ...prev,
-          destinations: newDestinations,
+          travelRequestRoutes: newDestinations,
         };
       });
     },
@@ -405,7 +472,7 @@ export default function TravelRequestWizard() {
   const handleRemoveDestination = useCallback((index: number) => {
     setFormData((prev) => ({
       ...prev,
-      destinations: prev.destinations.filter((_, i) => i !== index),
+      travelRequestRoutes: prev.travelRequestRoutes.filter((_, i) => i !== index),
     }));
   }, []);
 
@@ -530,13 +597,14 @@ export default function TravelRequestWizard() {
               {activeTab === "info" && (
                 <TravelHeaderForm
                   formData={formData}
+                  requiredFields={headerRequiredFields}
                   onFormChange={handleFormChange}
                 />
               )}
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={formData.destinations as any}
+                  destinations={formData.travelRequestRoutes as any}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
                 />
@@ -652,8 +720,11 @@ export default function TravelRequestWizard() {
                     type="button"
                     className="primary-button"
                     onClick={handleInitialSubmit}
+                    disabled={isSubmitting}
                   >
-                    <Save size={16} className="button-icon"/>
+                    {isSubmitting
+                      ? <Loader size={16} className="button-icon blink-animation"/>
+                      : <Save size={16} className="button-icon"/>}
                     Save & Continue
                   </button>
                 ) : (

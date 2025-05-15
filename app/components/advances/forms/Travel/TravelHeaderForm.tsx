@@ -1,16 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
 import { TravelRequest } from "@/app/types/travel";
-
-const COST_CENTERS = [
-  { code: "HR", name: "Human Resources" },
-  { code: "FIN", name: "Finance" },
-  { code: "OPS", name: "Operations" },
-  { code: "IT", name: "Information Technology" },
-];
+import { getResource } from "@/app/lib/api/http";
 
 const travelTypes = [
   { code: "Local", description: "Local" },
@@ -31,13 +25,16 @@ const yesNoOptions = [
 
 interface Props {
   formData: TravelRequest;
+  requiredFields: Array<string>;
   onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ formData, onFormChange }: Props) {
+export default function TravelHeaderForm({ formData, requiredFields, onFormChange }: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
+    dimensions,
+    countries,
     fetchSetups,
   } = useMySetups();
 
@@ -47,6 +44,12 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
         await fetchSetups([
           'purposeOfTravel',
           'modesOfTransport',
+          'countries',
+          {
+            dimensions: {
+              filters: { dimensionCode: 'OC' }
+            },
+          },
         ]);
       } finally {
         //
@@ -56,154 +59,357 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
     loadData();
   }, [fetchSetups]);
 
-  useEffect(() => {
-    if (formData.travelType && formData.costCenter) {
-      const randomTrips = Math.floor(Math.random() * 5) + 1;
-      onFormChange("remainingTrips", randomTrips);
+  const [originCities, setOriginCities] = useState([])
+  const [destinationCities, setDestinationCities] = useState([])
+
+  const fetchCities = async (countryCode, countryField) => {
+    try {
+      if (countryCode) {
+        const res = await getResource('cities', {
+          params: {
+            filters: {
+              countryRegionCode: countryCode,
+            }
+          }
+        })
+
+        if (res.error) {
+          console.log('Error!', res.error)
+        }
+
+        if (countryField === 'originCountryCode') {
+          setOriginCities([...res.value])
+        } else if (countryField === 'destinationCountryCode') {
+          setDestinationCities([...res.value])
+        }
+      } else {
+        if (countryField === 'originCountryCode') {
+          setOriginCities([])
+        } else if (countryField === 'destinationCountryCode') {
+          setDestinationCities([])
+        }
+      }
+    } catch (error: any) {
+      console.log('Error!', error.message)
     }
-  }, [formData.travelType, formData.costCenter, onFormChange]);
+  }
 
   return (
     <>
       <div className="border rounded p-3 bg-light-subtle mt-3">
         <h6 className="text-dark fw-bold">Travel Details</h6>
         <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label">
-              Type of Travel <span className="text-danger">*</span>
-            </label>
-            <select
-              className="form-select"
-              value={formData.TypeOfTravel}
-              onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
-            >
-              <option value="">-- Select Type --</option>
-              {travelTypes.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-4">
-            <label className="form-label">
-              Mode of Transport <span className="text-danger">*</span>
-            </label>
-            <select
-              className="form-select"
-              value={formData.modeOfTransport}
-              onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
-            >
-              <option value="">-- Select Mode --</option>
-              {modesOfTransport.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-4">
-            <label className="form-label">
-              Purpose of Travel <span className="text-danger">*</span>
-            </label>
-            <select
-              className="form-select"
-              value={formData.purposeOfTravel}
-              onChange={(e) => onFormChange("reason", e.target.value)}
-            >
-              <option value="">-- Select Purpose --</option>
-              {purposeOfTravel.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-4">
-            <label className="form-label">Annual Trip</label>
-            <select
-              className="form-select"
-              value={String(formData.annualTrip)}
-              onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
-            >
-              {yesNoOptions.map((item) => (
-                <option key={item.code} value={item.code}>{item.description}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-4">
-            <label className="form-label">
-              ID/Passport Number
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              value={formData.passportNo}
-              onChange={(e) =>
-                onFormChange("passportNo", e.target.value)
-              }
-              placeholder="Enter ID or Passport number"
-            />
-          </div>
-
-
-
-
-          <div className="col-md-4">
-            <label className="form-label">
-              Cost Center <span className="text-danger">*</span>
-            </label>
-            <select
+          {requiredFields.includes('originCountryCode') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Origin Country <span className="text-danger">*</span>
+              </label>
+              <select
                 className="form-select"
-                value={formData.costCenter || ""}
-                onChange={(e) => onFormChange("costCenter", e.target.value)}
-            >
-              <option value="">-- Select Cost Center --</option>
-              {COST_CENTERS.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
+                value={formData.originCountryCode}
+                onChange={async (e) => {
+                  onFormChange('originCountryCode', e.target.value)
+                  onFormChange('originCity', '')
+                  await fetchCities(e.target.value, 'originCountryCode')
+                }}
+                required
+              >
+                <option value="">-- Select Country --</option>
+                {countries.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.displayName}
                   </option>
-              ))}
-            </select>
-            <div className="form-text mt-1 text-info">
-              Remaining Trips:{" "}
-              <strong>
-                {formData.remainingTrips !== undefined
-                    ? formData.remainingTrips
-                    : "--"}
-              </strong>
+                ))}
+              </select>
             </div>
-          </div>
-          <div className="col-md-4">
-            <label className="form-label">Accommodation Type</label>
-            <select
+          )}
+
+          {requiredFields.includes('originCity') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Origin City <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.originCity}
+                onChange={(e) => onFormChange('originCity', e.target.value)}
+                required
+              >
+                <option value="">-- Select City --</option>
+                {originCities.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('destinationCountryCode') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Destination Country <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.destinationCountryCode}
+                onChange={async (e) => {
+                  onFormChange('destinationCountryCode', e.target.value)
+                  onFormChange('destinationCity', '')
+                  await fetchCities(e.target.value, 'destinationCountryCode')
+                }}
+                required
+              >
+                <option value="">-- Select Country --</option>
+                {countries.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('destinationCity') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Destination City <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.destinationCity}
+                onChange={(e) => onFormChange('destinationCity', e.target.value)}
+                required
+              >
+                <option value="">-- Select City --</option>
+                {destinationCities.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('TypeOfTravel') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Type of Travel <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.TypeOfTravel}
+                onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
+                required
+              >
+                <option value="">-- Select Type --</option>
+                {travelTypes.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('modeOfTransport') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Mode of Transport <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.modeOfTransport}
+                onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
+                required
+              >
+                <option value="">-- Select Mode --</option>
+                {modesOfTransport.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('purposeOfTravel') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Purpose of Travel <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.purposeOfTravel}
+                onChange={(e) => onFormChange('purposeOfTravel', e.target.value)}
+                required
+              >
+                <option value="">-- Select Purpose --</option>
+                {purposeOfTravel.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('annualTrip') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Annual Trip <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={String(formData.annualTrip)}
+                onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
+                required
+              >
+                {yesNoOptions.map((item) => (
+                  <option key={item.code} value={item.code}>{item.description}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('passportNo') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                ID/Passport Number <span className="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.passportNo}
+                onChange={(e) =>
+                  onFormChange("passportNo", e.target.value)
+                }
+                placeholder="Enter ID or Passport number"
+                required
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('departureDate') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Departure Date <span className="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                value={formData.departureDate}
+                onChange={(e) =>
+                  onFormChange('departureDate', e.target.value)
+                }
+                required
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('arrivalDate') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Arrival Date <span className="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                value={formData.arrivalDate}
+                onChange={(e) =>
+                  onFormChange('arrivalDate', e.target.value)
+                }
+                required
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('estimatedTimeOfArrival') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Expected Time of Arrival <span className="text-danger">*</span>
+              </label>
+              <input
+                type="time"
+                className="form-control"
+                value={formData.estimatedTimeOfArrival}
+                onChange={(e) =>
+                  onFormChange('estimatedTimeOfArrival', `${e.target.value}:00`)
+                }
+                required
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('returnDate') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Return Date <span className="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                value={formData.returnDate}
+                onChange={(e) =>
+                  onFormChange('returnDate', e.target.value)
+                }
+                required
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('accommodationType') && (
+            <div className="col-md-4">
+              <label className="form-label">Accommodation Type</label>
+              <select
                 className="form-select"
                 value={formData.accommodationType || ""}
                 onChange={(e) => onFormChange("accommodationType", e.target.value)}
-            >
-              <option value="">-- Select Type --</option>
-              {accommodationTypes.map((type) => (
+              >
+                <option value="">-- Select Accommodation --</option>
+                {accommodationTypes.map((type) => (
                   <option key={type.code} value={type.code}>
                     {type.description}
                   </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4">
-            <label className="form-label">Require Per Diem</label>
-            <select
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('requirePerDiem') && (
+            <div className="col-md-4">
+              <label className="form-label">Require Per Diem</label>
+              <select
                 className="form-select"
-                value={formData.requirePerDiem || "No"}
-                onChange={(e) => onFormChange("requirePerDiem", e.target.value)}
-            >
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
+                value={formData.requirePerDiem }
+                onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
+              >
+                {yesNoOptions.map((item) => (
+                  <option key={item.code} value={item.code}>{item.description}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {requiredFields.includes('shortcutDimension1Code') && (
+            <div className="col-md-4">
+              <label className="form-label">
+                Cost Center <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={formData.shortcutDimension1Code}
+                onChange={(e) => onFormChange('shortcutDimension1Code', e.target.value)}
+              >
+                <option value="">-- Select Cost Center --</option>
+                {dimensions.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -94,8 +94,8 @@ export default function RequestCards() {
               filters: {
                 isImprest: true,
               }
-            } as EndpointOptions,
-          } as Record<ENDPOINTMAP, EndpointOptions>,
+            }
+          }
         ]).catch((err) => {
           Swal.fire({
             title: "Error Fetching setups!",
