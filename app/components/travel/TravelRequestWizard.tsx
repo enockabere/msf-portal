@@ -32,7 +32,7 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit, createResource, getResource } from "@/app/lib/api/http";
+import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
@@ -109,7 +109,7 @@ export default function TravelRequestWizard() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'createdbyProfileNo'])
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
 
   const [availableTickets] = useState<TicketItem[]>([
     {
@@ -133,6 +133,27 @@ export default function TravelRequestWizard() {
   const {data: session} = useSession();
   const profileNo = session?.user?.profile?.no
   const [profile, setProfile] = useState(null)
+  const fetchTravelRequest = async (requestNo) => {
+    try {
+      const res = await getResource('travelRequests', {
+        params: {
+          filters: {
+            no: requestNo
+          },
+          '$expand': '*',
+        }
+      });
+
+      if (res.error) {
+        console.log('Travel request error: ', res.error);
+        toast.error(res.error.message)
+      } else {
+        setFormData(res.value.at(0))
+      }
+    } catch (error: any) {
+      console.log('Error fetching travel request!', error.message)
+    }
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -151,8 +172,8 @@ export default function TravelRequestWizard() {
         } else {
           setProfile(res.value.at(0))
         }
-      } finally {
-        //
+      } catch (error: any) {
+        console.log('Error fetching profile!', error.message)
       }
     };
 
@@ -378,10 +399,8 @@ export default function TravelRequestWizard() {
 
   const handleInitialSubmit = async () => {
     try {
-      console.log(headerRequiredFields)
       const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
       const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
-      console.log(knownSchema)
 
       const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
 
@@ -391,21 +410,30 @@ export default function TravelRequestWizard() {
         return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
       }
 
-      console.log('Submitting', knownSchema)
-
       setIsSubmitting(true)
-      const res = await createResource('travelRequests', {
-        data: knownSchema,
-      });
+
+      console.log(knownSchema)
+
+      const res = knownSchema.no
+        ? await patchResource('travelRequests', {
+          data: knownSchema,
+          primaryKey: ['no'],
+        })
+        : await createResource('travelRequests', {
+          data: knownSchema,
+        });
 
       if (res.error) {
         setIsSubmitting(false)
         return Swal.fire(res.error.code, res.error.message);
       }
 
+      // Fetch created travel request
+      await fetchTravelRequest(res.no)
+
       setIsSubmitting(false)
 
-      console.log('created travel request', res);
+      console.log('created travel request', formData);
 
       setCompletedSteps((prev) => new Set(prev).add("info"));
 

@@ -28,7 +28,7 @@ const validType = (value: any): boolean => {
 export const removeNullAndUndefinedFromObject = (input: Record<string, any>) => {
     const type = safeTypechecker(input);
     if (type !== 'Object') return;
-    let cleanObject = {};
+    const cleanObject = {};
     for (const [key, value] of Object.entries(input)) {
 
         if (validType(value)) {
@@ -45,7 +45,6 @@ export const checkIfMissingRequiredProperty = (input: Record<string, any>, requi
     const missingProps: string[] = [];
     requiredProps.forEach((prop: string) => {
         const propExist = Object.keys(input).some((p: string) => p === prop);
-        console.log("Checker: ", { propExist, prop: prop })
         if (!propExist) {
             missingRequiredProp = true;
             missingProps.push(prop);
