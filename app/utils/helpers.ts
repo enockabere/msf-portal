@@ -8,12 +8,30 @@ export const safeTypechecker = (input: any) => {
     return Object.prototype.toString.call(input).slice(8, -1);
 }
 
+const validType = (value: any): boolean => {
+    const type = safeTypechecker(value);
+    let isValid = true;
+    switch(type) {
+        case 'Undefined':
+        case 'Null':
+            {
+                isValid = false;
+                break;
+            }
+        case 'String': {
+            isValid = !!value.length;
+        }
+    }
+    return isValid;
+}
+
 export const removeNullAndUndefinedFromObject = (input: Record<string, any>) => {
     const type = safeTypechecker(input);
     if (type !== 'Object') return;
     let cleanObject = {};
     for (const [key, value] of Object.entries(input)) {
-        if (value) {
+
+        if (validType(value)) {
             cleanObject[key] = value;
         }
     }
