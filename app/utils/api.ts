@@ -70,10 +70,9 @@ export async function apiFetch(
             company: process.env.BC_COMPANY_NAME,
         }
         const { data, params, batch, ...rest } = options;
-        const otherOptions = {params: params as never, ...rest};
+        const otherOptions = { params: params as never, ...rest };
         switch (method.toLowerCase()) {
             case 'get':
-                console.log('Dependency tab: 3 ', memoryMap.get(endpoint), params);
                 response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest); break;
             case 'post':
                 response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
