@@ -98,7 +98,6 @@ export default function OperationalAdvanceForm() {
       const strippedPayLoad = removeNullAndUndefinedFromObject({ ...formData, ...presets });
       const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode']);
       const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode']);
-      console.log('validation: ', isMissingRequiredProp)
       if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
       if (isMissingRequiredProp.missing) {
         return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
@@ -109,7 +108,17 @@ export default function OperationalAdvanceForm() {
       if (res.error) {
         return Swal.fire(res.error.code, res.error.message);
       }
-      console.log('created resource', res);
+      setFormData({ ...res.value });
+      Swal.fire("Success", `${formData.imprestType} advance was created successfully!`);
+      await fetchSetups([
+        {
+          expenseCodes: {
+            filters: {
+              imprestType: formData.imprestType
+            }
+          }
+        }
+      ])
       setCurrentStep(2);
     } catch (error: any) {
       Swal.fire('Error!', error.message)
@@ -143,36 +152,42 @@ export default function OperationalAdvanceForm() {
         if (data.user?.profile?.type !== 'Employee') return
         await fetchSetups([
           "banks",
-          "bankBranches",
           {
-            'employeeBanks': {
+            employeeBanks: {
               filters: {
                 employee: data.user?.profile?.no,
                 default: true,
               }
-            } as EndpointOptions
-          } as Record<ENDPOINTMAP, EndpointOptions>
+            }
+          }
         ]);
-        handleFormChange('accountNo', String(employeeBanks?.[0]?.accountNo));
-        handleFormChange('accountName', String(employeeBanks?.[0]?.name));
-        handleFormChange('bankNo', String(employeeBanks?.[0]?.bankCode));
-        handleFormChange('branch', String(employeeBanks?.[0]?.bankBranch));
-        handleFormChange('swiftCode', String(employeeBanks?.[0]?.swiftCode));
       }
     }
   }
 
   const getBankBranches = async () => {
-    if (!formData.bankNo) return null;
+    console.log("Bank changed: ", formData.bankNo)
+    if (!formData.bankNo || formData.bankNo === "undefined" || formData.bankNo === "null") return null;
     await fetchSetups([
       {
-        'bankBranches': {
+        bankBranches: {
           filters: {
             mainBank: formData.bankNo,
           }
-        } as EndpointOptions
-      } as Record<ENDPOINTMAP, EndpointOptions>
-    ]);
+        }
+      }
+    ], true);
+  }
+
+  const updateEmployeeBank = () => {
+    const bankDetails = employeeBanks[0];
+    if (bankDetails && Object.keys(bankDetails).length) {
+      handleFormChange('accountNo', bankDetails.accountNo);
+      handleFormChange('accountName', bankDetails.name);
+      handleFormChange('bankNo', bankDetails.bankCode);
+      handleFormChange('branch', bankDetails.bankBranch);
+      handleFormChange('swiftCode', bankDetails.swiftCode);
+    }
   }
   useEffect(() => {
     const total = expenses.reduce(
@@ -189,6 +204,8 @@ export default function OperationalAdvanceForm() {
   useEffect(() => {
     getBankBranches();
   }, [formData.bankNo]);
+
+  useEffect(() => { updateEmployeeBank() }, [employeeBanks]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
