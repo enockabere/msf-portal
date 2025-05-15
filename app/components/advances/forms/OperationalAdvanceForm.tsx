@@ -87,11 +87,10 @@ export default function OperationalAdvanceForm() {
 
   const handleNext = async () => {
     try {
-      const pDate = new Date().toString();
-
+      const pDate = new Date().toISOString();
       const presets: Record<string, any> = {
         documentType: 'Imprest',
-        postingDate: formatDate(pDate, 'YYYY-MM-DD'),
+        postingDate: formatDate(pDate, 'yyyy-MM-dd'),
         employeeNo: data.user?.profile?.no,
         requestedBy: data.user?.profile?.no,
         requestedByFor: data.user?.profile?.no
