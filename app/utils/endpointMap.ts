@@ -44,6 +44,8 @@ export const endpointMap = {
   userProfiles: "/api/kinetics/enigma/v1.0/userProfiles",
   travelDependancies: "/api/kinetics/adminTravel/v1.0/profileDependant",
   travelRequests: "/api/kinetics/adminTravel/v1.0/travelRequests",
+  countries: "/api/v1.0/countriesRegions",
+  cities: "/api/kinetics/enigma/v1.0/postCodes",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

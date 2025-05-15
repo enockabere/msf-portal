@@ -21,7 +21,7 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Plus,
+  Plus, Loader,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -37,6 +37,11 @@ import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { Dependency } from "@/app/types/global";
+import {
+  checkIfMissingRequiredProperty,
+  removeNullAndUndefinedFromObject,
+  removeObjectProps
+} from "@/app/utils/helpers";
 
 interface WizardStep {
   id: string;
@@ -79,8 +84,14 @@ export default function TravelRequestWizard() {
     documentType: '',
     no: '',
     travellerNo: '',
+    createdbyProfileNo: '',
+    originCountryCode: '',
+    originCity: '',
+    destinationCountryCode: '',
+    destinationCity: '',
     TypeOfTravel: '',
     purposeOfTravel: '',
+    accommodationType: '',
     departureDate: '',
     returnDate: '',
     annualTrip: false,
@@ -96,9 +107,9 @@ export default function TravelRequestWizard() {
     travelRequestRoutes: [],
   });
 
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  console.log(submitted);
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'createdbyProfileNo'])
 
   const [availableTickets] = useState<TicketItem[]>([
     {
@@ -154,10 +165,20 @@ export default function TravelRequestWizard() {
         ...prev,
         documentType: profile.type,
         travellerNo: profile.no,
+        createdbyProfileNo: profile.no,
         passportNo: profile.passportIDNo,
         shortcutDimension1Code: profile.shortcutDimension1Code,
         shortcutDimension2Code: profile.shortcutDimension2Code,
       }))
+
+      setHeaderRequiredFields((prev) => {
+        if (profile.type === 'Employee') {
+          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+        } else if (profile.type === 'Visitor') {
+          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+        }
+        return [...prev]
+      })
     }
   }, [profile]);
 
@@ -357,18 +378,36 @@ export default function TravelRequestWizard() {
 
   const handleInitialSubmit = async () => {
     try {
+      console.log(headerRequiredFields)
+      const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
+      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
+      console.log(knownSchema)
+
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
+
+      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
+
+      if (isMissingRequiredProp.missing) {
+        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
+      }
+
+      console.log('Submitting', knownSchema)
+
+      setIsSubmitting(true)
       const res = await createResource('travelRequests', {
-        data: formData,
+        data: knownSchema,
       });
 
       if (res.error) {
+        setIsSubmitting(false)
         return Swal.fire(res.error.code, res.error.message);
       }
+
+      setIsSubmitting(false)
 
       console.log('created travel request', res);
 
       setCompletedSteps((prev) => new Set(prev).add("info"));
-      setSubmitted(true);
 
       if (formData.documentType === 'Visitor') {
         setActiveTab('checklist');
@@ -377,6 +416,7 @@ export default function TravelRequestWizard() {
       }
     } catch (error: any) {
       await Swal.fire('Error!', error.message)
+      setIsSubmitting(false)
     }
   };
 
@@ -529,6 +569,7 @@ export default function TravelRequestWizard() {
               {activeTab === "info" && (
                 <TravelHeaderForm
                   formData={formData}
+                  requiredFields={headerRequiredFields}
                   onFormChange={handleFormChange}
                 />
               )}
@@ -651,8 +692,11 @@ export default function TravelRequestWizard() {
                     type="button"
                     className="primary-button"
                     onClick={handleInitialSubmit}
+                    disabled={isSubmitting}
                   >
-                    <Save size={16} className="button-icon"/>
+                    {isSubmitting
+                      ? <Loader size={16} className="button-icon blink-animation"/>
+                      : <Save size={16} className="button-icon"/>}
                     Save & Continue
                   </button>
                 ) : (
