@@ -4,26 +4,15 @@ import React, {useEffect} from "react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
-
-interface DestinationItem {
-  id: string;
-  documentType: string;
-  documentNo: string;
-  originCountryCode: string;
-  originCity: string;
-  destinationCountryCode: string;
-  destinationCity: string;
-  travelDate: string;
-  modeOfTransport: string;
-  visaRequired: string;
-}
+import {createResource} from "@/app/lib/api/http";
+import {  Destination } from "@/app/types/Destination";
 
 interface TravelDestinationsProps {
-  destinations: DestinationItem[];
-  onDestinationChange: <K extends keyof DestinationItem>(
+  destinations: Destination[];
+  onDestinationChange: <K extends keyof Destination>(
     index: number,
     field: K,
-    value: DestinationItem[K]
+    value: Destination[K]
   ) => void;
   onRemoveDestination: (index: number) => void;
 }
@@ -40,7 +29,7 @@ export default function TravelDestinations({
     fetchSetups,
   } = useMySetups();
 
-  const columns: TableColumn<DestinationItem>[] = [
+  const columns: TableColumn<Destination>[] = [
     {
       name: "#",
       width: "50px",
@@ -104,9 +93,9 @@ export default function TravelDestinations({
           }
         >
           <option value="">-- Select --</option>
-          {cities.map((city) => (
-            <option key={city.code} value={city.code}>
-              {city.name}
+          {countries.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country.name}
             </option>
           ))}
         </select>
@@ -196,6 +185,7 @@ export default function TravelDestinations({
             type="button"
             className="btn btn-sm btn-outline-success"
             title="Save"
+            onClick={() => saveDestination(index)}
           >
             <Save size={16} />
           </button>
@@ -211,6 +201,29 @@ export default function TravelDestinations({
       ),
     },
   ];
+
+  const saveDestination = async (index: number) => {
+    let destination = destinations[index];
+    destination['documentType'] = 'Employee';
+    destination['documentNo'] = '8w45ndfgn';
+    destination['sequenceNo'] = '12349213';
+    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'visaRequired'];
+
+    keysToRemove.forEach((key) => {
+      delete destination[key as keyof typeof destination];
+    });
+
+    // Replace this with actual API call
+    console.log("Saving destination:", destination);
+
+    const res = await createResource('travelRoutes', {
+      data: {
+        ...destination
+      },
+    });
+
+    console.log('create routes res', res)
+  }
 
   useEffect(() => {
     const loadData = async () => {

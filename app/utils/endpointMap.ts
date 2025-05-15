@@ -41,7 +41,8 @@ export const endpointMap = {
   createTravelAdvanceFromTravel: "/ODataV4/TravelManager_createImprest",
   countries: "/api/KineticTechnology/CashMgt/v2.0/countries",
   cities: "/api/KineticTechnology/CashMgt/v2.0/cities",
-  modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport"
+  modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
+  travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));
