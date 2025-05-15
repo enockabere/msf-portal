@@ -32,7 +32,7 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit, getResource } from "@/app/lib/api/http";
+import { codeUnit, createResource, getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
@@ -84,7 +84,7 @@ export default function TravelRequestWizard() {
     departureDate: '',
     returnDate: '',
     annualTrip: false,
-    modeOfTransport: '',
+    modeOfTransport: 'AIR',
     arrivalDate: '',
     estimatedTimeOfArrival: '',
     pickupLocation: '',
@@ -355,14 +355,28 @@ export default function TravelRequestWizard() {
     {id: "documents", label: "Required Documents", type: "file"},
   ];
 
-  const handleInitialSubmit = () => {
-    setCompletedSteps((prev) => new Set(prev).add("info"));
-    setSubmitted(true);
+  const handleInitialSubmit = async () => {
+    try {
+      const res = await createResource('travelRequests', {
+        data: formData,
+      });
 
-    if (formData.documentType === "Visitor") {
-      setActiveTab("checklist");
-    } else if (formData.documentType === "Employee") {
-      setActiveTab("destinations");
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message);
+      }
+
+      console.log('created travel request', res);
+
+      setCompletedSteps((prev) => new Set(prev).add("info"));
+      setSubmitted(true);
+
+      if (formData.documentType === 'Visitor') {
+        setActiveTab('checklist');
+      } else if (formData.documentType === 'Employee') {
+        setActiveTab('destinations');
+      }
+    } catch (error: any) {
+      await Swal.fire('Error!', error.message)
     }
   };
 

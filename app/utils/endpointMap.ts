@@ -43,6 +43,7 @@ export const endpointMap = {
   travelProfile: "/api/kinetics/adminTravel/v1.0/userProfiles",
   userProfiles: "/api/kinetics/enigma/v1.0/userProfiles",
   travelDependancies: "/api/kinetics/adminTravel/v1.0/profileDependant",
+  travelRequests: "/api/kinetics/adminTravel/v1.0/travelRequests",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

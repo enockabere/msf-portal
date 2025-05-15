@@ -7,13 +7,6 @@ import { TravelRequest } from "@/app/types/travel";
 import { EndpointOptions } from "@/app/types/global";
 import { ENDPOINTMAP } from "@/app/utils/endpointMap";
 
-const COST_CENTERS = [
-  { code: "HR", name: "Human Resources" },
-  { code: "FIN", name: "Finance" },
-  { code: "OPS", name: "Operations" },
-  { code: "IT", name: "Information Technology" },
-];
-
 const travelTypes = [
   { code: "Local", description: "Local" },
   { code: "International", description: "International" },
@@ -53,8 +46,8 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
           {
             dimensions: {
               filters: { dimensionCode: 'OC' }
-            } as EndpointOptions,
-          } as Record<ENDPOINTMAP, EndpointOptions>,
+            },
+          },
         ]);
       } finally {
         //
