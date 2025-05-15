@@ -94,21 +94,6 @@ export default function TravelRequestWizard() {
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
-
-    basedOnRequest: "Yes",
-    travelRequestId: "",
-    tripType: "",
-    costCenter: "",
-    remainingTrips: "",
-    tripDates: {from: "", to: ""},
-    destination: "",
-    applyForOther: "No",
-    currency: "",
-    paymentMethod: "",
-    travelType: "",
-    visaRequired: "No",
-    workPermitRequired: "No",
-    destinations: [],
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -216,8 +201,8 @@ export default function TravelRequestWizard() {
   const handleAddDestination = useCallback(() => {
     setFormData((prev) => ({
       ...prev,
-      destinations: [
-        ...prev.destinations,
+      travelRequestRoutes: [
+        ...prev.travelRequestRoutes,
         {
           id: Date.now().toString(),
           originCountry: "",
@@ -388,14 +373,14 @@ export default function TravelRequestWizard() {
       value: DestinationItem[K]
     ) => {
       setFormData((prev) => {
-        const newDestinations = [...prev.destinations];
+        const newDestinations = [...prev.travelRequestRoutes];
         newDestinations[index] = {
           ...newDestinations[index],
           [field]: value,
         };
         return {
           ...prev,
-          destinations: newDestinations,
+          travelRequestRoutes: newDestinations,
         };
       });
     },
@@ -405,7 +390,7 @@ export default function TravelRequestWizard() {
   const handleRemoveDestination = useCallback((index: number) => {
     setFormData((prev) => ({
       ...prev,
-      destinations: prev.destinations.filter((_, i) => i !== index),
+      travelRequestRoutes: prev.travelRequestRoutes.filter((_, i) => i !== index),
     }));
   }, []);
 
@@ -536,7 +521,7 @@ export default function TravelRequestWizard() {
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={formData.destinations as any}
+                  destinations={formData.travelRequestRoutes as any}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
                 />

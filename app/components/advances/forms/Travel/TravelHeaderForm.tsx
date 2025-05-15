@@ -4,6 +4,8 @@ import React, { useEffect } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
 import { TravelRequest } from "@/app/types/travel";
+import { EndpointOptions } from "@/app/types/global";
+import { ENDPOINTMAP } from "@/app/utils/endpointMap";
 
 const COST_CENTERS = [
   { code: "HR", name: "Human Resources" },
@@ -38,6 +40,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
+    dimensions,
     fetchSetups,
   } = useMySetups();
 
@@ -47,6 +50,11 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
         await fetchSetups([
           'purposeOfTravel',
           'modesOfTransport',
+          {
+            dimensions: {
+              filters: { dimensionCode: 'OC' }
+            } as EndpointOptions,
+          } as Record<ENDPOINTMAP, EndpointOptions>,
         ]);
       } finally {
         //
@@ -76,6 +84,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
               className="form-select"
               value={formData.TypeOfTravel}
               onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
+              required
             >
               <option value="">-- Select Type --</option>
               {travelTypes.map((item) => (
@@ -94,6 +103,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
               className="form-select"
               value={formData.modeOfTransport}
               onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
+              required
             >
               <option value="">-- Select Mode --</option>
               {modesOfTransport.map((item) => (
@@ -112,6 +122,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
               className="form-select"
               value={formData.purposeOfTravel}
               onChange={(e) => onFormChange("reason", e.target.value)}
+              required
             >
               <option value="">-- Select Purpose --</option>
               {purposeOfTravel.map((item) => (
@@ -123,11 +134,14 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label">Annual Trip</label>
+            <label className="form-label">
+              Annual Trip <span className="text-danger">*</span>
+            </label>
             <select
               className="form-select"
               value={String(formData.annualTrip)}
               onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
+              required
             >
               {yesNoOptions.map((item) => (
                 <option key={item.code} value={item.code}>{item.description}</option>
@@ -137,7 +151,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
 
           <div className="col-md-4">
             <label className="form-label">
-              ID/Passport Number
+              ID/Passport Number <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -147,37 +161,55 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
                 onFormChange("passportNo", e.target.value)
               }
               placeholder="Enter ID or Passport number"
+              required
             />
           </div>
 
-
-
+          <div className="col-md-4">
+            <label className="form-label">
+              Departure Date <span className="text-danger">*</span>
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              value={formData.departureDate}
+              onChange={(e) =>
+                onFormChange('departureDate', e.target.value)
+              }
+              required
+            />
+          </div>
 
           <div className="col-md-4">
             <label className="form-label">
-              Cost Center <span className="text-danger">*</span>
+              Arrival Date <span className="text-danger">*</span>
             </label>
-            <select
-                className="form-select"
-                value={formData.costCenter || ""}
-                onChange={(e) => onFormChange("costCenter", e.target.value)}
-            >
-              <option value="">-- Select Cost Center --</option>
-              {COST_CENTERS.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-              ))}
-            </select>
-            <div className="form-text mt-1 text-info">
-              Remaining Trips:{" "}
-              <strong>
-                {formData.remainingTrips !== undefined
-                    ? formData.remainingTrips
-                    : "--"}
-              </strong>
-            </div>
+            <input
+              type="date"
+              className="form-control"
+              value={formData.arrivalDate}
+              onChange={(e) =>
+                onFormChange('arrivalDate', e.target.value)
+              }
+              required
+            />
           </div>
+
+          <div className="col-md-4">
+            <label className="form-label">
+              Expected Time of Arrival <span className="text-danger">*</span>
+            </label>
+            <input
+              type="time"
+              className="form-control"
+              value={formData.estimatedTimeOfArrival}
+              onChange={(e) =>
+                onFormChange('estimatedTimeOfArrival', e.target.value)
+              }
+              required
+            />
+          </div>
+
           <div className="col-md-4">
             <label className="form-label">Accommodation Type</label>
             <select
@@ -185,7 +217,7 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
                 value={formData.accommodationType || ""}
                 onChange={(e) => onFormChange("accommodationType", e.target.value)}
             >
-              <option value="">-- Select Type --</option>
+              <option value="">-- Select Accommodation --</option>
               {accommodationTypes.map((type) => (
                   <option key={type.code} value={type.code}>
                     {type.description}
@@ -193,15 +225,35 @@ export default function TravelHeaderForm({ formData, onFormChange }: Props) {
               ))}
             </select>
           </div>
+
           <div className="col-md-4">
             <label className="form-label">Require Per Diem</label>
             <select
                 className="form-select"
-                value={formData.requirePerDiem || "No"}
-                onChange={(e) => onFormChange("requirePerDiem", e.target.value)}
+                value={formData.requirePerDiem }
+                onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
             >
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
+              {yesNoOptions.map((item) => (
+                <option key={item.code} value={item.code}>{item.description}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">
+              Cost Center <span className="text-danger">*</span>
+            </label>
+            <select
+              className="form-select"
+              value={formData.shortcutDimension1Code}
+              onChange={(e) => onFormChange('shortcutDimension1Code', e.target.value)}
+            >
+              <option value="">-- Select Cost Center --</option>
+              {dimensions.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
