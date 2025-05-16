@@ -71,6 +71,17 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
         setTravelChecklist(res?.value || [])
     }
 
+    const groupByTravellerName = (items) => {
+        return items.reduce((acc, item) => {
+            const name = item.travellerName || 'Unknown Traveller';
+            if (!acc[name]) {
+                acc[name] = [];
+            }
+            acc[name].push(item);
+            return acc;
+        }, {});
+    };
+
     useEffect(() => {
         getTravelChecklist()
     }, []);
@@ -92,54 +103,50 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
                         </thead>
 
                         <tbody>
-                        {travelChecklist.map((row, index) => (
-                            <tr key={`checklist-item-${index}`}>
-                                <td>{index + 1}. {row.checklistItem}-{row.checklistItemDescription}</td>
-                                <td>
-                                    <input
-                                        type="data"
-                                        className="form-control"
-                                        value={row.expiryDate}
-                                        onChange={(e) => handleInputChange(index, e.target.value)}
-                                        placeholder="Enter ID or Passport number"
-                                        required
-                                    />
-                                </td>
-                                {/*<td>*/}
-                                {/*    <label className="btn btn-sm btn-outline-secondary w-100">*/}
-                                {/*        <UploadCloud size={14} className="me-1" /> Upload*/}
-                                {/*        <input*/}
-                                {/*            type="file"*/}
-                                {/*            accept="image/*,.pdf"*/}
-                                {/*            hidden*/}
-                                {/*            onChange={(e) =>*/}
-                                {/*                handleFileChange(index, e.target.files?.[0] || null)*/}
-                                {/*            }*/}
-                                {/*        />*/}
-                                {/*    </label>*/}
-                                {/*    {row.file && <small>{row.file.name}</small>}*/}
-                                {/*</td>*/}
-                                <td>
-                                    <Form.Check
-                                        type="checkbox"
-                                        id={`check-${index}`}
-                                        className="mb-2 text-capitalize"
-                                        checked={row.has}
-                                        onChange={(e) => handleCheckboxChange(index, e.target.checked)}
-                                    />
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        className="btn btn-outline-success btn-sm"
-                                        onClick={() => saveChecklistItem(index)}
-                                        title="Save"
-                                    >
-                                        <Save size={16} />
-                                    </button>
-                                </td>
-                            </tr>
+
+                        {Object.entries(groupByTravellerName(travelChecklist)).map(([travellerName, items], groupIndex) => (
+                            <React.Fragment key={`group-${groupIndex}`}>
+                                <tr className="table-primary">
+                                    <td colSpan={4}><strong>{travellerName}</strong></td>
+                                </tr>
+
+                                {items?.map((row, index) => (
+                                    <tr key={`checklist-item-${groupIndex}-${index}`}>
+                                        <td>{index + 1}. {row.checklistItem} - {row.checklistItemDescription}</td>
+                                        <td>
+                                            <input
+                                                type="date"
+                                                className="form-control"
+                                                value={row.expiryDate}
+                                                onChange={(e) => handleInputChange(index, e.target.value)}
+                                                placeholder="Enter expiry date"
+                                                required
+                                            />
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                                type="checkbox"
+                                                id={`check-${groupIndex}-${index}`}
+                                                className="mb-2 text-capitalize"
+                                                checked={row.has}
+                                                onChange={(e) => handleCheckboxChange(index, e.target.checked)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline-success btn-sm"
+                                                onClick={() => saveChecklistItem(index)}
+                                                title="Save"
+                                            >
+                                                <Save size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </React.Fragment>
                         ))}
+
                         </tbody>
                     </table>
                 </div>
