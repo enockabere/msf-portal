@@ -42,6 +42,7 @@ import {
   removeNullAndUndefinedFromObject,
   removeObjectProps
 } from "@/app/utils/helpers";
+import { Destination } from "@/app/types/Destination";
 
 interface WizardStep {
   id: string;
@@ -55,17 +56,6 @@ interface stepAction {
   id: any;
   fn: MouseEventHandler<HTMLButtonElement>;
   caption: string;
-}
-
-interface DestinationItem {
-  id: string;
-  originCountry: string;
-  originCity: string;
-  destinationCountry: string;
-  destinationCity: string;
-  travelDate: string;
-  transportMode: string;
-  visaRequired: string;
 }
 
 interface TicketItem {
@@ -253,7 +243,6 @@ export default function TravelRequestWizard() {
           destinationCity: "",
           travelDate: "",
           transportMode: "",
-          visaRequired: "No",
         } as any,
       ],
     }));
@@ -449,10 +438,10 @@ export default function TravelRequestWizard() {
   };
 
   const handleDestinationChange = useCallback(
-    <K extends keyof DestinationItem>(
+    <K extends keyof Destination>(
       index: number,
       field: K,
-      value: DestinationItem[K]
+      value: Destination[K]
     ) => {
       setFormData((prev) => {
         const newDestinations = [...prev.travelRequestRoutes];
