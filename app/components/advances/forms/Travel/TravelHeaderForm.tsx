@@ -372,7 +372,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
               <label className="form-label">Accommodation Type</label>
               <select
                 className="form-select"
-                value={formData.accommodationType || ""}
+                value={decodeValue(formData.accommodationType)}
                 onChange={(e) => {
                   onFormChange("accommodationType", e.target.value)
                   setCanSetRequiresPerDiem(requiresPerDiemChecker(e.target.value))

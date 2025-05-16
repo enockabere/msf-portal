@@ -23,6 +23,7 @@ import {
   FileDownIcon,
   Plus,
   Loader,
+  Send,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -70,10 +71,11 @@ interface TicketItem {
 }
 
 interface Props {
-  requestNo?: string
+  requestNo?: string,
+  profile: Record<string, any>
 }
 
-export default function TravelRequestWizard({ requestNo }: Props) {
+export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<TravelRequest>({
@@ -102,6 +104,10 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
   });
+
+  useEffect(() => {
+    prepareFormData(profile);
+  }, [profile]);
 
   useEffect(() => {
     if (requestNo) {
@@ -134,8 +140,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
 
   const {data: session} = useSession();
   const profileNo = session?.user?.profile?.no
-  const [profile, setProfile] = useState(null)
-  const fetchTravelRequest = async (requestNo) => {
+  const fetchTravelRequest = async (requestNo: string) => {
     try {
       const res = await getResource('travelRequests', {
         params: {
@@ -150,40 +155,15 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         console.log('Travel request error: ', res.error);
         toast.error(res.error.message)
       } else {
-        setFormData(res.value.at(0))
+        setFormData((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
       }
     } catch (error: any) {
       console.log('Error fetching travel request!', error.message)
     }
   }
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getResource('travelProfile', {
-          params: {
-            filters: {
-              no: profileNo
-            }
-          }
-        });
-
-        if (res.error) {
-          console.log("Response Error: ", res.error);
-          toast.error(res.error.message)
-        } else {
-          setProfile(res.value.at(0))
-        }
-      } catch (error: any) {
-        console.log('Error fetching profile!', error.message)
-      }
-    };
-
-    fetchProfile();
-  }, [profileNo]);
-
-  useEffect(() => {
-    if (profile) {
+  const prepareFormData = (profile: Record<string, any>) => {
+    if (!requestNo) {
       setFormData((prev) => ({
         ...prev,
         documentType: profile.type,
@@ -193,20 +173,25 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         shortcutDimension1Code: profile.shortcutDimension1Code,
         shortcutDimension2Code: profile.shortcutDimension2Code,
       }))
-
-      setHeaderRequiredFields((prev) => {
-        if (profile.type === 'Employee') {
-          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
-        } else if (profile.type === 'Visitor') {
-          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
-        }
-        return [...prev]
-      })
     }
-  }, [profile]);
+
+    setHeaderRequiredFields((prev) => {
+      if (profile.type === 'Employee') {
+        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+      } else if (profile.type === 'Visitor') {
+        return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+      }
+      return [...prev]
+    })
+  }
+
+  const canSubmitForApproval = useMemo(() => {
+    return formData.no && formData.approvalStatus && formData.approvalStatus === 'Open'
+  }, [formData])
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+  const [existingTravelDependencies, setExistingTravelDependancies] =useState<Dependency[]>([]);
 
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
@@ -338,8 +323,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     return [allSteps.find((s) => s.id === "info")!];
   }, [formData.documentType, allSteps]);
 
-  const profileDipendencies = async () => {
-    const res = await getResource('travelDependancies',
+  const getProfileDependencies = async () => {
+    const res = await getResource('profileDependancies',
       {
         params: {
             filters: {
@@ -368,7 +353,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
     }
     if (stepId === "dependencies") {
-      await profileDipendencies();
+      await getProfileDependencies();
+      await travelDependants(profileNo);
     }
   };
 
@@ -459,6 +445,46 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       setIsSubmitting(false)
     }
   };
+
+  const handleSubmitForApproval = useCallback(async () => {
+    try {
+      const res = await codeUnit('sendTravelRequestForApproval', {
+        data: {
+          no: formData.no,
+        },
+      });
+      if (res.error) {
+        Swal.fire("Error submitting for approval!", res.error.message);
+      } else {
+        Swal.fire("Success", res.value);
+      }
+    } catch (error) {
+      Swal.fire("Error", error.message);
+    }
+  }, [formData.no])
+
+  const travelDependants = async (profNo: string)=>{
+     const res = await getResource('travellers', {
+       params: {
+        filters: {
+          travellerNo:profNo
+        }
+       },
+     }
+       );
+        if (res.error) {
+          console.log('Travel Dependants error: ', res.error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error fetching profile dependecies!',
+          });
+          return
+        }
+        setExistingTravelDependancies((prev)=> {
+          console.log('res2: ', res.value);
+          return [...prev, ...res.value];
+        })
+  }
 
   const handleDestinationChange = useCallback(
     <K extends keyof Destination>(
@@ -603,6 +629,15 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                   </ul>
                 </div>
               )}
+              {canSubmitForApproval && (
+                <button
+                  className="primary-button"
+                  onClick={handleSubmitForApproval}
+                >
+                  <Send size={16}/>
+                  Submit for approval
+                </button>
+              )}
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -631,6 +666,9 @@ export default function TravelRequestWizard({ requestNo }: Props) {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
+                  existingTravelDependencies={existingTravelDependencies}
+                  refetchTravelDependencies ={()=>travelDependants(profileNo)}
+                  formData={formData}
                 />
               )}
 
