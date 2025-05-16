@@ -83,6 +83,10 @@ const handleSaveDependencies = async () => {
       batch: postSelectedDependencies,
     });
 
+    if (res.error) {
+      console.error("Save Dependants Error:", res.error.message);
+    }
+
     Swal.fire("Dependencies saved successfully", "", "success");
 
     // Optionally clear postSelectedDependencies after save

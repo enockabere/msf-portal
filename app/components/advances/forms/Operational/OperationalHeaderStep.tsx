@@ -23,7 +23,7 @@ export default function OperationalHeaderStep({
 
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
-    let type: string = findObjectFromArray(paymentMethods, "code", method)?.type as string;
+    const type: string = findObjectFromArray(paymentMethods, "code", method)?.type as string;
     switch (type) {
       case "Mpesa": {
         return (
@@ -269,7 +269,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
-                <option defaultValue={'Select payment method'}> --Select paymeny method-- </option>
+                <option defaultValue={'Select payment method'}> --Select payment method-- </option>
                 {
                   paymentMethods.map((method: Record<string, any>) => {
                     return (

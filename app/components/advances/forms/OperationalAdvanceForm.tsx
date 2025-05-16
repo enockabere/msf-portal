@@ -9,8 +9,6 @@ import { ExpenseItem, FormData } from "@/app/types/advance";
 import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { EndpointOptions } from "@/app/types/global";
-import { ENDPOINTMAP } from "@/app/utils/endpointMap";
 import { createResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";

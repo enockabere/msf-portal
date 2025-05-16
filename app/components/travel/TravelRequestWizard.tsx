@@ -196,10 +196,6 @@ export default function TravelRequestWizard() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
 
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    []
-  );
-
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
   }, []);

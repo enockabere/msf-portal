@@ -35,7 +35,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
     modesOfTransport,
     dimensions,
     countries,
-    perDiemAllotments,
+    // perDiemAllotments,
     fetchSetups,
   } = useMySetups();
 
