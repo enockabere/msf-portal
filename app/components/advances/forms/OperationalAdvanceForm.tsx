@@ -197,7 +197,7 @@ export default function OperationalAdvanceForm() {
 
   useEffect(() => {
     getProfileValues();
-  }, [formData.paymentMethod]);
+  }, [formData.paymentMethod], getProfileValues);
 
   useEffect(() => {
     getBankBranches();
