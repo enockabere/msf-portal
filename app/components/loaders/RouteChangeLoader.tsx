@@ -9,12 +9,9 @@ export default function RouteChangeLoader() {
   const { hideLoader } = usePageLoader();
 
   useEffect(() => {
-    const timeout = setTimeout(
-      () => {
-        hideLoader();
-      },
-      pathname === "/dashboard" ? 150 : 300
-    );
+    const timeout = setTimeout(() => {
+      hideLoader();
+    }, 300); // wait for route to mount and content to render
 
     return () => clearTimeout(timeout);
   }, [pathname, hideLoader]);

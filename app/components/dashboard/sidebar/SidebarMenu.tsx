@@ -10,7 +10,7 @@ export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
   const { showLoader } = usePageLoader();
-  const [isNavigating] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [approvalCount, setApprovalCount] = useState(0);
   const { data: employee } = useSession();
 
@@ -21,10 +21,12 @@ export default function SidebarMenu() {
 
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
-    if (href !== currentPath) {
+    if (href !== currentPath && !isNavigating) {
+      setIsNavigating(true);
       showLoader();
       startTransition(() => {
         router.push(href);
+        setIsNavigating(false); // resets after render
       });
     }
   };

@@ -42,7 +42,7 @@ export default function ProfileDropdown() {
             <div className="flex-grow-1 ms-2 text-truncate align-self-center">
               <h6 className="my-0 fw-medium text-dark fs-13">
                 {session ? (
-                  `${session?.user?.profile?.searchName}`
+                  `${session?.user?.profile?.searchName || session?.user?.name}`
                 ) : (
                   <Skeleton width={120} />
                 )}
