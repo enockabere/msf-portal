@@ -61,7 +61,7 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: travelInfo?.no,
+                    documentNo: "ETR003",
                     documentType: travelInfo.documentType,
                     checklistType: "Visa",
                 }
@@ -72,6 +72,17 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         setVisaChecklist(res?.value || [])
     }
 
+    const groupByTravellerName = (items) => {
+        return items.reduce((acc, item) => {
+            const name = item.travellerName || 'Unknown Traveller';
+            if (!acc[name]) {
+                acc[name] = [];
+            }
+            acc[name].push(item);
+            return acc;
+        }, {});
+    };
+
     useEffect(() => {
         getVisaChecklist()
     }, []);
@@ -80,69 +91,69 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         <>
             <div className='row g-3'>
                 <div className={'col-12'}>
-                    <table className="table table-hover caption-top my-2 align-middle">
-                        <caption className={'text-gray-800'}>Visa checklist items</caption>
-                        <thead className="table-light">
-                        <tr>
-                            <th>Item - Description</th>
-                            <th>Expiry Date</th>
-                            {/*<th>Attach</th>*/}
-                            <th>Verify</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
+                    {Object.entries(groupByTravellerName(visaChecklist)).map(([travellerName, items]) => (
+                        <div key={travellerName}>
+                            <div className="bg-danger p-2 rounded">
+                                <p className="text-white m-0"><strong>{travellerName}</strong></p>
+                            </div>
 
-                        <tbody>
-                        {visaChecklist.map((row, index) => (
-                            <tr key={`checklist-item-${index}`}>
-                                <td>{index + 1}. {row.checklistItem}-{row.checklistItemDescription}</td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        value={row.expiryDate}
-                                        onChange={(e) => handleInputChange(index, e.target.value)}
-                                        placeholder="Enter ID or Passport number"
-                                        required
-                                    />
-                                </td>
-                                {/*<td>*/}
-                                {/*    <label className="btn btn-sm btn-outline-secondary w-100">*/}
-                                {/*        <UploadCloud size={14} className="me-1" /> Upload*/}
-                                {/*        <input*/}
-                                {/*            type="file"*/}
-                                {/*            accept="image/*,.pdf"*/}
-                                {/*            hidden*/}
-                                {/*            onChange={(e) =>*/}
-                                {/*                handleFileChange(index, e.target.files?.[0] || null)*/}
-                                {/*            }*/}
-                                {/*        />*/}
-                                {/*    </label>*/}
-                                {/*    {row.file && <small>{row.file.name}</small>}*/}
-                                {/*</td>*/}
-                                <td>
-                                    <Form.Check
-                                        type="checkbox"
-                                        id={`check-${index}`}
-                                        className="mb-2 text-capitalize"
-                                        checked={row.has}
-                                        onChange={(e) => handleCheckboxChange(index, e.target.checked)}
-                                    />
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        className="btn btn-outline-success btn-sm"
-                                        onClick={() => saveChecklistItem(index)}
-                                        title="Save"
-                                    >
-                                        <Save size={16} />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            <table className="table table-hover caption-top my-2 align-middle">
+                                <thead className="table-light">
+                                <tr>
+                                    <th>Item - Description</th>
+                                    <th>Expiry Date</th>
+                                    <th>Verify</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {items.map((row, index) => (
+                                    <tr key={`${travellerName}-${row.checklistItem}`}>
+                                        <td>{row.checklistItem}. {row.checklistItemDescription}</td>
+                                        <td>
+                                            <input
+                                                type="date"
+                                                className="form-control"
+                                                value={row.expiryDate}
+                                                onChange={(e) => handleInputChange(
+                                                    editableChecklist.findIndex(i => i.id === row.id),
+                                                    e.target.value
+                                                )}
+                                                placeholder="Enter expiry date"
+                                                required
+                                            />
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                                type="checkbox"
+                                                id={`check-${travellerName}-${row.checklistItem}`}
+                                                className="mb-2 text-capitalize"
+                                                checked={row.has}
+                                                onChange={(e) => handleCheckboxChange(
+                                                    editableChecklist.findIndex(i => i.id === row.id),
+                                                    e.target.checked
+                                                )}
+                                            />
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline-success btn-sm"
+                                                onClick={() => updateChecklistItem(
+                                                    editableChecklist.findIndex(i => i.id === row.id)
+                                                )}
+                                                title="Save"
+                                            >
+                                                <Save size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
                 </div>
             </div>
         </>

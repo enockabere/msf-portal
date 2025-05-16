@@ -7,6 +7,7 @@ import {TravelRequest} from "@/app/types/travel";
 
 export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequest}) {
     const [travelChecklist, setTravelChecklist] = useState([])
+    const [editableChecklist, setEditableChecklist] = useState([]);
 
     const [rows, setRows] = useState(
         Array.from({ length: 5 }, (_, index) => ({
@@ -18,10 +19,17 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
     );
 
     const handleInputChange = (index, value) => {
-        const updatedRows = [...rows];
-        updatedRows[index].expiryDate = value;
-        setRows(updatedRows);
+        const updated = [...editableChecklist];
+        updated[index].expiryDate = value;
+        setEditableChecklist(updated);
     };
+
+    const handleCheckboxChange = (index, value) => {
+        const updated = [...editableChecklist];
+        updated[index].has = value;
+        setEditableChecklist(updated);
+    };
+
 
     // const handleFileChange = (index, file) => {
     //     const updatedRows = [...rows];
@@ -29,28 +37,27 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
     //     setRows(updatedRows);
     // };
 
-    const handleCheckboxChange = (index, value) => {
-        const updatedRows = [...rows];
-        updatedRows[index].checked = value;
-        setRows(updatedRows);
-    };
 
-    const saveChecklistItem = async (index) => {
-        const rowData = rows[index];
+    const updateChecklistItem = async (index) => {
+        const item = editableChecklist[index];
 
         try {
             const res = await createResource('travelRoutes', {
                 data: {
+                    checklistId: item.id,
+                    expiryDate: item.expiryDate,
+                    has: item.has,
+                    // add any other relevant fields
                 },
             });
 
-            if(res.error) {
-                return Swal.fire('Error!', res.error.message)
+            if (res.error) {
+                return Swal.fire('Error!', res.error.message, 'error');
             }
-            console.log('create routes res', res)
-            Swal.fire("Success", 'Travel checklist updated successfully!' );
+
+            Swal.fire('Success', 'Travel checklist updated successfully!', 'success');
         } catch (e) {
-            Swal.fire('Error!', e.message)
+            Swal.fire('Error!', e.message, 'error');
         }
     };
 
@@ -59,7 +66,7 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: travelInfo?.no,
+                    documentNo: "ETR003",
                     documentType: travelInfo.documentType,
                     checklistType: "Travel",
                 }
@@ -90,35 +97,35 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
         <>
             <div className='row g-3'>
                 <div className={'col-12'}>
-                    <table className="table table-hover caption-top my-2 align-middle">
-                        <caption className={'text-gray-800'}>Travel checklist items</caption>
-                        <thead className="table-light">
-                        <tr>
-                            <th>Item - Description</th>
-                            <th>Expiry Date</th>
-                            {/*<th>Attach</th>*/}
-                            <th>Verify</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
+                    {Object.entries(groupByTravellerName(travelChecklist)).map(([travellerName, items]) => (
+                        <div key={travellerName}>
+                            <div className="bg-danger p-2 rounded">
+                                <p className="text-white m-0"><strong>{travellerName}</strong></p>
+                            </div>
 
-                        <tbody>
-
-                        {Object.entries(groupByTravellerName(travelChecklist)).map(([travellerName, items], groupIndex) => (
-                            <React.Fragment key={`group-${groupIndex}`}>
-                                <tr className="table-primary">
-                                    <td colSpan={4}><strong>{travellerName}</strong></td>
+                            <table className="table table-hover caption-top my-2 align-middle">
+                                <thead className="table-light">
+                                <tr>
+                                    <th>Item - Description</th>
+                                    <th>Expiry Date</th>
+                                    <th>Verify</th>
+                                    <th>Action</th>
                                 </tr>
+                                </thead>
 
-                                {items?.map((row, index) => (
-                                    <tr key={`checklist-item-${groupIndex}-${index}`}>
-                                        <td>{index + 1}. {row.checklistItem} - {row.checklistItemDescription}</td>
+                                <tbody>
+                                {items.map((row, index) => (
+                                    <tr key={`${travellerName}-${row.checklistItem}`}>
+                                        <td>{row.checklistItem}. {row.checklistItemDescription}</td>
                                         <td>
                                             <input
                                                 type="date"
                                                 className="form-control"
                                                 value={row.expiryDate}
-                                                onChange={(e) => handleInputChange(index, e.target.value)}
+                                                onChange={(e) => handleInputChange(
+                                                    editableChecklist.findIndex(i => i.id === row.id),
+                                                    e.target.value
+                                                )}
                                                 placeholder="Enter expiry date"
                                                 required
                                             />
@@ -126,17 +133,22 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
                                         <td>
                                             <Form.Check
                                                 type="checkbox"
-                                                id={`check-${groupIndex}-${index}`}
+                                                id={`check-${travellerName}-${row.checklistItem}`}
                                                 className="mb-2 text-capitalize"
                                                 checked={row.has}
-                                                onChange={(e) => handleCheckboxChange(index, e.target.checked)}
+                                                onChange={(e) => handleCheckboxChange(
+                                                    editableChecklist.findIndex(i => i.id === row.id),
+                                                    e.target.checked
+                                                )}
                                             />
                                         </td>
                                         <td>
                                             <button
                                                 type="button"
                                                 className="btn btn-outline-success btn-sm"
-                                                onClick={() => saveChecklistItem(index)}
+                                                onClick={() => updateChecklistItem(
+                                                    editableChecklist.findIndex(i => i.id === row.id)
+                                                )}
                                                 title="Save"
                                             >
                                                 <Save size={16} />
@@ -144,11 +156,10 @@ export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequ
                                         </td>
                                     </tr>
                                 ))}
-                            </React.Fragment>
-                        ))}
-
-                        </tbody>
-                    </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
                 </div>
             </div>
         </>
