@@ -22,7 +22,7 @@ import {
   DownloadIcon,
   FileDownIcon,
   Plus,
-  Loader,
+  Loader, Send,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -171,6 +171,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
           toast.error(res.error.message)
         } else {
           setProfile(res.value.at(0))
+          prepareFormData(res.value.at(0))
         }
       } catch (error: any) {
         console.log('Error fetching profile!', error.message)
@@ -180,28 +181,30 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     fetchProfile();
   }, [profileNo]);
 
-  useEffect(() => {
-    if (profile) {
-      setFormData((prev) => ({
-        ...prev,
-        documentType: profile.type,
-        travellerNo: profile.no,
-        createdbyProfileNo: profile.no,
-        passportNo: profile.passportIDNo,
-        shortcutDimension1Code: profile.shortcutDimension1Code,
-        shortcutDimension2Code: profile.shortcutDimension2Code,
-      }))
+  const prepareFormData = (profile: Record<string, any>) => {
+    setFormData((prev) => ({
+      ...prev,
+      documentType: profile.type,
+      travellerNo: profile.no,
+      createdbyProfileNo: profile.no,
+      passportNo: profile.passportIDNo,
+      shortcutDimension1Code: profile.shortcutDimension1Code,
+      shortcutDimension2Code: profile.shortcutDimension2Code,
+    }))
 
-      setHeaderRequiredFields((prev) => {
-        if (profile.type === 'Employee') {
-          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
-        } else if (profile.type === 'Visitor') {
-          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
-        }
-        return [...prev]
-      })
-    }
-  }, [profile]);
+    setHeaderRequiredFields((prev) => {
+      if (profile.type === 'Employee') {
+        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+      } else if (profile.type === 'Visitor') {
+        return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+      }
+      return [...prev]
+    })
+  }
+
+  const canSubmitForApproval = useMemo(() => {
+    return formData.no && formData.approvalStatus && formData.approvalStatus === 'Open'
+  }, [formData])
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
@@ -459,6 +462,23 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     }
   };
 
+  const handleSubmitForApproval = useCallback(async () => {
+    try {
+      const res = await codeUnit('sendTravelRequestForApproval', {
+        data: {
+          no: formData.no,
+        },
+      });
+      if (res.error) {
+        Swal.fire("Error submitting for approval!", res.error.message);
+      } else {
+        Swal.fire("Success", res.value);
+      }
+    } catch (error) {
+      Swal.fire("Error", error.message);
+    }
+  }, [formData.no])
+
   const handleDestinationChange = useCallback(
     <K extends keyof Destination>(
       index: number,
@@ -601,6 +621,15 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                     </li>
                   </ul>
                 </div>
+              )}
+              {canSubmitForApproval && (
+                <button
+                  className="primary-button"
+                  onClick={handleSubmitForApproval}
+                >
+                  Submit for approval
+                  <Send size={16}/>
+                </button>
               )}
             </div>
 
