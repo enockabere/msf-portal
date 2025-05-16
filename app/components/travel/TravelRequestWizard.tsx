@@ -397,6 +397,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         'passportNo',
         'shortcutDimension1Code',
         'travellerNo',
+        'createdbyProfileNo',
         'TypeOfTravel',
         'purposeOfTravel',
         'annualTrip',
