@@ -39,9 +39,8 @@ import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { Dependency } from "@/app/types/global";
 import {
-  checkIfMissingRequiredProperty,
+  checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
-  removeObjectProps
 } from "@/app/utils/helpers";
 import { Destination } from "@/app/types/Destination";
 
@@ -68,7 +67,11 @@ interface TicketItem {
   airline: string;
 }
 
-export default function TravelRequestWizard() {
+interface Props {
+  requestNo?: string
+}
+
+export default function TravelRequestWizard({ requestNo }: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<TravelRequest>({
@@ -97,6 +100,12 @@ export default function TravelRequestWizard() {
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
   });
+
+  useEffect(() => {
+    if (requestNo) {
+      fetchTravelRequest(requestNo)
+    }
+  }, [requestNo]);
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -131,7 +140,7 @@ export default function TravelRequestWizard() {
           filters: {
             no: requestNo
           },
-          '$expand': '*',
+          '$expand': 'travelRequestLines,travellers,visaApplications',
         }
       });
 
@@ -385,7 +394,28 @@ export default function TravelRequestWizard() {
   const handleInitialSubmit = async () => {
     try {
       const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
-      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
+      const keysToRetain = [
+        'no',
+        'documentType',
+        'passportNo',
+        'shortcutDimension1Code',
+        'travellerNo',
+        'TypeOfTravel',
+        'purposeOfTravel',
+        'annualTrip',
+        'requirePerDiem',
+        'originCity',
+        'originCountryCode',
+        'destinationCity',
+        'destinationCountryCode',
+        'departureDate',
+        'arrivalDate',
+        'returnDate',
+        'modeOfTransport',
+        'accommodationType',
+        'estimatedTimeOfArrival',
+      ] as Array<string>;
+      const knownSchema = pickKeys(strippedPayLoad, keysToRetain);
 
       const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
 
@@ -397,12 +427,10 @@ export default function TravelRequestWizard() {
 
       setIsSubmitting(true)
 
-      console.log(knownSchema)
-
       const res = knownSchema.no
         ? await patchResource('travelRequests', {
           data: knownSchema,
-          primaryKey: ['no'],
+          primaryKey: ['no', 'documentType'],
         })
         : await createResource('travelRequests', {
           data: knownSchema,
