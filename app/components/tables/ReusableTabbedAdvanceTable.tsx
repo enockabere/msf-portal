@@ -1,13 +1,12 @@
 "use client";
 
 import { Tabs, Tab } from "react-bootstrap";
-import { Advance } from "@/app/types/advance";
 import TravelRequestTable from "../travel/TravelRequestTable";
 
 interface TabConfig {
   key: string;
   label: string;
-  data: Advance[];
+  data: Array<Record<string, any>>;
 }
 
 interface ReusableTabbedAdvanceTableProps {

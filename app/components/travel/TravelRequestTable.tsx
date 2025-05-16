@@ -37,15 +37,6 @@ export default function TravelRequestTable({
 
   const handleCloseModal = () => setSelectedRequestNo(null)
 
-  // const getTypeIcon = (type: string) => {
-  //   const icons: Record<string, string> = {
-  //     Advance: "fa-solid fa-money-bill",
-  //     Travel: "fa-solid fa-plane",
-  //     Operational: "fa-solid fa-gear",
-  //   };
-  //   return icons[type] || "fa-solid fa-file-alt";
-  // };
-
   const columns = [
     {
       name: "Request No",
@@ -59,26 +50,27 @@ export default function TravelRequestTable({
         </span>
       ),
     },
-    // {
-    //   name: "Type",
-    //   selector: (row: Record<string, any>) => row.advanceType,
-    //   sortable: true,
-    //   cell: (row: Advance) => (
-    //     <div className="d-flex align-items-center gap-2">
-    //       <div
-    //         className="d-inline-flex justify-content-center align-items-center bg-primary-subtle rounded"
-    //         style={{ width: 32, height: 32 }}
-    //       >
-    //         <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
-    //       </div>
-    //       <span>{row.advanceType}</span>
-    //     </div>
-    //   ),
-    // },
+    {
+      name: "Application Date",
+      selector: (row: Record<string, any>) => formatDate(row.documentDate),
+    },
+    {
+      name: "Departure Date",
+      selector: (row: Record<string, any>) => formatDate(row.departureDate),
+    },
+    {
+      name: "Return Date",
+      selector: (row: Record<string, any>) => formatDate(row.returnDate),
+    },
+    {
+      name: "Amount",
+      selector: (row: Record<string, any>) =>
+        `${
+          row.currencyCode || "KES"
+        } ${row.totalAmount.toLocaleString()}`,
+    },
     {
       name: "Status",
-      selector: (row: Record<string, any>) => row.approvalStatus,
-      sortable: true,
       cell: (row: Record<string, any>) => {
         const badgeMap = {
           Open: "badge bg-info-subtle text-info",
@@ -96,17 +88,6 @@ export default function TravelRequestTable({
           </span>
         );
       },
-    },
-    {
-      name: "Amount",
-      selector: (row: Record<string, any>) =>
-        `${
-          row.currencyCode || "KES"
-        } ${row.totalAmount.toLocaleString()}`,
-    },
-    {
-      name: "Application Date",
-      selector: (row: Record<string, any>) => formatDate(row.documentDate),
     },
     {
       name: "Actions",

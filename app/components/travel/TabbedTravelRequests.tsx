@@ -1,53 +1,24 @@
 "use client";
 
 import ReusableTabbedAdvanceTable from "../tables/ReusableTabbedAdvanceTable";
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
-import { getResource } from "@/app/lib/api/http";
-import { toast } from "react-toastify";
+import { useMemo } from "react";
 import { decodeValue } from "@/app/utils/helpers";
 
-export default function TabbedTravelRequests() {
-  const { data:session } = useSession()
-  const profileNo = session?.user?.profile?.no
-  const [travelRequests, setTravelRequests] = useState([])
-
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await getResource('travelRequests', {
-          params: {
-            filters: {
-              travellerNo: profileNo
-            },
-          }
-        });
-
-        if (res.error) {
-          console.log('Travel request error: ', res.error);
-          toast.error(res.error.message)
-        } else {
-          setTravelRequests([...res.value])
-        }
-      } catch (error: any) {
-        console.log('Error fetching travel request!', error.message)
-      }
-    }
-
-    fetchRequests()
-  }, [profileNo]);
-
+interface Props {
+  records: Array<Record<string, any>>
+}
+export default function TabbedTravelRequests({ records }: Props) {
   const openRequests = useMemo(() => {
-    return travelRequests.filter((item) => item.approvalStatus === 'Open')
-  }, [travelRequests])
+    return records.filter((item) => item.approvalStatus === 'Open')
+  }, [records])
 
   const pendingRequests = useMemo(() => {
-    return travelRequests.filter((item) => decodeValue(item.approvalStatus) === 'Pending Approval')
-  }, [travelRequests])
+    return records.filter((item) => decodeValue(item.approvalStatus) === 'Pending Approval')
+  }, [records])
 
   const approvedRequests = useMemo(() => {
-    return travelRequests.filter((item) => item.approvalStatus === 'Released')
-  }, [travelRequests])
+    return records.filter((item) => item.approvalStatus === 'Released')
+  }, [records])
 
   const tabData = [
     { key: "open", label: "Open", data: openRequests },

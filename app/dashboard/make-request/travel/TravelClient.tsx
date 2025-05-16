@@ -7,9 +7,41 @@ import SummaryCards from "@/app/components/cards/SummaryCards";
 import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
 import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
+import { useSession } from "next-auth/react";
+import { getResource } from "@/app/lib/api/http";
+import { toast } from "react-toastify";
 
 export default function TravelClient() {
   const { setBreadcrumb } = useBreadcrumb();
+
+  const { data:session } = useSession()
+  const profileNo = session?.user?.profile?.no
+  const [travelRequests, setTravelRequests] = useState([])
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await getResource('travelRequests', {
+          params: {
+            filters: {
+              travellerNo: profileNo
+            },
+          }
+        });
+
+        if (res.error) {
+          console.log('Travel request error: ', res.error);
+          toast.error(res.error.message)
+        } else {
+          setTravelRequests([...res.value])
+        }
+      } catch (error: any) {
+        console.log('Error fetching travel request!', error.message)
+      }
+    }
+
+    fetchRequests()
+  }, [profileNo]);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -129,7 +161,7 @@ export default function TravelClient() {
             </div>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests />
+                <TabbedTravelRequests records={travelRequests} />
               </div>
             </div>
           </>
@@ -139,7 +171,7 @@ export default function TravelClient() {
           <>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests />
+                <TabbedTravelRequests records={travelRequests} />
               </div>
             </div>
             <div className="col-lg-3">
@@ -165,7 +197,7 @@ export default function TravelClient() {
         {(placement === "top" || placement === "bottom") && (
           <div className="col-12">
             <div className="card h-100 p-2">
-              <TabbedTravelRequests />
+              <TabbedTravelRequests records={travelRequests} />
             </div>
           </div>
         )}
