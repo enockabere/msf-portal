@@ -100,7 +100,7 @@ export default function LandingPage() {
       window.location.replace("/dashboard");
     } else {
       localStorage.setItem("showProfileToast", "true");
-      window.location.replace("/inbound");
+      window.location.replace("/user-profiles");
     }
   }, [session, status]);
 
