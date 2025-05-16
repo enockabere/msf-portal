@@ -5,6 +5,7 @@ import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
 import { TravelRequest } from "@/app/types/travel";
 import { getResource } from "@/app/lib/api/http";
+import { decodeValue } from "@/app/utils/helpers";
 
 const travelTypes = [
   { code: "Local", description: "Local" },
@@ -64,14 +65,11 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
   const [originCities, setOriginCities] = useState([])
   const [destinationCities, setDestinationCities] = useState([])
   const [canSetRequiresPerDiem, setCanSetRequiresPerDiem] = useState(false)
-
-  useEffect(() => {
-    setCanSetRequiresPerDiem(() => {
-      const allotment = perDiemAllotments.find((item) => item.accommodationType === formData.accommodationType)
-      if (!allotment) return false
-      return allotment.perDiemAllocated > 0
-    })
-  }, [formData.accommodationType, perDiemAllotments]);
+  const requiresPerDiemChecker = (accommodationType: string) => {
+    const allotment = perDiemAllotments.find((item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType)
+    if (!allotment) return false
+    return allotment.perDiemAllocated > 0
+  }
 
   const fetchCities = async (countryCode, countryField) => {
     try {
@@ -375,7 +373,10 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
               <select
                 className="form-select"
                 value={formData.accommodationType || ""}
-                onChange={(e) => onFormChange("accommodationType", e.target.value)}
+                onChange={(e) => {
+                  onFormChange("accommodationType", e.target.value)
+                  setCanSetRequiresPerDiem(requiresPerDiemChecker(e.target.value))
+                }}
               >
                 <option value="">-- Select Accommodation --</option>
                 {accommodationTypes.map((type) => (

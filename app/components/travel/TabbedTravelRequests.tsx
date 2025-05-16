@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getResource } from "@/app/lib/api/http";
 import { toast } from "react-toastify";
+import { decodeValue } from "@/app/utils/helpers";
 
 export default function TabbedTravelRequests() {
   const { data:session } = useSession()
@@ -41,7 +42,7 @@ export default function TabbedTravelRequests() {
   }, [travelRequests])
 
   const pendingRequests = useMemo(() => {
-    return travelRequests.filter((item) => item.approvalStatus === 'Pending Approval')
+    return travelRequests.filter((item) => decodeValue(item.approvalStatus) === 'Pending Approval')
   }, [travelRequests])
 
   const approvedRequests = useMemo(() => {

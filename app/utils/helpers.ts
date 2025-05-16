@@ -64,3 +64,9 @@ export const removeObjectProps = <T extends Record<string, any>>(object: T | any
     }
     return result;
 }
+
+export const decodeValue = (value: string) => {
+    return value.replace(/_x([0-9A-Fa-f]{4})_/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16))
+    );
+}
