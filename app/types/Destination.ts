@@ -7,5 +7,4 @@ export interface Destination {
     destinationCity: string;
     travelDate: string;
     modeOfTransport: string;
-    visaRequired: string;
 }

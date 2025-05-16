@@ -1,11 +1,13 @@
 "use client";
 
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
-import {createResource} from "@/app/lib/api/http";
+import {createResource, getResource} from "@/app/lib/api/http";
 import {  Destination } from "@/app/types/Destination";
+import {Approval} from "@/app/types/approval";
+import Swal from "sweetalert2";
 
 interface TravelDestinationsProps {
   destinations: Destination[];
@@ -28,186 +30,16 @@ export default function TravelDestinations({
     modeOfTransport,
     fetchSetups,
   } = useMySetups();
-
-  const columns: TableColumn<Destination>[] = [
-    {
-      name: "#",
-      width: "50px",
-      cell: (_row, index) => index + 1,
-    },
-    {
-      name: "Origin Country",
-      cell: (row, index) => (
-        <select
-          className="form-select"
-          value={row.originCountryCode}
-          onChange={(e) =>
-            onDestinationChange(index, "originCountryCode", e.target.value)
-          }
-        >
-          <option value="">-- Select --</option>
-          {countries.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country?.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      name: "Origin City",
-      cell: (row, index) => (
-        // <input
-        //   type="text"
-        //   className="form-control"
-        //   value={row.originCity}
-        //   onChange={(e) =>
-        //     onDestinationChange(index, "originCity", e.target.value)
-        //   }
-        // />
-
-        <select
-            className="form-select"
-            value={row.originCity}
-            onChange={(e) =>
-                onDestinationChange(index, "originCity", e.target.value)
-            }
-        >
-          <option value="">-- Select --</option>
-          {cities.map((city) => (
-              <option key={city.code} value={city.code}>
-                {city?.name}
-              </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      name: "Destination Country",
-      cell: (row, index) => (
-        <select
-          className="form-select"
-          value={row.destinationCountryCode}
-          onChange={(e) =>
-            onDestinationChange(index, "destinationCountryCode", e.target.value)
-          }
-        >
-          <option value="">-- Select --</option>
-          {countries.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      name: "Destination City",
-      cell: (row, index) => (
-        // <input
-        //   type="text"
-        //   className="form-control"
-        //   value={row.destinationCity}
-        //   onChange={(e) =>
-        //     onDestinationChange(index, "destinationCity", e.target.value)
-        //   }
-        // />
-
-          <select
-              className="form-select"
-              value={row.destinationCity}
-              onChange={(e) =>
-                  onDestinationChange(index, "destinationCity", e.target.value)
-              }
-          >
-            <option value="">-- Select --</option>
-            {cities.map((city) => (
-                <option key={city.code} value={city.code}>
-                  {city?.name}
-                </option>
-            ))}
-          </select>
-      ),
-    },
-    {
-      name: "Travel Date",
-      cell: (row, index) => (
-        <input
-          type="date"
-          className="form-control"
-          value={row.travelDate}
-          onChange={(e) =>
-            onDestinationChange(index, "travelDate", e.target.value)
-          }
-        />
-      ),
-    },
-    {
-      name: "Transport Mode",
-      cell: (row, index) => (
-        <select
-          className="form-select"
-          value={row.modeOfTransport}
-          onChange={(e) =>
-            onDestinationChange(index, "modeOfTransport", e.target.value)
-          }
-        >
-          <option value="">-- Select --</option>
-          {modeOfTransport.map((mode) => (
-            <option key={mode.code} value={mode.code}>
-              {mode.description	}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      name: "Visa Required",
-      cell: (row, index) => (
-        <select
-          className="form-select"
-          value={row.visaRequired}
-          onChange={(e) =>
-            onDestinationChange(index, "visaRequired", e.target.value)
-          }
-        >
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      ),
-    },
-    {
-      name: "Actions",
-      width: "100px",
-      cell: (_row, index) => (
-        <div className="d-flex justify-content-center gap-1">
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-success"
-            title="Save"
-            onClick={() => saveDestination(index)}
-          >
-            <Save size={16} />
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-danger"
-            onClick={() => onRemoveDestination(index)}
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const [originCities, setOriginCities] = useState([])
+  const [destinationCities, setDestinationCities] = useState([])
+  const [travelRequests, setTravelRequests] = useState([])
 
   const saveDestination = async (index: number) => {
     let destination = destinations[index];
     destination['documentType'] = 'Employee';
     destination['documentNo'] = 'ETR003';
     // destination['sequenceNo'] = '';
-    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'visaRequired', 'sequenceNo'];
+    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'sequenceNo'];
 
     keysToRemove.forEach((key) => {
       delete destination[key as keyof typeof destination];
@@ -216,13 +48,56 @@ export default function TravelDestinations({
     // Replace this with actual API call
     console.log("Saving destination:", destination);
 
-    const res = await createResource('travelRoutes', {
-      data: {
-        ...destination
-      },
-    });
 
-    console.log('create routes res', res)
+    try {
+      const res = await createResource('travelRoutes', {
+          data: {
+              ...destination
+          },
+      });
+
+      if(res.error) {
+         return Swal.fire('Error!', res.error.message)
+
+      }
+      console.log('create routes res', res)
+      Swal.fire("Success", 'Travel route was created successfully!' );
+    } catch (e) {
+        Swal.fire('Error!', e.message)
+    }
+
+  }
+
+  const fetchCities = async (countryCode, countryField) => {
+    try {
+      if (countryCode) {
+        const res = await getResource('cities', {
+          params: {
+            filters: {
+              countryRegionCode: countryCode,
+            }
+          }
+        })
+
+        if (res.error) {
+          console.log('Error!', res.error)
+        }
+
+        if (countryField === 'originCountryCode') {
+          setOriginCities([...res.value])
+        } else if (countryField === 'destinationCountryCode') {
+          setDestinationCities([...res.value])
+        }
+      } else {
+        if (countryField === 'originCountryCode') {
+          setOriginCities([])
+        } else if (countryField === 'destinationCountryCode') {
+          setDestinationCities([])
+        }
+      }
+    } catch (error: any) {
+      console.log('Error!', error.message)
+    }
   }
 
   useEffect(() => {
@@ -239,52 +114,301 @@ export default function TravelDestinations({
     };
 
     loadData();
+    userTravelRoutes()
   }, []);
+
+    const userTravelRoutes = async () => {
+       const res = await getResource('travelRoutes', {
+            params: {
+                filter: {
+                    documentNo: "ETR003"
+                }
+            }
+        })
+
+        setTravelRequests(res?.value)
+    }
+
+
+    const columns: TableColumn<Destination>[] = [
+        {
+            name: "Destination Details",
+            cell: (row, index) => (
+                <div className="row g-2">
+                    <div className="col-4">
+                        <select
+                            className="form-select"
+                            value={row.originCountryCode}
+                            onChange={async (e) => {
+                                onDestinationChange(index, "originCountryCode", e.target.value);
+                                await fetchCities(e.target.value, 'originCountryCode');
+                            }}
+                        >
+                            <option value="">-- Origin Country --</option>
+                            {countries.map((country) => (
+                                <option key={country.code} value={country.code}>
+                                    {country.displayName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="col-4">
+                        <select
+                            className="form-select"
+                            value={row.originCity}
+                            onChange={(e) => onDestinationChange(index, "originCity", e.target.value)}
+                        >
+                            <option value="">-- Origin City --</option>
+                            {originCities.map((city) => (
+                                <option key={city.code} value={city.code}>
+                                    {city.city}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="col-4">
+                        <select
+                            className="form-select"
+                            value={row.destinationCountryCode}
+                            onChange={async (e) => {
+                                onDestinationChange(index, "destinationCountryCode", e.target.value);
+                                await fetchCities(e.target.value, 'destinationCountryCode');
+                            }}
+                        >
+                            <option value="">-- Destination Country --</option>
+                            {countries.map((country) => (
+                                <option key={country.code} value={country.code}>
+                                    {country.displayName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="col-4">
+                        <select
+                            className="form-select"
+                            value={row.destinationCity}
+                            onChange={(e) => onDestinationChange(index, "destinationCity", e.target.value)}
+                        >
+                            <option value="">-- Destination City --</option>
+                            {destinationCities.map((city) => (
+                                <option key={city.code} value={city.code}>
+                                    {city.city}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="col-4">
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={row.travelDate}
+                            onChange={(e) => onDestinationChange(index, "travelDate", e.target.value)}
+                        />
+                    </div>
+
+                    <div className="col-4">
+                        <select
+                            className="form-select"
+                            value={row.modeOfTransport}
+                            onChange={(e) => onDestinationChange(index, "modeOfTransport", e.target.value)}
+                        >
+                            <option value="">-- Transport Mode --</option>
+                            {modeOfTransport.map((mode) => (
+                                <option key={mode.code} value={mode.code}>
+                                    {mode.description}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="col-4 d-flex gap-2">
+                        <button
+                            type="button"
+                            className="btn btn-outline-success btn-sm"
+                            onClick={() => saveDestination(index)}
+                            title="Save"
+                        >
+                            <Save size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => onRemoveDestination(index)}
+                            title="Delete"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                </div>
+            ),
+        },
+    ];
+
+
+    const routesColumns = [
+        {
+            name: "Document No",
+            sortable: true,
+            cell: (row: Destination) => (
+                <span className="text-dark"
+                >
+                    {row.documentNo}
+                </span>
+            ),
+        },
+        {
+            name: "origin Country",
+            selector: (row: Destination) => row.originCountryCode,
+            sortable: true,
+            cell: (row: Destination) => (
+                <span>{row.originCountryCode}</span>
+            ),
+        },
+        {
+            name: "origin City",
+            selector: (row: Destination) => row.originCity,
+            sortable: true,
+            cell: (row: Destination) => (
+                <span>{row.originCity}</span>
+            ),
+        },
+        {
+            name: "destination Country",
+            selector: (row: Destination) => row.destinationCountryCode,
+            sortable: true,
+            cell: (row: Destination) => (
+                <span>{row.destinationCountryCode}</span>
+            ),
+        },
+        {
+            name: "destination City",
+            selector: (row: Destination) => row.destinationCity,
+            sortable: true,
+            cell: (row: Destination) => (
+                <span>{row.destinationCity}</span>
+            ),
+        },
+        {
+            name: "Date",
+            selector: (row: Destination) => row.travelDate,
+            sortable: true,
+            cell: (row: Destination) => (
+                <span>
+                    {row.travelDate ?? ""}
+                </span>
+            ),
+        },
+        {
+            name: "Actions",
+            cell: (row: Approval) => (
+                <div className="d-flex gap-2">
+                    <button
+                        className="text-success border-0 bg-transparent"
+                        title="View"
+                        onClick={() => (row)}
+                    >
+                        <i className="las la-eye fs-18" />
+                    </button>
+                </div>
+            ),
+            ignoreRowClick: true,
+            style: { minWidth: "100px" },
+        },
+    ];
 
   return (
     <div className="card mb-4">
-      <div className="card-body">
-        <DataTable
-          columns={columns}
-          data={destinations}
-          dense
-          responsive
-          highlightOnHover
-          persistTableHead
-          customStyles={{
-            table: {
-              style: {
-                border: "1px solid #dee2e6", // outer border
-              },
-            },
-            headRow: {
-              style: {
-                backgroundColor: "#f1f1f1", // light grey
-                borderBottom: "1px solid #dee2e6",
-              },
-            },
-            headCells: {
-              style: {
-                fontSize: "14px",
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                borderRight: "1px solid #dee2e6",
-              },
-            },
-            rows: {
-              style: {
-                borderBottom: "1px solid #dee2e6",
-              },
-            },
-            cells: {
-              style: {
-                padding: "6px 12px",
-                borderRight: "1px solid #dee2e6",
-              },
-            },
-          }}
+        {destinations.length > 0 && (
+            <div className="card-body">
+                <DataTable
+                    columns={columns}
+                    data={destinations}
+                    dense
+                    responsive
+                    highlightOnHover
+                    persistTableHead
+                    customStyles={{
+                        table: {
+                            style: {
+                                border: "1px solid #dee2e6",
+                            },
+                        },
+                        headRow: {
+                            style: {
+                                backgroundColor: "#f1f1f1",
+                                borderBottom: "1px solid #dee2e6",
+                            },
+                        },
+                        headCells: {
+                            style: {
+                                fontSize: "14px",
+                                paddingLeft: "12px",
+                                paddingRight: "12px",
+                                borderRight: "1px solid #dee2e6",
+                            },
+                        },
+                        rows: {
+                            style: {
+                                borderBottom: "1px solid #dee2e6",
+                            },
+                        },
+                        cells: {
+                            style: {
+                                padding: "6px 12px",
+                                borderRight: "1px solid #dee2e6",
+                            },
+                        },
+                    }}
+                />
+            </div>
+        )}
+
+        <div className="card-body">
+            <DataTable
+                columns={routesColumns}
+                data={travelRequests}
+                dense
+                responsive
+                highlightOnHover
+                persistTableHead
+                customStyles={{
+                    table: {
+                        style: {
+                            border: "1px solid #dee2e6", // outer border
+                        },
+                    },
+                    headRow: {
+                        style: {
+                            backgroundColor: "#f1f1f1", // light grey
+                            borderBottom: "1px solid #dee2e6",
+                        },
+                    },
+                    headCells: {
+                        style: {
+                            fontSize: "14px",
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            borderRight: "1px solid #dee2e6",
+                        },
+                    },
+                    rows: {
+                        style: {
+                            borderBottom: "1px solid #dee2e6",
+                        },
+                    },
+                    cells: {
+                        style: {
+                            padding: "6px 12px",
+                            borderRight: "1px solid #dee2e6",
+                        },
+                    },
+                }}
         />
-      </div>
+    </div>
     </div>
   );
 }
