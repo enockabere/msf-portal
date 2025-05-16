@@ -204,15 +204,6 @@ export default function TravelRequestWizard() {
     setSelectedTicketId(ticketId);
   }, []);
 
-
-  const handleSelectDependency = (id: string) => {
-    setSelectedDependencies((prev) => [...prev, id]);
-  };
-
-  const handleDeselectDependency = (id: string) => {
-    setSelectedDependencies((prev) => prev.filter((d) => d !== id));
-  };
-
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
       const res = await codeUnit("createTravelAdvanceFromTravel", {
@@ -274,7 +265,7 @@ export default function TravelRequestWizard() {
       {
         id: "dependencies",
         icon: <Link size={18}/>,
-        title: "Travel Dependencies",
+        title: "Dependants",
         desc: "Related travel requirements",
       },
       {
@@ -341,8 +332,13 @@ export default function TravelRequestWizard() {
   }, [formData.documentType, allSteps]);
 
   const profileDipendencies = async () => {
-    console.log('Dependency tab: 2 ', activeTab);
-    const res = await getResource('travelDependancies', {});
+    const res = await getResource('travelDependancies', 
+      {
+        params: {
+            filters: {
+              profileNo: profileNo
+            }
+          }});
     if (res.error) {
       Swal.fire({
         title: 'Error!',
@@ -610,9 +606,6 @@ export default function TravelRequestWizard() {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
-                  selectedDependencies={selectedDependencies}
-                  onSelectDependency={handleSelectDependency}
-                  onDeselectDependency={handleDeselectDependency}
                 />
               )}
 
