@@ -65,6 +65,16 @@ export const removeObjectProps = <T extends Record<string, any>>(object: T | any
     return result;
 }
 
+export const pickKeys = <T extends Record<string, any>>(obj: T | any, props: string[]): Record<string, any>| undefined => {
+    const result = {} as Record<string, any>;
+    for (const prop of props) {
+        if (prop in obj) {
+            result[prop] = obj[prop];
+        }
+    }
+    return result;
+}
+
 export const decodeValue = (value: string) => {
     return value.replace(/_x([0-9A-Fa-f]{4})_/g, (_, hex) =>
       String.fromCharCode(parseInt(hex, 16))
