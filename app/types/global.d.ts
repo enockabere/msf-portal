@@ -17,10 +17,12 @@ export interface ReducerFunctionActionType {
 }
 
 export interface Dependency {
-  visitorNo: string;
-  lineNo: number;
+  visitorNo?: string;
+  profileNo?: string;
+  lineNo?: number;
   dob: string;
   name: string;
+  nationality?: string;
   relation: string;
   gender: string;
   countryOfOrigin: string;
