@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Dependency } from "@/app/types/global";
 import Select from "react-select";
 import Swal from "sweetalert2";
-import { batchRequest, getResource } from "@/app/lib/api/http";
+import { batchRequest, deleteResource } from "@/app/lib/api/http";
 import _ from 'lodash';
 import { TravelRequest } from "@/app/types/travel";
 import { useSession } from "next-auth/react";
@@ -12,13 +12,13 @@ interface TravelDependenciesProps {
   availableDependencies: Dependency[];
   existingTravelDependencies: Dependency[];
   formData:TravelRequest;
-  refetchDependencies: () => Promise<void>;
+  refetchTravelDependencies: () => Promise<void>;
 }
 
 export default function TravelDependencies({
   availableDependencies,
   existingTravelDependencies,
-  refetchDependencies,
+  refetchTravelDependencies,
   formData,
   
 }: TravelDependenciesProps) {
@@ -28,7 +28,7 @@ export default function TravelDependencies({
   const [filteredAvailableDependants, setFilteredAvailableDependants] = useState<Dependency[]>(
     []
   );
-  const [postSelectedDependencies, setPostSelectedDependencies] = useState<{ data: Dependency}[]>([]);
+  const [postSelectedDependencies, setPostSelectedDependencies] = useState<{ data: TravelRequest}[]>([]);
   const { data } = useSession();
 
 const handleSelect = (selectedOptions: any) => {
@@ -50,12 +50,12 @@ const handleSelect = (selectedOptions: any) => {
     return;
   }
     const dependantPayload = {
-      profileNo: data.user?.profile?.no,
-      dob: dependant.dob,
-      name:dependant.gender,
-      relation: dependant.relation,
-      gender: dependant.gender,
-      countryOfOrigin: dependant.countryOfOrigin,
+      documentType: formData.documentType,
+      documentNo: formData.no,
+      travellerType:"Dependant",
+      travellerNo: formData.travellerNo,
+      dependantNo: dependant.lineNo,
+      travellerName: dependant.name,
     }
     setSelectedDependencies((prev: Dependency[]) =>[...prev, dependant]);
     setPostSelectedDependencies((prev) => {
@@ -63,14 +63,14 @@ const handleSelect = (selectedOptions: any) => {
         ...prev,
         {
         method: 'POST',
-        endpoint: 'travelDependancies',
+        endpoint: 'travellers',
         data: dependantPayload,
       }
       ]
     });
 };
 
-const handleDelete = async (dep: Dependency) => {
+const handleDelete = async (dep: TravelRequest) => {
   const isExisting = existingTravelDependencies.some(
     (d) => d.profileNo === dep.profileNo && d.lineNo === dep.lineNo
   );
@@ -86,17 +86,18 @@ const handleDelete = async (dep: Dependency) => {
 
     if (confirm.isConfirmed) {
       try {
-        await getResource('travelDependancies', {
-          method: 'DELETE',
-          params: {
-            lineNo: dep.lineNo,
-            profileNo: dep.profileNo
+        await deleteResource('travellers', {
+          data: {
+            documentType: dep.documentType,
+            documentNo: dep.documentNo,
+            lineNo:dep.lineNo
           },
+          primaryKey: ['documentType', 'documentNo', 'lineNo']
         });
 
         Swal.fire("Deleted!", "The dependency has been removed.", "success");
 
-          await refetchDependencies();
+          await refetchTravelDependencies();
         
       } catch (error) {
         console.error("Delete failed:", error);
@@ -147,10 +148,17 @@ const handleSaveDependencies = async () => {
 };
 
 const allTableDependencies = [
-    ...existingTravelDependencies,
-    ...selectedDependencies,
-  ];
+  ...existingTravelDependencies,
+  ...selectedDependencies,
+].map(item => {
+  if ('name' in item && !('travellerName' in item)) {
+    const { name, ...rest } = item;
+    return { ...rest, travellerName: name };
+  }
+  return item;
+});
 
+console.log('checkAllTbles', allTableDependencies);
 useEffect(() => {
     setFilteredAvailableDependants(()=> {
     return _.difference(availableDependencies, selectedDependencies);
@@ -177,8 +185,6 @@ useEffect(() => {
             <tr>
               <th>#</th>
               <th>Name</th>
-              <th>Relationship</th>
-               <th>Country of Origin</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
@@ -193,9 +199,7 @@ useEffect(() => {
               allTableDependencies.map((dep, idx) => (
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
-                  <td>{dep.name}</td>
-                  <td>{dep.relation}</td>
-                  <td>{dep.countryOfOrigin}</td>
+                  <td>{dep.travellerName}</td>
                   <td className="text-center">
                     <button
                       type="button"

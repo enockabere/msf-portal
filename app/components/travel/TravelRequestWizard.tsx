@@ -338,8 +338,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     return [allSteps.find((s) => s.id === "info")!];
   }, [formData.documentType, allSteps]);
 
-  const profileDependencies = async () => {
-    const res = await getResource('travelDependancies',
+  const getProfileDependencies = async () => {
+    const res = await getResource('profileDependancies',
       {
         params: {
             filters: {
@@ -369,7 +369,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
     }
     if (stepId === "dependencies") {
-      await profileDependencies();
+      await getProfileDependencies();
       await travelDependants(profileNo);
     }
   };
@@ -462,10 +462,10 @@ export default function TravelRequestWizard({ requestNo }: Props) {
   };
 
   const travelDependants = async (profNo: string)=>{
-     const res = await getResource('travelDependancies', {
+     const res = await getResource('travellers', {
        params: {
         filters: {
-          profileNo:profNo
+          travellerNo:profNo
         }
        },
      }
@@ -658,7 +658,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                 <TravelDependencies
                   availableDependencies={availableDependencies}
                   existingTravelDependencies={existingTravelDependencies}
-                  refetchDependencies ={()=>travelDependants(profileNo)}
+                  refetchTravelDependencies ={()=>travelDependants(profileNo)}
                   formData={formData}
                 />
               )}
