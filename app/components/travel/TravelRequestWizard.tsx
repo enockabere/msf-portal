@@ -659,6 +659,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                   availableDependencies={availableDependencies}
                   existingTravelDependencies={existingTravelDependencies}
                   refetchDependencies ={()=>travelDependants(profileNo)}
+                  formData={formData}
                 />
               )}
 

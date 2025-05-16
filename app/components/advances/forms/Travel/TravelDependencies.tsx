@@ -6,10 +6,12 @@ import Select from "react-select";
 import Swal from "sweetalert2";
 import { batchRequest, getResource } from "@/app/lib/api/http";
 import _ from 'lodash';
+import { TravelRequest } from "@/app/types/travel";
 import { useSession } from "next-auth/react";
 interface TravelDependenciesProps {
   availableDependencies: Dependency[];
   existingTravelDependencies: Dependency[];
+  formData:TravelRequest;
   refetchDependencies: () => Promise<void>;
 }
 
@@ -17,6 +19,8 @@ export default function TravelDependencies({
   availableDependencies,
   existingTravelDependencies,
   refetchDependencies,
+  formData,
+  
 }: TravelDependenciesProps) {
   const [selectedDependencies, setSelectedDependencies] = useState<Dependency[]>(
     []
@@ -147,10 +151,6 @@ const allTableDependencies = [
     ...selectedDependencies,
   ];
 
-const filteredOptions = _.differenceBy(
-  availableDependencies,
-  allTableDependencies,
-);
 useEffect(() => {
     setFilteredAvailableDependants(()=> {
     return _.difference(availableDependencies, selectedDependencies);
@@ -178,7 +178,7 @@ useEffect(() => {
               <th>#</th>
               <th>Name</th>
               <th>Relationship</th>
-               <th>Nationality</th>
+               <th>Country of Origin</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
