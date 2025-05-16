@@ -3,8 +3,9 @@ import {Save, UploadCloud} from "lucide-react";
 import {Form} from "react-bootstrap";
 import {createResource, getResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
+import {TravelRequest} from "@/app/types/travel";
 
-export default function TravellerChecklist() {
+export default function TravellerChecklist({travelInfo}: {travelInfo: TravelRequest}) {
     const [travelChecklist, setTravelChecklist] = useState([])
 
     const [rows, setRows] = useState(
@@ -58,8 +59,8 @@ export default function TravellerChecklist() {
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: "ETR003",
-                    documentType: "Employee",
+                    documentNo: travelInfo?.no,
+                    documentType: travelInfo.documentType,
                     checklistType: "Travel",
                 }
             }

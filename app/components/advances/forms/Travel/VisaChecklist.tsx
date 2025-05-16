@@ -3,8 +3,9 @@ import { UploadCloud, Save } from 'lucide-react';
 import { Form } from 'react-bootstrap';
 import {createResource, getResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
+import {TravelRequest} from "@/app/types/travel";
 
-const ChecklistTable = () => {
+export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}) {
     const [visaChecklist, setVisaChecklist] = useState([])
 
     const [rows, setRows] = useState(
@@ -60,8 +61,8 @@ const ChecklistTable = () => {
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: "ETR003",
-                    documentType: "Employee",
+                    documentNo: travelInfo?.no,
+                    documentType: travelInfo.documentType,
                     checklistType: "Visa",
                 }
             }
@@ -147,5 +148,3 @@ const ChecklistTable = () => {
         </>
     );
 };
-
-export default ChecklistTable;

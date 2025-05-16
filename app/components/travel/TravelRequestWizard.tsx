@@ -705,13 +705,13 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                 </div>
               )}
 
-              {activeTab === "visa" && <VisaApplicationForm/>}
+              {activeTab === "visa" && <VisaApplicationForm />}
 
               {activeTab === "traveller" && <VisaApplicationForm/>}
 
-              {activeTab === "checklist" && <VisaChecklist/>}
+              {activeTab === "checklist" && <VisaChecklist travelInfo={formData}/>}
 
-              {activeTab === "traveller-checklist" && <TravellerChecklist/>}
+              {activeTab === "traveller-checklist" && <TravellerChecklist travelInfo={formData}/>}
 
               <div className="step-actions">
                 {activeTab === "info" ? (
