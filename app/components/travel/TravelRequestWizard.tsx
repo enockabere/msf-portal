@@ -22,7 +22,8 @@ import {
   DownloadIcon,
   FileDownIcon,
   Plus,
-  Loader, Send,
+  Loader,
+  Send,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -210,6 +211,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+  const [existingTravelDependencies, setExistingTravelDependancies] =useState<Dependency[]>([]);
 
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
@@ -349,8 +351,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     return [allSteps.find((s) => s.id === "info")!];
   }, [formData.documentType, allSteps]);
 
-  const profileDipendencies = async () => {
-    const res = await getResource('travelDependancies',
+  const getProfileDependencies = async () => {
+    const res = await getResource('profileDependancies',
       {
         params: {
             filters: {
@@ -379,7 +381,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
     }
     if (stepId === "dependencies") {
-      await profileDipendencies();
+      await getProfileDependencies();
+      await travelDependants(profileNo);
     }
   };
 
@@ -487,6 +490,29 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       Swal.fire("Error", error.message);
     }
   }, [formData.no])
+
+  const travelDependants = async (profNo: string)=>{
+     const res = await getResource('travellers', {
+       params: {
+        filters: {
+          travellerNo:profNo
+        }
+       },
+     }
+       );
+        if (res.error) {
+          console.log('Travel Dependants error: ', res.error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error fetching profile dependecies!',
+          });
+          return
+        }
+        setExistingTravelDependancies((prev)=> {
+          console.log('res2: ', res.value);
+          return [...prev, ...res.value];
+        })
+  }
 
   const handleDestinationChange = useCallback(
     <K extends keyof Destination>(
@@ -670,6 +696,9 @@ export default function TravelRequestWizard({ requestNo }: Props) {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
+                  existingTravelDependencies={existingTravelDependencies}
+                  refetchTravelDependencies ={()=>travelDependants(profileNo)}
+                  formData={formData}
                 />
               )}
 

@@ -26,6 +26,8 @@ export interface Dependency {
   relation: string;
   gender: string;
   countryOfOrigin: string;
+  travellerType?: string,
+  travellerNo?: string,
   [key: string]: any;
 }
 export interface EndpointOptions {
