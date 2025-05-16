@@ -4,7 +4,7 @@ import React, {useEffect, useState} from "react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
-import {createResource, getResource} from "@/app/lib/api/http";
+import {createResource, deleteResource, getResource} from "@/app/lib/api/http";
 import {  Destination } from "@/app/types/Destination";
 import {Approval} from "@/app/types/approval";
 import Swal from "sweetalert2";
@@ -57,7 +57,6 @@ export default function TravelDestinations({
 
       if(res.error) {
          return Swal.fire('Error!', res.error.message)
-
       }
       console.log('create routes res', res)
       Swal.fire("Success", 'Travel route was created successfully!' );
@@ -66,6 +65,26 @@ export default function TravelDestinations({
     }
 
   }
+
+    const deleteTravelRequest = async (row: Destination) => {
+        try {
+            const res =  await deleteResource('travelRoutes', {
+                params: {
+                    documentType: "",
+                    documentNo: "",
+                    sequenceNo: ""
+                }
+            });
+
+            if(res.error) {
+                return Swal.fire('Error!', res.error.message)
+            }
+            console.log('create routes res', res)
+            Swal.fire("Success", 'Travel route was deleted successfully!' );
+        } catch (e) {
+            Swal.fire('Error!', e.message)
+        }
+    }
 
   const fetchCities = async (countryCode, countryField) => {
     try {
@@ -119,7 +138,7 @@ export default function TravelDestinations({
     const userTravelRoutes = async () => {
        const res = await getResource('travelRoutes', {
             params: {
-                filter: {
+                filters: {
                     documentNo: "ETR003"
                 }
             }
@@ -160,7 +179,7 @@ export default function TravelDestinations({
                         >
                             <option value="">-- Origin City --</option>
                             {originCities.map((city) => (
-                                <option key={city.code} value={city.code}>
+                                <option key={city.code} value={city.city}>
                                     {city.city}
                                 </option>
                             ))}
@@ -193,7 +212,7 @@ export default function TravelDestinations({
                         >
                             <option value="">-- Destination City --</option>
                             {destinationCities.map((city) => (
-                                <option key={city.code} value={city.code}>
+                                <option key={city.code} value={city.city}>
                                     {city.city}
                                 </option>
                             ))}
@@ -303,14 +322,15 @@ export default function TravelDestinations({
         },
         {
             name: "Actions",
-            cell: (row: Approval) => (
+            cell: (row: Destination) => (
                 <div className="d-flex gap-2">
                     <button
-                        className="text-success border-0 bg-transparent"
-                        title="View"
-                        onClick={() => (row)}
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => deleteTravelRequest(row)}
+                        title="Delete"
                     >
-                        <i className="las la-eye fs-18" />
+                        <Trash2 size={16} />
                     </button>
                 </div>
             ),

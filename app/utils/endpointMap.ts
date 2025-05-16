@@ -50,6 +50,7 @@ export const endpointMap = {
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
   perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
   sendTravelRequestForApproval: "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  travellerChecklist: "/api/kinetics/adminTravel/v1.0/travellerChecklist",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

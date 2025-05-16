@@ -30,6 +30,7 @@ import { TravelRequest } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
+import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
@@ -43,6 +44,7 @@ import {
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
 import { Destination } from "@/app/types/Destination";
+import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 
 interface WizardStep {
   id: string;
@@ -286,7 +288,13 @@ export default function TravelRequestWizard({ requestNo }: Props) {
       {
         id: "checklist",
         icon: <ListChecks size={18}/>,
-        title: "Checklist",
+        title: "Visa Checklist",
+        desc: "Visa Pre-travel requirements",
+      },
+      {
+        id: "traveller-checklist",
+        icon: <ListChecks size={18}/>,
+        title: "Traveller Checklist",
         desc: "Pre-travel requirements",
       },
       {
@@ -329,11 +337,12 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         "dependencies",
         "ticket",
         "checklist",
+        "traveller-checklist",
         "visa",
         "advance",
       ].map((id) => allSteps.find((s) => s.id === id)!);
     } else if (formData.documentType === "Visitor") {
-      return ["info", "dependencies", "checklist", "permit", "advance"].map(
+      return ["info", "dependencies", "checklist", "traveller-checklist", "permit", "advance"].map(
         (id) => allSteps.find((s) => s.id === id)!
       );
     }
@@ -737,20 +746,12 @@ export default function TravelRequestWizard({ requestNo }: Props) {
 
               {activeTab === "visa" && <VisaApplicationForm/>}
 
-              {activeTab === "checklist" && (
-                <div className="mb-3">
-                  <div className="bg-light-subtle p-3 rounded">
-                    <p className="fw-bold mb-2">Checklist</p>
-                    <ul className="mb-0">
-                      {formData.documentType === "Visitor" ? (
-                        <li>Work Permit is required for this trip.</li>
-                      ) : (
-                        <li>Visa is required for this trip.</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              )}
+              {activeTab === "traveller" && <VisaApplicationForm/>}
+
+              {activeTab === "checklist" && <VisaChecklist/>}
+
+              {activeTab === "traveller-checklist" && <TravellerChecklist/>}
+
               <div className="step-actions">
                 {activeTab === "info" ? (
                   <button
