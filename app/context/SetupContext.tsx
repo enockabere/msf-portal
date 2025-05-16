@@ -34,6 +34,9 @@ const state = {
   employeeBanks: [] as Array<Record<string, any>>,
   payrollPeriods: [] as Array<Record<string, any>>,
   purposeOfTravel: [] as Array<Record<string, any>>,
+  countries: [] as Array<Record<string, any>>,
+  cities: [] as Array<Record<string, any>>,
+  modeOfTransport: [] as Array<Record<string, any>>,
 };
 
 type MySetupsState = typeof state;
@@ -58,8 +61,9 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
 
 interface MySetupsContextValue extends MySetupsState {
   fetchSetups: (
-    endpoints: Array<ENDPOINTMAP | Record<ENDPOINTMAP, EndpointOptions>>,
-    resolveAll?: boolean
+    endpoints: Array<ENDPOINTMAP | Partial<Record<ENDPOINTMAP, EndpointOptions>>>,
+    ignoreCache?: boolean,
+    resolveAll?: boolean,
   ) => Promise<void>;
 }
 
@@ -73,7 +77,8 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
   const fetchSetups = useCallback(
     async (
       setupsArray: Array<ENDPOINTMAP | Record<ENDPOINTMAP, EndpointOptions>>,
-      resolveAll: boolean = false
+      ignoreCache: boolean = false,
+      resolveAll: boolean = false,
     ) => {
       if (!Array.isArray(setupsArray) || setupsArray.length === 0) {
         toast.error(
@@ -83,20 +88,24 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const missingEndpoints = setupsArray.filter((setup) => {
-          const key = typeof setup === "string" ? setup : Object.keys(setup)[0];
-          return !localSetupCache.has(key);
-        });
-
-        if (missingEndpoints.length === 0) {
-          console.log("✅ All requested setups loaded from cache.");
-          return;
+        let missingEndpoints = [];
+        if (ignoreCache) {
+          missingEndpoints = setupsArray;
+        } else {
+          missingEndpoints = setupsArray.filter((setup) => {
+            const key = typeof setup === "string" ? setup : Object.keys(setup)[0];
+            return !localSetupCache.has(key);
+          });
+          if (missingEndpoints.length === 0) {
+            console.log("✅ All requested setups loaded from cache.");
+            return;
+          }
         }
 
         const res = await fetch("/api/setups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoints: setupsArray, resolveAll }),
+          body: JSON.stringify({ endpoints: missingEndpoints, resolveAll }),
         });
 
         const json = await res.json();

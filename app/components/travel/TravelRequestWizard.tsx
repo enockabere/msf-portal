@@ -21,22 +21,28 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Plus,
+  Plus, Loader,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
-import { TravelInfo } from "@/app/types/travel";
+import { TravelRequest } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import { codeUnit, getResource } from "@/app/lib/api/http";
+import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { Dependency } from "@/app/types/global";
+import {
+  checkIfMissingRequiredProperty,
+  removeNullAndUndefinedFromObject,
+  removeObjectProps
+} from "@/app/utils/helpers";
+import { Destination } from "@/app/types/Destination";
 
 interface WizardStep {
   id: string;
@@ -52,17 +58,6 @@ interface stepAction {
   caption: string;
 }
 
-interface DestinationItem {
-  id: string;
-  originCountry: string;
-  originCity: string;
-  destinationCountry: string;
-  destinationCity: string;
-  travelDate: string;
-  transportMode: string;
-  visaRequired: string;
-}
-
 interface TicketItem {
   id: string;
   ticketNumber: string;
@@ -75,16 +70,22 @@ interface TicketItem {
 export default function TravelRequestWizard() {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [travelInfo, setTravelInfo] = useState<TravelInfo>({
+  const [formData, setFormData] = useState<TravelRequest>({
     documentType: '',
     no: '',
     travellerNo: '',
+    createdbyProfileNo: '',
+    originCountryCode: '',
+    originCity: '',
+    destinationCountryCode: '',
+    destinationCity: '',
     TypeOfTravel: '',
     purposeOfTravel: '',
+    accommodationType: '',
     departureDate: '',
     returnDate: '',
     annualTrip: false,
-    modeOfTransport: '',
+    modeOfTransport: 'AIR',
     arrivalDate: '',
     estimatedTimeOfArrival: '',
     pickupLocation: '',
@@ -94,26 +95,11 @@ export default function TravelRequestWizard() {
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
-
-    basedOnRequest: "Yes",
-    travelRequestId: "",
-    tripType: "",
-    costCenter: "",
-    remainingTrips: "",
-    tripDates: {from: "", to: ""},
-    destination: "",
-    applyForOther: "No",
-    currency: "",
-    paymentMethod: "",
-    travelType: "",
-    visaRequired: "No",
-    workPermitRequired: "No",
-    destinations: [],
   });
 
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  console.log(submitted);
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
 
   const [availableTickets] = useState<TicketItem[]>([
     {
@@ -137,6 +123,27 @@ export default function TravelRequestWizard() {
   const {data: session} = useSession();
   const profileNo = session?.user?.profile?.no
   const [profile, setProfile] = useState(null)
+  const fetchTravelRequest = async (requestNo) => {
+    try {
+      const res = await getResource('travelRequests', {
+        params: {
+          filters: {
+            no: requestNo
+          },
+          '$expand': '*',
+        }
+      });
+
+      if (res.error) {
+        console.log('Travel request error: ', res.error);
+        toast.error(res.error.message)
+      } else {
+        setFormData(res.value.at(0))
+      }
+    } catch (error: any) {
+      console.log('Error fetching travel request!', error.message)
+    }
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -155,8 +162,8 @@ export default function TravelRequestWizard() {
         } else {
           setProfile(res.value.at(0))
         }
-      } finally {
-        //
+      } catch (error: any) {
+        console.log('Error fetching profile!', error.message)
       }
     };
 
@@ -165,14 +172,24 @@ export default function TravelRequestWizard() {
 
   useEffect(() => {
     if (profile) {
-      setTravelInfo((prev) => ({
+      setFormData((prev) => ({
         ...prev,
         documentType: profile.type,
         travellerNo: profile.no,
+        createdbyProfileNo: profile.no,
         passportNo: profile.passportIDNo,
         shortcutDimension1Code: profile.shortcutDimension1Code,
         shortcutDimension2Code: profile.shortcutDimension2Code,
       }))
+
+      setHeaderRequiredFields((prev) => {
+        if (profile.type === 'Employee') {
+          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+        } else if (profile.type === 'Visitor') {
+          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+        }
+        return [...prev]
+      })
     }
   }, [profile]);
 
@@ -205,10 +222,10 @@ export default function TravelRequestWizard() {
   }, []);
 
   const handleAddDestination = useCallback(() => {
-    setTravelInfo((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      destinations: [
-        ...prev.destinations,
+      travelRequestRoutes: [
+        ...prev.travelRequestRoutes,
         {
           id: Date.now().toString(),
           originCountry: "",
@@ -217,7 +234,6 @@ export default function TravelRequestWizard() {
           destinationCity: "",
           travelDate: "",
           transportMode: "",
-          visaRequired: "No",
         } as any,
       ],
     }));
@@ -297,7 +313,7 @@ export default function TravelRequestWizard() {
 
   // Get the appropriate steps based on user type
   const currentSteps = useMemo((): WizardStep[] => {
-    if (travelInfo.documentType === "Employee") {
+    if (formData.documentType === "Employee") {
       return [
         "info",
         "destinations",
@@ -307,13 +323,13 @@ export default function TravelRequestWizard() {
         "visa",
         "advance",
       ].map((id) => allSteps.find((s) => s.id === id)!);
-    } else if (travelInfo.documentType === "Visitor") {
-      return ["info", "checklist", "permit", "advance"].map(
+    } else if (formData.documentType === "Visitor") {
+      return ["info", "dependencies", "checklist", "permit", "advance"].map(
         (id) => allSteps.find((s) => s.id === id)!
       );
     }
     return [allSteps.find((s) => s.id === "info")!];
-  }, [travelInfo.documentType, allSteps]);
+  }, [formData.documentType, allSteps]);
 
   const profileDipendencies = async () => {
     const res = await getResource('travelDependancies', 
@@ -332,8 +348,8 @@ export default function TravelRequestWizard() {
     }
     setAvailableDependencies(res.value);
   }
-  const handleChange = useCallback((field: keyof TravelInfo, value: any) => {
-    setTravelInfo((prev) => ({
+  const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -366,32 +382,72 @@ export default function TravelRequestWizard() {
     {id: "documents", label: "Required Documents", type: "file"},
   ];
 
-  const handleInitialSubmit = () => {
-    setCompletedSteps((prev) => new Set(prev).add("info"));
-    setSubmitted(true);
+  const handleInitialSubmit = async () => {
+    try {
+      const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
+      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
 
-    if (travelInfo.documentType === "Visitor") {
-      setActiveTab("checklist");
-    } else if (travelInfo.documentType === "Employee") {
-      setActiveTab("destinations");
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
+
+      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
+
+      if (isMissingRequiredProp.missing) {
+        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
+      }
+
+      setIsSubmitting(true)
+
+      console.log(knownSchema)
+
+      const res = knownSchema.no
+        ? await patchResource('travelRequests', {
+          data: knownSchema,
+          primaryKey: ['no'],
+        })
+        : await createResource('travelRequests', {
+          data: knownSchema,
+        });
+
+      if (res.error) {
+        setIsSubmitting(false)
+        return Swal.fire(res.error.code, res.error.message);
+      }
+
+      // Fetch created travel request
+      await fetchTravelRequest(res.no)
+
+      setIsSubmitting(false)
+
+      console.log('created travel request', formData);
+
+      setCompletedSteps((prev) => new Set(prev).add("info"));
+
+      if (formData.documentType === 'Visitor') {
+        setActiveTab('checklist');
+      } else if (formData.documentType === 'Employee') {
+        setActiveTab('destinations');
+      }
+    } catch (error: any) {
+      await Swal.fire('Error!', error.message)
+      setIsSubmitting(false)
     }
   };
 
   const handleDestinationChange = useCallback(
-    <K extends keyof DestinationItem>(
+    <K extends keyof Destination>(
       index: number,
       field: K,
-      value: DestinationItem[K]
+      value: Destination[K]
     ) => {
-      setTravelInfo((prev) => {
-        const newDestinations = [...prev.destinations];
+      setFormData((prev) => {
+        const newDestinations = [...prev.travelRequestRoutes];
         newDestinations[index] = {
           ...newDestinations[index],
           [field]: value,
         };
         return {
           ...prev,
-          destinations: newDestinations,
+          travelRequestRoutes: newDestinations,
         };
       });
     },
@@ -399,9 +455,9 @@ export default function TravelRequestWizard() {
   );
 
   const handleRemoveDestination = useCallback((index: number) => {
-    setTravelInfo((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      destinations: prev.destinations.filter((_, i) => i !== index),
+      travelRequestRoutes: prev.travelRequestRoutes.filter((_, i) => i !== index),
     }));
   }, []);
 
@@ -525,15 +581,15 @@ export default function TravelRequestWizard() {
             <form onSubmit={handleSubmit}>
               {activeTab === "info" && (
                 <TravelHeaderForm
-                  travelInfo={travelInfo}
-                  profile={profile}
-                  handleChange={handleChange}
+                  formData={formData}
+                  requiredFields={headerRequiredFields}
+                  onFormChange={handleFormChange}
                 />
               )}
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={travelInfo.destinations as any}
+                  destinations={formData.travelRequestRoutes as any}
                   onDestinationChange={handleDestinationChange}
                   onRemoveDestination={handleRemoveDestination}
                 />
@@ -573,8 +629,8 @@ export default function TravelRequestWizard() {
                             id={field.id}
                             className="form-control"
                             onChange={(e) =>
-                              handleChange(
-                                field.id as keyof TravelInfo,
+                              handleFormChange(
+                                field.id as keyof TravelRequest,
                                 e.target.files
                               )
                             }
@@ -585,8 +641,8 @@ export default function TravelRequestWizard() {
                             id={field.id}
                             className="form-control"
                             onChange={(e) =>
-                              handleChange(
-                                field.id as keyof TravelInfo,
+                              handleFormChange(
+                                field.id as keyof TravelRequest,
                                 e.target.value
                               )
                             }
@@ -600,14 +656,14 @@ export default function TravelRequestWizard() {
 
               {activeTab === "advance" && (
                 <div>
-                  <TravelAdvanceDetails travelInfo={travelInfo}/>
+                  <TravelAdvanceDetails travelInfo={formData}/>
                   <TravelAdvanceGLTable
                     glLines={[
                       {
                         account: "6001",
                         description: "Flight Ticket",
                         amount: 500,
-                        currency: travelInfo.currency,
+                        currency: formData.currency,
                         department: "",
                         project: "",
                       },
@@ -615,7 +671,7 @@ export default function TravelRequestWizard() {
                         account: "6002",
                         description: "Hotel",
                         amount: 300,
-                        currency: travelInfo.currency,
+                        currency: formData.currency,
                         department: "",
                         project: "",
                       },
@@ -631,7 +687,7 @@ export default function TravelRequestWizard() {
                   <div className="bg-light-subtle p-3 rounded">
                     <p className="fw-bold mb-2">Checklist</p>
                     <ul className="mb-0">
-                      {travelInfo.documentType === "Visitor" ? (
+                      {formData.documentType === "Visitor" ? (
                         <li>Work Permit is required for this trip.</li>
                       ) : (
                         <li>Visa is required for this trip.</li>
@@ -646,8 +702,11 @@ export default function TravelRequestWizard() {
                     type="button"
                     className="primary-button"
                     onClick={handleInitialSubmit}
+                    disabled={isSubmitting}
                   >
-                    <Save size={16} className="button-icon"/>
+                    {isSubmitting
+                      ? <Loader size={16} className="button-icon blink-animation"/>
+                      : <Save size={16} className="button-icon"/>}
                     Save & Continue
                   </button>
                 ) : (
@@ -666,7 +725,7 @@ export default function TravelRequestWizard() {
                     )}
 
                     {activeTab === "visa" &&
-                    travelInfo.documentType === "Employee" ? (
+                    formData.documentType === "Employee" ? (
                       <button
                         type="button"
                         className="primary-button"
@@ -681,7 +740,7 @@ export default function TravelRequestWizard() {
                         Submit Travel Request
                       </button>
                     ) : activeTab === "permit" &&
-                    travelInfo.documentType === "Visitor" ? (
+                    formData.documentType === "Visitor" ? (
                       <button
                         type="button"
                         className="primary-button"

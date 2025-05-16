@@ -129,7 +129,6 @@ export default function OperationalHeaderStep({
                       )
                     })
                   }
-                  <option>Nakuru</option>
                 </select>
               </div>
             </div>

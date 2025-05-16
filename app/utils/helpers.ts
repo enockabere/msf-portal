@@ -8,12 +8,30 @@ export const safeTypechecker = (input: any) => {
     return Object.prototype.toString.call(input).slice(8, -1);
 }
 
+const validType = (value: any): boolean => {
+    const type = safeTypechecker(value);
+    let isValid = true;
+    switch(type) {
+        case 'Undefined':
+        case 'Null':
+            {
+                isValid = false;
+                break;
+            }
+        case 'String': {
+            isValid = !!value.length;
+        }
+    }
+    return isValid;
+}
+
 export const removeNullAndUndefinedFromObject = (input: Record<string, any>) => {
     const type = safeTypechecker(input);
     if (type !== 'Object') return;
-    let cleanObject = {};
+    const cleanObject = {};
     for (const [key, value] of Object.entries(input)) {
-        if (value) {
+
+        if (validType(value)) {
             cleanObject[key] = value;
         }
     }
@@ -27,7 +45,6 @@ export const checkIfMissingRequiredProperty = (input: Record<string, any>, requi
     const missingProps: string[] = [];
     requiredProps.forEach((prop: string) => {
         const propExist = Object.keys(input).some((p: string) => p === prop);
-        console.log("Checker: ", { propExist, prop: prop })
         if (!propExist) {
             missingRequiredProp = true;
             missingProps.push(prop);

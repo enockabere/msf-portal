@@ -4,7 +4,8 @@ export interface RequestOptions {
     params?: Record<string, any> | undefined
     method?: "GET" | "PUT" | "POST" | "DELETE" | "PATCH" | "OPTIONS" | "HEADER" | undefined,
     options?: Record<string, any>
-    batch?: Array<Record<string, any>>
+    batch?: Array<Record<string, any>>,
+    primaryKey?: Array<string>,
 }
 export interface RequestResponse {
     error?: Record<string, any> | undefined
