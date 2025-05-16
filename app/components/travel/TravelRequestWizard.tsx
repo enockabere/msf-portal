@@ -329,7 +329,7 @@ export default function TravelRequestWizard() {
     return [allSteps.find((s) => s.id === "info")!];
   }, [formData.documentType, allSteps]);
 
-  const profileDipendencies = async () => {
+  const profileDependencies = async () => {
     const res = await getResource('travelDependancies',
       {
         params: {
@@ -360,7 +360,7 @@ export default function TravelRequestWizard() {
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
     }
     if (stepId === "dependencies") {
-      await profileDipendencies();
+      await profileDependencies();
       await travelDependants(profileNo);
     }
   };

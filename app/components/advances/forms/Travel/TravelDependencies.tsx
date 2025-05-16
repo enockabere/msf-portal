@@ -28,7 +28,6 @@ export default function TravelDependencies({
   const { data } = useSession();
 
 const handleSelect = (selectedOptions: any) => {
-  console.log('selected option: ', selectedOptions)
   if (!selectedOptions) return;
 
   const [profileNo, lineNo] = selectedOptions?.[0]?.value.split("-");
@@ -87,6 +86,7 @@ const handleDelete = async (dep: Dependency) => {
           method: 'DELETE',
           params: {
             lineNo: dep.lineNo,
+            profileNo: dep.profileNo
           },
         });
 
@@ -146,17 +146,11 @@ const allTableDependencies = [
     ...existingTravelDependencies,
     ...selectedDependencies,
   ];
-console.log("allTableDependencies:", allTableDependencies);
-  // const selectedValues = allTableDependencies.map((dep) => ({
-  //   value: `${dep.profileNo}-${dep.lineNo}`,
-  //   label: dep.name,
-  // }));
 
 const filteredOptions = _.differenceBy(
   availableDependencies,
   allTableDependencies,
 );
-console.log("Filtered OptionsDerick:", filteredOptions);
 useEffect(() => {
     setFilteredAvailableDependants(()=> {
     return _.difference(availableDependencies, selectedDependencies);
