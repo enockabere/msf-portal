@@ -37,6 +37,7 @@ const state = {
   countries: [] as Array<Record<string, any>>,
   cities: [] as Array<Record<string, any>>,
   modeOfTransport: [] as Array<Record<string, any>>,
+  perDiemAllotments: [] as Array<Record<string, any>>,
 };
 
 type MySetupsState = typeof state;

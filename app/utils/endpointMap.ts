@@ -48,6 +48,7 @@ export const endpointMap = {
   cities: "/api/kinetics/enigma/v1.0/postCodes",
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
+  perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

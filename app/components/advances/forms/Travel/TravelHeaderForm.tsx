@@ -35,6 +35,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
     modesOfTransport,
     dimensions,
     countries,
+    perDiemAllotments,
     fetchSetups,
   } = useMySetups();
 
@@ -45,6 +46,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
           'purposeOfTravel',
           'modesOfTransport',
           'countries',
+          'perDiemAllotments',
           {
             dimensions: {
               filters: { dimensionCode: 'OC' }
@@ -61,6 +63,13 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
 
   const [originCities, setOriginCities] = useState([])
   const [destinationCities, setDestinationCities] = useState([])
+  // const [canSetRequiresPerDiem, isCanSetRequiresPerDiem] = useState(false)
+  //  const canSetRequiresPerDiem = (accommodationType) => {
+  //   const allotment = perDiemAllotments.find((item) => item.accommodationType === accommodationType)
+  //   console.log(allotment)
+  //   if (!allotment) return false
+  //   return allotment.perDiemAllocated > 0
+  // }
 
   const fetchCities = async (countryCode, countryField) => {
     try {
