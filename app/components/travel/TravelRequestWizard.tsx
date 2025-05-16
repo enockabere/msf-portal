@@ -230,6 +230,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
   }, []);
 
   const handleAddDestination = useCallback(() => {
+    console.log(formData)
     setFormData((prev) => ({
       ...prev,
       travelRequestRoutes: [
@@ -260,15 +261,6 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         icon: <Globe size={18}/>,
         title: "Travel Destinations",
         desc: "Travel destination details",
-        actions: [
-          {
-            id: "action-add-destination",
-            caption: "Add Destination",
-            fn: () => {
-              handleAddDestination();
-            },
-          },
-        ],
       },
       {
         id: "dependencies",
@@ -624,9 +616,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={formData.travelRequestRoutes as any}
-                  onDestinationChange={handleDestinationChange}
-                  onRemoveDestination={handleRemoveDestination}
+                  travelInfo={formData}
                 />
               )}
 

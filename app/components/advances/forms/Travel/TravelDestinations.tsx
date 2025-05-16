@@ -8,21 +8,14 @@ import {createResource, deleteResource, getResource} from "@/app/lib/api/http";
 import {  Destination } from "@/app/types/Destination";
 import {Approval} from "@/app/types/approval";
 import Swal from "sweetalert2";
+import {TravelRequest} from "@/app/types/travel";
 
 interface TravelDestinationsProps {
-  destinations: Destination[];
-  onDestinationChange: <K extends keyof Destination>(
-    index: number,
-    field: K,
-    value: Destination[K]
-  ) => void;
-  onRemoveDestination: (index: number) => void;
+  travelInfo: TravelRequest;
 }
 
 export default function TravelDestinations({
-  destinations,
-  onDestinationChange,
-  onRemoveDestination,
+  travelInfo,
 }: TravelDestinationsProps) {
   const {
     countries,
@@ -32,20 +25,42 @@ export default function TravelDestinations({
   const [originCities, setOriginCities] = useState([])
   const [destinationCities, setDestinationCities] = useState([])
   const [travelRequests, setTravelRequests] = useState([])
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+
+    const handleDestinationChange = <K extends keyof Destination>(
+        index: number,
+        field: K,
+        value: Destination[K]
+    ) => {
+        const updated = [...destinations];
+        updated[index][field] = value;
+        setDestinations(updated);
+    };
+
+    const removeDestination = (index: number) => {
+        setDestinations((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const addDestination = () => {
+        setDestinations((prev) => [
+            ...prev,
+            {
+                originCountryCode: "",
+                originCity: "",
+                destinationCountryCode: "",
+                destinationCity: "",
+                travelDate: "",
+                modeOfTransport: "",
+                documentNo: travelInfo.documentNo,
+                documentType: travelInfo.documentType,
+            },
+        ]);
+    };
 
   const saveDestination = async (index: number) => {
     const destination = destinations[index];
-    destination['documentType'] = 'Employee';
-    destination['documentNo'] = 'ETR003';
-    // destination['sequenceNo'] = '';
-    const keysToRemove = ['id', 'originCountry', 'destinationCountry','transportMode', 'sequenceNo'];
-
-    keysToRemove.forEach((key) => {
-      delete destination[key as keyof typeof destination];
-    });
-
-    // Replace this with actual API call
-    console.log("Saving destination:", destination);
+    destination['documentType'] = travelInfo.documentType;
+    destination['documentNo'] = travelInfo.no;
 
 
     try {
@@ -133,17 +148,19 @@ export default function TravelDestinations({
 
     loadData();
     userTravelRoutes()
-  });
+  }, [destinations]);
 
     const userTravelRoutes = async () => {
        const res = await getResource('travelRoutes', {
             params: {
                 filters: {
-                    documentNo: "ETR003"
+                    documentNo: travelInfo?.no,
+                    documentType: travelInfo?.documentType
                 }
             }
         })
 
+        console.log('userTravelRoutes', res)
         setTravelRequests(res?.value)
     }
 
@@ -158,7 +175,7 @@ export default function TravelDestinations({
                             className="form-select"
                             value={row.originCountryCode}
                             onChange={async (e) => {
-                                onDestinationChange(index, "originCountryCode", e.target.value);
+                                handleDestinationChange(index, "originCountryCode", e.target.value);
                                 await fetchCities(e.target.value, 'originCountryCode');
                             }}
                         >
@@ -175,7 +192,7 @@ export default function TravelDestinations({
                         <select
                             className="form-select"
                             value={row.originCity}
-                            onChange={(e) => onDestinationChange(index, "originCity", e.target.value)}
+                            onChange={(e) => handleDestinationChange(index, "originCity", e.target.value)}
                         >
                             <option value="">-- Origin City --</option>
                             {originCities.map((city) => (
@@ -191,7 +208,7 @@ export default function TravelDestinations({
                             className="form-select"
                             value={row.destinationCountryCode}
                             onChange={async (e) => {
-                                onDestinationChange(index, "destinationCountryCode", e.target.value);
+                                handleDestinationChange(index, "destinationCountryCode", e.target.value);
                                 await fetchCities(e.target.value, 'destinationCountryCode');
                             }}
                         >
@@ -208,7 +225,7 @@ export default function TravelDestinations({
                         <select
                             className="form-select"
                             value={row.destinationCity}
-                            onChange={(e) => onDestinationChange(index, "destinationCity", e.target.value)}
+                            onChange={(e) => handleDestinationChange(index, "destinationCity", e.target.value)}
                         >
                             <option value="">-- Destination City --</option>
                             {destinationCities.map((city) => (
@@ -224,7 +241,7 @@ export default function TravelDestinations({
                             type="date"
                             className="form-control"
                             value={row.travelDate}
-                            onChange={(e) => onDestinationChange(index, "travelDate", e.target.value)}
+                            onChange={(e) => handleDestinationChange(index, "travelDate", e.target.value)}
                         />
                     </div>
 
@@ -232,7 +249,7 @@ export default function TravelDestinations({
                         <select
                             className="form-select"
                             value={row.modeOfTransport}
-                            onChange={(e) => onDestinationChange(index, "modeOfTransport", e.target.value)}
+                            onChange={(e) => handleDestinationChange(index, "modeOfTransport", e.target.value)}
                         >
                             <option value="">-- Transport Mode --</option>
                             {modeOfTransport.map((mode) => (
@@ -255,7 +272,7 @@ export default function TravelDestinations({
                         <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"
-                            onClick={() => onRemoveDestination(index)}
+                            onClick={() => removeDestination(index)}
                             title="Delete"
                         >
                             <Trash2 size={16} />
@@ -341,7 +358,17 @@ export default function TravelDestinations({
 
   return (
     <div className="card mb-4">
-        {destinations.length > 0 && (
+        <div className="d-flex justify-content-end align-items-center  ">
+            <button
+                type="button"
+                className="btn btn-danger mb-2"
+                onClick={addDestination}
+            >
+                <i className="fa fa-plus me-1"></i>
+                Add Destination
+            </button>
+        </div>
+        {destinations?.length > 0 && (
             <div className="card-body">
                 <DataTable
                     columns={columns}
