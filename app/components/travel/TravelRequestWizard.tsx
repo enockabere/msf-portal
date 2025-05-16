@@ -265,7 +265,7 @@ export default function TravelRequestWizard() {
       {
         id: "dependencies",
         icon: <Link size={18}/>,
-        title: "Travel Dependencies",
+        title: "Dependants",
         desc: "Related travel requirements",
       },
       {

@@ -121,6 +121,7 @@ useEffect(() => {
               <th>#</th>
               <th>Name</th>
               <th>Relationship</th>
+               <th>Country of Origin</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
@@ -137,6 +138,7 @@ useEffect(() => {
                   <td>{idx + 1}</td>
                   <td>{dep.name}</td>
                   <td>{dep.relation}</td>
+                  <td>{dep.countryOfOrigin}</td>
                   <td className="text-center">
                     <button
                       type="button"

@@ -22,6 +22,7 @@ export interface Dependency {
   lineNo?: number;
   dob: string;
   name: string;
+  nationality?: string;
   relation: string;
   gender: string;
   countryOfOrigin: string;
