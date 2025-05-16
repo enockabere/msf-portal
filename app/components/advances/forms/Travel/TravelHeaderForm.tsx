@@ -63,13 +63,15 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
 
   const [originCities, setOriginCities] = useState([])
   const [destinationCities, setDestinationCities] = useState([])
-  // const [canSetRequiresPerDiem, isCanSetRequiresPerDiem] = useState(false)
-  //  const canSetRequiresPerDiem = (accommodationType) => {
-  //   const allotment = perDiemAllotments.find((item) => item.accommodationType === accommodationType)
-  //   console.log(allotment)
-  //   if (!allotment) return false
-  //   return allotment.perDiemAllocated > 0
-  // }
+  const [canSetRequiresPerDiem, setCanSetRequiresPerDiem] = useState(false)
+
+  useEffect(() => {
+    setCanSetRequiresPerDiem(() => {
+      const allotment = perDiemAllotments.find((item) => item.accommodationType === formData.accommodationType)
+      if (!allotment) return false
+      return allotment.perDiemAllocated > 0
+    })
+  }, [formData.accommodationType, perDiemAllotments]);
 
   const fetchCities = async (countryCode, countryField) => {
     try {
@@ -385,7 +387,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
             </div>
           )}
 
-          {requiredFields.includes('requirePerDiem') && (
+          {requiredFields.includes('requirePerDiem') && canSetRequiresPerDiem && (
             <div className="col-md-4">
               <label className="form-label">Require Per Diem</label>
               <select

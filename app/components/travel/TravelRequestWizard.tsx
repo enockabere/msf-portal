@@ -67,7 +67,11 @@ interface TicketItem {
   airline: string;
 }
 
-export default function TravelRequestWizard() {
+interface Props {
+  requestNo?: string
+}
+
+export default function TravelRequestWizard({ requestNo }: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<TravelRequest>({
@@ -96,6 +100,12 @@ export default function TravelRequestWizard() {
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
   });
+
+  useEffect(() => {
+    if (requestNo) {
+      fetchTravelRequest(requestNo)
+    }
+  }, [requestNo]);
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
