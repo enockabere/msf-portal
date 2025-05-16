@@ -21,7 +21,8 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Plus, Loader,
+  Plus,
+  Loader,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -328,7 +329,7 @@ export default function TravelRequestWizard() {
   }, [formData.documentType, allSteps]);
 
   const profileDipendencies = async () => {
-    const res = await getResource('travelDependancies', 
+    const res = await getResource('travelDependancies',
       {
         params: {
             filters: {

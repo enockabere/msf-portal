@@ -114,7 +114,7 @@ useEffect(() => {
               label: dep.name,
             }))}
             onChange={handleSelect}
-            value={[]} 
+            value={[]}
             placeholder="Select dependencies to add"
           />
         </div>
@@ -125,7 +125,7 @@ useEffect(() => {
               <th>#</th>
               <th>Name</th>
               <th>Relationship</th>
-               <th>Country of Origin</th>
+               <th>Nationality</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
@@ -133,7 +133,7 @@ useEffect(() => {
             {selectedDependencies.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-muted">
-                  No dependencies selected. Use the dropdown above to add.
+                  No dependants added yet. Use the dropdown above to add.
                 </td>
               </tr>
             ) : (
@@ -169,7 +169,7 @@ useEffect(() => {
                       }}
 
                     >
-                      Diselect
+                      Deselect
                     </button>
                   </td>
                 </tr>
@@ -180,7 +180,7 @@ useEffect(() => {
 
         {selectedDependencies.length > 0 && (
           <div className="text-end mt-3">
-            <button 
+            <button
             className="btn btn-primary"
             onClick={handleSaveDependencies}
             >Save
