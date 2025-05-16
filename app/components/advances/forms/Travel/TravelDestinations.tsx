@@ -26,7 +26,6 @@ export default function TravelDestinations({
 }: TravelDestinationsProps) {
   const {
     countries,
-    cities,
     modeOfTransport,
     fetchSetups,
   } = useMySetups();
@@ -35,7 +34,7 @@ export default function TravelDestinations({
   const [travelRequests, setTravelRequests] = useState([])
 
   const saveDestination = async (index: number) => {
-    let destination = destinations[index];
+    const destination = destinations[index];
     destination['documentType'] = 'Employee';
     destination['documentNo'] = 'ETR003';
     // destination['sequenceNo'] = '';
@@ -134,7 +133,7 @@ export default function TravelDestinations({
 
     loadData();
     userTravelRoutes()
-  }, []);
+  });
 
     const userTravelRoutes = async () => {
        const res = await getResource('travelRoutes', {

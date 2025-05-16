@@ -10,6 +10,9 @@ import {
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RouteChangeLoader from "../components/loaders/RouteChangeLoader";
 import PageLoader from "../components/loaders/PageLoader";
+import "../../styles/bootstrap.min.css";
+import "../../styles/icons.min.css";
+import "../../styles/app.min.css";
 
 export default function DashboardLayout({
   children,

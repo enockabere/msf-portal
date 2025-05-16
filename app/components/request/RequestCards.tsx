@@ -15,8 +15,6 @@ import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
 import { useMySetups } from "@/app/context/SetupContext";
-import { ENDPOINTMAP } from "@/app/utils/endpointMap";
-import { EndpointOptions } from "@/app/types/global";
 import Swal from "sweetalert2";
 
 

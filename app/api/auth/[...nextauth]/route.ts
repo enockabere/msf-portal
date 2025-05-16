@@ -5,16 +5,32 @@ import NextAuth from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";
 
 declare module "next-auth" {
-    interface Session {
-        accessToken?: string;
-        user: {
-            id?: string;
-            name?: string | null;
-            email?: string | null;
-            image?: string | null;
-            profile?: Record<string, any> | null
-        }
-    }
+  interface Session {
+    accessToken?: string;
+    user: {
+      citizenNonCitizen: string;
+      postCode: string;
+      city: string;
+      passportIDNo: string;
+      title: string;
+      countryRegionCode: string;
+      gender: string;
+      dateOfBirth: string;
+      lastName: string;
+      middleName: string;
+      firstName: string;
+      location: string;
+      position: string;
+      department: string;
+      phone: string;
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      profile?: Record<string, any> | null;
+    };
+    error?: string;
+  }
 }
 
 const handler = NextAuth({
@@ -31,28 +47,34 @@ const handler = NextAuth({
     callbacks: {
         async session({ session, token }) {
             session.user.profile = token.profile as Record<string, any> | null;
+          if (token.error) session.error = token.error as string;
             return session
         },
         async jwt({ token, account, profile }) {
             if (account) {
                 token.accessToken = account.access_token
-                const user = await transport.get(
+                try {
+                  const response = await transport.get(
                     memoryMap.get("userProfiles"),
                     {
-                        $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
-                        company: process.env.BC_COMPANY_NAME
+                      $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
+                      company: process.env.BC_COMPANY_NAME
                     }
-                ) as Record<string, any> | null;
-                if (user && Object.keys(user)) {
-                    if (Array.isArray(user?.value) && user?.value.length) {
-
-                        token.profile = user?.value.at(0)
-                    }
+                  ) as Record<string, any> | null;
+                  if (response && response.value && response.value.length) {
+                    token.profile = response.value.at(0)
+                  } else {
+                    token.profile = null;
+                  }
+                } catch (error: any) {
+                  console.error("Error fetching user profile:", error);
+                  token.error = "Failed to fetch user profile. Please try again later.";
                 }
             }
+
             return token
-        }
-    }
+        },
+    },
 });
 
-export { handler as GET, handler as POST }
+export { handler as GET, handler as POST };

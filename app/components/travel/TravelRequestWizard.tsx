@@ -21,7 +21,8 @@ import {
   Link,
   DownloadIcon,
   FileDownIcon,
-  Plus, Loader,
+  Plus,
+  Loader,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -39,9 +40,8 @@ import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { Dependency } from "@/app/types/global";
 import {
-  checkIfMissingRequiredProperty,
+  checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
-  removeObjectProps
 } from "@/app/utils/helpers";
 import { Destination } from "@/app/types/Destination";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
@@ -69,7 +69,11 @@ interface TicketItem {
   airline: string;
 }
 
-export default function TravelRequestWizard() {
+interface Props {
+  requestNo?: string
+}
+
+export default function TravelRequestWizard({ requestNo }: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<TravelRequest>({
@@ -98,6 +102,12 @@ export default function TravelRequestWizard() {
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
   });
+
+  useEffect(() => {
+    if (requestNo) {
+      fetchTravelRequest(requestNo)
+    }
+  }, [requestNo]);
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -132,7 +142,7 @@ export default function TravelRequestWizard() {
           filters: {
             no: requestNo
           },
-          '$expand': '*',
+          '$expand': 'travelRequestLines,travellers,visaApplications',
         }
       });
 
@@ -198,22 +208,9 @@ export default function TravelRequestWizard() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
 
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    []
-  );
-
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
   }, []);
-
-
-  const handleSelectDependency = (id: string) => {
-    setSelectedDependencies((prev) => [...prev, id]);
-  };
-
-  const handleDeselectDependency = (id: string) => {
-    setSelectedDependencies((prev) => prev.filter((d) => d !== id));
-  };
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
@@ -276,7 +273,7 @@ export default function TravelRequestWizard() {
       {
         id: "dependencies",
         icon: <Link size={18}/>,
-        title: "Travel Dependencies",
+        title: "Dependants",
         desc: "Related travel requirements",
       },
       {
@@ -350,8 +347,13 @@ export default function TravelRequestWizard() {
   }, [formData.documentType, allSteps]);
 
   const profileDipendencies = async () => {
-    console.log('Dependency tab: 2 ', activeTab);
-    const res = await getResource('travelDependancies', {});
+    const res = await getResource('travelDependancies',
+      {
+        params: {
+            filters: {
+              profileNo: profileNo
+            }
+          }});
     if (res.error) {
       Swal.fire({
         title: 'Error!',
@@ -398,7 +400,29 @@ export default function TravelRequestWizard() {
   const handleInitialSubmit = async () => {
     try {
       const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
-      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
+      const keysToRetain = [
+        'no',
+        'documentType',
+        'passportNo',
+        'shortcutDimension1Code',
+        'travellerNo',
+        'createdbyProfileNo',
+        'TypeOfTravel',
+        'purposeOfTravel',
+        'annualTrip',
+        'requirePerDiem',
+        'originCity',
+        'originCountryCode',
+        'destinationCity',
+        'destinationCountryCode',
+        'departureDate',
+        'arrivalDate',
+        'returnDate',
+        'modeOfTransport',
+        'accommodationType',
+        'estimatedTimeOfArrival',
+      ] as Array<string>;
+      const knownSchema = pickKeys(strippedPayLoad, keysToRetain);
 
       const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
 
@@ -410,12 +434,10 @@ export default function TravelRequestWizard() {
 
       setIsSubmitting(true)
 
-      console.log(knownSchema)
-
       const res = knownSchema.no
         ? await patchResource('travelRequests', {
           data: knownSchema,
-          primaryKey: ['no'],
+          primaryKey: ['no', 'documentType'],
         })
         : await createResource('travelRequests', {
           data: knownSchema,
@@ -619,9 +641,6 @@ export default function TravelRequestWizard() {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
-                  selectedDependencies={selectedDependencies}
-                  onSelectDependency={handleSelectDependency}
-                  onDeselectDependency={handleDeselectDependency}
                 />
               )}
 
