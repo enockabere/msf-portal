@@ -195,6 +195,7 @@ export default function TravelRequestWizard() {
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+  const [existingTravelDependencies, setExistingTravelDependancies] =useState<Dependency[]>([]);
 
   const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
     []
@@ -340,6 +341,7 @@ export default function TravelRequestWizard() {
             }
           }});
     if (res.error) {
+      console.log('res1: ', res.error);
       Swal.fire({
         title: 'Error!',
         text: 'Error fetching profile dependecies!',
@@ -362,6 +364,7 @@ export default function TravelRequestWizard() {
     }
     if (stepId === "dependencies") {
       await profileDipendencies();
+      await travelDependants(profileNo);
     }
   };
 
@@ -432,6 +435,29 @@ export default function TravelRequestWizard() {
       setIsSubmitting(false)
     }
   };
+
+  const travelDependants = async (profNo: string)=>{
+     const res = await getResource('travelDependancies', {
+       params: {
+        filters: {
+          profileNo:profNo
+        }
+       },
+     }
+       );
+        if (res.error) {
+          console.log('Travel Dependants error: ', res.error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error fetching profile dependecies!',
+          });
+          return
+        }
+        setExistingTravelDependancies((prev)=> {
+          console.log('res2: ', res.value);
+          return [...prev, ...res.value];
+        })
+  }
 
   const handleDestinationChange = useCallback(
     <K extends keyof Destination>(
@@ -606,6 +632,8 @@ export default function TravelRequestWizard() {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   availableDependencies={availableDependencies}
+                  existingTravelDependencies={existingTravelDependencies}
+                  refetchDependencies ={()=>travelDependants(profileNo)}
                 />
               )}
 

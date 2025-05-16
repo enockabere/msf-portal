@@ -9,10 +9,14 @@ import _ from 'lodash';
 import { useSession } from "next-auth/react";
 interface TravelDependenciesProps {
   availableDependencies: Dependency[];
+  existingTravelDependencies: Dependency[];
+  refetchDependencies: () => Promise<void>;
 }
 
 export default function TravelDependencies({
   availableDependencies,
+  existingTravelDependencies,
+  refetchDependencies,
 }: TravelDependenciesProps) {
   const [selectedDependencies, setSelectedDependencies] = useState<Dependency[]>(
     []
@@ -32,6 +36,16 @@ const handleSelect = (selectedOptions: any) => {
       (dep) =>
         dep.profileNo === profileNo && dep.lineNo.toString() === lineNo
     );
+
+    const alreadyExists = [...existingTravelDependencies, ...selectedDependencies].some(
+    (dep) =>
+      dep.profileNo === dependant?.profileNo &&
+      dep.lineNo === dependant?.lineNo
+  );
+  if (alreadyExists) {
+    Swal.fire("Dependant already added", "", "info");
+    return;
+  }
     const dependantPayload = {
       profileNo: data.user?.profile?.no,
       dob: dependant.dob,
@@ -52,26 +66,56 @@ const handleSelect = (selectedOptions: any) => {
       ]
     });
 };
-const fetchDependencies = async (profNo: string)=>{
-   const res = await getResource('travelDependancies', {
-     params: {
-      filters: {
-        profileNo:profNo
-      }
-     },
-   }
-     );
-      if (res.error) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Error fetching profile dependecies!',
+
+const handleDelete = async (dep: Dependency) => {
+  const isExisting = existingTravelDependencies.some(
+    (d) => d.profileNo === dep.profileNo && d.lineNo === dep.lineNo
+  );
+
+  if (isExisting) {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete the dependency.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await getResource('travelDependancies', {
+          method: 'DELETE',
+          params: {
+            lineNo: dep.lineNo,
+          },
         });
-        return
+
+        Swal.fire("Deleted!", "The dependency has been removed.", "success");
+
+          await refetchDependencies();
+        
+      } catch (error) {
+        console.error("Delete failed:", error);
+        Swal.fire("Failed", "Unable to delete dependency", "error");
       }
-      setSelectedDependencies((prev)=> {
-        return _.difference(res.value, prev);
-      })
-}
+    }
+  } else {
+    // Just deselect if it's a newly added (unsaved) dependency
+    setSelectedDependencies((prev) =>
+      prev.filter(
+        (d) =>
+          !(d.profileNo === dep.profileNo && d.lineNo === dep.lineNo)
+      )
+    );
+    setPostSelectedDependencies((prev) =>
+      prev.filter(
+        (item) => item.data.profileNo !== dep.profileNo
+      )
+    );
+  }
+};
+
+
 const handleSaveDependencies = async () => {
   if (postSelectedDependencies.length === 0) {
     Swal.fire("No new dependencies to save", "", "info");
@@ -87,13 +131,28 @@ const handleSaveDependencies = async () => {
 
     // Optionally clear postSelectedDependencies after save
     setPostSelectedDependencies([]);
-    fetchDependencies(data.user.profile.no);
+    //fetchDependencies(data.user.profile.no);
   } catch (error) {
     console.error("Save failed:", error);
     Swal.fire("Failed to save dependencies", "Please try again", "error");
   }
 };
 
+const allTableDependencies = [
+    ...existingTravelDependencies,
+    ...selectedDependencies,
+  ];
+console.log("allTableDependencies:", allTableDependencies);
+  // const selectedValues = allTableDependencies.map((dep) => ({
+  //   value: `${dep.profileNo}-${dep.lineNo}`,
+  //   label: dep.name,
+  // }));
+
+const filteredOptions = _.differenceBy(
+  availableDependencies,
+  allTableDependencies,
+);
+console.log("Filtered OptionsDerick:", filteredOptions);
 useEffect(() => {
     setFilteredAvailableDependants(()=> {
     return _.difference(availableDependencies, selectedDependencies);
@@ -126,14 +185,14 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {selectedDependencies.length === 0 ? (
+            {allTableDependencies.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-muted">
                   No dependencies selected. Use the dropdown above to add.
                 </td>
               </tr>
             ) : (
-              selectedDependencies.map((dep, idx) => (
+              allTableDependencies.map((dep, idx) => (
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
                   <td>{dep.name}</td>
@@ -143,29 +202,17 @@ useEffect(() => {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => {
-                        setSelectedDependencies((prev) =>
-                          prev.filter(
-                            (d) =>
-                              !(
-                                d.profileNo === dep.profileNo &&
-                                d.lineNo === dep.lineNo
-                              )
-                          )
-                        );
-
-                        setPostSelectedDependencies((prev) =>
-                          prev.filter(
-                            (item) =>
-                              !(
-                                item.data.profileNo === dep.profileNo
-                              )
-                          )
-                        );
-                      }}
-
+                      onClick={() => handleDelete(dep)}
                     >
-                      Diselect
+                      {
+                        existingTravelDependencies.some(
+                          (d) =>
+                            d.profileNo === dep.profileNo &&
+                            d.lineNo === dep.lineNo
+                        )
+                          ? "Delete" 
+                          : "Diselect"
+                      }
                     </button>
                   </td>
                 </tr>
