@@ -9,11 +9,13 @@ import CustomModal from "@/app/components/modals/CustomModal";
 interface TravelRequestTableProps {
   data: Array<Record<string, any>>;
   loading: boolean;
+  profile: Record<string, any>;
 }
 
 export default function TravelRequestTable({
   data,
   loading,
+  profile,
 }: TravelRequestTableProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
@@ -152,7 +154,7 @@ export default function TravelRequestTable({
       >
         <div className="row">
           <div className="col-md-12">
-            <TravelRequestWizard requestNo={selectedRequestNo} />
+            <TravelRequestWizard requestNo={selectedRequestNo} profile={profile} />
           </div>
         </div>
       </CustomModal>

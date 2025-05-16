@@ -71,10 +71,11 @@ interface TicketItem {
 }
 
 interface Props {
-  requestNo?: string
+  requestNo?: string,
+  profile: Record<string, any>
 }
 
-export default function TravelRequestWizard({ requestNo }: Props) {
+export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<TravelRequest>({
@@ -103,6 +104,10 @@ export default function TravelRequestWizard({ requestNo }: Props) {
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
   });
+
+  useEffect(() => {
+    prepareFormData(profile);
+  }, [profile]);
 
   useEffect(() => {
     if (requestNo) {
@@ -135,8 +140,7 @@ export default function TravelRequestWizard({ requestNo }: Props) {
 
   const {data: session} = useSession();
   const profileNo = session?.user?.profile?.no
-  const [profile, setProfile] = useState(null)
-  const fetchTravelRequest = async (requestNo) => {
+  const fetchTravelRequest = async (requestNo: string) => {
     try {
       const res = await getResource('travelRequests', {
         params: {
@@ -151,49 +155,25 @@ export default function TravelRequestWizard({ requestNo }: Props) {
         console.log('Travel request error: ', res.error);
         toast.error(res.error.message)
       } else {
-        setFormData(res.value.at(0))
+        setFormData((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
       }
     } catch (error: any) {
       console.log('Error fetching travel request!', error.message)
     }
   }
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getResource('travelProfile', {
-          params: {
-            filters: {
-              no: profileNo
-            }
-          }
-        });
-
-        if (res.error) {
-          console.log("Response Error: ", res.error);
-          toast.error(res.error.message)
-        } else {
-          setProfile(res.value.at(0))
-          prepareFormData(res.value.at(0))
-        }
-      } catch (error: any) {
-        console.log('Error fetching profile!', error.message)
-      }
-    };
-
-    fetchProfile();
-  }, [profileNo]);
-
   const prepareFormData = (profile: Record<string, any>) => {
-    setFormData((prev) => ({
-      ...prev,
-      documentType: profile.type,
-      travellerNo: profile.no,
-      createdbyProfileNo: profile.no,
-      passportNo: profile.passportIDNo,
-      shortcutDimension1Code: profile.shortcutDimension1Code,
-      shortcutDimension2Code: profile.shortcutDimension2Code,
-    }))
+    if (!requestNo) {
+      setFormData((prev) => ({
+        ...prev,
+        documentType: profile.type,
+        travellerNo: profile.no,
+        createdbyProfileNo: profile.no,
+        passportNo: profile.passportIDNo,
+        shortcutDimension1Code: profile.shortcutDimension1Code,
+        shortcutDimension2Code: profile.shortcutDimension2Code,
+      }))
+    }
 
     setHeaderRequiredFields((prev) => {
       if (profile.type === 'Employee') {
@@ -662,8 +642,8 @@ export default function TravelRequestWizard({ requestNo }: Props) {
                   className="primary-button"
                   onClick={handleSubmitForApproval}
                 >
-                  Submit for approval
                   <Send size={16}/>
+                  Submit for approval
                 </button>
               )}
             </div>

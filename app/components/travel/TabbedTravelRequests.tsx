@@ -6,8 +6,9 @@ import { decodeValue } from "@/app/utils/helpers";
 
 interface Props {
   records: Array<Record<string, any>>
+  profile: Record<string, any>
 }
-export default function TabbedTravelRequests({ records }: Props) {
+export default function TabbedTravelRequests({ records, profile }: Props) {
   const openRequests = useMemo(() => {
     return records.filter((item) => item.approvalStatus === 'Open')
   }, [records])
@@ -26,5 +27,5 @@ export default function TabbedTravelRequests({ records }: Props) {
     { key: "released", label: "Approved", data: approvedRequests },
   ];
 
-  return <ReusableTabbedAdvanceTable tabs={tabData} />;
+  return <ReusableTabbedAdvanceTable tabs={tabData} profile={profile} />;
 }

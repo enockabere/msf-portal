@@ -11,10 +11,12 @@ interface TabConfig {
 
 interface ReusableTabbedAdvanceTableProps {
   tabs: TabConfig[];
+  profile: Record<string, any>;
 }
 
 export default function ReusableTabbedAdvanceTable({
   tabs,
+  profile
 }: ReusableTabbedAdvanceTableProps) {
   return (
     <div className="position-relative">
@@ -28,7 +30,7 @@ export default function ReusableTabbedAdvanceTable({
                 title={`${tab.label} (${tab.data.length})`}
               >
                 <div className="pt-3">
-                  <TravelRequestTable data={tab.data} loading={false} />
+                  <TravelRequestTable data={tab.data} loading={false} profile={profile} />
                 </div>
               </Tab>
             ))}

@@ -17,6 +17,7 @@ export default function TravelClient() {
   const { data:session } = useSession()
   const profileNo = session?.user?.profile?.no
   const [travelRequests, setTravelRequests] = useState([])
+  const [profile, setProfile] = useState<Record<string, any>>({})
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -40,7 +41,29 @@ export default function TravelClient() {
       }
     }
 
-    fetchRequests()
+    const fetchProfile = async () => {
+      try {
+        const res = await getResource('travelProfile', {
+          params: {
+            filters: {
+              no: profileNo
+            }
+          }
+        });
+
+        if (res.error) {
+          console.log("Response Error: ", res.error);
+          toast.error(res.error.message)
+        } else {
+          setProfile(res.value.at(0))
+        }
+      } catch (error: any) {
+        console.log('Error fetching profile!', error.message)
+      }
+    };
+
+    fetchRequests();
+    fetchProfile();
   }, [profileNo]);
 
   const [showModal, setShowModal] = useState(false);
@@ -161,7 +184,7 @@ export default function TravelClient() {
             </div>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests records={travelRequests} />
+                <TabbedTravelRequests records={travelRequests} profile={profile} />
               </div>
             </div>
           </>
@@ -171,7 +194,7 @@ export default function TravelClient() {
           <>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests records={travelRequests} />
+                <TabbedTravelRequests records={travelRequests} profile={profile} />
               </div>
             </div>
             <div className="col-lg-3">
@@ -197,7 +220,7 @@ export default function TravelClient() {
         {(placement === "top" || placement === "bottom") && (
           <div className="col-12">
             <div className="card h-100 p-2">
-              <TabbedTravelRequests records={travelRequests} />
+              <TabbedTravelRequests records={travelRequests} profile={profile} />
             </div>
           </div>
         )}
@@ -233,7 +256,7 @@ export default function TravelClient() {
       >
         <div className="row">
           <div className="col-md-12">
-            <TravelRequestWizard />
+            <TravelRequestWizard profile={profile} />
           </div>
         </div>
       </CustomModal>
