@@ -1,6 +1,6 @@
 'use server'
 import { transport } from '@brainspore/hypernexus';
-import type { HTTMETHODS, RequestOptions, RequestResponse } from '../types/options';
+import type { batchRequestOptions, BatchRequestResponse, HTTMETHODS, RequestOptions, RequestResponse } from '../types/options';
 import { ENDPOINTMAP, memoryMap } from './endpointMap';
 
 export async function apiFetch(
@@ -8,7 +8,7 @@ export async function apiFetch(
     endpoint: ENDPOINTMAP,
     options: RequestOptions = {}
 ): Promise<RequestResponse> {
-    let response: RequestResponse = {};
+    let response: RequestResponse | BatchRequestResponse = {};
     const batchRequests = [];
     if (method) {
         if (!options.params) {
@@ -33,7 +33,7 @@ export async function apiFetch(
                 }
 
                 // eslint-disable-next-line prefer-const
-                let { method, endpoint, data, params, headers } = req;
+                let { method, endpoint, data, params, headers } = req as batchRequestOptions;
                 const url = memoryMap.get(endpoint);
                 const methodUpperCase = method.toUpperCase();
                 if (!params) {
@@ -93,7 +93,11 @@ export async function apiFetch(
                 batchReponse.forEach((resp, index) => {
                     const key = batch[index]['endpoint'];
                     if (key) {
-                        response[key] = resp?.value || []
+                        if (resp.error) {
+                            response[key].error = resp?.error
+                        } else {
+                            response[key] = resp?.value || [];
+                        }
                     }
                 })
 

@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./SalaryAdvanceForm.css";
 import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
 import OperationalLineStep from "./Operational/OperationalLineStep";
 import { ExpenseItem, FormData } from "@/app/types/advance";
-import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps } from "@/app/utils/helpers";
+import { checkIfMissingRequiredProperty, constructDimension, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps, safeTypechecker } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { createResource } from "@/app/lib/api/http";
+import { batchRequest, createResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
+import { batchRequestOptions, BatchRequestResponse } from "@/app/types/options";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
@@ -34,7 +35,7 @@ export default function OperationalAdvanceForm() {
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>('');
-  const { paymentMethods, employeeBanks, fetchSetups } = useMySetups();
+  const { paymentMethods, employeeBanks, DEPARTMENTS, PROJECT, expenseCodes, fetchSetups } = useMySetups();
   const { data } = useSession()
 
   const handleFormChange = (field: keyof FormData, value: string) => {
@@ -74,13 +75,11 @@ export default function OperationalAdvanceForm() {
     setExpenses((prev) => [
       ...prev,
       {
-        category: "",
-        amount: NaN,
-        receipt: null,
-        mileage: "",
+        expenseCode: "",
+        unitCost: NaN,
+        description: "",
         costCenter: "",
         project: "",
-        otherCategory: "",
       },
     ]);
   };
@@ -92,15 +91,24 @@ export default function OperationalAdvanceForm() {
   };
 
   const handleNext = async () => {
-    await fetchSetups([
-      {
-        expenseCodes: {
-          filters: {
-            imprestType: formData.imprestType
+    Promise.all([
+      fetchSetups([
+        {
+          dimensions: {
+            $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT'`
           }
         }
-      }
-    ], true)
+      ]),
+      fetchSetups([
+        {
+          expenseCodes: {
+            filters: {
+              imprestType: formData.imprestType
+            }
+          }
+        }
+      ], true),
+    ])
     setCurrentStep(2);
   };
 
@@ -109,7 +117,6 @@ export default function OperationalAdvanceForm() {
   };
 
   const handleSubmit = async () => {
-    console.log("Form submitted", { formData, expenses });
     setIsSubmitted(true);
     try {
       const pDate = new Date().toISOString();
@@ -136,10 +143,74 @@ export default function OperationalAdvanceForm() {
       setFormData({ ...res.value });
       Swal.fire("Success", `${formData.imprestType} advance was created successfully!`);
     } catch (error: any) {
-      Swal.fire('Error!', error.message)
+      Swal.fire('Error!', error.message);
     }
   };
 
+  async function handleSubmittingAdvanceLine(header: FormData) {
+    try {
+      const defaults = {
+        documentType: 'Imprest',
+        documentNo: header.no,
+        Quantity: 1,
+      };
+      const expenseRequestOption = expenses.map((expense: ExpenseItem) => {
+        const costCenterDimension = findObjectFromArray(DEPARTMENTS, 'code', expense.costCenter);
+        const projectDimension = findObjectFromArray(PROJECT, 'code', expense.project);
+        const glAccount = findObjectFromArray(expenseCodes, 'code', expense.expenseCode);
+        if (safeTypechecker(glAccount) !== 'Object') return {};
+        expense[constructDimension(costCenterDimension)] = expense.costCenter;
+        expense[constructDimension(projectDimension)] = expense.project;
+        expense.description = glAccount.description as string;
+        delete expense.costCenter;
+        delete expense.project;
+        const linePayload = {
+          ...expense,
+          ...defaults,
+        };
+        const strippedLinePayload = removeNullAndUndefinedFromObject(linePayload);
+        const validSchema = removeObjectProps(strippedLinePayload, ['costCenter', 'project']);
+        const validateRequiredProps = checkIfMissingRequiredProperty(validSchema, ['documentNo', 'documentType', 'expenseCode', 'unitCost', 'Quantity']);
+        if (!validateRequiredProps) return {};
+        if (validateRequiredProps.missing) {
+          return {};
+        }
+        return {
+          method: 'POST',
+          endpoint: 'imprestLine',
+          data: validSchema,
+        } satisfies batchRequestOptions
+      });
+      const addedLines = expenses.length;
+      const lineCaption = addedLines > 1 ? 'lines' : 'line';
+      if (expenseRequestOption.length) {
+        if (expenseRequestOption.length !== expenses.length) Swal.fire('Alert!', `${addedLines > 1 ? 'Some' : 'The'} advance ${lineCaption} will not be submitted due to errors`);
+        const res: BatchRequestResponse = await batchRequest({
+          batch: expenseRequestOption,
+        });
+        if (res.error) {
+          Swal.fire(`${res.error.code}`, `${res.error.message}`, 'error');
+        } else {
+          let failedLines = 0;
+          for (const [_key, value] of Object.entries(res)) {
+            if (value.error) {
+              failedLines++;
+            }
+          }
+          if (failedLines) {
+            Swal.fire('Error creating advance lines', `${failedLines} advances did not save!`, 'error');
+          } else {
+            Swal.fire('Success', `Your advance was created successfully with ${addedLines} lines.`, 'success');
+          }
+        }
+
+      } else {
+        return Swal.fire(`Error creating Advance ${lineCaption}`, `The advance ${lineCaption} you added had errors and did not submit!`, 'error');
+      }
+    } catch (error) {
+      Swal.fire('Error!', error.message, 'error');
+    }
+  }
   const handleSurrender = () => {
     console.log("Apply for surrender");
   };

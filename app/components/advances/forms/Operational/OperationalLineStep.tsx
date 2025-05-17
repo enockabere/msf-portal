@@ -34,7 +34,7 @@ export default function OperationalLineStep({
   onSaveLine,
   currency,
 }: OperationalLineStepProps) {
-  const { expenseCodes, currencies } = useMySetups();
+  const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
   const selectedCurrency = findObjectFromArray(currencies, 'code', currency)?.description as string;
@@ -76,10 +76,10 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={exp.category}
                       onChange={(e) => {
-                        onExpenseChange(idx, "category", e.target.value);
+                        onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
                     >
-                      <option defaultValue="-- Select Category--">-- Select Category --</option>
+                      <option defaultValue="-- Select Category--" disabled>-- Select Category --</option>
                       {
                         expenseCodes.map((expenseCode: Record<string, any>) => {
                           return (
@@ -95,7 +95,7 @@ export default function OperationalLineStep({
                       className="form-control"
                       value={isNaN(exp.amount) ? "" : exp.amount}
                       onChange={(e) =>
-                        onExpenseChange(idx, "amount", Number(e.target.value))
+                        onExpenseChange(idx, "unitCost", Number(e.target.value))
                       }
                       placeholder="Enter Amount"
                     />
@@ -121,11 +121,14 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "costCenter", e.target.value)
                       }
                     >
-                      <option value="">-- Select Cost Center --</option>
-                      <option value="ICT">ICT</option>
-                      <option value="Finance">Finance</option>
-                      <option value="HR">HR</option>
-                      <option value="Programs">Programs</option>
+                      <option defaultValue={'Select Cost Center'}>-- Select Cost Center --</option>
+                      {
+                        DEPARTMENTS.map((department: Record<string, any>) => {
+                          return (
+                            <option value={department.code} key={department.code}> {`${department.code}-${department.name}`}</option>
+                          )
+                        })
+                      }
                     </select>
                   </td>
                   <td>
@@ -136,44 +139,16 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "project", e.target.value)
                       }
                     >
-                      <option value="">-- Select Project --</option>
-                      {exp.costCenter === "ICT" && (
-                        <>
-                          <option value="Network Upgrade">
-                            Network Upgrade
-                          </option>
-                          <option value="Helpdesk Support">
-                            Helpdesk Support
-                          </option>
-                          <option value="Software Projects">
-                            Software Projects
-                          </option>
-                        </>
-                      )}
-                      {exp.costCenter === "Finance" && (
-                        <>
-                          <option value="Audit">Audit</option>
-                          <option value="Budget Planning">
-                            Budget Planning
-                          </option>
-                        </>
-                      )}
-                      {exp.costCenter === "HR" && (
-                        <>
-                          <option value="Recruitment">Recruitment</option>
-                          <option value="Training Programs">
-                            Training Programs
-                          </option>
-                        </>
-                      )}
-                      {exp.costCenter === "Programs" && (
-                        <>
-                          <option value="Water Sanitation">
-                            Water Sanitation
-                          </option>
-                          <option value="Food Relief">Food Relief</option>
-                        </>
-                      )}
+                      <option defaultValue={'Select project'}>-- Select Project --</option>
+                      {
+                        PROJECT.map((project: Record<string, any>) => {
+                          return (
+                            <option value={project.code} key={project.code}>
+                              {`${project.code}-${project.name}`}
+                            </option>
+                          )
+                        })
+                      }
                     </select>
                   </td>
                   <td className="text-center d-flex gap-1 justify-content-center">
