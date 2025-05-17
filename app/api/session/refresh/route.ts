@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { transport } from "@brainspore/hypernexus";
 import { memoryMap } from "@/app/utils/endpointMap";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
   const { email } = await req.json();
 
   try {
@@ -20,6 +17,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ profile: user });
   } catch (error) {
+    console.error("Session refresh error:", error);
     return NextResponse.json(
       { error: "Failed to refresh session" },
       { status: 500 }

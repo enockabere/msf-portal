@@ -21,6 +21,7 @@ import { signIn, useSession } from "next-auth/react";
 import "../tailwind.css";
 import PageLoader from "../components/loaders/PageLoader";
 import { useMySetups } from "../context/SetupContext";
+import Image from "next/image";
 
 const ProfileHeader = ({
   avatar,
@@ -35,11 +36,14 @@ const ProfileHeader = ({
   <div className="bg-gradient-to-r from-red-600 to-red-500 p-8 text-white">
     <div className="flex items-center space-x-6">
       <div className="relative">
-        <img
+        <Image
           src={avatar}
           alt="Profile"
+          width={96}
+          height={96}
           className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-lg"
         />
+
         {isEditing && (
           <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-white p-2 shadow-md">
             <input
@@ -130,7 +134,6 @@ const ProfileActionButtons = ({
   onEdit,
   onCancel,
   onSubmit,
-  onQuit,
 }) => (
   <div className="mb-6 flex flex-wrap gap-3">
     {!isEditing ? (
@@ -234,7 +237,7 @@ export default function UserProfilePage() {
     if (status === "unauthenticated") {
       router.push("/");
     }
-  }, [status]);
+  }, [status, router]);
 
   useEffect(() => {
     const profile = session?.user?.profile;
@@ -395,10 +398,12 @@ export default function UserProfilePage() {
     >
       <header className="bg-white shadow-md py-4 px-6 mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img
+          <Image
             src="/assets/images/logo-light.png"
             alt="Logo"
-            className="h-10"
+            width={100}
+            height={40}
+            className="h-10 w-auto"
           />
         </div>
         <button
@@ -430,7 +435,6 @@ export default function UserProfilePage() {
               onEdit={() => setIsEditing(true)}
               onCancel={() => setIsEditing(false)}
               onSubmit={handleSubmit}
-              onQuit={handleQuit}
             />
             <form className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {/* Row 1: First, Middle, Last Names */}

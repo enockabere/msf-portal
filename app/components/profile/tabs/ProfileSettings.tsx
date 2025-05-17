@@ -55,7 +55,7 @@ export default function ProfileSettings() {
         citizenNonCitizen: profile.citizenNonCitizen ?? "",
       });
     }
-  }, [session, status]);
+  }, [status, router, profile, session?.user?.email]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -68,7 +68,8 @@ export default function ProfileSettings() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { email, ...fieldsToSubmit } = form;
+    const fieldsToSubmit = { ...form };
+
     const payload = {
       no: profile?.no ?? "",
       type: profile?.type,
@@ -114,7 +115,7 @@ export default function ProfileSettings() {
       });
 
       router.refresh();
-    } catch (error) {
+    } catch {
       Swal.fire("Error", "Unexpected error occurred", "error");
     } finally {
       setIsLoading(false);

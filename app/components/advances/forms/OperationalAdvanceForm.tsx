@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./SalaryAdvanceForm.css";
 import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
@@ -41,9 +41,12 @@ export default function OperationalAdvanceForm() {
   const { paymentMethods, employeeBanks, fetchSetups } = useMySetups();
   const { data } = useSession();
 
-  const handleFormChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleFormChange = useCallback(
+    (field: keyof FormData, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const handleExpenseChange = <K extends keyof ExpenseItem>(
     index: number,
@@ -168,24 +171,25 @@ export default function OperationalAdvanceForm() {
     console.log("Apply for surrender");
   };
 
-  const getProfileValues = async () => {
+  const getProfileValues = useCallback(async () => {
     if (!formData.paymentMethod) return null;
     const type: string = findObjectFromArray(
       paymentMethods,
       "code",
       formData.paymentMethod
     )?.type as string;
+
     switch (type) {
-      case "Mpesa": {
+      case "Mpesa":
         handleFormChange("phoneNo", String(data.user?.profile?.phoneNo));
         handleFormChange(
           "idPassportNumber",
           String(data.user?.profile?.identificationDocumentNo)
         );
         break;
-      }
+
       case "Cheques":
-      case "Bank_x0020_Transfer": {
+      case "Bank_x0020_Transfer":
         if (data.user?.profile?.type !== "Employee") return;
         await fetchSetups([
           "banks",
@@ -198,18 +202,18 @@ export default function OperationalAdvanceForm() {
             },
           },
         ]);
-      }
+        break;
     }
-  };
+  }, [formData.paymentMethod, paymentMethods, data.user?.profile, fetchSetups]);
 
-  const getBankBranches = async () => {
-    console.log("Bank changed: ", formData.bankNo);
+  const getBankBranches = useCallback(async () => {
     if (
       !formData.bankNo ||
       formData.bankNo === "undefined" ||
       formData.bankNo === "null"
     )
       return null;
+
     await fetchSetups(
       [
         {
@@ -222,9 +226,9 @@ export default function OperationalAdvanceForm() {
       ],
       true
     );
-  };
+  }, [formData.bankNo, fetchSetups]);
 
-  const updateEmployeeBank = () => {
+  const updateEmployeeBank = useCallback(() => {
     const bankDetails = employeeBanks[0];
     if (bankDetails && Object.keys(bankDetails).length) {
       handleFormChange("accountNo", bankDetails.accountNo);
@@ -233,7 +237,8 @@ export default function OperationalAdvanceForm() {
       handleFormChange("branch", bankDetails.bankBranch);
       handleFormChange("swiftCode", bankDetails.swiftCode);
     }
-  };
+  }, [employeeBanks, handleFormChange]);
+
   useEffect(() => {
     const total = expenses.reduce(
       (acc, item) => acc + (isNaN(item.amount) ? 0 : item.amount),
@@ -244,15 +249,15 @@ export default function OperationalAdvanceForm() {
 
   useEffect(() => {
     getProfileValues();
-  }, [formData.paymentMethod]);
+  }, [getProfileValues]);
 
   useEffect(() => {
     getBankBranches();
-  }, [formData.bankNo]);
+  }, [getBankBranches]);
 
   useEffect(() => {
     updateEmployeeBank();
-  }, [employeeBanks]);
+  }, [updateEmployeeBank]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">

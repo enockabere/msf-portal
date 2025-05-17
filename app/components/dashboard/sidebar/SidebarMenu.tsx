@@ -14,11 +14,6 @@ export default function SidebarMenu() {
   const [approvalCount, setApprovalCount] = useState(0);
   const { data: employee } = useSession();
 
-  const isGroupActive = (prefix: string) =>
-    !isNavigating &&
-    currentPath.startsWith(prefix) &&
-    currentPath !== "/dashboard";
-
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath && !isNavigating) {

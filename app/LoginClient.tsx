@@ -28,7 +28,7 @@ export default function LandingPage() {
     await loadSlim(main);
   };
 
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const features = [
     {

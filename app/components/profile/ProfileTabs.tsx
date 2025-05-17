@@ -1,27 +1,50 @@
-// components/profile/ProfileTabs.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import classNames from "classnames";
 import ProfileSettings from "./tabs/ProfileSettings";
 import DependentsTab from "./tabs/DependentsTab";
 import BankDetailsTab from "./tabs/BankDetailsTab";
+import { useSession } from "next-auth/react";
 
-const tabs = [
-  { id: "gallery", label: "Gallery" },
-  { id: "profile-settings", label: "Profile Settings" },
-  { id: "dependents", label: "Dependants" },
-  { id: "bank-details", label: "Bank Details" },
-];
+interface Dependent {
+  name: string;
+  relation: string;
+  countryOfOrigin: string;
+  dob?: string;
+  gender?: string;
+}
 
-export default function ProfileTabs() {
+export default function ProfileTabs({
+  dependents,
+  setDependents,
+}: {
+  dependents: Dependent[];
+  setDependents: React.Dispatch<React.SetStateAction<Dependent[]>>;
+}) {
+  const { data: session } = useSession();
+  const profileType = session?.user?.profile?.type || "";
+
+  const availableTabs = useMemo(() => {
+    const baseTabs = [
+      { id: "gallery", label: "Gallery" },
+      { id: "profile-settings", label: "Profile Settings" },
+      { id: "bank-details", label: "Bank Details" },
+    ];
+
+    if (profileType === "Visitor") {
+      baseTabs.splice(2, 0, { id: "dependents", label: "Dependants" }); // insert before bank-details
+    }
+
+    return baseTabs;
+  }, [profileType]);
+
   const [activeTab, setActiveTab] = useState("profile-settings");
 
   return (
     <div className="col-md-8">
       <ul className="nav nav-tabs mb-3" role="tablist">
-        {tabs.map((tab) => (
+        {availableTabs.map((tab) => (
           <li className="nav-item" role="presentation" key={tab.id}>
             <button
               className={classNames("nav-link fw-medium", {
@@ -49,9 +72,12 @@ export default function ProfileTabs() {
           </div>
         )}
 
-        {activeTab === "dependents" && (
+        {activeTab === "dependents" && profileType === "Visitor" && (
           <div className="tab-pane fade show active">
-            <DependentsTab />
+            <DependentsTab
+              dependents={dependents}
+              setDependents={setDependents}
+            />
           </div>
         )}
 
