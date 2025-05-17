@@ -157,7 +157,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         toast.error(res.error.message)
       } else {
         setTravelRequestHeader((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
-        console.log('Travel Request Header', res.value.at(0))
       }
     } catch (error: any) {
       console.log('Error fetching travel request!', error.message)
