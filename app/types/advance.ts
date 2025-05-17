@@ -18,6 +18,7 @@ export interface Advance {
   preferredDisbursementDate: string;
   repaymentAmount: number;
   repaymentInstallments: number;
+  [key: string]: any;
 }
 
 export interface SalaryAdvanceData extends Advance {
