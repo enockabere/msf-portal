@@ -27,10 +27,11 @@ const yesNoOptions = [
 interface Props {
   formData: TravelRequest;
   requiredFields: Array<string>;
+  isReadOnly: boolean;
   onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ formData, requiredFields, onFormChange }: Props) {
+export default function TravelHeaderForm({ formData, requiredFields, isReadOnly, onFormChange }: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
@@ -103,6 +104,8 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
     }
   }
 
+
+
   return (
     <>
       <div className="border rounded p-3 bg-light-subtle mt-3">
@@ -122,6 +125,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   await fetchCities(e.target.value, 'originCountryCode')
                 }}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Country --</option>
                 {countries.map((item) => (
@@ -143,6 +147,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={formData.originCity}
                 onChange={(e) => onFormChange('originCity', e.target.value)}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select City --</option>
                 {originCities.map((item) => (
@@ -168,6 +173,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   await fetchCities(e.target.value, 'destinationCountryCode')
                 }}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Country --</option>
                 {countries.map((item) => (
@@ -189,6 +195,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={formData.destinationCity}
                 onChange={(e) => onFormChange('destinationCity', e.target.value)}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select City --</option>
                 {destinationCities.map((item) => (
@@ -210,6 +217,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={formData.TypeOfTravel}
                 onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Type --</option>
                 {travelTypes.map((item) => (
@@ -231,6 +239,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={formData.modeOfTransport}
                 onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Mode --</option>
                 {modesOfTransport.map((item) => (
@@ -252,6 +261,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={formData.purposeOfTravel}
                 onChange={(e) => onFormChange('purposeOfTravel', e.target.value)}
                 required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Purpose --</option>
                 {purposeOfTravel.map((item) => (
@@ -273,6 +283,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 value={String(formData.annualTrip)}
                 onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
                 required
+                disabled={isReadOnly}
               >
                 {yesNoOptions.map((item) => (
                   <option key={item.code} value={item.code}>{item.description}</option>
@@ -295,6 +306,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 }
                 placeholder="Enter ID or Passport number"
                 required
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -312,6 +324,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   onFormChange('departureDate', e.target.value)
                 }
                 required
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -329,6 +342,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   onFormChange('arrivalDate', e.target.value)
                 }
                 required
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -346,6 +360,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   onFormChange('estimatedTimeOfArrival', `${e.target.value}:00`)
                 }
                 required
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -363,6 +378,7 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   onFormChange('returnDate', e.target.value)
                 }
                 required
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -377,6 +393,8 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                   onFormChange("accommodationType", e.target.value)
                   setCanSetRequiresPerDiem(requiresPerDiemChecker(e.target.value))
                 }}
+                required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Accommodation --</option>
                 {accommodationTypes.map((type) => (
@@ -395,6 +413,8 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 className="form-select"
                 value={formData.requirePerDiem }
                 onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
+                required
+                disabled={isReadOnly}
               >
                 {yesNoOptions.map((item) => (
                   <option key={item.code} value={item.code}>{item.description}</option>
@@ -412,6 +432,8 @@ export default function TravelHeaderForm({ formData, requiredFields, onFormChang
                 className="form-select"
                 value={formData.shortcutDimension1Code}
                 onChange={(e) => onFormChange('shortcutDimension1Code', e.target.value)}
+                required
+                disabled={isReadOnly}
               >
                 <option value="">-- Select Cost Center --</option>
                 {dimensions.map((item) => (

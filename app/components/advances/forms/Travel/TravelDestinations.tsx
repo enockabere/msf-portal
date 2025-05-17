@@ -1,31 +1,34 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
-import {createResource, deleteResource, getResource} from "@/app/lib/api/http";
-import {  Destination } from "@/app/types/Destination";
-import {Approval} from "@/app/types/approval";
+import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
+import { Destination } from "@/app/types/Destination";
 import Swal from "sweetalert2";
-import {TravelRequest} from "@/app/types/travel";
+import { TravelRequest } from "@/app/types/travel";
+import { formatDate } from "@/app/utils/dateFormats";
 
 interface TravelDestinationsProps {
-  travelInfo: TravelRequest;
+    travelRequestHeader: TravelRequest;
+    isReadOnly: boolean;
+    onSubmit: (requestNo: string) => void;
 }
 
 export default function TravelDestinations({
-  travelInfo,
+    travelRequestHeader,
+    isReadOnly,
+    onSubmit,
 }: TravelDestinationsProps) {
-  const {
-    countries,
-    modeOfTransport,
-    fetchSetups,
-  } = useMySetups();
-  const [originCities, setOriginCities] = useState([])
-  const [destinationCities, setDestinationCities] = useState([])
-  const [travelRequests, setTravelRequests] = useState([])
-  const [destinations, setDestinations] = useState<Destination[]>([]);
+    const {
+        countries,
+        modeOfTransport,
+        fetchSetups,
+    } = useMySetups();
+    const [originCities, setOriginCities] = useState([])
+    const [destinationCities, setDestinationCities] = useState([])
+    const [destinations, setDestinations] = useState<Destination[]>([]);
 
     const handleDestinationChange = <K extends keyof Destination>(
         index: number,
@@ -51,119 +54,99 @@ export default function TravelDestinations({
                 destinationCity: "",
                 travelDate: "",
                 modeOfTransport: "",
-                documentNo: travelInfo.documentNo,
-                documentType: travelInfo.documentType,
+                documentNo: travelRequestHeader.documentNo,
+                documentType: travelRequestHeader.documentType,
             },
         ]);
     };
 
-  const saveDestination = async (index: number) => {
-    const destination = destinations[index];
-    destination['documentType'] = travelInfo.documentType;
-    destination['documentNo'] = travelInfo.no;
+    const saveDestination = async (index: number) => {
+        const destination = destinations[index];
+        destination['documentType'] = travelRequestHeader.documentType;
+        destination['documentNo'] = travelRequestHeader.no;
 
-
-    try {
-      const res = await createResource('travelRoutes', {
-          data: {
-              ...destination
-          },
-      });
-
-      if(res.error) {
-         return Swal.fire('Error!', res.error.message)
-      }
-      console.log('create routes res', res)
-      Swal.fire("Success", 'Travel route was created successfully!' );
-    } catch (e) {
-        Swal.fire('Error!', e.message)
-    }
-
-  }
-
-    const deleteTravelRequest = async (row: Destination) => {
         try {
-            const res =  await deleteResource('travelRoutes', {
-                params: {
-                    documentType: "",
-                    documentNo: "",
-                    sequenceNo: ""
-                }
+            const res = await createResource('travelRoutes', {
+                data: destination,
             });
 
-            if(res.error) {
+            if (res.error) {
                 return Swal.fire('Error!', res.error.message)
             }
-            console.log('create routes res', res)
-            Swal.fire("Success", 'Travel route was deleted successfully!' );
+            Swal.fire("Success", 'Travel route was created successfully!');
+            removeDestination(index)
+            onSubmit(travelRequestHeader.no);
+        } catch (e) {
+            Swal.fire('Error!', e.message)
+        }
+
+    }
+
+    const deleteDestination = async (row: Destination) => {
+        try {
+            console.log(row)
+            const res = await deleteResource('travelRoutes', {
+                data: row,
+                primaryKey: ['documentType', 'documentNo', 'sequenceNo'],
+            });
+
+            if (res.error) {
+                return Swal.fire('Error!', res.error.message)
+            }
+            Swal.fire("Success", 'Travel route was deleted successfully!');
+            onSubmit(travelRequestHeader.no);
         } catch (e) {
             Swal.fire('Error!', e.message)
         }
     }
 
-  const fetchCities = async (countryCode, countryField) => {
-    try {
-      if (countryCode) {
-        const res = await getResource('cities', {
-          params: {
-            filters: {
-              countryRegionCode: countryCode,
-            }
-          }
-        })
+    const fetchCities = async (countryCode, countryField) => {
+        try {
+            if (countryCode) {
+                const res = await getResource('cities', {
+                    params: {
+                        filters: {
+                            countryRegionCode: countryCode,
+                        }
+                    }
+                })
 
-        if (res.error) {
-          console.log('Error!', res.error)
-        }
+                if (res.error) {
+                    console.log('Error!', res.error)
+                }
 
-        if (countryField === 'originCountryCode') {
-          setOriginCities([...res.value])
-        } else if (countryField === 'destinationCountryCode') {
-          setDestinationCities([...res.value])
-        }
-      } else {
-        if (countryField === 'originCountryCode') {
-          setOriginCities([])
-        } else if (countryField === 'destinationCountryCode') {
-          setDestinationCities([])
-        }
-      }
-    } catch (error: any) {
-      console.log('Error!', error.message)
-    }
-  }
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        await fetchSetups([
-          "countries",
-          "cities",
-          "modeOfTransport",
-        ]);
-      } catch (err) {
-        console.log(err)
-      }
-    };
-
-    loadData();
-    userTravelRoutes()
-  }, [destinations]);
-
-    const userTravelRoutes = async () => {
-       const res = await getResource('travelRoutes', {
-            params: {
-                filters: {
-                    documentNo: travelInfo?.no,
-                    documentType: travelInfo?.documentType
+                if (countryField === 'originCountryCode') {
+                    setOriginCities([...res.value])
+                } else if (countryField === 'destinationCountryCode') {
+                    setDestinationCities([...res.value])
+                }
+            } else {
+                if (countryField === 'originCountryCode') {
+                    setOriginCities([])
+                } else if (countryField === 'destinationCountryCode') {
+                    setDestinationCities([])
                 }
             }
-        })
-
-        console.log('userTravelRoutes', res)
-        setTravelRequests(res?.value)
+        } catch (error: any) {
+            console.log('Error!', error.message)
+        }
     }
 
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                await fetchSetups([
+                    "countries",
+                    "cities",
+                    "modeOfTransport",
+                ]);
+            } catch (err) {
+                console.log(err)
+            }
+        };
+
+        loadData();
+    }, [fetchSetups]);
 
     const columns: TableColumn<Destination>[] = [
         {
@@ -284,95 +267,117 @@ export default function TravelDestinations({
     ];
 
 
-    const routesColumns = [
+    const routesColumns: Array<Record<string, any>> = [
         {
-            name: "Document No",
-            sortable: true,
+            name: "Ref No",
             cell: (row: Destination) => (
-                <span className="text-dark"
-                >
-                    {row.documentNo}
-                </span>
+                <span className="text-dark">{row.documentNo}</span>
             ),
         },
         {
-            name: "origin Country",
-            selector: (row: Destination) => row.originCountryCode,
-            sortable: true,
+            name: "From",
             cell: (row: Destination) => (
-                <span>{row.originCountryCode}</span>
+                <span>{`${row.originCountryCode} - ${row.originCity}`}</span>
             ),
         },
         {
-            name: "origin City",
-            selector: (row: Destination) => row.originCity,
-            sortable: true,
+            name: "To",
             cell: (row: Destination) => (
-                <span>{row.originCity}</span>
+                <span>{`${row.destinationCountryCode} - ${row.destinationCity}`}</span>
             ),
         },
         {
-            name: "destination Country",
-            selector: (row: Destination) => row.destinationCountryCode,
-            sortable: true,
-            cell: (row: Destination) => (
-                <span>{row.destinationCountryCode}</span>
-            ),
-        },
-        {
-            name: "destination City",
-            selector: (row: Destination) => row.destinationCity,
-            sortable: true,
-            cell: (row: Destination) => (
-                <span>{row.destinationCity}</span>
-            ),
-        },
-        {
-            name: "Date",
+            name: 'Travel Date',
             selector: (row: Destination) => row.travelDate,
             sortable: true,
             cell: (row: Destination) => (
-                <span>
-                    {row.travelDate ?? ""}
-                </span>
+                <span>{formatDate(row.travelDate)}</span>
             ),
         },
-        {
+    ];
+
+    if (!isReadOnly) {
+        routesColumns.push({
             name: "Actions",
             cell: (row: Destination) => (
                 <div className="d-flex gap-2">
                     <button
                         type="button"
                         className="btn btn-outline-danger btn-sm"
-                        onClick={() => deleteTravelRequest(row)}
+                        onClick={() => deleteDestination(row)}
                         title="Delete"
                     >
                         <Trash2 size={16} />
                     </button>
                 </div>
             ),
-            ignoreRowClick: true,
             style: { minWidth: "100px" },
-        },
-    ];
+        },)
+    }
 
-  return (
-    <div className="card mb-4">
-        <div className="d-flex justify-content-end align-items-center  ">
-            <button
-                type="button"
-                className="btn btn-danger mb-2"
-                onClick={addDestination}
-            >
-                <i className="fa fa-plus me-1"></i>
-                Add Destination
-            </button>
-        </div>
-        {destinations?.length > 0 && (
+    return (
+        <div className="card mb-4">
+            {!isReadOnly && (
+                <div className="d-flex justify-content-end align-items-center  ">
+                    <button
+                        type="button"
+                        className="btn btn-danger mb-2"
+                        onClick={addDestination}
+                    >
+                        <i className="fa fa-plus me-1"></i>
+                        Add Destination
+                    </button>
+                </div>
+            )}
+            {destinations?.length > 0 && (
+                <div className="card-body">
+                    <DataTable
+                        columns={columns}
+                        data={destinations}
+                        dense
+                        responsive
+                        highlightOnHover
+                        persistTableHead
+                        customStyles={{
+                            table: {
+                                style: {
+                                    border: "1px solid #dee2e6",
+                                },
+                            },
+                            headRow: {
+                                style: {
+                                    backgroundColor: "#f1f1f1",
+                                    borderBottom: "1px solid #dee2e6",
+                                },
+                            },
+                            headCells: {
+                                style: {
+                                    fontSize: "14px",
+                                    paddingLeft: "12px",
+                                    paddingRight: "12px",
+                                    borderRight: "1px solid #dee2e6",
+                                },
+                            },
+                            rows: {
+                                style: {
+                                    borderBottom: "1px solid #dee2e6",
+                                },
+                            },
+                            cells: {
+                                style: {
+                                    padding: "6px 12px",
+                                    borderRight: "1px solid #dee2e6",
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            )}
+
             <div className="card-body">
                 <DataTable
-                    columns={columns}
-                    data={destinations}
+                    columns={routesColumns}
+                    data={travelRequestHeader.travelRequestRoutes}
                     dense
                     responsive
                     highlightOnHover
@@ -380,12 +385,12 @@ export default function TravelDestinations({
                     customStyles={{
                         table: {
                             style: {
-                                border: "1px solid #dee2e6",
+                                border: "1px solid #dee2e6", // outer border
                             },
                         },
                         headRow: {
                             style: {
-                                backgroundColor: "#f1f1f1",
+                                backgroundColor: "#f1f1f1", // light grey
                                 borderBottom: "1px solid #dee2e6",
                             },
                         },
@@ -411,50 +416,6 @@ export default function TravelDestinations({
                     }}
                 />
             </div>
-        )}
-
-        <div className="card-body">
-            <DataTable
-                columns={routesColumns}
-                data={travelRequests}
-                dense
-                responsive
-                highlightOnHover
-                persistTableHead
-                customStyles={{
-                    table: {
-                        style: {
-                            border: "1px solid #dee2e6", // outer border
-                        },
-                    },
-                    headRow: {
-                        style: {
-                            backgroundColor: "#f1f1f1", // light grey
-                            borderBottom: "1px solid #dee2e6",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            fontSize: "14px",
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            borderRight: "1px solid #dee2e6",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            borderBottom: "1px solid #dee2e6",
-                        },
-                    },
-                    cells: {
-                        style: {
-                            padding: "6px 12px",
-                            borderRight: "1px solid #dee2e6",
-                        },
-                    },
-                }}
-        />
-    </div>
-    </div>
-  );
+        </div>
+    );
 }

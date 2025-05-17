@@ -1,3 +1,5 @@
+import { ENDPOINTMAP } from "../utils/endpointMap";
+
 export interface RequestOptions {
     data?: Record<string, any> | undefined
     headers?: Record<string, any> | undefined
@@ -7,10 +9,29 @@ export interface RequestOptions {
     batch?: Array<Record<string, any>>,
     primaryKey?: Array<string>,
 }
-export interface RequestResponse {
-    error?: Record<string, any> | undefined
-    [key: string]: any | undefined
 
+export interface batchRequestOptions extends RequestOptions {
+    endpoint: ENDPOINTMAP;
+}
+
+export interface Error {
+    code?: string | any;
+    message?: string | any;
+    [key: string]: any;
+}
+export interface RequestResponse {
+    error?: Error | undefined;
+    value?: Record<string, any> | Record<string, any>[] | any;
+    [key: string]: any | undefined;
+
+}
+
+export interface BatchRequestResponse {
+    error?: Error;
+    [key: string]: {
+        error?: Error | any;
+        [key: string]: any;
+    };
 }
 
 export type HTTMETHODS = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS" | "CU" | 'BATCH';

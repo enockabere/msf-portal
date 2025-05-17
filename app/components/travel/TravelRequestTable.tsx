@@ -5,6 +5,7 @@ import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Wallet } from "lucide-react";
 import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
+import { formatDate } from "@/app/utils/dateFormats";
 
 interface TravelRequestTableProps {
   data: Array<Record<string, any>>;
@@ -13,10 +14,10 @@ interface TravelRequestTableProps {
 }
 
 export default function TravelRequestTable({
-  data,
-  loading,
-  profile,
-}: TravelRequestTableProps) {
+                                             data,
+                                             loading,
+                                             profile,
+                                           }: TravelRequestTableProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
 
@@ -28,16 +29,14 @@ export default function TravelRequestTable({
     });
   }, [search, data]);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
   const [selectedRequestNo, setSelectedRequestNo] = useState(null)
+  const [action, setAction] = useState('Update')
 
   const handleCloseModal = () => setSelectedRequestNo(null)
+  const handleOpenModal = (requestNo: string, action: string) => {
+    setAction(action)
+    setSelectedRequestNo(requestNo)
+  }
 
   const columns = [
     {
@@ -86,7 +85,7 @@ export default function TravelRequestTable({
         };
         return (
           <span className={badgeMap[row.approvalStatus]}>
-            <i className={iconMap[row.approvalStatus]} /> {row.approvalStatus}
+            <i className={iconMap[row.approvalStatus]}/> {row.approvalStatus}
           </span>
         );
       },
@@ -95,43 +94,28 @@ export default function TravelRequestTable({
       name: "Actions",
       cell: (row: Record<string, any>) => (
         <div className="d-flex gap-2">
-          {row.approvalStatus === "Open" && (
-            <button
+          {row.approvalStatus === "Open"
+            ? (
+              <button
+                className="text-primary border-0 bg-transparent"
+                title="Edit"
+                onClick={() => handleOpenModal(row.no, 'Update')}
+              >
+                <i className="las la-pen fs-18"/>
+              </button>
+            )
+            : <button
               className="text-primary border-0 bg-transparent"
               title="Edit"
-              onClick={() => setSelectedRequestNo(row.no)}
+              onClick={() => handleOpenModal(row.no, 'View')}
             >
-              <i className="las la-pen fs-18" />
+              <i className="las la-eye fs-18"/>
             </button>
-          )}
-          {row.approvalStatus === "Pending Approval" && (
-            <button
-              className="text-success border-0 bg-transparent"
-              title="View"
-            >
-              <i className="las la-eye fs-18" />
-            </button>
-          )}
-          {row.approvalStatus === "Released" && (
-            <>
-              <button
-                className="text-success border-0 bg-transparent"
-                title="View"
-              >
-                <i className="las la-eye fs-18" />
-              </button>
-              <button
-                className="text-warning border-0 bg-transparent"
-                title="Settle"
-              >
-                <i className="las la-coins fs-18" />
-              </button>
-            </>
-          )}
+          }
         </div>
       ),
       ignoreRowClick: true,
-      style: { minWidth: "120px" },
+      style: {minWidth: "120px"},
     },
   ];
 
@@ -148,13 +132,13 @@ export default function TravelRequestTable({
       <CustomModal
         show={!!selectedRequestNo}
         onClose={handleCloseModal}
-        title="Update Travel Request"
+        title={`${action} Travel Request (${selectedRequestNo})`}
         size="xl"
-        titleIcon={<Wallet size={18} className="text-white" />}
+        titleIcon={<Wallet size={18} className="text-white"/>}
       >
         <div className="row">
           <div className="col-md-12">
-            <TravelRequestWizard requestNo={selectedRequestNo} profile={profile} />
+            <TravelRequestWizard requestNo={selectedRequestNo} profile={profile}/>
           </div>
         </div>
       </CustomModal>

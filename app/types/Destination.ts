@@ -7,4 +7,5 @@ export interface Destination {
     destinationCity: string;
     travelDate: string;
     modeOfTransport: string;
+    [key: string]: any;
 }
