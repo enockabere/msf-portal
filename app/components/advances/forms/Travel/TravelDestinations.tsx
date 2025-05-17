@@ -8,14 +8,17 @@ import { createResource, deleteResource, getResource } from "@/app/lib/api/http"
 import { Destination } from "@/app/types/Destination";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
+import { formatDate } from "@/app/utils/dateFormats";
 
 interface TravelDestinationsProps {
   travelRequestHeader: TravelRequest;
+  isReadOnly: boolean;
   onSubmit: (requestNo: string) => void;
 }
 
 export default function TravelDestinations({
  travelRequestHeader,
+  isReadOnly,
  onSubmit,
 }: TravelDestinationsProps) {
   const {
@@ -264,60 +267,37 @@ export default function TravelDestinations({
   ];
 
 
-  const routesColumns = [
+  const routesColumns: Array<Record<string, any>> = [
     {
-      name: "Document No",
-      sortable: true,
+      name: "Ref No",
       cell: (row: Destination) => (
-        <span className="text-dark"
-        >
-                    {row.documentNo}
-                </span>
+        <span className="text-dark">{row.documentNo}</span>
       ),
     },
     {
-      name: "origin Country",
-      selector: (row: Destination) => row.originCountryCode,
-      sortable: true,
+      name: "From",
       cell: (row: Destination) => (
-        <span>{row.originCountryCode}</span>
+        <span>{`${row.originCountryCode} - ${row.originCity}`}</span>
       ),
     },
     {
-      name: "origin City",
-      selector: (row: Destination) => row.originCity,
-      sortable: true,
+      name: "To",
       cell: (row: Destination) => (
-        <span>{row.originCity}</span>
+        <span>{`${row.destinationCountryCode} - ${row.destinationCity}`}</span>
       ),
     },
     {
-      name: "destination Country",
-      selector: (row: Destination) => row.destinationCountryCode,
-      sortable: true,
-      cell: (row: Destination) => (
-        <span>{row.destinationCountryCode}</span>
-      ),
-    },
-    {
-      name: "destination City",
-      selector: (row: Destination) => row.destinationCity,
-      sortable: true,
-      cell: (row: Destination) => (
-        <span>{row.destinationCity}</span>
-      ),
-    },
-    {
-      name: "Date",
+      name: 'Travel Date',
       selector: (row: Destination) => row.travelDate,
       sortable: true,
       cell: (row: Destination) => (
-        <span>
-                    {row.travelDate ?? ""}
-                </span>
+        <span>{formatDate(row.travelDate)}</span>
       ),
     },
-    {
+  ];
+  
+  if (!isReadOnly) {
+    routesColumns.push({
       name: "Actions",
       cell: (row: Destination) => (
         <div className="d-flex gap-2">
@@ -331,23 +311,24 @@ export default function TravelDestinations({
           </button>
         </div>
       ),
-      ignoreRowClick: true,
       style: {minWidth: "100px"},
-    },
-  ];
+    },)
+  }
 
   return (
     <div className="card mb-4">
-      <div className="d-flex justify-content-end align-items-center  ">
-        <button
-          type="button"
-          className="btn btn-danger mb-2"
-          onClick={addDestination}
-        >
-          <i className="fa fa-plus me-1"></i>
-          Add Destination
-        </button>
-      </div>
+      {!isReadOnly && (
+        <div className="d-flex justify-content-end align-items-center  ">
+          <button
+            type="button"
+            className="btn btn-danger mb-2"
+            onClick={addDestination}
+          >
+            <i className="fa fa-plus me-1"></i>
+            Add Destination
+          </button>
+        </div>
+      )}
       {destinations?.length > 0 && (
         <div className="card-body">
           <DataTable

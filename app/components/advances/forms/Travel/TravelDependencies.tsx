@@ -8,11 +8,13 @@ import { createResource, deleteResource, getResource } from "@/app/lib/api/http"
 import { Loader, Trash2 } from "lucide-react";
 interface TravelDependenciesProps {
   travelRequestHeader:TravelRequest;
+  isReadOnly: boolean;
   onSubmit: (requestNo: string) => void;
 }
 
 export default function TravelDependencies({
   travelRequestHeader,
+  isReadOnly,
   onSubmit,
 }: TravelDependenciesProps) {
   const [dependants, setDependants] = useState([])
@@ -110,25 +112,29 @@ const handleDelete = async (traveller: Record<string, any>) => {
   return (
     <div className="card mb-4">
       <div className="card-body">
-        <div className="mb-4">
-          <Select
-            options={selectableDependants.map((item) => ({
-              value: item.lineNo,
-              label: item.name,
-            }))}
-            value={null}
-            isLoading={isSubmitting}
-            onChange={handleSelect}
-            placeholder="Select the dependant you plan to travel with"
-          />
-        </div>
+        {!isReadOnly && (
+          <div className="mb-4">
+            <Select
+              options={selectableDependants.map((item) => ({
+                value: item.lineNo,
+                label: item.name,
+              }))}
+              value={null}
+              isLoading={isSubmitting}
+              onChange={handleSelect}
+              placeholder="Select the dependant you plan to travel with"
+            />
+          </div>
+        )}
 
         <table className="table table-bordered align-middle">
           <thead className="table-light">
             <tr>
               <th>#</th>
               <th>Name</th>
-              <th className="text-center">Action</th>
+              {!isReadOnly && (
+                <th className="text-center">Action</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -143,18 +149,20 @@ const handleDelete = async (traveller: Record<string, any>) => {
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
                   <td>{dep.travellerName}</td>
-                  <td className="text-center">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(dep)}
-                    >
-                      {dependantNoBeingDeleted === dep.dependantNo
-                        ? <Loader size={16} className="button-icon blink-animation"/>
-                        : <Trash2 size={16} className="button-icon"/>}
-                      Drop
-                    </button>
-                  </td>
+                  {!isReadOnly && (
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDelete(dep)}
+                      >
+                        {dependantNoBeingDeleted === dep.dependantNo
+                          ? <Loader size={16} className="button-icon blink-animation"/>
+                          : <Trash2 size={16} className="button-icon"/>}
+                        Drop
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

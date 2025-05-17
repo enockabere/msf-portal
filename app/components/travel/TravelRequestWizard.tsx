@@ -68,8 +68,8 @@ interface TicketItem {
 }
 
 interface Props {
-  requestNo?: string,
-  profile: Record<string, any>
+  requestNo?: string;
+  profile: Record<string, any>;
 }
 
 export default function TravelRequestWizard({ requestNo, profile }: Props) {
@@ -99,13 +99,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     requirePerDiem: false,
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
+    approvalStatus: 'Open',
     travelRequestRoutes: [],
     travellers: [],
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false)
-
   const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
+  const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
   useEffect(() => {
     if (requestNo) {
@@ -552,6 +552,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                 <TravelHeaderForm
                   formData={travelRequestHeader}
                   requiredFields={headerRequiredFields}
+                  isReadOnly={isReadOnly}
                   onFormChange={handleFormChange}
                 />
               )}
@@ -559,6 +560,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               {activeTab === "destinations" && (
                 <TravelDestinations
                   travelRequestHeader={travelRequestHeader}
+                  isReadOnly={isReadOnly}
                   onSubmit={fetchTravelRequest}
                 />
               )}
@@ -574,6 +576,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               {activeTab === "dependencies" && (
                 <TravelDependencies
                   travelRequestHeader={travelRequestHeader}
+                  isReadOnly={isReadOnly}
                   onSubmit={fetchTravelRequest}
                 />
               )}
@@ -658,7 +661,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               {activeTab === "traveller-checklist" && <TravellerChecklist travelInfo={travelRequestHeader}/>}
 
               <div className="step-actions">
-                {activeTab === "info" ? (
+                {activeTab === "info" && !isReadOnly ? (
                   <button
                     type="button"
                     className="primary-button"
