@@ -34,14 +34,12 @@ export interface SalaryAdvanceData extends Advance {
 }
 
 export interface ExpenseItem {
-  category: string;
-  amount: number;
-  receipt?: File | null;
-  mileage: string;
+  expenseCode: string;
+  unitCost: number;
+  description?: string;
   costCenter: string;
   project: string;
-  surrenderedAmount?: number;
-  otherCategory?: string;
+  [key: string]: any;
 }
 
 export interface FormData {

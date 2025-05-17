@@ -91,7 +91,7 @@ export default function OperationalHeaderStep({
                   value={formData.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
                 >
-                  <option defaultValue={'Select bank'}> --Select bank --</option>
+                  <option defaultValue={''}> --Select bank --</option>
                   {
                     banks.map((bank: Record<string, any>) => {
                       return (
@@ -225,7 +225,7 @@ export default function OperationalHeaderStep({
                   onFormChange("imprestType", e.target.value)
                 }
               >
-                <option defaultValue={'Select imprest type'}>--select imprest type--</option>
+                <option defaultValue={''}>--select imprest type--</option>
                 {
                   imprestTypes.map((type: Record<string, any>) => {
                     return (
@@ -249,7 +249,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
-                <option defaultValue={'Select currency'}> -- Select Currency -- </option>
+                <option defaultValue={''}> -- Select Currency -- </option>
                 {
                   currencies.map((currency: Record<string, any>) => {
                     return (
@@ -269,7 +269,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
-                <option defaultValue={'Select payment method'}> --Select payment method-- </option>
+                <option defaultValue={''}> --Select payment method-- </option>
                 {
                   paymentMethods.map((method: Record<string, any>) => {
                     return (

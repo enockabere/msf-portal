@@ -1,6 +1,6 @@
 'use server'
 import { transport } from '@brainspore/hypernexus';
-import type { HTTMETHODS, RequestOptions, RequestResponse } from '../types/options';
+import type { batchRequestOptions, BatchRequestResponse, HTTMETHODS, RequestOptions, RequestResponse } from '../types/options';
 import { ENDPOINTMAP, memoryMap } from './endpointMap';
 
 export async function apiFetch(
@@ -8,7 +8,7 @@ export async function apiFetch(
     endpoint: ENDPOINTMAP,
     options: RequestOptions = {}
 ): Promise<RequestResponse> {
-    let response: RequestResponse = {};
+    let response: RequestResponse | BatchRequestResponse = {};
     const batchRequests = [];
     if (method) {
         if (!options.params) {
@@ -28,12 +28,13 @@ export async function apiFetch(
         if (options.batch && Array.isArray(options.batch) && options.batch.length) {
             options.batch.forEach((req: Record<string, any>) => {
                 if (!allowedMethods.includes(String(req.method).toUpperCase())) {
+                    response.error = {};
                     response.error.message = 'Method passed in the batch options is not whitelisted!';
                     return response
                 }
 
                 // eslint-disable-next-line prefer-const
-                let { method, endpoint, data, params, headers } = req;
+                let { method, endpoint, data, params, headers } = req as batchRequestOptions;
                 const url = memoryMap.get(endpoint);
                 const methodUpperCase = method.toUpperCase();
                 if (!params) {
@@ -87,13 +88,19 @@ export async function apiFetch(
             case 'batch': {
                 const batchReponse = await transport.batch<RequestResponse>(batchRequests);
                 if (!batchReponse || !Array.isArray(batchReponse)) {
+                    response.error = {};
                     response.error.message = 'Did not resolve to array of response as expected'
                     return response;
                 }
                 batchReponse.forEach((resp, index) => {
                     const key = batch[index]['endpoint'];
                     if (key) {
-                        response[key] = resp?.value || []
+                        if (resp.error) {
+                            response[key] = {};
+                            response[key].error = resp?.error
+                        } else {
+                            response[key] = resp?.value || [];
+                        }
                     }
                 })
 
