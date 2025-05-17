@@ -1,15 +1,12 @@
-import React, {useEffect, useState} from 'react';
-import { UploadCloud, Save } from 'lucide-react';
-import { Form } from 'react-bootstrap';
-import {createResource, getResource} from "@/app/lib/api/http";
-import Swal from "sweetalert2";
+import React, {useCallback, useEffect, useState} from 'react';
+import { getResource} from "@/app/lib/api/http";
 import {TravelRequest} from "@/app/types/travel";
 import ChecklistRow from "@/app/components/travel/ChecklistRow";
 
 export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}) {
     const [visaChecklist, setVisaChecklist] = useState([])
 
-    const getVisaChecklist = async () => {
+    const getVisaChecklist = useCallback(async () => {
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
@@ -20,9 +17,9 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
             }
         })
 
-        console.log('getVisaChecklist', res?.value)
+        console.log('getTravelChecklist', res?.value);
         setVisaChecklist(res?.value || [])
-    }
+    }, [travelInfo.documentType]); // Only re-create when this value changes
 
     const groupByTravellerName = (items) => {
         return items.reduce((acc, item) => {
@@ -36,8 +33,8 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
     };
 
     useEffect(() => {
-        getVisaChecklist()
-    }, []);
+        getVisaChecklist();
+    }, [getVisaChecklist]);
 
     return (
         <>
@@ -60,8 +57,8 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
                                 </thead>
 
                                 <tbody>
-                                {Array.isArray(items) && items.map((row, index) => (
-                                  <ChecklistRow key={row.lineNo + row.checklistItem} row={row}/>
+                                {Array.isArray(items) && items.map((row) => (
+                                  <ChecklistRow key={row.lineNo + row.checklistItem} row={row} fetchChecklist={getVisaChecklist}/>
                                 ))}
                                 </tbody>
                             </table>
