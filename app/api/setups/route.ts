@@ -17,7 +17,6 @@ export async function POST(request: Request) {
       if (typeof endpoint === "object") {
         for (const [key, value] of Object.entries(endpoint)) {
           requstOptions["url"] = memoryMap.get(key);
-          console.log("url: ", requstOptions["url"])
           if (value && typeof value === "object") {
             const typedValue = value as Record<string, unknown>;
             if (typedValue.filters && typeof typedValue.filters === "object") {
@@ -57,9 +56,7 @@ export async function POST(request: Request) {
       }
       return requstOptions;
     });
-    console.log('batchRequest: ', batchRequest);
     const batchReponse = await transport.batch<APIResponse>(batchRequest);
-    console.log("batch response: ", batchReponse);
     if (!batchReponse || !Array.isArray(batchReponse)) {
       return NextResponse.json(
         {

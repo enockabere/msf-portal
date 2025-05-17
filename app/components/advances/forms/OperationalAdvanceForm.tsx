@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./SalaryAdvanceForm.css";
 import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
@@ -33,11 +33,13 @@ export default function OperationalAdvanceForm() {
   });
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [paymentMethodType, setPaymentMethodType] = useState<string>('');
   const { paymentMethods, employeeBanks, fetchSetups } = useMySetups();
   const { data } = useSession()
 
   const handleFormChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    handleSettingPaymentMethodType();
   };
 
   const handleExpenseChange = <K extends keyof ExpenseItem>(
@@ -54,6 +56,12 @@ export default function OperationalAdvanceForm() {
     const updated = [...expenses];
     updated[index].receipt = file;
     setExpenses(updated);
+  };
+
+  function handleSettingPaymentMethodType() {
+    if (!formData.paymentMethod) return null;
+    const type: string = findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type as string;
+    setPaymentMethodType(type);
   };
 
   const removeExpenseLine = (index: number) => {
@@ -84,6 +92,25 @@ export default function OperationalAdvanceForm() {
   };
 
   const handleNext = async () => {
+    await fetchSetups([
+      {
+        expenseCodes: {
+          filters: {
+            imprestType: formData.imprestType
+          }
+        }
+      }
+    ], true)
+    setCurrentStep(2);
+  };
+
+  const handlePrev = () => {
+    setCurrentStep(1);
+  };
+
+  const handleSubmit = async () => {
+    console.log("Form submitted", { formData, expenses });
+    setIsSubmitted(true);
     try {
       const pDate = new Date().toISOString();
       const presets: Record<string, any> = {
@@ -108,28 +135,9 @@ export default function OperationalAdvanceForm() {
       }
       setFormData({ ...res.value });
       Swal.fire("Success", `${formData.imprestType} advance was created successfully!`);
-      await fetchSetups([
-        {
-          expenseCodes: {
-            filters: {
-              imprestType: formData.imprestType
-            }
-          }
-        }
-      ])
-      setCurrentStep(2);
     } catch (error: any) {
       Swal.fire('Error!', error.message)
     }
-  };
-
-  const handlePrev = () => {
-    setCurrentStep(1);
-  };
-
-  const handleSubmit = () => {
-    console.log("Form submitted", { formData, expenses });
-    setIsSubmitted(true);
   };
 
   const handleSurrender = () => {
@@ -138,27 +146,37 @@ export default function OperationalAdvanceForm() {
 
   const getProfileValues = async () => {
     if (!formData.paymentMethod) return null;
-    const type: string = findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type as string;
-    switch (type) {
+    switch (paymentMethodType) {
       case 'Mpesa': {
-        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
-        handleFormChange('idPassportNumber', String(data.user?.profile?.identificationDocumentNo));
+        updateMobileMoneyFields();
+        updateEmployeeBank(true);
+        updateCashFields(true);
         break;
       }
       case "Cheques":
       case "Bank_x0020_Transfer": {
         if (data.user?.profile?.type !== 'Employee') return
-        await fetchSetups([
-          "banks",
-          {
-            employeeBanks: {
-              filters: {
-                employee: data.user?.profile?.no,
-                default: true,
+        Promise.allSettled([
+          fetchSetups([
+            "banks",
+          ]),
+          fetchSetups([
+            {
+              employeeBanks: {
+                filters: {
+                  employee: data.user?.profile?.no,
+                  default: true,
+                }
               }
             }
-          }
-        ]);
+          ], true),
+        ])
+        break;
+      }
+      case 'Cash': {
+        updateMobileMoneyFields(true);
+        updateEmployeeBank(true);
+        break;
       }
     }
   }
@@ -176,15 +194,38 @@ export default function OperationalAdvanceForm() {
       }
     ], true);
   }
+  function updateMobileMoneyFields(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('phoneNo', "");
+      handleFormChange('idPassportNumber', "");
+    } else {
+      handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+      handleFormChange('idPassportNumber', String(data.user?.profile?.identificationDocumentNo));
+    }
+  }
+  function updateEmployeeBank(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('accountNo', "");
+      handleFormChange('accountName', "");
+      handleFormChange('bankNo', "");
+      handleFormChange('branch', "");
+      handleFormChange('swiftCode', "");
+    } else {
+      const bankDetails = employeeBanks[0];
+      if (bankDetails && Object.keys(bankDetails).length) {
+        handleFormChange('accountNo', bankDetails.accountNo);
+        handleFormChange('accountName', bankDetails.name);
+        handleFormChange('bankNo', bankDetails.bankCode);
+        handleFormChange('branch', bankDetails.bankBranch);
+        handleFormChange('swiftCode', bankDetails.swiftCode);
+      }
+    }
+  }
 
-  const updateEmployeeBank = () => {
-    const bankDetails = employeeBanks[0];
-    if (bankDetails && Object.keys(bankDetails).length) {
-      handleFormChange('accountNo', bankDetails.accountNo);
-      handleFormChange('accountName', bankDetails.name);
-      handleFormChange('bankNo', bankDetails.bankCode);
-      handleFormChange('branch', bankDetails.bankBranch);
-      handleFormChange('swiftCode', bankDetails.swiftCode);
+  function updateCashFields(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('cashCollectionDate', "");
+      handleFormChange('cashHours', "");
     }
   }
   useEffect(() => {
@@ -197,13 +238,17 @@ export default function OperationalAdvanceForm() {
 
   useEffect(() => {
     getProfileValues();
-  }, [formData.paymentMethod], getProfileValues);
+  }, [paymentMethodType])
 
   useEffect(() => {
     getBankBranches();
   }, [formData.bankNo]);
 
-  useEffect(() => { updateEmployeeBank() }, [employeeBanks]);
+  useEffect(() => {
+    updateEmployeeBank(paymentMethodType !== 'Cheques' && paymentMethodType !== 'Bank_x0020_Transfer');
+    updateMobileMoneyFields(paymentMethodType !== 'Mpesa');
+    updateCashFields(paymentMethodType !== 'Cash');
+  }, [employeeBanks, formData.paymentMethod, paymentMethodType]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
@@ -226,6 +271,7 @@ export default function OperationalAdvanceForm() {
               onSubmit={handleSubmit}
               onCancel={handlePrev}
               onSurrender={handleSurrender}
+              currency={formData.currencyCode}
             />
           )}
         </div>

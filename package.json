@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@brainspore/hypernexus": "^5.1.7",
+    "@brainspore/hypernexus": "^5.2.0",
     "@radix-ui/react-dropdown-menu": "^2.1.7",
     "@radix-ui/react-label": "^2.1.6",
     "@radix-ui/react-select": "^2.2.4",

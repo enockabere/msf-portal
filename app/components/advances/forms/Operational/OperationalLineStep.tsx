@@ -4,6 +4,7 @@ import React from "react";
 import { Check, Undo2, Save, Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
+import { findObjectFromArray } from "@/app/utils/helpers";
 
 interface OperationalLineStepProps {
   expenses: ExpenseItem[];
@@ -19,6 +20,7 @@ interface OperationalLineStepProps {
   onCancel: () => void;
   onSurrender: () => void;
   onSaveLine?: (index: number, item: ExpenseItem) => void;
+  currency: string,
 }
 
 export default function OperationalLineStep({
@@ -30,10 +32,12 @@ export default function OperationalLineStep({
   onCancel,
   onSurrender,
   onSaveLine,
+  currency,
 }: OperationalLineStepProps) {
-  const { expenseCodes } = useMySetups();
+  const { expenseCodes, currencies } = useMySetups();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
+  const selectedCurrency = findObjectFromArray(currencies, 'code', currency)?.description as string;
 
   return (
     <>
@@ -57,7 +61,7 @@ export default function OperationalLineStep({
             <thead className="table-light">
               <tr>
                 <th>Category</th>
-                <th>Amount (KES)</th>
+                <th>Amount ({selectedCurrency})</th>
                 {showMileageColumn && <th>Mileage</th>}
                 <th>Cost Center</th>
                 <th>Project</th>
