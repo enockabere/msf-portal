@@ -19,7 +19,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
 
         console.log('getTravelChecklist', res?.value);
         setTravelChecklist(res?.value || []);
-    }, [travelInfo.documentType]); // Only re-create when this value changes
+    }, [travelInfo]); // Only re-create when this value changes
 
     const groupByTravellerName = (items) => {
         return items.reduce((acc, item) => {
@@ -34,7 +34,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
 
     useEffect(() => {
         getTravelChecklist();
-    }, [getTravelChecklist]);
+    }, [travelInfo, getTravelChecklist]);
 
     return (
         <div className='row g-3'>

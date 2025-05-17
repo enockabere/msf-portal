@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import {Save} from "lucide-react";
+import {ChecklistItem} from "@/app/types/ChecklistItem";
 
 export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistItem, fetchChecklist: () => void}) {
     const [expiryDate, setExpiryDate] = useState(
@@ -33,7 +34,7 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
             }
 
             Swal.fire('Success', 'Travel checklist updated successfully!', 'success');
-            fetchChecklist
+            fetchChecklist()
         } catch (err) {
             Swal.fire('Error!', err.message, 'error');
         }
