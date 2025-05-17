@@ -1,4 +1,4 @@
-interface ChecklistItem {
+export interface ChecklistItem {
     documentNo: string;
     lineNo: string;
     checklistItem: string;
