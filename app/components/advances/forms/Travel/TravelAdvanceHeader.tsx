@@ -6,15 +6,6 @@ import InboundTravelNotice from "./InboundTravelNotice";
 import OutboundTravelForm from "./OutboundTravelForm";
 
 export interface TravelInfo {
-  basedOnRequest: "Yes" | "No";
-  travelRequestId: "TR001" | "TR002" | "";
-  tripType: string;
-  tripDates: { from: string; to: string };
-  destination: string;
-  applyForOther: "Yes" | "No";
-  recipientName: string;
-  currency: string;
-  paymentMethod: string;
   [key: string]: any;
 }
 
@@ -134,7 +125,7 @@ export default function TravelAdvanceHeader({
         {/* If Yes + Request is selected => show outbound */}
         {travelInfo.basedOnRequest === "Yes" && travelInfo.travelRequestId && (
           <OutboundTravelForm
-            travelInfo={travelInfo}
+            formData={travelInfo}
             handleChange={handleChange}
           />
         )}

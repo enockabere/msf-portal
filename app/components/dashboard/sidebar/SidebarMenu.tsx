@@ -109,7 +109,7 @@ export default function SidebarMenu() {
         </div>
       </li>
 
-      <li className="nav-item">
+      {/* <li className="nav-item">
         <a
           className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
           href="#sidebarHRServices"
@@ -144,10 +144,9 @@ export default function SidebarMenu() {
             </li>
           </ul>
         </div>
-      </li>
+      </li> */}
 
-      {/* Procurement & Finance - Fixed active state logic */}
-      <li className="nav-item">
+      {/* <li className="nav-item">
         <a
           className={`nav-link ${
             isGroupActive("/procurement") ? "active" : ""
@@ -182,7 +181,7 @@ export default function SidebarMenu() {
             ))}
           </ul>
         </div>
-      </li>
+      </li> */}
 
       {/* Static Links */}
       {[

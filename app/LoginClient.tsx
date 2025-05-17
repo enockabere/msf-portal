@@ -15,7 +15,6 @@ import "./tailwind.css";
 import Particles from "react-particles";
 import { loadSlim } from "tsparticles-slim";
 import type { ISourceOptions } from "tsparticles-engine";
-import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import PageLoader from "./components/loaders/PageLoader";
 
@@ -76,33 +75,12 @@ export default function LandingPage() {
     setIsLoaded(true);
   }, []);
 
-  // Session handling
   useEffect(() => {
-    if (status !== "authenticated") return;
-
-    const attemptedLogin = sessionStorage.getItem("loginAttempt");
-    if (!attemptedLogin) return;
-
-    sessionStorage.removeItem("loginAttempt");
-
-    const profile = session.user?.profile;
-
-    if (session.error) {
-      Swal.fire({
-        icon: "error",
-        title: "Access Denied",
-        text: session.error,
-      });
-      return;
+    // Do nothing if already redirected
+    if (status === "unauthenticated") {
+      sessionStorage.removeItem("loginAttempt");
     }
-
-    if (profile?.type === "Employee") {
-      window.location.replace("/dashboard");
-    } else {
-      localStorage.setItem("showProfileToast", "true");
-      window.location.replace("/user-profiles");
-    }
-  }, [session, status]);
+  }, [status]);
 
   // Loading state
   if (status === "loading") {
@@ -134,10 +112,10 @@ export default function LandingPage() {
     },
   };
 
-  const handleSSORedirect = () => {
+  const handleSSORedirect = async () => {
     sessionStorage.setItem("loginAttempt", "true");
     setIsLoggingIn(true);
-    signIn("azure-ad");
+    await signIn("azure-ad");
   };
 
   return (

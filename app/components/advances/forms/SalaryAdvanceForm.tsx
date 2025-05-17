@@ -19,6 +19,8 @@ import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import { ENDPOINTMAP } from "@/app/utils/endpointMap";
+import { EndpointOptions } from "@/app/types/global";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -101,7 +103,7 @@ export default function SalaryAdvanceForm({
   const didSetInitialAmount = useRef(false);
 
   const { data: session } = useSession();
-  const employeeNo = session?.user?.profile?.number;
+  const employeeNo = session?.user?.profile?.no;
 
   const {
     currencies,
@@ -137,12 +139,10 @@ export default function SalaryAdvanceForm({
         setIsLoading(true);
         await fetchSetups([
           "currencies",
-          { paymentMethods: { filters: { isAdvance: true } } },
-          { payrollPeriods: { filters: { current: true } } },
-        ]);
-        fetchSetups([
           "banks",
           "bankBranches",
+          { paymentMethods: { filters: { isAdvance: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
+          { payrollPeriods: { filters: { current: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
           {
             employeeBanks: {
               filters: {
@@ -151,9 +151,9 @@ export default function SalaryAdvanceForm({
                   ? { bankCode: advanceBankCode }
                   : { default: true }),
               },
-            },
-          } as any,
-        ]).then(() => {});
+            } as EndpointOptions,
+          } as Record<ENDPOINTMAP, EndpointOptions>
+        ]);
       } finally {
         setIsLoading(false);
       }
@@ -320,17 +320,17 @@ export default function SalaryAdvanceForm({
         ? advanceMobilePhoneNo.slice(4)
         : advanceMobilePhoneNo;
       setPhone(cleanPhone);
-    } else if (!advance && session?.user?.profile?.mobilePhone) {
-      const cleanEmpPhone = session.user.profile.mobilePhone.startsWith("+254")
-        ? session.user.profile.mobilePhone.slice(4)
-        : session.user.profile.mobilePhone;
+    } else if (!advance && session?.user?.profile?.phoneNo) {
+      const cleanEmpPhone = session.user.profile.phoneNo.startsWith("+254")
+        ? session.user.profile.phoneNo.slice(4)
+        : session.user.profile.phoneNo;
       setPhone(cleanEmpPhone);
     }
 
     if (advanceIdNo) {
       setIdNumber(advanceIdNo);
-    } else if (!advance && session?.user?.profile?.nationalId) {
-      setIdNumber(session.user.profile.nationalId);
+    } else if (!advance && session?.user?.profile?.identificationDocumentNo) {
+      setIdNumber(session.user.profile.identificationDocumentNo);
     }
   }, [advanceMobilePhoneNo, advanceIdNo, advance, session]);
 

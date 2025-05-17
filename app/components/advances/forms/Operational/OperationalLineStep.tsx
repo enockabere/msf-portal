@@ -3,6 +3,7 @@
 import React from "react";
 import { Check, Undo2, Save, Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
+import { useMySetups } from "@/app/context/SetupContext";
 
 interface OperationalLineStepProps {
   expenses: ExpenseItem[];
@@ -30,7 +31,9 @@ export default function OperationalLineStep({
   onSurrender,
   onSaveLine,
 }: OperationalLineStepProps) {
+  const { expenseCodes } = useMySetups();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
+
 
   return (
     <>
@@ -72,11 +75,14 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "category", e.target.value);
                       }}
                     >
-                      <option value="">-- Select Category --</option>
-                      <option value="Transport">Transport</option>
-                      <option value="Accommodation">Accommodation</option>
-                      <option value="Meals">Meals</option>
-                      <option value="Stationery">Stationery</option>
+                      <option defaultValue="-- Select Category--">-- Select Category --</option>
+                      {
+                        expenseCodes.map((expenseCode: Record<string, any>) => {
+                          return (
+                            <option key={expenseCode.code} value={expenseCode.code}> {expenseCode.description}</option>
+                          )
+                        })
+                      }
                     </select>
                   </td>
                   <td>

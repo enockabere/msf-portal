@@ -118,3 +118,9 @@
     @apply bg-background text-foreground;
   }
 }
+.react-select__control {
+  @apply border rounded-lg px-2 py-1;
+}
+.react-select__menu {
+  @apply z-50;
+}

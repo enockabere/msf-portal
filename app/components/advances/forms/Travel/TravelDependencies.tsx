@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { XCircle, Plus } from "lucide-react";
-
-interface Dependency {
-  id: string;
-  fullName: string;
-  relationship: string;
-  nationality: string;
-}
-
+import React, { useEffect, useState } from "react";
+import { Dependency } from "@/app/types/global";
+import Select from "react-select";
+import Swal from "sweetalert2";
+import { batchRequest, getResource } from "@/app/lib/api/http";
+import _ from 'lodash';
+import { useSession } from "next-auth/react";
 interface TravelDependenciesProps {
   availableDependencies: Dependency[];
 }
@@ -17,86 +14,162 @@ interface TravelDependenciesProps {
 export default function TravelDependencies({
   availableDependencies,
 }: TravelDependenciesProps) {
-  const [selectedDependencies, setSelectedDependencies] = useState<
-    Dependency[]
-  >([]);
-  const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedDependencies, setSelectedDependencies] = useState<Dependency[]>(
+    []
+  );
+  const [filteredAvailableDependants, setFilteredAvailableDependants] = useState<Dependency[]>(
+    []
+  );
+  const [postSelectedDependencies, setPostSelectedDependencies] = useState<{ data: Dependency}[]>([]);
+  const { data } = useSession();
 
-  const handleAddDependency = () => {
-    const found = availableDependencies.find((d) => d.id === selectedId);
-    if (found && !selectedDependencies.find((s) => s.id === found.id)) {
-      setSelectedDependencies([...selectedDependencies, found]);
-      setSelectedId(""); // reset dropdown
+const handleSelect = (selectedOptions: any) => {
+  console.log('selected option: ', selectedOptions)
+  if (!selectedOptions) return;
+
+  const [profileNo, lineNo] = selectedOptions?.[0]?.value.split("-");
+  const dependant = availableDependencies.find(
+      (dep) =>
+        dep.profileNo === profileNo && dep.lineNo.toString() === lineNo
+    );
+    const dependantPayload = {
+      profileNo: data.user?.profile?.no,
+      dob: dependant.dob,
+      name:dependant.gender,
+      relation: dependant.relation,
+      gender: dependant.gender,
+      countryOfOrigin: dependant.countryOfOrigin,
     }
-  };
+    setSelectedDependencies((prev: Dependency[]) =>[...prev, dependant]);
+    setPostSelectedDependencies((prev) => {
+      return [
+        ...prev,
+        {
+        method: 'POST',
+        endpoint: 'travelDependancies',
+        data: dependantPayload,
+      }
+      ]
+    });
+};
+const fetchDependencies = async (profNo: string)=>{
+   const res = await getResource('travelDependancies', {
+     params: {
+      filters: {
+        profileNo:profNo
+      }
+     },
+   }
+     );
+      if (res.error) {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Error fetching profile dependecies!',
+        });
+        return
+      }
+      setSelectedDependencies((prev)=> {
+        return _.difference(res.value, prev);
+      })
+}
+const handleSaveDependencies = async () => {
+  if (postSelectedDependencies.length === 0) {
+    Swal.fire("No new dependencies to save", "", "info");
+    return;
+  }
 
-  const handleRemove = (id: string) => {
-    setSelectedDependencies((prev) => prev.filter((d) => d.id !== id));
-  };
+  try {
+    const res = await batchRequest({
+      batch: postSelectedDependencies,
+    });
 
+    if (res.error) {
+      console.error("Save Dependants Error:", res.error.message);
+    }
+
+    Swal.fire("Dependencies saved successfully", "", "success");
+
+    // Optionally clear postSelectedDependencies after save
+    setPostSelectedDependencies([]);
+    fetchDependencies(data.user.profile.no);
+  } catch (error) {
+    console.error("Save failed:", error);
+    Swal.fire("Failed to save dependencies", "Please try again", "error");
+  }
+};
+
+useEffect(() => {
+    setFilteredAvailableDependants(()=> {
+    return _.difference(availableDependencies, selectedDependencies);
+  })
+}, [availableDependencies, selectedDependencies])
   return (
     <div className="card mb-4">
       <div className="card-body">
-        {/* Dropdown for selection */}
-        <div className="row mb-3">
-          <div className="col-md-8">
-            <select
-              className="form-select"
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-            >
-              <option value="">Select a Dependant</option>
-              {availableDependencies.map((dep) => (
-                <option key={dep.id} value={dep.id}>
-                  {dep.fullName}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4">
-            <button
-              className="btn btn-danger w-100"
-              onClick={handleAddDependency}
-              disabled={!selectedId}
-            >
-              <Plus size={16} className="me-1" />
-              Add Dependant
-            </button>
-          </div>
+        <div className="mb-4">
+          <Select
+            isMulti
+            options={filteredAvailableDependants.map((dep) => ({
+              value: `${dep.profileNo}-${dep.lineNo}`,
+              label: dep.name,
+            }))}
+            onChange={handleSelect}
+            value={[]}
+            placeholder="Select dependencies to add"
+          />
         </div>
 
-        {/* Table of selected dependencies */}
         <table className="table table-bordered align-middle">
           <thead className="table-light">
             <tr>
               <th>#</th>
               <th>Name</th>
               <th>Relationship</th>
-              <th>Nationality</th>
+               <th>Nationality</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {selectedDependencies.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center text-muted">
-                  No dependants added yet.
+                <td colSpan={4} className="text-center text-muted">
+                  No dependants added yet. Use the dropdown above to add.
                 </td>
               </tr>
             ) : (
               selectedDependencies.map((dep, idx) => (
-                <tr key={dep.id}>
+                <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
-                  <td>{dep.fullName}</td>
-                  <td>{dep.relationship}</td>
-                  <td>{dep.nationality}</td>
+                  <td>{dep.name}</td>
+                  <td>{dep.relation}</td>
+                  <td>{dep.countryOfOrigin}</td>
                   <td className="text-center">
                     <button
+                      type="button"
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleRemove(dep.id)}
+                      onClick={() => {
+                        setSelectedDependencies((prev) =>
+                          prev.filter(
+                            (d) =>
+                              !(
+                                d.profileNo === dep.profileNo &&
+                                d.lineNo === dep.lineNo
+                              )
+                          )
+                        );
+
+                        setPostSelectedDependencies((prev) =>
+                          prev.filter(
+                            (item) =>
+                              !(
+                                item.data.profileNo === dep.profileNo
+                              )
+                          )
+                        );
+                      }}
+
                     >
-                      <XCircle size={16} className="me-1" />
-                      Remove
+                      Deselect
                     </button>
                   </td>
                 </tr>
@@ -104,6 +177,16 @@ export default function TravelDependencies({
             )}
           </tbody>
         </table>
+
+        {selectedDependencies.length > 0 && (
+          <div className="text-end mt-3">
+            <button
+            className="btn btn-primary"
+            onClick={handleSaveDependencies}
+            >Save
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
