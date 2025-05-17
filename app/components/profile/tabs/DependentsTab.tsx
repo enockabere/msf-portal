@@ -3,9 +3,10 @@
 import { useState, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Trash2, User } from "lucide-react";
+import Swal from "sweetalert2";
 import CustomModal from "../../modals/CustomModal";
 import DependentForm from "./DependentForm";
-import SkeletonDataTable from "../../tables/SkeletonDataTable";
+import SanitizedDataTable from "../../tables/SanitizedDataTable";
 
 interface Dependent {
   name: string;
@@ -13,6 +14,8 @@ interface Dependent {
   countryOfOrigin: string;
   dob?: string;
   gender?: string;
+  profileNo?: string;
+  lineNo?: number;
 }
 
 export default function DependentsTab({
@@ -73,8 +76,21 @@ export default function DependentsTab({
       });
 
       const result = await res.json();
-      if (!res.ok || result.error) {
-        alert(result.error || "Failed to save dependent.");
+
+      if (!res.ok || result.error || result.rawResponse?.error) {
+        const message =
+          result.rawResponse?.error?.message ||
+          result.error?.message ||
+          result.message ||
+          "Failed to save dependent.";
+
+        console.error("❌ API Error:", result);
+
+        await Swal.fire({
+          icon: "error",
+          title: "Failed to Save Dependent",
+          text: message,
+        });
         return;
       }
 
@@ -87,17 +103,76 @@ export default function DependentsTab({
         dob: "",
         gender: "",
       });
-    } catch (error) {
-      console.error("Error creating dependent:", error);
+
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Dependent saved successfully.",
+      });
+    } catch (error: any) {
+      console.error("❌ Unexpected error:", error);
+      Swal.fire("Error", error?.message || "Something went wrong", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
   const removeDependent = useCallback(
-    (index: number) => {
-      const updated = dependents.filter((_, i) => i !== index);
-      setDependents(updated);
+    async (index: number) => {
+      const dependent = dependents[index];
+
+      if (
+        !dependent ||
+        !dependent.profileNo ||
+        dependent.lineNo === undefined
+      ) {
+        return;
+      }
+
+      const confirmed = await Swal.fire({
+        title: "Are you sure?",
+        text: `Do you want to delete ${dependent.name}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (confirmed.isConfirmed) {
+        try {
+          const res = await fetch("/api/bc/users/dependants/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              profileNo: dependent.profileNo,
+              lineNo: dependent.lineNo,
+            }),
+          });
+
+          const result = await res.json();
+
+          if (!res.ok || result.error) {
+            // Display the actual API error message
+            const errorMessage =
+              result.error?.message ||
+              result.message ||
+              "Failed to delete dependent";
+            return Swal.fire(
+              "Error",
+              errorMessage, // This will show the API's error message
+              "error"
+            );
+          }
+
+          const updated = dependents.filter((_, i) => i !== index);
+          setDependents(updated);
+          Swal.fire("Deleted!", "The dependent has been removed.", "success");
+        } catch (err) {
+          console.error("Delete error:", err);
+          Swal.fire("Error", "Something went wrong while deleting.", "error");
+        }
+      }
     },
     [dependents, setDependents]
   );
@@ -129,9 +204,9 @@ export default function DependentsTab({
       },
       {
         name: "Action",
-        cell: (_, index) => (
+        cell: (_: Dependent, index: number) => (
           <button
-            className="btn btn-sm btn-danger"
+            className="btn btn-sm btn-primary"
             onClick={() => removeDependent(index)}
             title="Delete"
           >
@@ -139,8 +214,6 @@ export default function DependentsTab({
           </button>
         ),
         ignoreRowClick: true,
-        allowOverflow: true,
-        button: true,
         width: "100px",
       },
     ],
@@ -153,14 +226,14 @@ export default function DependentsTab({
         <div className="card-header d-flex justify-content-between align-items-center">
           <h4 className="card-title mb-0">Dependents</h4>
           <button
-            className="btn btn-sm btn-primary"
+            className="btn btn-sm btn-danger"
             onClick={() => setShowModal(true)}
           >
             + Add Dependent
           </button>
         </div>
         <div className="card-body pt-2">
-          <SkeletonDataTable
+          <SanitizedDataTable
             title=""
             columns={columns}
             data={dependents}

@@ -5,11 +5,9 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("📥 Received dependent data:", JSON.stringify(body, null, 2));
-
     const payload: Record<string, any> = {
       profileNo: body.profileNo,
-      lineNo: 0, // Acceptable default for new entries
+      lineNo: 0,
       name: body.name,
       relation: body.relation,
       dob: body.dob,
@@ -22,15 +20,11 @@ export async function POST(request: Request) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
-    console.log("📤 Posting to profileDependants with payload:", payload);
-
     const response = await transport.post(
       "/api/kinetics/adminTravel/v1.0/profileDependants",
       payload,
       options
     );
-
-    console.log("✅ API Response:", JSON.stringify(response, null, 2));
 
     if ((response as any)?.error) {
       console.error("❌ BC API error:", (response as any).error);
