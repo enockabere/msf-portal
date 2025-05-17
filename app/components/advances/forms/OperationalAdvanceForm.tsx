@@ -84,13 +84,12 @@ export default function OperationalAdvanceForm() {
     ]);
   };
 
-  const handleSaveLine = (index: number, item: ExpenseItem) => {
-    const updated = [...expenses];
-    updated[index] = item;
-    setExpenses(updated);
-  };
-
   const handleNext = async () => {
+    const strippedFormData = removeNullAndUndefinedFromObject(formData);
+    const missingRequiredValuesBeforeNext = checkIfMissingRequiredProperty(strippedFormData, ['imprestType', 'currencyCode']);
+    if (!missingRequiredValuesBeforeNext || missingRequiredValuesBeforeNext.missing) {
+      return Swal.fire('Warning!', `Missing [${missingRequiredValuesBeforeNext.prop.join(' , ')}] which are required before adding lines!.`, 'warning');
+    }
     Promise.all([
       fetchSetups([
         {
@@ -129,7 +128,7 @@ export default function OperationalAdvanceForm() {
       };
       const strippedPayLoad = removeNullAndUndefinedFromObject({ ...formData, ...presets });
       const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode', 'amountToPayHeader']);
-      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode']);
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode', 'paymentMethod', 'Purpose']);
       if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
       if (isMissingRequiredProp.missing) {
         return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
@@ -204,7 +203,7 @@ export default function OperationalAdvanceForm() {
           throw new Error(res.error.message);
         } else {
           let failedLines = 0;
-          for (const [_key, value] of Object.entries(res)) {
+          for (const [, value] of Object.entries(res)) {
             if (value.error) {
               failedLines++;
             }
@@ -348,7 +347,6 @@ export default function OperationalAdvanceForm() {
               onFileChange={handleFileChange}
               onRemoveExpense={removeExpenseLine}
               onAddExpense={addExpenseLine}
-              onSaveLine={handleSaveLine}
               onSubmit={handleSubmit}
               onCancel={handlePrev}
               onSurrender={handleSurrender}

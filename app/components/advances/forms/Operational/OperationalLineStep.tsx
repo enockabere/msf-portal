@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Check, Undo2, Save, Trash2, Plus, ArrowUp } from "lucide-react";
+import { Check, Undo2, Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
@@ -19,7 +19,6 @@ interface OperationalLineStepProps {
   onSubmit: () => void;
   onCancel: () => void;
   onSurrender: () => void;
-  onSaveLine?: (index: number, item: ExpenseItem) => void;
   currency: string,
 }
 
@@ -31,7 +30,6 @@ export default function OperationalLineStep({
   onSubmit,
   onCancel,
   onSurrender,
-  onSaveLine,
   currency,
 }: OperationalLineStepProps) {
   const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
@@ -70,7 +68,7 @@ export default function OperationalLineStep({
             </thead>
             <tbody>
               {expenses.map((exp, idx) => (
-                <tr key={idx}>
+                <tr key={`${idx}-${exp.expenseCode}`}>
                   <td>
                     <select
                       className="form-select"
@@ -79,7 +77,7 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
                     >
-                      <option defaultValue="-- Select Category--" disabled>-- Select Category --</option>
+                      <option defaultValue={''} disabled>-- Select Category --</option>
                       {
                         expenseCodes.map((expenseCode: Record<string, any>) => {
                           return (
@@ -121,7 +119,7 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "costCenter", e.target.value)
                       }
                     >
-                      <option defaultValue={'Select Cost Center'}>-- Select Cost Center --</option>
+                      <option defaultValue={''}>-- Select Cost Center --</option>
                       {
                         DEPARTMENTS.map((department: Record<string, any>) => {
                           return (
@@ -139,7 +137,7 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "project", e.target.value)
                       }
                     >
-                      <option defaultValue={'Select project'}>-- Select Project --</option>
+                      <option defaultValue={''}>-- Select Project --</option>
                       {
                         PROJECT.map((project: Record<string, any>) => {
                           return (
