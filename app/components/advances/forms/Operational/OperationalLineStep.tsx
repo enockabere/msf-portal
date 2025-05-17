@@ -74,7 +74,7 @@ export default function OperationalLineStep({
                   <td>
                     <select
                       className="form-select"
-                      value={exp.category}
+                      value={exp.expenseCode}
                       onChange={(e) => {
                         onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
@@ -93,7 +93,7 @@ export default function OperationalLineStep({
                     <input
                       type="number"
                       className="form-control"
-                      value={isNaN(exp.amount) ? "" : exp.amount}
+                      value={isNaN(exp.unitCost) ? "" : exp.unitCost}
                       onChange={(e) =>
                         onExpenseChange(idx, "unitCost", Number(e.target.value))
                       }
@@ -152,13 +152,6 @@ export default function OperationalLineStep({
                     </select>
                   </td>
                   <td className="text-center d-flex gap-1 justify-content-center">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-success"
-                      onClick={() => onSaveLine?.(idx, exp)}
-                    >
-                      <Save size={16} />
-                    </button>
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"

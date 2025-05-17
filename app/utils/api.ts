@@ -28,6 +28,7 @@ export async function apiFetch(
         if (options.batch && Array.isArray(options.batch) && options.batch.length) {
             options.batch.forEach((req: Record<string, any>) => {
                 if (!allowedMethods.includes(String(req.method).toUpperCase())) {
+                    response.error = {};
                     response.error.message = 'Method passed in the batch options is not whitelisted!';
                     return response
                 }
@@ -87,6 +88,7 @@ export async function apiFetch(
             case 'batch': {
                 const batchReponse = await transport.batch<RequestResponse>(batchRequests);
                 if (!batchReponse || !Array.isArray(batchReponse)) {
+                    response.error = {};
                     response.error.message = 'Did not resolve to array of response as expected'
                     return response;
                 }
@@ -94,6 +96,7 @@ export async function apiFetch(
                     const key = batch[index]['endpoint'];
                     if (key) {
                         if (resp.error) {
+                            response[key] = {};
                             response[key].error = resp?.error
                         } else {
                             response[key] = resp?.value || [];

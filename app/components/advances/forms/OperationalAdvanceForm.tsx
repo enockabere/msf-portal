@@ -128,7 +128,7 @@ export default function OperationalAdvanceForm() {
         requestedByFor: data.user?.profile?.no
       };
       const strippedPayLoad = removeNullAndUndefinedFromObject({ ...formData, ...presets });
-      const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode']);
+      const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode', 'amountToPayHeader']);
       const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode']);
       if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
       if (isMissingRequiredProp.missing) {
@@ -138,17 +138,24 @@ export default function OperationalAdvanceForm() {
         data: knownSchema,
       });
       if (res.error) {
-        return Swal.fire(res.error.code, res.error.message);
+        return Swal.fire(res.error.code, res.error.message, 'error');
       }
-      setFormData({ ...res.value });
-      Swal.fire("Success", `${formData.imprestType} advance was created successfully!`);
+      console.log('response for created imprest: ', res)
+      await handleSubmittingAdvanceLine(res as FormData);
+      Swal.fire("Success", `${formData.imprestType} advance was created successfully!`, 'success');
     } catch (error: any) {
-      Swal.fire('Error!', error.message);
+      Swal.fire('Error!', error.message, 'error');
+    } finally {
+      setIsSubmitted(false);
     }
   };
 
   async function handleSubmittingAdvanceLine(header: FormData) {
     try {
+      console.log("header passed to lines: ", header);
+      if (safeTypechecker(header) !== 'Object' || !Object.keys(header).length) {
+        throw new Error('We ran into an error!, Try again later!');
+      }
       const defaults = {
         documentType: 'Imprest',
         documentNo: header.no,
@@ -183,13 +190,18 @@ export default function OperationalAdvanceForm() {
       });
       const addedLines = expenses.length;
       const lineCaption = addedLines > 1 ? 'lines' : 'line';
+      expenseRequestOption.forEach((item, index) => {
+        if (!Object.keys(item).length) {
+          expenseRequestOption.splice(index, 1);
+        }
+      });
       if (expenseRequestOption.length) {
-        if (expenseRequestOption.length !== expenses.length) Swal.fire('Alert!', `${addedLines > 1 ? 'Some' : 'The'} advance ${lineCaption} will not be submitted due to errors`);
+        if (expenseRequestOption.length !== expenses.length) Swal.fire('Alert!', `${addedLines > 1 ? 'Some' : 'The'} advance ${lineCaption} will not be submitted due to errors`, 'info');
         const res: BatchRequestResponse = await batchRequest({
           batch: expenseRequestOption,
         });
         if (res.error) {
-          Swal.fire(`${res.error.code}`, `${res.error.message}`, 'error');
+          throw new Error(res.error.message);
         } else {
           let failedLines = 0;
           for (const [_key, value] of Object.entries(res)) {
@@ -198,17 +210,15 @@ export default function OperationalAdvanceForm() {
             }
           }
           if (failedLines) {
-            Swal.fire('Error creating advance lines', `${failedLines} advances did not save!`, 'error');
-          } else {
-            Swal.fire('Success', `Your advance was created successfully with ${addedLines} lines.`, 'success');
+            throw new Error(`${failedLines} advances did not save!`);
           }
         }
 
       } else {
-        return Swal.fire(`Error creating Advance ${lineCaption}`, `The advance ${lineCaption} you added had errors and did not submit!`, 'error');
+        throw new Error(`The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} add update lines!`);
       }
     } catch (error) {
-      Swal.fire('Error!', error.message, 'error');
+      throw new Error(error.message);
     }
   }
   const handleSurrender = () => {
@@ -301,7 +311,7 @@ export default function OperationalAdvanceForm() {
   }
   useEffect(() => {
     const total = expenses.reduce(
-      (acc, item) => acc + (isNaN(item.amount) ? 0 : item.amount),
+      (acc, item) => acc + (isNaN(item.unitCost) ? 0 : item.unitCost),
       0
     );
     setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
