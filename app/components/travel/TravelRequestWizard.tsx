@@ -37,7 +37,6 @@ import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector"
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import {
   checkIfMissingRequiredProperty, pickKeys,
