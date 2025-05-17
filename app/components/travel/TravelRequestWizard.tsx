@@ -39,7 +39,6 @@ import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
-import { Dependency } from "@/app/types/global";
 import {
   checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
@@ -102,6 +101,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
     travelRequestRoutes: [],
+    travellers: [],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -142,8 +142,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [requestNo]);
 
-  const {data: session} = useSession();
-  const profileNo = session?.user?.profile?.no
   const fetchTravelRequest = async (requestNo: string) => {
     try {
       const res = await getResource('travelRequests', {
@@ -203,8 +201,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       }
 
       setIsSubmitting(true)
-
-      console.log('Submitting request', knownSchema);
 
       const res = knownSchema.no
         ? await patchResource('travelRequests', {
@@ -287,8 +283,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   ]);
 
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-  const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
-  const [existingTravelDependencies, setExistingTravelDependancies] =useState<Dependency[]>([]);
 
   const handleSelectTicket = useCallback((ticketId: string) => {
     setSelectedTicketId(ticketId);
@@ -309,24 +303,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error) {
       Swal.fire("Error", error.message);
     }
-  }, []);
-
-  const handleAddDestination = useCallback(() => {
-    setTravelRequestHeader((prev) => ({
-      ...prev,
-      travelRequestRoutes: [
-        ...prev.travelRequestRoutes,
-        {
-          id: Date.now().toString(),
-          originCountry: "",
-          originCity: "",
-          destinationCountry: "",
-          destinationCity: "",
-          travelDate: "",
-          transportMode: "",
-        } as any,
-      ],
-    }));
   }, []);
 
   const allSteps = useMemo<WizardStep[]>(
@@ -395,7 +371,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         ],
       },
     ],
-    [handleAddDestination, handleCreateTravelAdvance]
+    [handleCreateTravelAdvance]
   ); // ✅ Correct dependencies
 
   // Get the appropriate steps based on user type
@@ -419,23 +395,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     return [allSteps.find((s) => s.id === "info")!];
   }, [travelRequestHeader.documentType, allSteps]);
 
-  const getProfileDependencies = async () => {
-    const res = await getResource('profileDependancies',
-      {
-        params: {
-            filters: {
-              profileNo: profileNo
-            }
-          }});
-    if (res.error) {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Error fetching profile dependecies!',
-      });
-      return
-    }
-    setAvailableDependencies(res.value);
-  }
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
     setTravelRequestHeader((prev) => ({
       ...prev,
@@ -447,10 +406,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     if (validateCurrentStep()) {
       setActiveTab(stepId);
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
-    }
-    if (stepId === "dependencies") {
-      await getProfileDependencies();
-      await travelDependants(profileNo);
     }
   };
 
@@ -470,29 +425,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     {id: "duration", label: "Duration (days)", type: "number"},
     {id: "documents", label: "Required Documents", type: "file"},
   ];
-
-  const travelDependants = async (profNo: string)=>{
-     const res = await getResource('travellers', {
-       params: {
-        filters: {
-          travellerNo:profNo
-        }
-       },
-     }
-       );
-        if (res.error) {
-          console.log('Travel Dependants error: ', res.error);
-          Swal.fire({
-            title: 'Error!',
-            text: 'Error fetching profile dependecies!',
-          });
-          return
-        }
-        setExistingTravelDependancies((prev)=> {
-          console.log('res2: ', res.value);
-          return [...prev, ...res.value];
-        })
-  }
 
   return (
     <div className="travel-wizard">
@@ -627,7 +559,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  travelInfo={travelRequestHeader}
+                  travelRequestHeader={travelRequestHeader}
                   onSubmit={fetchTravelRequest}
                 />
               )}
@@ -642,10 +574,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
               {activeTab === "dependencies" && (
                 <TravelDependencies
-                  availableDependencies={availableDependencies}
-                  existingTravelDependencies={existingTravelDependencies}
-                  refetchTravelDependencies ={()=>travelDependants(profileNo)}
-                  formData={travelRequestHeader}
+                  travelRequestHeader={travelRequestHeader}
+                  onSubmit={fetchTravelRequest}
                 />
               )}
 

@@ -10,12 +10,12 @@ import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 
 interface TravelDestinationsProps {
-  travelInfo: TravelRequest;
+  travelRequestHeader: TravelRequest;
   onSubmit: (requestNo: string) => void;
 }
 
 export default function TravelDestinations({
- travelInfo,
+ travelRequestHeader,
  onSubmit,
 }: TravelDestinationsProps) {
   const {
@@ -51,16 +51,16 @@ export default function TravelDestinations({
         destinationCity: "",
         travelDate: "",
         modeOfTransport: "",
-        documentNo: travelInfo.documentNo,
-        documentType: travelInfo.documentType,
+        documentNo: travelRequestHeader.documentNo,
+        documentType: travelRequestHeader.documentType,
       },
     ]);
   };
 
   const saveDestination = async (index: number) => {
     const destination = destinations[index];
-    destination['documentType'] = travelInfo.documentType;
-    destination['documentNo'] = travelInfo.no;
+    destination['documentType'] = travelRequestHeader.documentType;
+    destination['documentNo'] = travelRequestHeader.no;
 
     try {
       const res = await createResource('travelRoutes', {
@@ -72,7 +72,7 @@ export default function TravelDestinations({
       }
       Swal.fire("Success", 'Travel route was created successfully!');
       removeDestination(index)
-      onSubmit(travelInfo.no);
+      onSubmit(travelRequestHeader.no);
     } catch (e) {
       Swal.fire('Error!', e.message)
     }
@@ -91,7 +91,7 @@ export default function TravelDestinations({
         return Swal.fire('Error!', res.error.message)
       }
       Swal.fire("Success", 'Travel route was deleted successfully!');
-      onSubmit(travelInfo.no);
+      onSubmit(travelRequestHeader.no);
     } catch (e) {
       Swal.fire('Error!', e.message)
     }
@@ -396,7 +396,7 @@ export default function TravelDestinations({
       <div className="card-body">
         <DataTable
           columns={routesColumns}
-          data={travelInfo.travelRequestRoutes}
+          data={travelRequestHeader.travelRequestRoutes}
           dense
           responsive
           highlightOnHover
