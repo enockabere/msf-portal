@@ -10,7 +10,7 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: "ETR003",
+                    documentNo: travelInfo.documentNo,
                     documentType: travelInfo.documentType,
                     checklistType: "Visa",
                 }
