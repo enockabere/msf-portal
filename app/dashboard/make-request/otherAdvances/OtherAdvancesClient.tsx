@@ -15,6 +15,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { Advance } from "@/app/types/advance";
+import { getResource } from "@/app/lib/api/http";
+import Swal from "sweetalert2";
+import { useMySetups } from "@/app/context/SetupContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -26,28 +29,32 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-
+  const { currencies, fetchSetups } = useMySetups();
   const fetchAdvances = useCallback(async () => {
-    const employeeNo = session?.user?.profile?.number;
+    const employeeNo = session?.user?.profile?.no;
     if (!employeeNo) return;
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
-      );
-      const json = await res.json();
-      setAdvanceData(json["data"]["value"] || []);
-    } catch (err) {
-      console.error("❌ Parent failed to fetch advances:", err);
+      const res = await getResource('imprest', {
+        params: {
+          filters: {
+            employeeNo,
+          },
+        }
+      });
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message, 'error');
+      }
+      setAdvanceData(res.value);
+    } catch (err: any) {
+      Swal.fire('Error!', err.message, 'error');
     } finally {
       setLoading(false);
     }
   }, [session]);
 
-  useEffect(() => {
-    fetchAdvances();
-  }, [fetchAdvances]);
+  const abortController = new AbortController();
 
   const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
@@ -89,6 +96,16 @@ export default function OtherAdvancesClient() {
 
   const handleNewRequestClick = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
+  useEffect(() => {
+    Promise.allSettled([
+      fetchAdvances(),
+      fetchSetups([
+        'currencies',
+      ]),
+    ]);
+    return () => abortController.abort('Duplicate fetch!');
+  }, [fetchAdvances, fetchSetups]);
 
   const cards = [
     {

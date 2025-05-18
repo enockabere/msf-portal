@@ -5,6 +5,8 @@ import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
+import { findObjectFromArray } from "@/app/utils/helpers";
+import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
   data: Advance[];
@@ -29,39 +31,29 @@ export default function ReusableSalaryAdvanceTabs({
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
+  const { currencies } = useMySetups();
 
-  useEffect(() => {
-    if (
-      !didSetInitialTab.current &&
-      initialTab &&
-      ["open", "pending", "released"].includes(initialTab)
-    ) {
-      setActiveTab(initialTab);
-      didSetInitialTab.current = true;
-    }
-  }, [initialTab]);
+
 
   const filteredByStatus = useMemo(() => {
-    const filterBy = (status: string) =>
-      data.filter((item) => item.status === status);
-
+    const advanceByStatus = Map.groupBy(data, ({ status }) => status);
     return {
-      open: filterBy("Open"),
-      pending: filterBy("Pending Approval"),
-      released: filterBy("Released"),
+      open: advanceByStatus.get('Open'),
+      pending: advanceByStatus.get('Pending Approval'),
+      released: advanceByStatus.get('Released'),
     };
   }, [data]);
 
   useEffect(() => {
     if (onCountsUpdate) {
       onCountsUpdate({
-        open: filteredByStatus.open.length,
-        pending: filteredByStatus.pending.length,
-        released: filteredByStatus.released.length,
+        open: filteredByStatus?.open?.length,
+        pending: filteredByStatus?.pending?.length,
+        released: filteredByStatus?.released?.length,
         total:
-          filteredByStatus.open.length +
-          filteredByStatus.pending.length +
-          filteredByStatus.released.length,
+          filteredByStatus?.open?.length +
+          filteredByStatus?.pending?.length +
+          filteredByStatus?.released?.length,
       });
     }
   }, [filteredByStatus, onCountsUpdate]);
@@ -81,6 +73,18 @@ export default function ReusableSalaryAdvanceTabs({
     };
     return icons[type] || "fa-solid fa-file-alt";
   };
+
+  useEffect(() => {
+    if (
+      !didSetInitialTab.current &&
+      initialTab &&
+      ["open", "pending", "released"].includes(initialTab)
+    ) {
+      setActiveTab(initialTab);
+      didSetInitialTab.current = true;
+    }
+  }, [initialTab]);
+
 
   const columns = [
     {
@@ -136,14 +140,13 @@ export default function ReusableSalaryAdvanceTabs({
     {
       name: "Amount",
       selector: (row: Advance) =>
-        `${
-          row.currencyCode || "KES"
-        } ${row.applicationAmount.toLocaleString()}`,
+        `${findObjectFromArray(currencies, 'code', row.currencyCode)?.description || "KES"
+        } ${row.amountToPayHeader.toLocaleString()}`,
       sortable: true,
     },
     {
       name: "Application Date",
-      selector: (row: Advance) => formatDate(row.applicationDate),
+      selector: (row: Advance) => formatDate(row.postingDate),
       sortable: true,
     },
     {
@@ -157,11 +160,10 @@ export default function ReusableSalaryAdvanceTabs({
       sortable: true,
       cell: (row: Advance) => (
         <span
-          className={`badge ${
-            row.disbursed
-              ? "bg-success-subtle text-success"
-              : "bg-secondary-subtle text-muted"
-          }`}
+          className={`badge ${row.disbursed
+            ? "bg-success-subtle text-success"
+            : "bg-secondary-subtle text-muted"
+            }`}
         >
           {row.disbursed ? "Yes" : "No"}
         </span>
@@ -196,7 +198,7 @@ export default function ReusableSalaryAdvanceTabs({
   return (
     <div>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
-        <Tab eventKey="open" title={`Open (${filteredByStatus.open.length})`}>
+        <Tab eventKey="open" title={`Open (${filteredByStatus?.open?.length}`}>
           <div className="pt-3">
             <SkeletonDataTable
               columns={columns}
@@ -208,7 +210,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="pending"
-          title={`Pending (${filteredByStatus.pending.length})`}
+          title={`Pending (${filteredByStatus?.pending?.length})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
@@ -221,7 +223,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="released"
-          title={`Released (${filteredByStatus.released.length})`}
+          title={`Released (${filteredByStatus?.released?.length})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
