@@ -35,6 +35,7 @@ export default function OtherAdvancesClient() {
     released: 0,
     total: 0,
   });
+  const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -142,6 +143,17 @@ export default function OtherAdvancesClient() {
     },
   ];
 
+  const handleSetSelectedRow = (advance: Advance | null = null) => {
+    console.log("advance Value: ", advance)
+    if (advance) {
+      setSelectedAdvance(advance);
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+      setSelectedAdvance(null);
+    }
+  }
+
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -182,6 +194,8 @@ export default function OtherAdvancesClient() {
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  selectedAdvance={selectedAdvance}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -199,6 +213,8 @@ export default function OtherAdvancesClient() {
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  selectedAdvance={selectedAdvance}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -216,6 +232,8 @@ export default function OtherAdvancesClient() {
                 onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
+                selectedAdvance={selectedAdvance}
+                setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
               />
             </div>
           </div>
