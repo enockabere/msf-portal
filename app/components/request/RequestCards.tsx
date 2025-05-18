@@ -331,6 +331,26 @@ export default function RequestCards() {
             </div>
           </div>
         </div>
+
+        <div className="col">
+          <div className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary">
+            <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
+              <Wallet className="text-primary card-icon" size={28} />
+              <h6 className="card-title mt-2 fw-semibold small text-uppercase">
+                Requisitions
+              </h6>
+            </div>
+            <div className="card-footer border-0 bg-transparent text-muted d-flex align-items-center justify-content-center gap-3">
+              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
+                <PlusCircle size={16} /> New
+              </button>
+              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
+                <Eye size={16} /> View
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="col">
           <div
             className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
@@ -345,29 +365,6 @@ export default function RequestCards() {
               <Wallet className="text-muted card-icon" size={28} />
               <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
                 Record Expenses
-              </h6>
-            </div>
-            <div className="card-footer border-0 bg-transparent text-muted">
-              Coming Soon
-            </div>
-          </div>
-        </div>
-
-        {/* Placeholder Card for Requisitions */}
-        <div className="col">
-          <div
-            className="card request-hover-card h-100 text-center d-flex flex-column p-2 bg-light-secondary"
-            style={{ opacity: 0.5, cursor: "not-allowed" }}
-          >
-            <div className="ribbon4 rib4-secondary">
-              <span className="ribbon4-band ribbon4-band-secondary text-white text-center">
-                Soon
-              </span>
-            </div>
-            <div className="card-body d-flex flex-column justify-content-center align-items-center py-3">
-              <Wallet className="text-muted card-icon" size={28} />
-              <h6 className="card-title mt-2 fw-semibold small text-uppercase text-muted">
-                Requisitions
               </h6>
             </div>
             <div className="card-footer border-0 bg-transparent text-muted">
