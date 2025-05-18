@@ -2,8 +2,6 @@
 
 import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import { Wallet } from "lucide-react";
-import CustomModal from "@/app/components/modals/CustomModal";
 import { formatDate } from "@/app/utils/dateFormats";
 
 interface RequisitionRequestsTableProps {
@@ -11,10 +9,7 @@ interface RequisitionRequestsTableProps {
     loading: boolean;
 }
 
-export default function RequisitionRequestsTable({
-                                               data,
-                                               loading,
-                                           }: RequisitionRequestsTableProps) {
+export default function RequisitionRequestsTable({data, loading}: RequisitionRequestsTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [search, setSearch] = useState("");
 

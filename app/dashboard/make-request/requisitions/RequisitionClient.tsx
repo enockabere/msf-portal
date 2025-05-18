@@ -21,7 +21,6 @@ export default function RequisitionClient() {
                     console.log('Requisition fetch error: ', res.error);
                     toast.error(res.error.message)
                 } else {
-                    console.log(res.value)
                     setRequisitions([...res.value])
                 }
             } catch (error: any) {

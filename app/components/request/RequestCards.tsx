@@ -12,14 +12,14 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import RequisitionForm from "../requisitions/forms/RequisitionForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
 import { useMySetups } from "@/app/context/SetupContext";
 import Swal from "sweetalert2";
 
-
 type AdvanceTypeKey = "Salary" | "Other" | null;
-type RequestType = "Advance" | "Expense" | null;
+type RequestType = "Advance" | "Expense" | "Requisition" | null;
 
 interface AdvanceType {
   title: string;
@@ -341,9 +341,9 @@ export default function RequestCards() {
               </h6>
             </div>
             <div className="card-footer border-0 bg-transparent text-muted d-flex align-items-center justify-content-center gap-3">
-              {/*<button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>*/}
-              {/*  <PlusCircle size={16} /> New*/}
-              {/*</button>*/}
+              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleOpenModal("Requisition")}>
+                <PlusCircle size={16} /> New
+              </button>
               <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
                 <Eye size={16} /> View
               </button>
@@ -376,11 +376,7 @@ export default function RequestCards() {
       <CustomModal
         show={showModal}
         onClose={() => setShowModal(false)}
-        title={
-          requestType === "Expense"
-            ? "Record Expense"
-            : `Request ${captions[advanceType]} Advance`
-        }
+        title={ requestType === "Expense" ? "Record Expense" : requestType === "Requisition" ? "New Requisition"  : `Request ${captions[advanceType]} Advance`}
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
       >
@@ -409,6 +405,11 @@ export default function RequestCards() {
             <div className="col-md-12">
               <AdvanceSettlementForm />
             </div>
+          )}
+          {requestType === "Requisition" && (
+              <div className="col-md-12">
+                <RequisitionForm />
+              </div>
           )}
         </div>
       </CustomModal>
