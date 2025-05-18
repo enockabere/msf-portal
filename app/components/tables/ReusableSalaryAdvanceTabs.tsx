@@ -7,6 +7,7 @@ import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import { Advance } from "@/app/types/advance";
 import { findObjectFromArray } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
+import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 
 interface Props {
   data: Advance[];
@@ -34,36 +35,29 @@ export default function ReusableSalaryAdvanceTabs({
   const { currencies } = useMySetups();
 
 
-
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    return {
-      open: advanceByStatus.get('Open'),
-      pending: advanceByStatus.get('Pending Approval'),
-      released: advanceByStatus.get('Released'),
+    const open = advanceByStatus.get('Open') || [];
+    const pending = advanceByStatus.get('Pending Approval') || [];
+    const released = advanceByStatus.get('Released') || [];
+
+    const counts = {
+      open: open.length,
+      pending: pending.length,
+      released: released.length,
+      total: open.length + pending.length + released.length
     };
-  }, [data]);
 
-  useEffect(() => {
-    if (onCountsUpdate) {
-      onCountsUpdate({
-        open: filteredByStatus?.open?.length,
-        pending: filteredByStatus?.pending?.length,
-        released: filteredByStatus?.released?.length,
-        total:
-          filteredByStatus?.open?.length +
-          filteredByStatus?.pending?.length +
-          filteredByStatus?.released?.length,
-      });
+    if (counts.total > 0) {
+      onCountsUpdate(counts);
     }
-  }, [filteredByStatus, onCountsUpdate]);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return {
+      open,
+      pending,
+      released
+    };
+  }, [data, onCountsUpdate]);
 
   const getTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
@@ -141,22 +135,22 @@ export default function ReusableSalaryAdvanceTabs({
       name: "Amount",
       selector: (row: Advance) =>
         `${findObjectFromArray(currencies, 'code', row.currencyCode)?.description || "KES"
-        } ${row.amountToPayHeader.toLocaleString()}`,
+        } ${row?.amountToPayHeader?.toLocaleString()}`,
       sortable: true,
     },
     {
       name: "Application Date",
-      selector: (row: Advance) => formatDate(row.postingDate),
+      selector: (row: Advance) => formatDateToLcateDateString(row?.postingDate),
       sortable: true,
     },
     {
       name: "Disbursement Date",
-      selector: (row: Advance) => formatDate(row.preferredDisbursementDate),
+      selector: (row: Advance) => formatDateToLcateDateString(row?.endDate),
       sortable: true,
     },
     {
       name: "Disbursed",
-      selector: (row: Advance) => (row.disbursed ? "Yes" : "No"),
+      selector: (row: Advance) => (row?.imprestStatus === 'Issued' ? "Yes" : "No"),
       sortable: true,
       cell: (row: Advance) => (
         <span
@@ -198,7 +192,7 @@ export default function ReusableSalaryAdvanceTabs({
   return (
     <div>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
-        <Tab eventKey="open" title={`Open (${filteredByStatus?.open?.length}`}>
+        <Tab eventKey="open" title={`Open (${filteredByStatus?.open?.length ?? 0}`}>
           <div className="pt-3">
             <SkeletonDataTable
               columns={columns}
@@ -210,7 +204,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="pending"
-          title={`Pending (${filteredByStatus?.pending?.length})`}
+          title={`Pending (${filteredByStatus?.pending?.length ?? 0})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
@@ -223,7 +217,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="released"
-          title={`Released (${filteredByStatus?.released?.length})`}
+          title={`Released (${filteredByStatus?.released?.length ?? 0})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
