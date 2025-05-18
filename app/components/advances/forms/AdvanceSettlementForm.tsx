@@ -270,8 +270,8 @@ export default function AdvanceSettlementForm() {
                       if (expenses.length === 0) {
                         setExpenses([
                           {
-                            category: "Accommodation",
-                            amount: totalAdvanceAmount,
+                            expenseCode: "Accommodation",
+                            unitCost: totalAdvanceAmount,
                             receipt: null,
                             mileage: "",
                             costCenter: "ICT",
