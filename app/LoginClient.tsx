@@ -164,11 +164,10 @@ export default function LandingPage() {
       {/* Simplified topbar that shrinks on scroll */}
       <header
         className={`fixed top-0 z-50 w-full flex justify-between items-center px-6 md:px-12 transition-all duration-300
-    ${
-      isScrolled
-        ? "py-3 bg-white/90 backdrop-blur-sm shadow-xl"
-        : "py-5 bg-white shadow"
-    }
+    ${isScrolled
+            ? "py-3 bg-white/90 backdrop-blur-sm shadow-xl"
+            : "py-5 bg-white shadow"
+          }
     ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}
   `}
       >
@@ -185,9 +184,8 @@ export default function LandingPage() {
         <Button
           onClick={handleSSORedirect}
           disabled={isLoggingIn}
-          className={`relative overflow-hidden group bg-[#e52129] hover:bg-[#c11a22] text-white rounded-lg font-medium tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 ${
-            isScrolled ? "px-4 py-1.5 text-sm" : "px-5 py-2"
-          }`}
+          className={`relative overflow-hidden group bg-[#e52129] hover:bg-[#c11a22] text-white rounded-lg font-medium tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 ${isScrolled ? "px-4 py-1.5 text-sm" : "px-5 py-2"
+            }`}
         >
           <span className="relative z-10 flex items-center">
             {isLoggingIn ? (
@@ -213,9 +211,8 @@ export default function LandingPage() {
       <main className="relative z-10 flex-1 flex flex-col md:flex-row items-center justify-center px-6 md:px-12 gap-8 md:gap-16 py-12">
         {/* Left side: Text Content with enhanced styling */}
         <div
-          className={`md:w-1/2 space-y-8 transition-all duration-700 delay-100 ${
-            isLoaded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
-          }`}
+          className={`md:w-1/2 space-y-8 transition-all duration-700 delay-100 ${isLoaded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+            }`}
         >
           <div className="relative">
             <div className="absolute -left-4 top-0 h-full w-1 bg-[#e52129] rounded-full" />
@@ -270,21 +267,19 @@ export default function LandingPage() {
 
         {/* Right side: Enhanced Feature Cards - now responsive */}
         <div
-          className={`md:w-1/2 h-full flex items-center justify-center transition-all duration-700 delay-200 ${
-            isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
-          }`}
+          className={`md:w-1/2 h-full flex items-center justify-center transition-all duration-700 delay-200 ${isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+            }`}
         >
           <div className="relative w-full max-w-md min-h-[400px]">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className={`absolute inset-0 bg-black/50 p-6 w-full h-full transition-all duration-500 ease-out rounded-xl ${
-                  activeFeature === index
-                    ? "opacity-100 scale-100 z-10 translate-y-0 shadow-[0_10px_50px_rgba(229,33,41,0.3)]"
-                    : index < activeFeature
+                className={`absolute inset-0 bg-black/50 p-6 w-full h-full transition-all duration-500 ease-out rounded-xl ${activeFeature === index
+                  ? "opacity-100 scale-100 z-10 translate-y-0 shadow-[0_10px_50px_rgba(229,33,41,0.3)]"
+                  : index < activeFeature
                     ? "opacity-0 scale-95 -z-10 -translate-y-8"
                     : "opacity-0 scale-95 -z-10 translate-y-8"
-                }`}
+                  }`}
               >
                 <div className="pb-4">
                   <div
@@ -307,11 +302,10 @@ export default function LandingPage() {
                       <button
                         key={i}
                         onClick={() => setActiveFeature(i)}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          activeFeature === i
-                            ? "bg-[#e52129] w-8"
-                            : "bg-white/30 hover:bg-white/50 w-2"
-                        }`}
+                        className={`h-2 rounded-full transition-all duration-300 ${activeFeature === i
+                          ? "bg-[#e52129] w-8"
+                          : "bg-white/30 hover:bg-white/50 w-2"
+                          }`}
                         aria-label={`View feature ${i + 1}`}
                       />
                     ))}
@@ -325,13 +319,12 @@ export default function LandingPage() {
 
       {/* Enhanced Footer */}
       <footer
-        className={`relative z-10 w-full text-center py-6 text-sm text-white/60 border-t border-white/10 bg-black/50 transition-all duration-700 delay-300 ${
-          isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        }`}
+        className={`relative z-10 w-full text-center py-6 text-sm text-white/60 border-t border-white/10 bg-black/50 transition-all duration-700 delay-300 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
       >
         <div className="mx-auto max-w-screen-lg flex flex-col md:flex-row justify-between items-center gap-4 px-4">
           <div>&copy; {new Date().getFullYear()} MSF-EA · ERP Portal</div>
-          <div className="text-white/60">Powered by Kinetics Technologies</div>
+          <div className="text-white/60">Powered by <a href="https://kinetics.co.ke/" target="_blank">Kinetics Technology Ltd</a></div>
         </div>
       </footer>
 

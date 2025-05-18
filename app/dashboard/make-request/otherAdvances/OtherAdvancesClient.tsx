@@ -29,7 +29,22 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-  const { currencies, fetchSetups } = useMySetups();
+  const [advanceCounts, setAdvanceCounts] = useState({
+    open: 0,
+    pending: 0,
+    released: 0,
+    total: 0,
+  });
+
+  const [placement, setPlacement] = useState<
+    "right" | "top" | "bottom" | "left"
+  >("top");
+  const [showModal, setShowModal] = useState(false);
+  const { setBreadcrumb } = useBreadcrumb();
+  const { fetchSetups } = useMySetups();
+
+
+  const abortController = new AbortController();
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.no;
     if (!employeeNo) return;
@@ -54,25 +69,13 @@ export default function OtherAdvancesClient() {
     }
   }, [session]);
 
-  const abortController = new AbortController();
-
-  const { setBreadcrumb } = useBreadcrumb();
-  const [advanceCounts, setAdvanceCounts] = useState({
-    open: 0,
-    pending: 0,
-    released: 0,
-    total: 0,
-  });
-
-  const [placement, setPlacement] = useState<
-    "right" | "top" | "bottom" | "left"
-  >("top");
-  const [showModal, setShowModal] = useState(false);
-
   const handleChangePlacement = (newPlacement: typeof placement) => {
     setPlacement(newPlacement);
     localStorage.setItem("advancePlacement", newPlacement);
   };
+
+  const handleNewRequestClick = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("advancePlacement") as
@@ -93,9 +96,6 @@ export default function OtherAdvancesClient() {
       },
     ]);
   }, [setBreadcrumb]);
-
-  const handleNewRequestClick = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
 
   useEffect(() => {
     Promise.allSettled([
