@@ -41,14 +41,14 @@ export default function RequisitionRequestsTable({
         },
         {
             name: "Title",
-            selector: (row: Record<string, any>) => row.title,
+            selector: (row: Record<string, any>) => row.description,
         },
         {
             name: "Amount",
             selector: (row: Record<string, any>) =>
                 `${
                     row.currencyCode || "KES"
-                } ${row.totalAmount.toLocaleString()}`,
+                } ${row.amount.toLocaleString()}`,
         },
         {
             name: "Order Date",
@@ -76,8 +76,8 @@ export default function RequisitionRequestsTable({
                     "Pending Approval": "fas fa-clock me-1",
                 };
                 return (
-                    <span className={badgeMap[row.approvalStatus]}>
-            <i className={iconMap[row.approvalStatus]}/> {row.approvalStatus}
+                    <span className={badgeMap[row.status]}>
+            <i className={iconMap[row.status]}/> {row.status}
           </span>
                 );
             },

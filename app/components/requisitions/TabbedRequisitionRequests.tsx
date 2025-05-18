@@ -9,15 +9,15 @@ interface Props {
 }
 export default function TabbedRequisitionRequests({ records, profile }: Props) {
     const userRequisitions = useMemo(() => {
-        return records.filter((item) => item.type === 'User Requisitions')
+        return records.filter((item) => item.documentType === 'Purchase_x0020_Requisition')
     }, [records])
 
     const purchaseRequisitions = useMemo(() => {
-        return records.filter((item) => decodeValue(item.type) === 'Purchase Requisitions')
+        return records.filter((item) => item.documentType === 'Purchase_x0020_Requisition')
     }, [records])
 
     const storeRequisitions = useMemo(() => {
-        return records.filter((item) => item.type === 'Store Requisitions')
+        return records.filter((item) => item.documentType === 'Purchase_x0020_Requisition')
     }, [records])
 
     const tabData = [

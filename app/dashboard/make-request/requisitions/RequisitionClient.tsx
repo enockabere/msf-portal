@@ -1,32 +1,44 @@
-import SummaryCards from "@/app/components/cards/SummaryCards";
+"use client";
+
 import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequisitionRequests";
+import {useEffect, useState} from "react";
+import {getResource} from "@/app/lib/api/http";
+import {toast} from "react-toastify";
 
 export default function RequisitionClient() {
+    const [requisitions, setRequisitions] = useState([])
+
+    useEffect(() => {
+        const fetchRequisitions = async () => {
+            try {
+                const res = await getResource('requisitions', {
+                    params: {
+                        // Params
+                    }
+                });
+
+                if (res.error) {
+                    console.log('Requisition fetch error: ', res.error);
+                    toast.error(res.error.message)
+                } else {
+                    console.log(res.value)
+                    setRequisitions([...res.value])
+                }
+            } catch (error: any) {
+                console.log('Error fetching requisitions!', error.message)
+            }
+        }
+
+        fetchRequisitions();
+    })
+
     return (
         <div className="page-content dashboard-container p-3">
-                <div className="row gx-1 mb-1">
-                    <div className="col-12">
-                        {/*<SummaryCards*/}
-                        {/*    cards={cards}*/}
-                        {/*    layout="horizontal"*/}
-                        {/*    currentPlacement="top"*/}
-                        {/*    onPlacementChange={handleChangePlacement}*/}
-                        {/*    actionButton={*/}
-                        {/*        <button*/}
-                        {/*            className="btn bg-danger text-white btn-md"*/}
-                        {/*            onClick={handleNewRequestClick}*/}
-                        {/*        >*/}
-                        {/*            <i className="fa fa-plus me-1" />*/}
-                        {/*            New Travel Request*/}
-                        {/*        </button>*/}
-                        {/*    }*/}
-                        {/*/>*/}
+            <div className="row gx-1">
+                <div className="col-lg-12">
+                    <div className="card h-100 p-2">
+                        <TabbedRequisitionRequests records={requisitions} />
                     </div>
-                </div>
-
-            <div className="col-lg-12">
-                <div className="card h-100 p-2">
-                    <TabbedRequisitionRequests records={[]} />
                 </div>
             </div>
         </div>
