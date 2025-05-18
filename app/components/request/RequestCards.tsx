@@ -341,9 +341,9 @@ export default function RequestCards() {
               </h6>
             </div>
             <div className="card-footer border-0 bg-transparent text-muted d-flex align-items-center justify-content-center gap-3">
-              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
-                <PlusCircle size={16} /> New
-              </button>
+              {/*<button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>*/}
+              {/*  <PlusCircle size={16} /> New*/}
+              {/*</button>*/}
               <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
                 <Eye size={16} /> View
               </button>
