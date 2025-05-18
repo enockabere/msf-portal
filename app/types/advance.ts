@@ -22,15 +22,15 @@ export interface Advance {
 }
 
 export interface SalaryAdvanceData extends Advance {
-  paymentMethod: string;
+  paymentMethod?: string;
   currencyCode: string;
-  accountNo: string;
-  bankCode: string;
-  employeeBranchCode: string;
-  mobilePhoneNo: string;
-  identificationDocumentNo: string;
-  chequeName: string;
-  swiftCode: string;
+  accountNo?: string;
+  bankCode?: string;
+  employeeBranchCode?: string;
+  mobilePhoneNo?: string;
+  identificationDocumentNo?: string;
+  chequeName?: string;
+  swiftCode?: string;
   payrollPeriod?: string;
 }
 
