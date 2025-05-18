@@ -38,7 +38,7 @@ export default function SidebarMenu() {
           params: {
             filters: {
               status: "Open",
-              approverID: employee?.user?.profile?.number,
+              approverID: employee?.user?.profile?.no,
             },
             $count: true,
           },
