@@ -59,8 +59,8 @@ export default function RequisitionRequestsTable({
             selector: (row: Record<string, any>) => formatDate(row.dueDate),
         },
         {
-            name: "Title",
-            selector: (row: Record<string, any>) => row.requestedFor,
+            name: "Requested For",
+            selector: (row: Record<string, any>) => row.RequestedForName,
         },
         {
             name: "Status",
