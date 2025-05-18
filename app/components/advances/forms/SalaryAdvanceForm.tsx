@@ -16,11 +16,9 @@ import MpesaDetails from "./components/MpesaDetails";
 import BankDetails from "./components/BankDetails";
 import SalaryAdvanceHeader from "./components/SalaryAdvanceHeader";
 import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
-import { SalaryAdvanceData } from "@/app/types/advance";
+import { Advance, SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
-import { ENDPOINTMAP } from "@/app/utils/endpointMap";
-import { EndpointOptions } from "@/app/types/global";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -58,12 +56,14 @@ interface SalaryAdvanceFormProps {
   advance?: SalaryAdvanceData | null;
   isViewMode?: boolean;
   onSuccess?: (updatedStatus?: string) => void;
+  setSelectedRowHandler?: (advance: Advance) => void;
 }
 
 export default function SalaryAdvanceForm({
   advance = null,
   isViewMode = false,
   onSuccess,
+  setSelectedRowHandler
 }: SalaryAdvanceFormProps) {
   const advanceNo = advance?.no;
   const advanceBankCode = advance?.bankCode;
@@ -77,7 +77,6 @@ export default function SalaryAdvanceForm({
   const advanceIdNo = advance?.identificationDocumentNo;
   const advanceEmployeeBranchCode = advance?.employeeBranchCode;
   const advanceApplicationDate = advance?.applicationDate;
-  const advanceStatus = advance?.status;
   const [advanceAmount, setAdvanceAmount] = useState("");
   const [advanceLimit, setAdvanceLimit] = useState<number | null | undefined>(
     null
@@ -139,10 +138,12 @@ export default function SalaryAdvanceForm({
         setIsLoading(true);
         await fetchSetups([
           "currencies",
+          { paymentMethods: { filters: { isAdvance: true } } },
+          { payrollPeriods: { filters: { current: true } } },
+        ]);
+        fetchSetups([
           "banks",
           "bankBranches",
-          { paymentMethods: { filters: { isAdvance: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
-          { payrollPeriods: { filters: { current: true } } as EndpointOptions } as Record<ENDPOINTMAP, EndpointOptions>,
           {
             employeeBanks: {
               filters: {
@@ -151,9 +152,9 @@ export default function SalaryAdvanceForm({
                   ? { bankCode: advanceBankCode }
                   : { default: true }),
               },
-            } as EndpointOptions,
-          } as Record<ENDPOINTMAP, EndpointOptions>
-        ]);
+            },
+          } as any,
+        ]).then(() => { });
       } finally {
         setIsLoading(false);
       }
@@ -179,8 +180,8 @@ export default function SalaryAdvanceForm({
         const cutoffDate = new Date(cutoff);
         if (now > cutoffDate) {
           if (
-            advanceStatus !== "Pending Approval" &&
-            advanceStatus !== "Released"
+            advance?.status !== "Pending Approval" &&
+            advance?.status !== "Released"
           ) {
             setCutoffPassed(true);
             toast.error("The advance application deadline has passed.");
@@ -190,7 +191,7 @@ export default function SalaryAdvanceForm({
         console.warn("⚠️ No valid cutoff date found.");
       }
     }
-  }, [payrollPeriods, advanceStatus]);
+  }, [payrollPeriods, advance]);
 
   useEffect(() => {
     if (currencies.length && paymentMethods.length && bankBranches.length) {
@@ -427,7 +428,9 @@ export default function SalaryAdvanceForm({
           Swal.fire("Error", rawMsg || "Unknown API error", "error");
           return;
         }
-
+        if (!isEdit) {
+          setSelectedRowHandler(response.data);
+        }
         const newAdvanceNo =
           response?.data?.no ||
           response?.no ||
@@ -468,16 +471,14 @@ export default function SalaryAdvanceForm({
               approvalJson?.error?.details?.[0]?.message ||
               "Approval failed.";
             Swal.fire("Warning", approvalError, "warning");
-            const finalStatus =
-              response?.data?.status || advanceStatus || "Open";
-            onSuccess?.(finalStatus);
+            onSuccess?.(advance?.status || 'Open');
           } else {
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
               "success"
             );
-            onSuccess?.("Pending Approval");
+            onSuccess?.(advance?.status || 'Open');
           }
         } catch (approvalError: any) {
           Swal.fire(
@@ -485,8 +486,7 @@ export default function SalaryAdvanceForm({
             approvalError.message || "Saved but failed to submit for approval.",
             "warning"
           );
-          const finalStatus = response?.data?.status || advanceStatus || "Open";
-          onSuccess?.(finalStatus);
+          onSuccess?.(advance?.status || 'Open');
         }
       } catch (error: any) {
         let message = "An unexpected error occurred.";
@@ -529,7 +529,7 @@ export default function SalaryAdvanceForm({
       payrollPeriods,
       swiftCode,
       advanceApplicationDate,
-      advanceStatus,
+      setSelectedRowHandler
     ]
   );
 
@@ -556,7 +556,7 @@ export default function SalaryAdvanceForm({
           </>
         ) : (
           <>
-            <SalaryAdvanceHeader advanceNo={advanceNo} status={advanceStatus} />
+            <SalaryAdvanceHeader advanceNo={advanceNo} status={advance?.status} />
             <SalaryAdvanceFields
               advanceAmount={advanceAmount}
               setAdvanceAmount={setAdvanceAmount}
@@ -569,7 +569,7 @@ export default function SalaryAdvanceForm({
               advanceLimit={advanceLimit}
               isLimitLoading={isLimitLoading}
               isViewMode={isViewMode}
-              status={advanceStatus || ""}
+              status={advance?.status || ""}
             />
 
             {paymentMethod === "MPESA" ? (
@@ -580,7 +580,7 @@ export default function SalaryAdvanceForm({
                 setIdNumber={setIdNumber}
                 isViewMode={isViewMode}
                 required={currency === "KES" && paymentMethod === "MPESA"}
-                status={advanceStatus || ""}
+                status={advance?.status || ""}
               />
             ) : paymentMethod === "CHEQUE" ||
               paymentMethod === "RTGS" ||
@@ -600,7 +600,7 @@ export default function SalaryAdvanceForm({
                 banks={banks}
                 filteredBranches={filteredBranches}
                 isViewMode={isViewMode}
-                status={advanceStatus || ""}
+                status={advance?.status || ""}
               />
             ) : null}
           </>
@@ -614,7 +614,7 @@ export default function SalaryAdvanceForm({
             typeof advanceLimit === "number" &&
             parseFloat(advanceAmount) > advanceLimit
           }
-          status={advanceStatus || ""}
+          status={advance?.status || ""}
           advanceNo={savedAdvanceNo}
           onSuccess={onSuccess}
           employeeNo={employeeNo}

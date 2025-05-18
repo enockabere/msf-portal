@@ -8,7 +8,7 @@ import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import TravelAdvanceForm from "./forms/TravelAdvanceForm";
 import { Wallet } from "lucide-react";
-import { Advance, SalaryAdvanceData } from "@/app/types/advance";
+import { Advance } from "@/app/types/advance";
 
 type AdvanceType =
     | "Salary"
@@ -22,6 +22,7 @@ interface AdvanceRequestActionProps {
   advance: Advance | null;
   refetch?: (updatedStatus?: string) => void;
   onCloseView?: () => void;
+  setSelectedRowHandlerCallback: (advance: Advance) => void;
   showCreate?: boolean;
 }
 
@@ -33,38 +34,32 @@ export default function AdvanceRequestAction({
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
   const [advanceType, setAdvanceType] = useState<AdvanceType>(null);
-  const [editingAdvance, setEditingAdvance] =
-      useState<SalaryAdvanceData | null>(null);
 
   useEffect(() => {
     if (advance) {
-      setAdvanceType(advance.advanceType);
-      setEditingAdvance(advance as SalaryAdvanceData);
       setShowModal(true);
     } else if (showCreate) {
       console.log("🔄 Opening modal for creation");
       setAdvanceType("Salary");
-      setEditingAdvance(null);
       setShowModal(true);
     }
   }, [advance, showCreate]);
 
   const handleCloseModal = (updatedStatus?: string) => {
     setAdvanceType(null);
-    setEditingAdvance(null);
     setShowModal(false);
     if (refetch) refetch(updatedStatus);
     if (onCloseView) onCloseView?.();
   };
 
   const renderForm = () => {
-    const formType = editingAdvance?.advanceType || advanceType;
+    const formType = advance?.advanceType || advanceType;
     switch (formType) {
       case "Salary":
       case "Advance":
         return (
             <SalaryAdvanceForm
-                advance={editingAdvance}
+                advance={advance}
                 onSuccess={handleCloseModal}
             />
         );
@@ -79,12 +74,12 @@ export default function AdvanceRequestAction({
     }
   };
 
-  const modalTitle = editingAdvance
-      ? `View/Edit ${editingAdvance.advanceType} Advance - ${editingAdvance.no}`
+  const modalTitle = advance
+      ? `View/Edit ${advance.advanceType} Advance - ${advance.no}`
       : "Advance Request Details";
 
   const renderModal = () => {
-    const formType = editingAdvance?.advanceType || advanceType;
+    const formType = advance?.advanceType || advanceType;
     const isSalary = formType === "Salary" || formType === "Advance";
 
     return (
@@ -101,7 +96,7 @@ export default function AdvanceRequestAction({
             </div>
             {isSalary && (
                 <div className="col-md-3">
-                  <VerticalProgressCard advance={editingAdvance} />
+                  <VerticalProgressCard advance={advance} />
                 </div>
             )}
           </div>

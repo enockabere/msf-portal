@@ -12,6 +12,8 @@ import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 interface Props {
   data: Advance[];
   loading: boolean;
+  selectedAdvance: Advance;
+  setSelectedRowHandler: (Advance: Advance | null) => void;
   onCountsUpdate?: (counts: {
     open: number;
     pending: number;
@@ -25,11 +27,12 @@ interface Props {
 export default function ReusableSalaryAdvanceTabs({
   data,
   loading,
+  selectedAdvance,
+  setSelectedRowHandler,
   onCountsUpdate,
   initialTab,
   refetch,
 }: Props) {
-  const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
   const { currencies } = useMySetups();
@@ -87,7 +90,7 @@ export default function ReusableSalaryAdvanceTabs({
       cell: (row: Advance) => (
         <span
           className="text-blue text-decoration-underline cursor-pointer"
-          onClick={() => setSelectedAdvance(row)}
+          onClick={() => setSelectedRowHandler(row)}
         >
           {row.no}
         </span>
@@ -170,7 +173,7 @@ export default function ReusableSalaryAdvanceTabs({
           {row.status === "Open" && (
             <button
               className="text-primary border-0 bg-transparent"
-              onClick={() => setSelectedAdvance(row)}
+              onClick={() => setSelectedRowHandler(row)}
               title="Edit"
             >
               <i className="las la-pen fs-18" />
@@ -178,7 +181,7 @@ export default function ReusableSalaryAdvanceTabs({
           )}
           <button
             className="text-success border-0 bg-transparent"
-            onClick={() => setSelectedAdvance(row)}
+            onClick={() => setSelectedRowHandler(row)}
             title="View"
           >
             <i className="las la-eye fs-18" />
@@ -233,10 +236,11 @@ export default function ReusableSalaryAdvanceTabs({
       <AdvanceRequestAction
         advance={selectedAdvance}
         refetch={(updatedStatus) => {
-          setSelectedAdvance(null);
+          setSelectedRowHandler(selectedAdvance);
           refetch(updatedStatus);
         }}
-        onCloseView={() => setSelectedAdvance(null)}
+        setSelectedRowHandlerCallback={setSelectedRowHandler}
+        onCloseView={() => setSelectedRowHandler(null)}
       />
     </div>
   );
