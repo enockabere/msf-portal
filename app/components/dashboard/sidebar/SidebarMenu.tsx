@@ -51,7 +51,7 @@ export default function SidebarMenu() {
     };
 
     fetchApprovalCount();
-  }, [employee?.user?.profile?.number]);
+  }, [employee?.user?.profile?.no]);
 
   return (
     <ul className="navbar-nav mb-auto w-100">
