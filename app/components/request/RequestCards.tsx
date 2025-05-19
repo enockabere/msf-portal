@@ -16,31 +16,17 @@ import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
 import { useMySetups } from "@/app/context/SetupContext";
 import Swal from "sweetalert2";
+import { useAdvance } from "@/app/context/AdvanceContext";
+import { AdvanceType } from "@/app/types/advance";
 
 
 type AdvanceTypeKey = "Salary" | "Other" | null;
 type RequestType = "Advance" | "Expense" | null;
 
-interface AdvanceType {
-  title: string;
-  key: AdvanceTypeKey;
-  [key: string]: any;
-}
-
 const captions = {
   Other: "",
 }
 
-const advances: AdvanceType[] = [
-  {
-    title: 'Salary Advance',
-    key: 'Salary'
-  },
-  {
-    title: 'Other Advance',
-    key: 'Other'
-  },
-];
 
 export default function RequestCards() {
   const router = useRouter();
@@ -57,8 +43,8 @@ export default function RequestCards() {
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: session } = useSession();
   const { showLoader } = usePageLoader();
-  const { fetchSetups } = useMySetups()
-
+  const { advanceTypes, actions } = useAdvance();
+  const { handleFetchingSetup } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -84,22 +70,7 @@ export default function RequestCards() {
       }
       case 'Other': {
         //setloader
-        await fetchSetups([
-          'imprestTypes',
-          'currencies',
-          {
-            paymentMethods: {
-              filters: {
-                isImprest: true,
-              }
-            }
-          }
-        ]).catch((err) => {
-          Swal.fire({
-            title: "Error Fetching setups!",
-            text: "Please try again later. " + err.message,
-          });
-        });
+        await handleFetchingSetup();
         setAdvanceType(dataType);
         setShowNewDropdown(false);
         handleOpenModal("Advance");
@@ -220,29 +191,22 @@ export default function RequestCards() {
                       zIndex: 1000,
                     }}
                   >
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowViewDropdown(false);
-                        handleNavigate(e, "/dashboard/make-request/advances");
-                      }}
-                    >
-                      Salary Advances
-                    </button>
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowViewDropdown(false);
-                        handleNavigate(
-                          e,
-                          "/dashboard/make-request/otherAdvances"
-                        );
-                      }}
-                    >
-                      Other Advances
-                    </button>
+                    {
+                      advanceTypes.map((type) => {
+                        return (
+                          <button
+                            className="dropdown-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowViewDropdown(false);
+                              handleNavigate(e, `/dashboard/make-request/${type.route}`);
+                            }}
+                          >
+                            {type.title}
+                          </button>
+                        )
+                      })
+                    }
                   </div>
                 )}
               </div>
@@ -267,7 +231,7 @@ export default function RequestCards() {
                     }}
                   >
                     {
-                      advances.map((advance: AdvanceType) => {
+                      advanceTypes.map((advance: AdvanceType) => {
                         return (
                           <button
                             className="dropdown-item"

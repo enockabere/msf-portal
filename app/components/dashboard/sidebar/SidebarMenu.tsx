@@ -14,11 +14,6 @@ export default function SidebarMenu() {
   const [approvalCount, setApprovalCount] = useState(0);
   const { data: employee } = useSession();
 
-  const isGroupActive = (prefix: string) =>
-    !isNavigating &&
-    currentPath.startsWith(prefix) &&
-    currentPath !== "/dashboard";
-
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath && !isNavigating) {
@@ -109,7 +104,7 @@ export default function SidebarMenu() {
         </div>
       </li>
 
-      <li className="nav-item">
+      {/* <li className="nav-item">
         <a
           className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
           href="#sidebarHRServices"
@@ -144,10 +139,9 @@ export default function SidebarMenu() {
             </li>
           </ul>
         </div>
-      </li>
+      </li> */}
 
-      {/* Procurement & Finance - Fixed active state logic */}
-      <li className="nav-item">
+      {/* <li className="nav-item">
         <a
           className={`nav-link ${
             isGroupActive("/procurement") ? "active" : ""
@@ -182,7 +176,7 @@ export default function SidebarMenu() {
             ))}
           </ul>
         </div>
-      </li>
+      </li> */}
 
       {/* Static Links */}
       {[

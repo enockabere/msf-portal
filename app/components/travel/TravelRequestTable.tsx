@@ -45,7 +45,7 @@ export default function TravelRequestTable({
       cell: (row: Record<string, any>) => (
         <span
           className="text-blue text-decoration-underline cursor-pointer"
-          onClick={() => console.log("View", row)}
+          onClick={() => handleOpenModal(row.no, 'View')}
         >
           {row.no}
         </span>
