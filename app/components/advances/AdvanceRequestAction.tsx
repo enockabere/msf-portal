@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import CustomModal from "../modals/CustomModal";
-import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
-import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
+import SalaryAdvanceForm from "./forms/SalaryAdvanceForm";
+import VerticalProgressCard from "./forms/VerticalProgressCard";
 import { Wallet } from "lucide-react";
 import { Advance } from "@/app/types/advance";
 
@@ -21,18 +21,8 @@ export default function AdvanceRequestAction({
   setSelectedRowHandlerCallback
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
-  // const [editingAdvance, setEditingAdvance] =
-  //   useState<SalaryAdvanceData | null>(null);
-
-  // useEffect(() => {
-  //   if (advance) {
-  //     setEditingAdvance(advance as SalaryAdvanceData);
-  //     setShowModal(true);
-  //   }
-  // }, [advance]);
 
   const handleCloseModal = (updatedStatus?: string) => {
-    // setEditingAdvance(null);
     setShowModal(false);
     if (refetch) refetch(updatedStatus);
     if (onCloseView) onCloseView();

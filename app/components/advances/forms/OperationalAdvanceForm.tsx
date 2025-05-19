@@ -13,35 +13,45 @@ import { batchRequest, createResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
 import { batchRequestOptions, BatchRequestResponse } from "@/app/types/options";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [formData, setFormData] = useState<FormData>({
-    imprestType: "",
-    Purpose: "",
-    amountToPayHeader: null,
-    currencyCode: "",
-    paymentMethod: "",
-    cashCollectionDate: "",
-    cashHours: "",
-    idPassportNumber: "",
-    accountNo: "",
-    bankNo: "",
-    branch: "",
-    swiftCode: "",
-    phoneNo: "",
-    accountName: "",
-  });
+  // const [formData, setFormData] = useState<FormData>({
+  //   imprestType: "",
+  //   Purpose: "",
+  //   amountToPayHeader: null,
+  //   currencyCode: "",
+  //   paymentMethod: "",
+  //   cashCollectionDate: "",
+  //   cashHours: "",
+  //   idPassportNumber: "",
+  //   accountNo: "",
+  //   bankNo: "",
+  //   branch: "",
+  //   swiftCode: "",
+  //   phoneNo: "",
+  //   accountName: "",
+  // });
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>('');
   const { paymentMethods, employeeBanks, DEPARTMENTS, PROJECT, expenseCodes, fetchSetups } = useMySetups();
-  const { data } = useSession()
+  const { formData, isEditing, setForView, actions } = useAdvance();
+  const { dispatcher } = actions;
+  const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // setFormData((prev) => ({ ...prev, [field]: value }));
+    dispatcher({
+      type: 'CHANGE_ADVANCE_FORMDATA_FIELD',
+      payload: { [field]: value },
+    });
     handleSettingPaymentMethodType();
   };
+
+
+
 
   const handleExpenseChange = <K extends keyof ExpenseItem>(
     index: number,
@@ -308,13 +318,17 @@ export default function OperationalAdvanceForm() {
       handleFormChange('cashHours', "");
     }
   }
-  useEffect(() => {
-    const total = expenses.reduce(
-      (acc, item) => acc + (isNaN(item.unitCost) ? 0 : item.unitCost),
-      0
-    );
-    setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
-  }, [expenses]);
+  // useEffect(() => {
+  //   const total = expenses.reduce(
+  //     (acc, item) => acc + (isNaN(item.unitCost) ? 0 : item.unitCost),
+  //     0
+  //   );
+  //   // setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
+  //   dispatcher({
+  //     type: 'CHANGE_ADVANCE_FORMDATA_FIELD',
+  //     payload: { amountToPayHeader: total || null },
+  //   });
+  // }, [expenses]);
 
   useEffect(() => {
     getProfileValues();
