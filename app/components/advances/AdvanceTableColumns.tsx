@@ -1,0 +1,231 @@
+import { useMySetups } from "@/app/context/SetupContext";
+import { Advance } from "@/app/types/advance";
+import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
+import { findObjectFromArray } from "@/app/utils/helpers";
+
+const getTypeIcon = (type: string) => {
+    const icons: Record<string, string> = {
+        Advance: "fa-solid fa-money-bill",
+        Travel: "fa-solid fa-plane",
+        Operational: "fa-solid fa-gear",
+    };
+    return icons[type] || "fa-solid fa-file-alt";
+};
+
+export const getColumnByType = (type: string, cb: (data: Advance | null) => void) => {
+    const { currencies } = useMySetups();
+    const columns = {
+        salaryAdvance: [
+            {
+                name: "Advance No",
+                sortable: true,
+                cell: (row: Advance) => (
+                    <span
+                        className="text-blue text-decoration-underline cursor-pointer"
+                        onClick={() => cb(row)}
+                    >
+                        {row.no}
+                    </span>
+                ),
+            },
+            {
+                name: "Type",
+                selector: (row: Advance) => row.advanceType,
+                sortable: true,
+                cell: (row: Advance) => (
+                    <div className="d-flex align-items-center gap-2">
+                        <div
+                            className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
+                            style={{ width: 32, height: 32 }}
+                        >
+                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                        </div>
+                        <span>{row.advanceType}</span>
+                    </div>
+                ),
+            },
+            {
+                name: "Status",
+                selector: (row: Advance) => row.status,
+                sortable: true,
+                cell: (row: Advance) => {
+                    const badgeMap = {
+                        Open: "badge bg-info-subtle text-info",
+                        Released: "badge bg-success-subtle text-success",
+                        "Pending Approval": "badge bg-warning-subtle text-warning",
+                    };
+                    const iconMap = {
+                        Open: "fas fa-folder-open me-1",
+                        Released: "fas fa-check-circle me-1",
+                        "Pending Approval": "fas fa-clock me-1",
+                    };
+                    return (
+                        <span className={badgeMap[row.status]}>
+                            <i className={iconMap[row.status]} /> {row.status}
+                        </span>
+                    );
+                },
+            },
+            {
+                name: "Amount",
+                selector: (row: Advance) =>
+                    `${row.currencyCode || "KES"
+                    } ${row.applicationAmount.toLocaleString()}`,
+                sortable: true,
+            },
+            {
+                name: "Application Date",
+                selector: (row: Advance) => formatDateToLcateDateString(row.applicationDate),
+                sortable: true,
+            },
+            {
+                name: "Disbursement Date",
+                selector: (row: Advance) => formatDateToLcateDateString(row.preferredDisbursementDate),
+                sortable: true,
+            },
+            {
+                name: "Disbursed",
+                selector: (row: Advance) => (row.disbursed ? "Yes" : "No"),
+                sortable: true,
+                cell: (row: Advance) => (
+                    <span
+                        className={`badge ${row.disbursed
+                            ? "bg-success-subtle text-success"
+                            : "bg-secondary-subtle text-muted"
+                            }`}
+                    >
+                        {row.disbursed ? "Yes" : "No"}
+                    </span>
+                ),
+            },
+            {
+                name: "Actions",
+                cell: (row: Advance) => (
+                    <div className="d-flex gap-2">
+                        {row.status === "Open" && (
+                            <button
+                                className="text-primary border-0 bg-transparent"
+                                onClick={() => cb(row)}
+                                title="Edit"
+                            >
+                                <i className="las la-pen fs-18" />
+                            </button>
+                        )}
+                        <button
+                            className="text-success border-0 bg-transparent"
+                            onClick={() => cb(row)}
+                            title="View"
+                        >
+                            <i className="las la-eye fs-18" />
+                        </button>
+                    </div>
+                ),
+                ignoreRowClick: true,
+            },
+        ],
+        otherAdvances: [
+            {
+                name: "Advance No",
+                sortable: true,
+                cell: (row: Advance) => (
+                    <span
+                        className="text-blue text-decoration-underline cursor-pointer"
+                        onClick={() => cb(row)}
+                    >
+                        {row.no}
+                    </span>
+                ),
+            },
+            {
+                name: "Type",
+                selector: (row: Advance) => row.advanceType,
+                sortable: true,
+                cell: (row: Advance) => (
+                    <div className="d-flex align-items-center gap-2">
+                        <div
+                            className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
+                            style={{ width: 32, height: 32 }}
+                        >
+                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                        </div>
+                        <span>{row.advanceType}</span>
+                    </div>
+                ),
+            },
+            {
+                name: "Status",
+                selector: (row: Advance) => row.status,
+                sortable: true,
+                cell: (row: Advance) => {
+                    const badgeMap = {
+                        Open: "badge bg-info-subtle text-info",
+                        Released: "badge bg-success-subtle text-success",
+                        "Pending Approval": "badge bg-warning-subtle text-warning",
+                    };
+                    const iconMap = {
+                        Open: "fas fa-folder-open me-1",
+                        Released: "fas fa-check-circle me-1",
+                        "Pending Approval": "fas fa-clock me-1",
+                    };
+                    return (
+                        <span className={badgeMap[row.status]}>
+                            <i className={iconMap[row.status]} /> {row.status}
+                        </span>
+                    );
+                },
+            },
+            {
+                name: "Amount",
+                selector: (row: Advance) =>
+                    `${findObjectFromArray(currencies, 'code', row.currencyCode)?.description || "KES"
+                    } ${row.amountToPayHeader.toLocaleString()}`,
+                sortable: true,
+            },
+            {
+                name: "Application Date",
+                selector: (row: Advance) => formatDateToLcateDateString(row.postingDate),
+                sortable: true,
+            },
+            {
+                name: "Released",
+                selector: (row: Advance) => (row.imprestStatus === 'Issued' ? "Yes" : "No"),
+                sortable: true,
+                cell: (row: Advance) => (
+                    <span
+                        className={`badge ${row.imprestStatus === 'Issued'
+                            ? "bg-success-subtle text-success"
+                            : "bg-secondary-subtle text-muted"
+                            }`}
+                    >
+                        {row.imprestStatus === 'Issued' ? "Yes" : "No"}
+                    </span>
+                ),
+            },
+            {
+                name: "Actions",
+                cell: (row: Advance) => (
+                    <div className="d-flex gap-2">
+                        {row.status === "Open" && (
+                            <button
+                                className="text-primary border-0 bg-transparent"
+                                onClick={() => cb(row)}
+                                title="Edit"
+                            >
+                                <i className="las la-pen fs-18" />
+                            </button>
+                        )}
+                        <button
+                            className="text-success border-0 bg-transparent"
+                            onClick={() => cb(row)}
+                            title="View"
+                        >
+                            <i className="las la-eye fs-18" />
+                        </button>
+                    </div>
+                ),
+                ignoreRowClick: true,
+            },
+        ]
+    }
+    return columns[type]
+}

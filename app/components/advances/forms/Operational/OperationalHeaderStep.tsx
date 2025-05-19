@@ -91,7 +91,7 @@ export default function OperationalHeaderStep({
                   value={formData.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
                 >
-                  <option defaultValue={'Select bank'}> --Select bank --</option>
+                  <option defaultValue={''}> --Select bank --</option>
                   {
                     banks.map((bank: Record<string, any>) => {
                       return (
@@ -206,7 +206,7 @@ export default function OperationalHeaderStep({
         {formData.amountToPayHeader &&
           (
             <div className="badge text-dark fs-6">
-              Total Advance: {formData.currencyCode} {formData.amountToPayHeader}
+              Total Advance: {findObjectFromArray(currencies, 'code', formData.currencyCode)?.description as string || 'KES'} {formData.amountToPayHeader}
             </div>
           )}
       </div>
@@ -225,7 +225,7 @@ export default function OperationalHeaderStep({
                   onFormChange("imprestType", e.target.value)
                 }
               >
-                <option defaultValue={'Select imprest type'}>--select imprest type--</option>
+                <option defaultValue={''}>--select imprest type--</option>
                 {
                   imprestTypes.map((type: Record<string, any>) => {
                     return (
@@ -247,9 +247,10 @@ export default function OperationalHeaderStep({
               <select
                 id="currency"
                 className="form-select"
+                value={formData.currencyCode}
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
-                <option defaultValue={'Select currency'}> -- Select Currency -- </option>
+                <option defaultValue={''}> -- Select Currency -- </option>
                 {
                   currencies.map((currency: Record<string, any>) => {
                     return (
@@ -267,9 +268,10 @@ export default function OperationalHeaderStep({
               <select
                 id="payment-method"
                 className="form-select"
+                value={formData.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
-                <option defaultValue={'Select payment method'}> --Select payment method-- </option>
+                <option defaultValue={''}> --Select payment method-- </option>
                 {
                   paymentMethods.map((method: Record<string, any>) => {
                     return (

@@ -6,39 +6,52 @@ import ProgressIndicator from "./Operational/ProgressIndicator";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
 import OperationalLineStep from "./Operational/OperationalLineStep";
 import { ExpenseItem, FormData } from "@/app/types/advance";
-import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps } from "@/app/utils/helpers";
+import { checkIfMissingRequiredProperty, constructDimension, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps, safeTypechecker } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { createResource } from "@/app/lib/api/http";
+import { batchRequest, createResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
+import { batchRequestOptions, BatchRequestResponse } from "@/app/types/options";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [formData, setFormData] = useState<FormData>({
-    imprestType: "",
-    Purpose: "",
-    amountToPayHeader: null,
-    currencyCode: "",
-    paymentMethod: "",
-    cashCollectionDate: "",
-    cashHours: "",
-    idPassportNumber: "",
-    accountNo: "",
-    bankNo: "",
-    branch: "",
-    swiftCode: "",
-    phoneNo: "",
-    accountName: "",
-  });
+  // const [formData, setFormData] = useState<FormData>({
+  //   imprestType: "",
+  //   Purpose: "",
+  //   amountToPayHeader: null,
+  //   currencyCode: "",
+  //   paymentMethod: "",
+  //   cashCollectionDate: "",
+  //   cashHours: "",
+  //   idPassportNumber: "",
+  //   accountNo: "",
+  //   bankNo: "",
+  //   branch: "",
+  //   swiftCode: "",
+  //   phoneNo: "",
+  //   accountName: "",
+  // });
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { paymentMethods, employeeBanks, fetchSetups } = useMySetups();
-  const { data } = useSession()
+  const [paymentMethodType, setPaymentMethodType] = useState<string>('');
+  const { paymentMethods, employeeBanks, DEPARTMENTS, PROJECT, expenseCodes, fetchSetups } = useMySetups();
+  const { formData, isEditing, setForView, actions } = useAdvance();
+  const { dispatcher } = actions;
+  const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // setFormData((prev) => ({ ...prev, [field]: value }));
+    dispatcher({
+      type: 'CHANGE_ADVANCE_FORMDATA_FIELD',
+      payload: { [field]: value },
+    });
+    handleSettingPaymentMethodType();
   };
+
+
+
 
   const handleExpenseChange = <K extends keyof ExpenseItem>(
     index: number,
@@ -56,6 +69,12 @@ export default function OperationalAdvanceForm() {
     setExpenses(updated);
   };
 
+  function handleSettingPaymentMethodType() {
+    if (!formData.paymentMethod) return null;
+    const type: string = findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type as string;
+    setPaymentMethodType(type);
+  };
+
   const removeExpenseLine = (index: number) => {
     const updated = [...expenses];
     updated.splice(index, 1);
@@ -66,24 +85,48 @@ export default function OperationalAdvanceForm() {
     setExpenses((prev) => [
       ...prev,
       {
-        category: "",
-        amount: NaN,
-        receipt: null,
-        mileage: "",
+        expenseCode: "",
+        unitCost: NaN,
+        description: "",
         costCenter: "",
         project: "",
-        otherCategory: "",
       },
     ]);
   };
 
-  const handleSaveLine = (index: number, item: ExpenseItem) => {
-    const updated = [...expenses];
-    updated[index] = item;
-    setExpenses(updated);
+  const handleNext = async () => {
+    const strippedFormData = removeNullAndUndefinedFromObject(formData);
+    const missingRequiredValuesBeforeNext = checkIfMissingRequiredProperty(strippedFormData, ['imprestType', 'currencyCode']);
+    if (!missingRequiredValuesBeforeNext || missingRequiredValuesBeforeNext.missing) {
+      return Swal.fire('Warning!', `Missing [${missingRequiredValuesBeforeNext.prop.join(' , ')}] which are required before adding lines!.`, 'warning');
+    }
+    Promise.all([
+      fetchSetups([
+        {
+          dimensions: {
+            $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT'`
+          }
+        }
+      ]),
+      fetchSetups([
+        {
+          expenseCodes: {
+            filters: {
+              imprestType: formData.imprestType
+            }
+          }
+        }
+      ], true),
+    ])
+    setCurrentStep(2);
   };
 
-  const handleNext = async () => {
+  const handlePrev = () => {
+    setCurrentStep(1);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitted(true);
     try {
       const pDate = new Date().toISOString();
       const presets: Record<string, any> = {
@@ -94,8 +137,8 @@ export default function OperationalAdvanceForm() {
         requestedByFor: data.user?.profile?.no
       };
       const strippedPayLoad = removeNullAndUndefinedFromObject({ ...formData, ...presets });
-      const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode']);
-      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode']);
+      const knownSchema = removeObjectProps(strippedPayLoad, ['cashCollectionDate', 'idPassportNumber', 'accountNo', 'branch', 'swiftCode', 'amountToPayHeader']);
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, ['documentType', 'imprestType', 'postingDate', 'employeeNo', 'currencyCode', 'paymentMethod', 'Purpose']);
       if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
       if (isMissingRequiredProp.missing) {
         return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
@@ -104,61 +147,126 @@ export default function OperationalAdvanceForm() {
         data: knownSchema,
       });
       if (res.error) {
-        return Swal.fire(res.error.code, res.error.message);
+        return Swal.fire(res.error.code, res.error.message, 'error');
       }
-      setFormData({ ...res.value });
-      Swal.fire("Success", `${formData.imprestType} advance was created successfully!`);
-      await fetchSetups([
-        {
-          expenseCodes: {
-            filters: {
-              imprestType: formData.imprestType
-            }
-          }
-        }
-      ])
-      setCurrentStep(2);
+      console.log('response for created imprest: ', res)
+      await handleSubmittingAdvanceLine(res as FormData);
+      Swal.fire("Success", `${formData.imprestType} advance was created successfully!`, 'success');
     } catch (error: any) {
-      Swal.fire('Error!', error.message)
+      Swal.fire('Error!', error.message, 'error');
+    } finally {
+      setIsSubmitted(false);
     }
   };
 
-  const handlePrev = () => {
-    setCurrentStep(1);
-  };
+  async function handleSubmittingAdvanceLine(header: FormData) {
+    try {
+      console.log("header passed to lines: ", header);
+      if (safeTypechecker(header) !== 'Object' || !Object.keys(header).length) {
+        throw new Error('We ran into an error!, Try again later!');
+      }
+      const defaults = {
+        documentType: 'Imprest',
+        documentNo: header.no,
+        Quantity: 1,
+      };
+      const expenseRequestOption = expenses.map((expense: ExpenseItem) => {
+        const costCenterDimension = findObjectFromArray(DEPARTMENTS, 'code', expense.costCenter);
+        const projectDimension = findObjectFromArray(PROJECT, 'code', expense.project);
+        const glAccount = findObjectFromArray(expenseCodes, 'code', expense.expenseCode);
+        if (safeTypechecker(glAccount) !== 'Object') return {};
+        expense[constructDimension(costCenterDimension)] = expense.costCenter;
+        expense[constructDimension(projectDimension)] = expense.project;
+        expense.description = glAccount.description as string;
+        delete expense.costCenter;
+        delete expense.project;
+        const linePayload = {
+          ...expense,
+          ...defaults,
+        };
+        const strippedLinePayload = removeNullAndUndefinedFromObject(linePayload);
+        const validSchema = removeObjectProps(strippedLinePayload, ['costCenter', 'project']);
+        const validateRequiredProps = checkIfMissingRequiredProperty(validSchema, ['documentNo', 'documentType', 'expenseCode', 'unitCost', 'Quantity']);
+        if (!validateRequiredProps) return {};
+        if (validateRequiredProps.missing) {
+          return {};
+        }
+        return {
+          method: 'POST',
+          endpoint: 'imprestLine',
+          data: validSchema,
+        } satisfies batchRequestOptions
+      });
+      const addedLines = expenses.length;
+      const lineCaption = addedLines > 1 ? 'lines' : 'line';
+      expenseRequestOption.forEach((item, index) => {
+        if (!Object.keys(item).length) {
+          expenseRequestOption.splice(index, 1);
+        }
+      });
+      if (expenseRequestOption.length) {
+        if (expenseRequestOption.length !== expenses.length) Swal.fire('Alert!', `${addedLines > 1 ? 'Some' : 'The'} advance ${lineCaption} will not be submitted due to errors`, 'info');
+        const res: BatchRequestResponse = await batchRequest({
+          batch: expenseRequestOption,
+        });
+        if (res.error) {
+          throw new Error(res.error.message);
+        } else {
+          let failedLines = 0;
+          for (const [, value] of Object.entries(res)) {
+            if (value.error) {
+              failedLines++;
+            }
+          }
+          if (failedLines) {
+            throw new Error(`${failedLines} advances did not save!`);
+          }
+        }
 
-  const handleSubmit = () => {
-    console.log("Form submitted", { formData, expenses });
-    setIsSubmitted(true);
-  };
-
+      } else {
+        throw new Error(`The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} add update lines!`);
+      }
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
   const handleSurrender = () => {
     console.log("Apply for surrender");
   };
 
   const getProfileValues = async () => {
     if (!formData.paymentMethod) return null;
-    const type: string = findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type as string;
-    switch (type) {
+    switch (paymentMethodType) {
       case 'Mpesa': {
-        handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
-        handleFormChange('idPassportNumber', String(data.user?.profile?.identificationDocumentNo));
+        updateMobileMoneyFields();
+        updateEmployeeBank(true);
+        updateCashFields(true);
         break;
       }
       case "Cheques":
       case "Bank_x0020_Transfer": {
         if (data.user?.profile?.type !== 'Employee') return
-        await fetchSetups([
-          "banks",
-          {
-            employeeBanks: {
-              filters: {
-                employee: data.user?.profile?.no,
-                default: true,
+        Promise.allSettled([
+          fetchSetups([
+            "banks",
+          ]),
+          fetchSetups([
+            {
+              employeeBanks: {
+                filters: {
+                  employee: data.user?.profile?.no,
+                  default: true,
+                }
               }
             }
-          }
-        ]);
+          ], true),
+        ])
+        break;
+      }
+      case 'Cash': {
+        updateMobileMoneyFields(true);
+        updateEmployeeBank(true);
+        break;
       }
     }
   }
@@ -176,34 +284,65 @@ export default function OperationalAdvanceForm() {
       }
     ], true);
   }
-
-  const updateEmployeeBank = () => {
-    const bankDetails = employeeBanks[0];
-    if (bankDetails && Object.keys(bankDetails).length) {
-      handleFormChange('accountNo', bankDetails.accountNo);
-      handleFormChange('accountName', bankDetails.name);
-      handleFormChange('bankNo', bankDetails.bankCode);
-      handleFormChange('branch', bankDetails.bankBranch);
-      handleFormChange('swiftCode', bankDetails.swiftCode);
+  function updateMobileMoneyFields(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('phoneNo', "");
+      handleFormChange('idPassportNumber', "");
+    } else {
+      handleFormChange('phoneNo', String(data.user?.profile?.phoneNo));
+      handleFormChange('idPassportNumber', String(data.user?.profile?.identificationDocumentNo));
     }
   }
-  useEffect(() => {
-    const total = expenses.reduce(
-      (acc, item) => acc + (isNaN(item.amount) ? 0 : item.amount),
-      0
-    );
-    setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
-  }, [expenses]);
+  function updateEmployeeBank(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('accountNo', "");
+      handleFormChange('accountName', "");
+      handleFormChange('bankNo', "");
+      handleFormChange('branch', "");
+      handleFormChange('swiftCode', "");
+    } else {
+      const bankDetails = employeeBanks[0];
+      if (bankDetails && Object.keys(bankDetails).length) {
+        handleFormChange('accountNo', bankDetails.accountNo);
+        handleFormChange('accountName', bankDetails.name);
+        handleFormChange('bankNo', bankDetails.bankCode);
+        handleFormChange('branch', bankDetails.bankBranch);
+        handleFormChange('swiftCode', bankDetails.swiftCode);
+      }
+    }
+  }
+
+  function updateCashFields(clear: boolean = false) {
+    if (clear) {
+      handleFormChange('cashCollectionDate', "");
+      handleFormChange('cashHours', "");
+    }
+  }
+  // useEffect(() => {
+  //   const total = expenses.reduce(
+  //     (acc, item) => acc + (isNaN(item.unitCost) ? 0 : item.unitCost),
+  //     0
+  //   );
+  //   // setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
+  //   dispatcher({
+  //     type: 'CHANGE_ADVANCE_FORMDATA_FIELD',
+  //     payload: { amountToPayHeader: total || null },
+  //   });
+  // }, [expenses]);
 
   useEffect(() => {
     getProfileValues();
-  }, [formData.paymentMethod], getProfileValues);
+  }, [paymentMethodType])
 
   useEffect(() => {
     getBankBranches();
   }, [formData.bankNo]);
 
-  useEffect(() => { updateEmployeeBank() }, [employeeBanks]);
+  useEffect(() => {
+    updateEmployeeBank(paymentMethodType !== 'Cheques' && paymentMethodType !== 'Bank_x0020_Transfer');
+    updateMobileMoneyFields(paymentMethodType !== 'Mpesa');
+    updateCashFields(paymentMethodType !== 'Cash');
+  }, [employeeBanks, formData.paymentMethod, paymentMethodType]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
@@ -222,10 +361,10 @@ export default function OperationalAdvanceForm() {
               onFileChange={handleFileChange}
               onRemoveExpense={removeExpenseLine}
               onAddExpense={addExpenseLine}
-              onSaveLine={handleSaveLine}
               onSubmit={handleSubmit}
               onCancel={handlePrev}
               onSurrender={handleSurrender}
+              currency={formData.currencyCode}
             />
           )}
         </div>
