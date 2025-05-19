@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Check, Undo2, Trash2, Plus, ArrowUp, XCircle } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
@@ -20,7 +20,6 @@ interface OperationalLineStepProps {
   onAddExpense: () => void;
   onSubmit: () => void;
   onCancel: () => void;
-  onSurrender: () => void;
   currency: string;
   advanceNo: string;
 }
@@ -32,7 +31,6 @@ export default function OperationalLineStep({
   onAddExpense,
   onSubmit,
   onCancel,
-  onSurrender,
   currency,
   advanceNo,
 }: OperationalLineStepProps) {
@@ -128,7 +126,7 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                          `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
@@ -153,7 +151,7 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                          `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
