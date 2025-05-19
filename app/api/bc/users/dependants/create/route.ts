@@ -7,7 +7,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const payload: Record<string, any> = {
       profileNo: body.profileNo,
-      lineNo: 0,
       name: body.name,
       relation: body.relation,
       dob: body.dob,

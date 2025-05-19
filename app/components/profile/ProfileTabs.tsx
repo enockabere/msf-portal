@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import classNames from "classnames";
 import ProfileSettings from "./tabs/ProfileSettings";
 import DependentsTab from "./tabs/DependentsTab";
-import BankDetailsTab from "./tabs/BankDetailsTab";
 import { useSession } from "next-auth/react";
 
 interface Dependent {
@@ -26,15 +25,13 @@ export default function ProfileTabs({
   const profileType = session?.user?.profile?.type || "";
 
   const availableTabs = useMemo(() => {
-    const baseTabs = [
-      { id: "gallery", label: "Gallery" },
-      { id: "profile-settings", label: "Profile Settings" },
-      { id: "bank-details", label: "Bank Details" },
-    ];
+    const baseTabs = [{ id: "profile-settings", label: "Profile Settings" }];
 
     if (profileType === "Visitor") {
-      baseTabs.splice(2, 0, { id: "dependents", label: "Dependants" }); // insert before bank-details
+      baseTabs.push({ id: "dependents", label: "Dependants" });
     }
+
+    baseTabs.push({ id: "gallery", label: "Gallery" }); // Gallery now last
 
     return baseTabs;
   }, [profileType]);
@@ -60,12 +57,6 @@ export default function ProfileTabs({
       </ul>
 
       <div className="tab-content">
-        {activeTab === "gallery" && (
-          <div className="tab-pane fade show active p-3" id="gallery">
-            <p className="text-muted">No content in gallery yet.</p>
-          </div>
-        )}
-
         {activeTab === "profile-settings" && (
           <div className="tab-pane fade show active">
             <ProfileSettings />
@@ -81,9 +72,9 @@ export default function ProfileTabs({
           </div>
         )}
 
-        {activeTab === "bank-details" && (
-          <div className="tab-pane fade show active">
-            <BankDetailsTab />
+        {activeTab === "gallery" && (
+          <div className="tab-pane fade show active p-3" id="gallery">
+            <p className="text-muted">No content in gallery yet.</p>
           </div>
         )}
       </div>

@@ -2,8 +2,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import BootstrapClient from "./components/bootstrap/BootstrapClient";
 import { MySetupsProvider } from "./context/SetupContext";
 import SessionProvider from "./context/SessionProvider";
-
 import "./globals.css";
+import "../styles/bootstrap.min.css";
+import "../styles/icons.min.css";
+import "../styles/app.min.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

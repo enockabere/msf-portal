@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (type === "Visitor") {
-      return NextResponse.redirect(new URL("/dashboard/profile", request.url));
+      return NextResponse.redirect(new URL("/user-profiles", request.url));
     }
   }
 
@@ -24,5 +24,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/"], // apply to landing page only
+  matcher: ["/"], 
 };

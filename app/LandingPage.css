@@ -1,0 +1,59 @@
+.landing-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000, #111111);
+}
+
+.navbar {
+  background-color: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease-in-out;
+  padding: 1rem 0;
+}
+
+.navbar.scrolled {
+  padding: 0.5rem 0;
+}
+
+.particles-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.animate-left,
+.animate-right {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.7s ease;
+}
+
+.animate-right {
+  transform: translateX(20px);
+}
+
+.animate-left.loaded,
+.animate-right.loaded {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.feature-card {
+  min-height: 300px;
+  transition: all 0.4s ease;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ffffff40;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background-color: #e52129;
+  width: 20px;
+}

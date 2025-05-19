@@ -18,7 +18,7 @@ import {
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import "../tailwind.css";
+import "./UserProfilePage.css";
 import PageLoader from "../components/loaders/PageLoader";
 import { useMySetups } from "../context/SetupContext";
 import Image from "next/image";
@@ -33,35 +33,37 @@ const ProfileHeader = ({
   isEditing,
   onAvatarChange,
 }) => (
-  <div className="bg-gradient-to-r from-red-600 to-red-500 p-8 text-white">
-    <div className="flex items-center space-x-6">
-      <div className="relative">
+  <div className="profile-header">
+    <div className="d-flex align-items-center gap-4">
+      <div className="position-relative">
         <Image
           src={avatar}
           alt="Profile"
           width={96}
           height={96}
-          className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-lg"
+          className="profile-avatar"
         />
 
         {isEditing && (
-          <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-white p-2 shadow-md">
+          <label className="avatar-edit-label">
             <input
               type="file"
               accept="image/*"
-              className="hidden"
+              className="d-none"
               onChange={onAvatarChange}
             />
             <svg
-              className="h-5 w-5 text-blue-600"
+              width="20"
+              height="20"
               fill="none"
               stroke="currentColor"
+              strokeWidth="2"
               viewBox="0 0 24 24"
+              className="text-primary"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
               />
             </svg>
@@ -69,12 +71,12 @@ const ProfileHeader = ({
         )}
       </div>
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="h4 fw-bold mb-1">
           {firstName} {middleName} {lastName}
         </h1>
-        <p className="text-sm opacity-80">{email || "No email provided"}</p>
-        <p className="mt-1 flex items-center text-sm">
-          <MapPin className="mr-1 h-4 w-4" />
+        <p className="small mb-1">{email || "No email provided"}</p>
+        <p className="small d-flex align-items-center mb-0 text-muted">
+          <MapPin className="me-1" size={14} />
           {city || "No city provided"}
         </p>
       </div>
@@ -92,39 +94,45 @@ const ProfileFormField = ({
   icon: Icon,
   options,
 }) => (
-  <div className="relative">
-    {Icon && (
-      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
-    )}
-    {type === "select" ? (
-      <select
-        name={name}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className={`w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm focus:border-red-600 focus:outline-none disabled:bg-gray-100`}
-      >
-        <option value="">{`Select ${label}`}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    ) : (
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        placeholder={label}
-        className={`w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm focus:border-red-600 focus:outline-none disabled:bg-gray-100`}
-      />
-    )}
-    <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600">
+  <div className="mb-3">
+    <label htmlFor={name} className="form-label fw-medium">
       {label}
     </label>
+    <div className="input-group">
+      {Icon && (
+        <span className="input-group-text bg-white border-end-0">
+          <Icon size={16} className="text-muted" />
+        </span>
+      )}
+      {type === "select" ? (
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className="form-select"
+        >
+          <option value="">{`Select ${label}`}</option>
+          {options?.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          id={name}
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className="form-control"
+          placeholder={label}
+        />
+      )}
+    </div>
   </div>
 );
 
@@ -135,24 +143,22 @@ const ProfileActionButtons = ({
   onCancel,
   onSubmit,
 }) => (
-  <div className="mb-6 flex flex-wrap gap-3">
+  <div className="mb-4 d-flex flex-wrap gap-3">
     {!isEditing ? (
-      <>
-        <button
-          onClick={onEdit}
-          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-blue-200"
-        >
-          <Pencil size={16} />
-          Edit Profile
-        </button>
-      </>
+      <button
+        onClick={onEdit}
+        className="btn btn-danger d-flex align-items-center gap-2"
+      >
+        <Pencil size={16} />
+        Edit Profile
+      </button>
     ) : (
       <>
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className={`flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
-            isSubmitting ? "cursor-not-allowed opacity-50" : ""
+          className={`btn btn-danger d-flex align-items-center gap-2 ${
+            isSubmitting ? "disabled opacity-75" : ""
           }`}
         >
           <Save size={16} />
@@ -160,7 +166,7 @@ const ProfileActionButtons = ({
         </button>
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          className="btn btn-outline-secondary d-flex align-items-center gap-2"
         >
           <XCircle size={16} />
           Cancel
@@ -371,7 +377,8 @@ export default function UserProfilePage() {
         setAvatar(event.target.result as string);
         toast.success("Avatar updated!", {
           position: "top-center",
-          className: "bg-green-500 text-white font-medium",
+          className:
+            "text-white bg-success fw-semibold px-3 py-2 rounded shadow",
         });
       }
     };
@@ -385,7 +392,7 @@ export default function UserProfilePage() {
 
   if (status === "loading" || globalLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-white-50">
+      <div className="min-vh-100 d-flex justify-content-center align-items-center bg-light">
         <PageLoader />
       </div>
     );
@@ -393,30 +400,32 @@ export default function UserProfilePage() {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      className="min-vh-100 bg-footer"
       style={{ backgroundImage: "url('/assets/images/bg/footer-bg.png')" }}
     >
-      <header className="bg-white shadow-md py-4 px-6 mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="bg-white shadow-sm py-3 px-4 mb-4 d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center gap-2">
           <Image
             src="/assets/images/logo-light.png"
             alt="Logo"
             width={100}
             height={40}
-            className="h-10 w-auto"
+            className="img-fluid"
           />
         </div>
         <button
           onClick={handleQuit}
-          className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium text-sm"
+          className="btn btn-link text-danger fw-semibold d-flex align-items-center gap-1 text-decoration-none"
         >
           <LogOut size={16} />
           Home
         </button>
       </header>
+
       <Toaster />
-      <div className="mx-5 max-md">
-        <div className="overflow-hidden rounded-md bg-white shadow-2xl">
+
+      <div className="px-4">
+        <div className="bg-white rounded shadow-lg overflow-hidden">
           <ProfileHeader
             avatar={avatar}
             firstName={formData.firstName}
@@ -428,7 +437,7 @@ export default function UserProfilePage() {
             onAvatarChange={handleAvatarChange}
           />
 
-          <div className="p-8">
+          <div className="p-4">
             <ProfileActionButtons
               isEditing={isEditing}
               isSubmitting={isSubmitting}
@@ -436,8 +445,8 @@ export default function UserProfilePage() {
               onCancel={() => setIsEditing(false)}
               onSubmit={handleSubmit}
             />
-            <form className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {/* Row 1: First, Middle, Last Names */}
+
+            <form className="row row-cols-1 row-cols-md-3 g-4">
               <ProfileFormField
                 label="First Name"
                 name="firstName"
@@ -466,7 +475,6 @@ export default function UserProfilePage() {
                 options={undefined}
               />
 
-              {/* Row 2: DOB, Gender, Title */}
               <ProfileFormField
                 label="Date of Birth"
                 name="dateOfBirth"
@@ -498,7 +506,6 @@ export default function UserProfilePage() {
                 options={titleOptions}
               />
 
-              {/* Row 3: Passport, Email, Country */}
               <ProfileFormField
                 label="Passport/ID No"
                 name="passportIDNo"
@@ -529,7 +536,6 @@ export default function UserProfilePage() {
                 options={countryOptions}
               />
 
-              {/* Row 4: City, Phone, Citizenship */}
               <ProfileFormField
                 label="City"
                 name="city"
