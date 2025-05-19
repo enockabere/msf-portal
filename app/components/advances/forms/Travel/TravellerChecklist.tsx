@@ -10,14 +10,13 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: travelInfo.documentNo,
+                    documentNo: travelInfo.no,
                     documentType: travelInfo.documentType,
                     checklistType: "Travel",
                 }
             }
         });
 
-        console.log('getTravelChecklist', res?.value);
         setTravelChecklist(res?.value || []);
     }, [travelInfo]); // Only re-create when this value changes
 
