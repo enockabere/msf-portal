@@ -2,69 +2,50 @@
 
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
-
-interface TicketItem {
-  id: string;
-  ticketNumber: string;
-  departure: string;
-  destination: string;
-  travelDate: string;
-  airline: string;
-}
+import { TravelRequestProviders } from "@/app/types/travel";
 
 interface TravelTicketSelectorProps {
-  tickets: TicketItem[];
-  selectedTicketId: string | null;
-  onSelectTicket: (ticketId: string) => void;
+  tickets: TravelRequestProviders[];
 }
 
 export default function TravelTicketSelector({
   tickets,
-  selectedTicketId,
-  onSelectTicket,
 }: TravelTicketSelectorProps) {
   return (
     <div className="card mb-4">
       <div className="card-body">
-        <table className="table table-bordered mb-0 align-middle">
-          <thead className="table-light">
-            <tr>
-              <th>#</th>
-              <th>Ticket No</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Travel Date</th>
-              <th>Airline</th>
-              <th className="text-center">Select</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickets.map((ticket, idx) => (
-              <tr key={ticket.id}>
-                <td>{idx + 1}</td>
-                <td>{ticket.ticketNumber}</td>
-                <td>{ticket.departure}</td>
-                <td>{ticket.destination}</td>
-                <td>{ticket.travelDate}</td>
-                <td>{ticket.airline}</td>
-                <td className="text-center">
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${
-                      selectedTicketId === ticket.id
-                        ? "btn-success"
-                        : "btn-outline-primary"
-                    }`}
-                    onClick={() => onSelectTicket(ticket.id)}
-                  >
-                    <CheckCircle2 size={16} className="me-1" />
-                    {selectedTicketId === ticket.id ? "Selected" : "Select"}
-                  </button>
-                </td>
+        {tickets.length === 0 ? (
+          <div className="text-center text-muted py-4">
+            No available tickets at the moment.
+          </div>
+        ) : (
+          <table className="table table-bordered mb-0 align-middle">
+            <thead className="table-light">
+              <tr>
+                <th>#</th>
+                <th>documentType</th>
+                <th>documentNo</th>
+                <th>service Code</th>
+                <th>service</th>
+                <th>vendorName</th>
+                <th>vehicle Number</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tickets.map((ticket, idx) => (
+                <tr key={ticket.id}>
+                  <td>{idx + 1}</td>
+                  <td>{ticket.documentType}</td>
+                  <td>{ticket.documentNo}</td>
+                  <td>{ticket.serviceCode}</td>
+                  <td>{ticket.serviceDescription}</td>
+                  <td>{ticket.vendorName}</td>
+                  <td>{ticket.vehicleRegistrationNo}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
