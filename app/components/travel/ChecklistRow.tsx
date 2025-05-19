@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {patchResource} from "@/app/lib/api/http";
+import {createResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import {Save} from "lucide-react";
 import {ChecklistItem} from "@/app/types/ChecklistItem";
@@ -9,6 +9,42 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
         row.expiryDate === '0001-01-01' ? '' : row.expiryDate
     );
     const [has, setHas] = useState(row.has);
+    const [base64, setBase64] = useState(null);
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const base64String = await toBase64(file);
+        setBase64(base64String);
+
+        saveBase64File(base64String, file.name);
+    };
+
+    const toBase64 = (file) =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+        });
+
+    const saveBase64File = (base64Data, fileName) => {
+        // For example, send to backend
+        console.log("Saving file:", fileName);
+        console.log("Base64:", base64Data);
+
+        const res = createResource('travelAttachments', {
+            data: {
+                    relatedRecordId: "",
+                no: "",
+                lineNo: "",
+                documentCode: "",
+                attachment: "",
+                attachedDate: "",
+            }
+        })
+    };
 
     const handleSubmit = async () => {
         try {
@@ -49,6 +85,18 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
                     value={expiryDate ? new Date(expiryDate).toISOString().split('T')[0] : ''}
                     onChange={(e) => setExpiryDate(e.target.value)}
                 />
+            </td>
+            <td>
+                {!row.requiresAttachment ? (
+                    <input
+                        type="file"
+                        checked={has}
+                        disabled={!row.requiresAttachment}
+                        onChange={handleFileChange}
+                    />
+                ) : (
+                  <p className="text-center">N/A</p>
+                )}
             </td>
             <td>
                 <input

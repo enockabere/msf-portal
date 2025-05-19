@@ -8,4 +8,5 @@ export interface ChecklistItem {
     checklistItemDescription: string;
     documentType: string;
     has: boolean;
+    requiresAttachment: boolean;
 }

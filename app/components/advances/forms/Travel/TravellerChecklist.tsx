@@ -50,6 +50,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
                                 <tr>
                                     <th>Item - Description</th>
                                     <th>Expiry Date</th>
+                                    <th>Attachment</th>
                                     <th>Verify</th>
                                     <th>Action</th>
                                 </tr>

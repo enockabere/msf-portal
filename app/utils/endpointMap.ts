@@ -54,6 +54,7 @@ export const endpointMap = {
   travellers:"/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",
   profileTitles: "/api/kinetics/enigma/v1.0/profileTitles",
+  travelAttachments: "/api/kinetics/adminTravel/v1.0/attachments",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));
