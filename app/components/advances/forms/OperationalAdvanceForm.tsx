@@ -299,9 +299,9 @@ export default function OperationalAdvanceForm() {
       throw new Error(error.message);
     }
   }
-  const handleSurrender = () => {
-    console.log("Apply for surrender");
-  };
+  // const handleSurrender = () => {
+  //   console.log("Apply for surrender");
+  // };
 
   const getProfileValues = async () => {
     if (!formData.paymentMethod) return null;
@@ -435,7 +435,6 @@ export default function OperationalAdvanceForm() {
               onAddExpense={addExpenseLine}
               onSubmit={handleSubmit}
               onCancel={handlePrev}
-              onSurrender={handleSurrender}
               currency={formData.currencyCode}
               advanceNo={formData.no}
             />
