@@ -33,12 +33,12 @@ export default function OperationalAdvanceForm() {
   //   phoneNo: "",
   //   accountName: "",
   // });
-  const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
+  // const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>('');
   const { paymentMethods, employeeBanks, DEPARTMENTS, PROJECT, expenseCodes, fetchSetups } = useMySetups();
-  const { formData, isEditing, setForView, actions } = useAdvance();
-  const { dispatcher } = actions;
+  const { formData, expenses, isEditing, setForView, actions } = useAdvance();
+  const { dispatcher, fetchLineSetup } = actions;
   const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
@@ -58,15 +58,24 @@ export default function OperationalAdvanceForm() {
     field: K,
     value: ExpenseItem[K]
   ) => {
-    const updated = [...expenses];
-    updated[index][field] = value;
-    setExpenses(updated);
+    dispatcher({
+      type: 'CHANGE_EXPENSE_LINE',
+      payload: {
+        index,
+        update: {
+          [field]: value,
+        }
+      }
+    });
+    // const updated = [...expenses];
+    // updated[index][field] = value;
+    // setExpenses(updated);
   };
 
   const handleFileChange = (index: number, file: File | null) => {
-    const updated = [...expenses];
-    updated[index].receipt = file;
-    setExpenses(updated);
+    // const updated = [...expenses];
+    // updated[index].receipt = file;
+    // setExpenses(updated);
   };
 
   function handleSettingPaymentMethodType() {
@@ -76,22 +85,38 @@ export default function OperationalAdvanceForm() {
   };
 
   const removeExpenseLine = (index: number) => {
-    const updated = [...expenses];
-    updated.splice(index, 1);
-    setExpenses(updated);
+    dispatcher({
+      type: 'REMOVE_EXPENSE_LINE',
+      payload: {
+        index,
+      }
+    })
+    // const updated = [...expenses];
+    // updated.splice(index, 1);
+    // setExpenses(updated);
   };
 
   const addExpenseLine = () => {
-    setExpenses((prev) => [
-      ...prev,
-      {
+    dispatcher({
+      type: 'ADD_NEW_ADVANCE_LINE',
+      payload: {
         expenseCode: "",
         unitCost: NaN,
         description: "",
         costCenter: "",
         project: "",
       },
-    ]);
+    });
+    // setExpenses((prev) => [
+    //   ...prev,
+    //   {
+    //     expenseCode: "",
+    //     unitCost: NaN,
+    //     description: "",
+    //     costCenter: "",
+    //     project: "",
+    //   },
+    // ]);
   };
 
   const handleNext = async () => {
@@ -100,24 +125,7 @@ export default function OperationalAdvanceForm() {
     if (!missingRequiredValuesBeforeNext || missingRequiredValuesBeforeNext.missing) {
       return Swal.fire('Warning!', `Missing [${missingRequiredValuesBeforeNext.prop.join(' , ')}] which are required before adding lines!.`, 'warning');
     }
-    Promise.all([
-      fetchSetups([
-        {
-          dimensions: {
-            $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT'`
-          }
-        }
-      ]),
-      fetchSetups([
-        {
-          expenseCodes: {
-            filters: {
-              imprestType: formData.imprestType
-            }
-          }
-        }
-      ], true),
-    ])
+    fetchLineSetup();
     setCurrentStep(2);
   };
 
@@ -272,7 +280,6 @@ export default function OperationalAdvanceForm() {
   }
 
   const getBankBranches = async () => {
-    console.log("Bank changed: ", formData.bankNo)
     if (!formData.bankNo || formData.bankNo === "undefined" || formData.bankNo === "null") return null;
     await fetchSetups([
       {
@@ -318,17 +325,6 @@ export default function OperationalAdvanceForm() {
       handleFormChange('cashHours', "");
     }
   }
-  // useEffect(() => {
-  //   const total = expenses.reduce(
-  //     (acc, item) => acc + (isNaN(item.unitCost) ? 0 : item.unitCost),
-  //     0
-  //   );
-  //   // setFormData((prev) => ({ ...prev, amountToPayHeader: total || null }));
-  //   dispatcher({
-  //     type: 'CHANGE_ADVANCE_FORMDATA_FIELD',
-  //     payload: { amountToPayHeader: total || null },
-  //   });
-  // }, [expenses]);
 
   useEffect(() => {
     getProfileValues();

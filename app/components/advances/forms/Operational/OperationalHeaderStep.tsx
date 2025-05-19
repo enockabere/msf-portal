@@ -41,7 +41,7 @@ export default function OperationalHeaderStep({
                     id="mpesa-phone"
                     value={formData.phoneNo}
                     onChange={(e) => onFormChange("phoneNo", e.target.value)}
-                    maxLength={9}
+                    maxLength={25}
                   />
                 </div>
               </div>

@@ -6,16 +6,22 @@ import { RequestOptions, RequestResponse } from "../types/options";
 import { ENDPOINTMAP } from "../utils/endpointMap";
 import { getResource } from "../lib/api/http";
 import Swal from "sweetalert2";
-import { ExpenseItem, FormData } from "../types/advance";
+import { AdvanceType, ExpenseItem, FormData } from "../types/advance";
+import { useMySetups } from "./SetupContext";
 
 const initialState = {
     advanceTypes: [
         {
-            code: "SALARY",
-            documentType: "SALARY",
-            description: "Salary Advance"
+            title: 'Salary Advance',
+            key: 'Salary',
+            route: 'advances'
         },
-    ],
+        {
+            title: 'Other Advance',
+            key: 'Other',
+            route: 'otherAdvances'
+        },
+    ] satisfies AdvanceType[],
     formData: {
         imprestType: "",
         Purpose: "",
@@ -31,6 +37,7 @@ const initialState = {
         swiftCode: "",
         phoneNo: "",
         accountName: "",
+        no: "",
     } satisfies FormData,
     expenses: [] as ExpenseItem[],
     isNew: false satisfies boolean,
@@ -41,12 +48,17 @@ const initialState = {
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
             return Promise.resolve({ success: false })
         },
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         dispatcher: (options: ReducerFunctionActionType): void => { },
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        handleFetchingSetup: (): Promise<void> => { return Promise.resolve() },
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        fetchLineSetup: (): Promise<void> => { return Promise.resolve() },
     }
 }
 export type AdvanceState = typeof initialState;
 
-function AdvanceReducer(state: any, action: ReducerFunctionActionType) {
+function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) {
     switch (action.type) {
         case 'UPDATE_ADVANCE_TYPES': {
             return {
@@ -82,6 +94,34 @@ function AdvanceReducer(state: any, action: ReducerFunctionActionType) {
                 expenses: action.payload,
             }
         }
+        case 'ADD_NEW_ADVANCE_LINE': {
+            return {
+                ...state,
+                expenses: [
+                    ...state.expenses,
+                    action.payload,
+                ],
+            }
+        }
+        case 'CHANGE_EXPENSE_LINE': {
+            let draftExpenses = state.expenses;
+            draftExpenses[action.payload.index] = {
+                ...draftExpenses[action.payload.index],
+                ...action.payload.update,
+            }
+            return {
+                ...state,
+                expenses: draftExpenses,
+            }
+        }
+        case 'REMOVE_EXPENSE_LINE': {
+            const expenseDraft = [...state.expenses];
+            expenseDraft.splice(action.payload.index, 1);
+            return {
+                ...state,
+                expenses: expenseDraft,
+            }
+        }
         case 'ADVANCE_CREATION_STATUSES': {
             return {
                 ...state,
@@ -96,6 +136,7 @@ const AdvanceContext = createContext<AdvanceState | undefined>(undefined);
 
 export const AdvanceContextProvider = ({ children }: { children: ReactNode }) => {
     const [advance, dispatcher] = useReducer(AdvanceReducer, initialState);
+    const { fetchSetups } = useMySetups();
 
     const fetchAdvanceTypes = useCallback(
         async (endpoint: ENDPOINTMAP, options: RequestOptions) => {
@@ -132,11 +173,52 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
     const dispatcherCaller = useCallback((option: ReducerFunctionActionType) => {
         dispatcher(option);
     }, []);
+
+    const handleFetchingSetup = async () => {
+        await fetchSetups([
+            'imprestTypes',
+            'currencies',
+            {
+                paymentMethods: {
+                    filters: {
+                        isImprest: true,
+                    }
+                }
+            }
+        ]).catch((err) => {
+            Swal.fire({
+                title: "Error Fetching setups!",
+                text: "Please try again later. " + err.message,
+            });
+        });
+    }
+    const fetchLineSetup = () => {
+        Promise.all([
+            fetchSetups([
+                {
+                    dimensions: {
+                        $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT'`
+                    }
+                }
+            ]),
+            fetchSetups([
+                {
+                    expenseCodes: {
+                        filters: {
+                            imprestType: advance.formData.imprestType
+                        }
+                    }
+                }
+            ], true),
+        ])
+    }
     const contextValue = useMemo(() => ({
 
         ...advance,
         actions: {
             ...advance.actions,
+            handleFetchingSetup,
+            fetchLineSetup,
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
         }

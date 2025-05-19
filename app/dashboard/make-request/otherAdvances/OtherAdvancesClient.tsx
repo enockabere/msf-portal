@@ -43,8 +43,8 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
-  const { actions } = useAdvance();
-  const { dispatcher } = actions;
+  const { formData, actions } = useAdvance();
+  const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.no;
@@ -117,7 +117,7 @@ export default function OtherAdvancesClient() {
 
   const handleSetSelectedRow = (advance: Advance | null = null) => {
     if (advance) {
-      // setSelectedAdvance(advance);
+      handleFetchingSetup();
       dispatcher({
         type: 'OPEN_EXISTING_ADVANCE',
         payload: advance,
@@ -171,6 +171,37 @@ export default function OtherAdvancesClient() {
       },
     ]);
   }, [setBreadcrumb]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const fetchAdvanceLines = async () => {
+
+      const res = await getResource('imprestLine', {
+        params: {
+          filters: {
+            documentNo: formData.no,
+          },
+        },
+      });
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message, 'error');
+      }
+      dispatcher(
+        {
+          type: 'SET_EXISTING_ADVANCE_LINES',
+          payload: res.value,
+        },
+      );
+    }
+    if (formData.no) {
+
+    }
+    Promise.all([
+      fetchLineSetup(),
+      fetchAdvanceLines(),
+    ]);
+    return () => abortController.abort('Duplicate request');
+  }, [showModal, formData]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
