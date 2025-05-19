@@ -70,3 +70,10 @@ export interface AdvanceType {
   route?: string;
   [key: string]: any;
 }
+
+export interface AdvanceCount {
+  open: number;
+  pending: number;
+  released: number;
+  total: number;
+}

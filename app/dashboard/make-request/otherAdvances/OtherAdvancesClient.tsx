@@ -30,12 +30,6 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-  const [advanceCounts, setAdvanceCounts] = useState({
-    open: 0,
-    pending: 0,
-    released: 0,
-    total: 0,
-  });
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -43,7 +37,7 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
-  const { formData, actions } = useAdvance();
+  const { formData, actions, advanceCounts } = useAdvance();
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
   const fetchAdvances = useCallback(async () => {
@@ -238,7 +232,6 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
@@ -256,7 +249,6 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
@@ -274,7 +266,6 @@ export default function OtherAdvancesClient() {
                 key={activeStatusTab}
                 data={advanceData}
                 loading={loading}
-                onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
                 setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
