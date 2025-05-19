@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {ArrowLeft, ArrowUp, Check, PencilIcon, UploadCloud} from "lucide-react";
+import {ArrowLeft, ArrowUp, Check, PencilIcon, Plus, Trash2, UploadCloud} from "lucide-react";
 
 export default function RequisitionForm() {
     const handleSubmit = (e) => {
@@ -150,10 +150,145 @@ export default function RequisitionForm() {
                     </div>
                 </div>
 
+                <hr/>
+
                 <div className="mb-3">
-                    <label className="form-label">
-                        Billing Items
-                    </label>
+                    <div className="p-2 mb-3 bg-light d-flex justify-content-between align-items-center"
+                        style={{ background: "#f43434" }}>
+                        <h5 className="mb-0 text-dark">Billing Items</h5>
+                        <button
+                            type="button"
+                            className="btn btn-success d-flex align-items-center gap-1"
+                            onClick={() => console.log("Add Billing Item")}>
+                            <Plus size={16} />
+                            Add Billing Item
+                        </button>
+                    </div>
+
+                    <div className="">
+                        <table className="table table-bordered mb-0 align-middle">
+                            <thead className="table-light">
+                            <tr>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Unit Cost</th>
+                                <th>Amount</th>
+                                <th>Location</th>
+                                <th>Dimensions</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                <td>
+                                    <div className="">
+                                        <label className="form-label">
+                                            Billing Item <span className="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter Description"
+                                            value=""
+                                            onChange={(e) => console.log(e.target.value)}
+                                            required
+                                            disabled=""
+                                        />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div className="">
+                                        <label className="form-label">
+                                            Quantity <span className="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            placeholder="Enter Quantity"
+                                            value=""
+                                            onChange={(e) => console.log(e.target.value)}
+                                            required
+                                            disabled=""
+                                        />
+                                    </div>
+                                </td>
+                                    <td>
+                                        <div className="">
+                                            <label className="form-label">
+                                                Unit Cost <span className="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                placeholder="Unit Cost"
+                                                value=""
+                                                onChange={(e) => console.log(e.target.value)}
+                                                required
+                                                disabled=""
+                                            />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="">
+                                            <label className="form-label">
+                                                Amount <span className="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                placeholder="Enter Amount"
+                                                value=""
+                                                onChange={(e) => console.log(e.target.value)}
+                                                required
+                                                disabled=""
+                                            />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="">
+                                            <label className="form-label">
+                                                Location
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Location"
+                                                value=""
+                                                onChange={(e) => console.log(e.target.value)}
+                                                required
+                                                disabled=""
+                                            />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="">
+                                            <label className="form-label">
+                                                Dimensions
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Dimensions"
+                                                value=""
+                                                onChange={(e) => console.log(e.target.value)}
+                                                required
+                                                disabled=""
+                                            />
+                                        </div>
+                                    </td>
+                                <td className="">
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => console.log("Remove")}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div className="d-flex justify-content-between mt-4">
