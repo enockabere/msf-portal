@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Check, Undo2, Trash2, Plus, ArrowUp } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Check, Undo2, Trash2, Plus, ArrowUp, XCircle } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
+import CustomModal from "@/app/components/modals/CustomModal";
+import AdvanceSettlementForm from "../AdvanceSettlementForm";
 
 interface OperationalLineStepProps {
   expenses: ExpenseItem[];
@@ -19,7 +21,8 @@ interface OperationalLineStepProps {
   onSubmit: () => void;
   onCancel: () => void;
   onSurrender: () => void;
-  currency: string,
+  currency: string;
+  advanceNo: string;
 }
 
 export default function OperationalLineStep({
@@ -31,11 +34,14 @@ export default function OperationalLineStep({
   onCancel,
   onSurrender,
   currency,
+  advanceNo,
 }: OperationalLineStepProps) {
   const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
-  const selectedCurrency = findObjectFromArray(currencies, 'code', currency)?.description as string;
+  const selectedCurrency = findObjectFromArray(currencies, "code", currency)
+    ?.description as string;
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
 
   return (
     <>
@@ -77,14 +83,20 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
                     >
-                      <option defaultValue={''} disabled>-- Select Category --</option>
-                      {
-                        expenseCodes.map((expenseCode: Record<string, any>) => {
-                          return (
-                            <option key={expenseCode.code} value={expenseCode.code}> {expenseCode.description}</option>
-                          )
-                        })
-                      }
+                      <option defaultValue={""} disabled>
+                        -- Select Category --
+                      </option>
+                      {expenseCodes.map((expenseCode: Record<string, any>) => {
+                        return (
+                          <option
+                            key={expenseCode.code}
+                            value={expenseCode.code}
+                          >
+                            {" "}
+                            {expenseCode.description}
+                          </option>
+                        );
+                      })}
                     </select>
                   </td>
                   <td>
@@ -114,39 +126,48 @@ export default function OperationalLineStep({
                   <td>
                     <select
                       className="form-select"
-                      value={exp[`shortcutDimension${DEPARTMENTS[0]['globalDimensionNo']}Code`]}
+                      value={
+                        exp[
+                          `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
+                        ]
+                      }
                       onChange={(e) =>
                         onExpenseChange(idx, "costCenter", e.target.value)
                       }
                     >
-                      <option defaultValue={''}>-- Select Cost Center --</option>
-                      {
-                        DEPARTMENTS.map((department: Record<string, any>) => {
-                          return (
-                            <option value={department.code} key={department.code}> {`${department.code}-${department.name}`}</option>
-                          )
-                        })
-                      }
+                      <option defaultValue={""}>
+                        -- Select Cost Center --
+                      </option>
+                      {DEPARTMENTS.map((department: Record<string, any>) => {
+                        return (
+                          <option value={department.code} key={department.code}>
+                            {" "}
+                            {`${department.code}-${department.name}`}
+                          </option>
+                        );
+                      })}
                     </select>
                   </td>
                   <td>
                     <select
                       className="form-select"
-                      value={exp[`shortcutDimension${PROJECT[0]['globalDimensionNo']}Code`]}
+                      value={
+                        exp[
+                          `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
+                        ]
+                      }
                       onChange={(e) =>
                         onExpenseChange(idx, "project", e.target.value)
                       }
                     >
-                      <option defaultValue={''}>-- Select Project --</option>
-                      {
-                        PROJECT.map((project: Record<string, any>) => {
-                          return (
-                            <option value={project.code} key={project.code}>
-                              {`${project.code}-${project.name}`}
-                            </option>
-                          )
-                        })
-                      }
+                      <option defaultValue={""}>-- Select Project --</option>
+                      {PROJECT.map((project: Record<string, any>) => {
+                        return (
+                          <option value={project.code} key={project.code}>
+                            {`${project.code}-${project.name}`}
+                          </option>
+                        );
+                      })}
                     </select>
                   </td>
                   <td className="text-center d-flex gap-1 justify-content-center">
@@ -177,6 +198,18 @@ export default function OperationalLineStep({
           </button>
           <button
             type="button"
+            className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
+            onClick={() => {
+              console.log("❌ Cancel Approval clicked");
+              // add your cancel approval logic here
+            }}
+          >
+            <XCircle size={16} />
+            Cancel Approval
+          </button>
+
+          <button
+            type="button"
             className="btn btn-success  d-flex align-items-center gap-2"
             onClick={onSubmit}
           >
@@ -186,14 +219,25 @@ export default function OperationalLineStep({
 
           <button
             type="button"
-            className="btn btn-outline-warning  d-flex align-items-center gap-2"
-            onClick={onSurrender}
+            className="btn btn-outline-warning d-flex align-items-center gap-2"
+            onClick={() => {
+              setShowSettlementModal(true);
+            }}
           >
             <Undo2 size={16} />
-            Surrender Advance
+            Settle Advance
           </button>
         </div>
       </div>
+      <CustomModal
+        show={showSettlementModal}
+        onClose={() => setShowSettlementModal(false)}
+        title="Settle Advance"
+        titleIcon={<i className="las la-wallet fs-18" />}
+        size="xl"
+      >
+        <AdvanceSettlementForm advanceNo={advanceNo} />
+      </CustomModal>
     </>
   );
 }
