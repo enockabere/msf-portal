@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       title: body.title || "",
       passportIDNo: body.passportIDNo || "",
       city: body.city,
-      postCode: body.postCode || "",
       citizenNonCitizen: body.citizenNonCitizen,
     };
     console.log("Constructed payload:", JSON.stringify(payload, null, 2));

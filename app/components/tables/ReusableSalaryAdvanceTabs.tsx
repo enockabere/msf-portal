@@ -5,7 +5,7 @@ import { useMySetups } from "@/app/context/SetupContext";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import { Advance } from "@/app/types/advance";
+import {Advance, AdvanceTypeKey} from "@/app/types/advance";
 import { usePathname } from "next/navigation";
 import { getColumnByType } from "../advances/AdvanceTableColumns";
 import CustomModal from "../modals/CustomModal";

@@ -40,6 +40,8 @@ const state = {
   cities: [] as Array<Record<string, any>>,
   modeOfTransport: [] as Array<Record<string, any>>,
   perDiemAllotments: [] as Array<Record<string, any>>,
+  genders: [] as Array<Record<string, any>>,
+  profileTitles: [] as Array<Record<string, any>>,
 };
 
 type MySetupsState = typeof state;
@@ -70,9 +72,11 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
 
 interface MySetupsContextValue extends MySetupsState {
   fetchSetups: (
-    endpoints: Array<ENDPOINTMAP | Partial<Record<ENDPOINTMAP, EndpointOptions>>>,
+    endpoints: Array<
+      ENDPOINTMAP | Partial<Record<ENDPOINTMAP, EndpointOptions>>
+    >,
     ignoreCache?: boolean,
-    resolveAll?: boolean,
+    resolveAll?: boolean
   ) => Promise<void>;
 }
 
@@ -87,7 +91,7 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
     async (
       setupsArray: Array<ENDPOINTMAP | Record<ENDPOINTMAP, EndpointOptions>>,
       ignoreCache: boolean = false,
-      resolveAll: boolean = false,
+      resolveAll: boolean = false
     ) => {
       if (!Array.isArray(setupsArray) || setupsArray.length === 0) {
         toast.error(
@@ -102,7 +106,8 @@ export const MySetupsProvider = ({ children }: { children: ReactNode }) => {
           missingEndpoints = setupsArray;
         } else {
           missingEndpoints = setupsArray.filter((setup) => {
-            const key = typeof setup === "string" ? setup : Object.keys(setup)[0];
+            const key =
+              typeof setup === "string" ? setup : Object.keys(setup)[0];
             return !localSetupCache.has(key);
           });
           if (missingEndpoints.length === 0) {
