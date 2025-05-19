@@ -9,7 +9,13 @@ import { saveAs } from "file-saver";
 import "./datatable-custom.css";
 import { useSession } from "next-auth/react";
 
-interface SkeletonDataTableProps {
+const sanitizeColumns = (cols: any[]) =>
+  cols.map(({ ignoreRowClick, ...rest }) => ({
+    ...rest,
+    ...(ignoreRowClick ? { ignoreRowClick: true } : {}),
+  }));
+
+interface SanitizedDataTableProps {
   title?: string;
   columns: any[];
   data: any[];
@@ -19,7 +25,7 @@ interface SkeletonDataTableProps {
   loading?: boolean;
 }
 
-export default function SkeletonDataTable({
+export default function SanitizedDataTable({
   title,
   columns,
   data,
@@ -27,10 +33,11 @@ export default function SkeletonDataTable({
   actions,
   searchPlaceholder = "Search...",
   loading = false,
-}: SkeletonDataTableProps) {
+}: SanitizedDataTableProps) {
   const [search, setSearch] = useState("");
   const { data: session } = useSession();
-  const filtered = data?.filter((item) => {
+
+  const filtered = data.filter((item) => {
     const values = Object.values(item).join(" ").toLowerCase();
     return values.includes(search.toLowerCase());
   });
@@ -40,8 +47,8 @@ export default function SkeletonDataTable({
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     saveAs(
       blob,
-      `${title.split(" ").join("")}-${
-        session.user.profile.number
+      `${title?.split(" ").join("") ?? "export"}-${
+        session?.user?.profile?.number ?? "user"
       }-${Date.now()}.csv`
     );
   };
@@ -97,7 +104,7 @@ export default function SkeletonDataTable({
       ) : (
         <DataTable
           className="react-data-table"
-          columns={columns}
+          columns={sanitizeColumns(columns)}
           data={filtered}
           pagination
           highlightOnHover
