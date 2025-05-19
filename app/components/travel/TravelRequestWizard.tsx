@@ -36,7 +36,6 @@ import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { toast } from "react-toastify";
 import {
   checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
@@ -72,8 +71,6 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     createdbyProfileNo: '',
     originCountryCode: '',
     originCity: '',
-    destinationCountryCode: '',
-    destinationCity: '',
     TypeOfTravel: '',
     purposeOfTravel: '',
     accommodationType: '',
@@ -96,6 +93,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
   const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
@@ -135,6 +133,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   const fetchTravelRequest = async (requestNo: string) => {
     try {
+      setIsLoading(true)
       const res = await getResource('travelRequests', {
         params: {
           filters: {
@@ -145,12 +144,14 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       });
 
       if (res.error) {
-        console.log('Travel request error: ', res.error);
-        toast.error(res.error.message)
+        setIsLoading(false)
+        return Swal.fire('Failed to fetch travel request', res.error.message)
       } else {
         setTravelRequestHeader((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
+        setIsLoading(false)
       }
     } catch (error: any) {
+      setIsLoading(false)
       console.log('Error fetching travel request!', error.message)
     }
   }
@@ -539,6 +540,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
                 formData={travelRequestHeader}
                 requiredFields={headerRequiredFields}
                 isReadOnly={isReadOnly}
+                isLoading={isLoading}
                 onFormChange={handleFormChange}
               />
             )}
