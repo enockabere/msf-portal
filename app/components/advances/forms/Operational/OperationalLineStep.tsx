@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Check, Undo2, Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
@@ -114,7 +114,7 @@ export default function OperationalLineStep({
                   <td>
                     <select
                       className="form-select"
-                      value={exp.costCenter}
+                      value={exp[`shortcutDimension${DEPARTMENTS[0]['globalDimensionNo']}Code`]}
                       onChange={(e) =>
                         onExpenseChange(idx, "costCenter", e.target.value)
                       }
@@ -132,7 +132,7 @@ export default function OperationalLineStep({
                   <td>
                     <select
                       className="form-select"
-                      value={exp.project}
+                      value={exp[`shortcutDimension${PROJECT[0]['globalDimensionNo']}Code`]}
                       onChange={(e) =>
                         onExpenseChange(idx, "project", e.target.value)
                       }
