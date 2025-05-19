@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Save,
   Check,
+  Ticket,
   Link,
   DownloadIcon,
   FileDownIcon,
@@ -32,6 +33,7 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
+import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -138,7 +140,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           filters: {
             no: requestNo
           },
-          '$expand': 'travelRequestRoutes,travelRequestLines,travellers,visaApplications($expand=visaApplicationLines)',
+          '$expand': 'travelRequestRoutes,travelRequestLines,travellers,travelRequestProviders',
         }
       });
 
@@ -294,6 +296,12 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         desc: "Related travel requirements",
       },
       {
+        id: "ticket",
+        icon: <Ticket size={18}/>,
+        title: "Ticket and Accommodation Details",
+        desc: "Flight/train reservations",
+      },
+      {
         id: "checklist",
         icon: <ListChecks size={18}/>,
         title: "Visa Checklist",
@@ -344,9 +352,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
+          "ticket",
         ].map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies"].map(
+        return ["info", "dependencies", "ticket"].map(
           (id) => allSteps.find((s) => s.id === id)!
         );
       }
@@ -356,13 +365,14 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
+          "ticket",
           "checklist",
           "traveller-checklist",
           "visa",
           "advance",
         ].map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "checklist", "traveller-checklist", "permit", "advance"].map(
+        return ["info", "dependencies", "ticket", "checklist", "traveller-checklist", "permit", "advance"].map(
           (id) => allSteps.find((s) => s.id === id)!
         );
       }
@@ -546,6 +556,12 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
                 travelRequestHeader={travelRequestHeader}
                 isReadOnly={isReadOnly}
                 onSubmit={fetchTravelRequest}
+              />
+            )}
+
+            {activeTab === "ticket" && (
+              <TravelTicketSelector
+                tickets={travelRequestHeader.travelRequestProviders}
               />
             )}
 
