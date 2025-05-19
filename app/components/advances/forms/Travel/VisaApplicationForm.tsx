@@ -4,14 +4,15 @@ import { getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Loader, Save } from "lucide-react";
-import { toast } from "react-toastify";
 import { removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
 
 export default function VisaApplicationForm({travelRequest}: { travelRequest: TravelRequest }) {
   const [visaApplications, setVisaApplications] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const getVisaApplications = useCallback(async () => {
     try {
+      setIsLoading(true)
       const res = await getResource('visaApplications', {
         params: {
           filters: {
@@ -24,11 +25,14 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
       })
 
       if (res.error) {
+        setIsLoading(false)
         return Swal.fire('Error fetching Visa applications', res.error.message, 'error')
       }
 
       setVisaApplications(res.value)
+      setIsLoading(false)
     } catch (error: any) {
+      setIsLoading(false)
       return Swal.fire('Error fetching Visa applications', error.message, 'error')
     }
   }, [travelRequest]);
@@ -106,26 +110,32 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
       <>
         <div className={'card bg-light border mt-2'}>
           <div className="card-body">
-            <h5 className="card-title fs-14 fw-bold">Traveller: {visaApplicationLine.name}</h5>
+            <h5 className="card-title fs-14 fw-bold">Traveller: {visaApplicationLine.name || 'N/A'}</h5>
             <form onSubmit={handleSubmit} className="row g-3">
               <div className="col-md-6">
-                <label htmlFor="countryOfOrigin" className="form-label">Nationality</label>
-                <select
-                  className="form-select"
-                  id="countryOfOrigin"
-                  value={formData.countryOfOrigin}
-                  onChange={async (e) => {
-                    handleFormChange('countryOfOrigin', e.target.value)
-                  }}
-                  required
-                >
-                  <option value="">-- Select Country --</option>
-                  {countries.map((item) => (
-                    <option key={item.code} value={item.code}>
-                      {item.displayName}
-                    </option>
-                  ))}
-                </select>
+                <div className="form-floating mb-3">
+                  <label htmlFor="countryOfOrigin">Email address</label>
+                  <input type="email" className="form-control" id="floatingInput" placeholder="name@example.com"/>
+                </div>
+                <div className="form-floating mb-3">
+                  <label htmlFor="countryOfOrigin" className="form-label">Nationality</label>
+                  <select
+                    className="form-select"
+                    id="countryOfOrigin"
+                    value={formData.countryOfOrigin}
+                    onChange={async (e) => {
+                      handleFormChange('countryOfOrigin', e.target.value)
+                    }}
+                    required
+                  >
+                    <option value="">-- Select Country --</option>
+                    {countries.map((item) => (
+                      <option key={item.code} value={item.code}>
+                        {item.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="col-md-6">
                 <label htmlFor="validVisa" className="form-label">Valid visa?</label>
@@ -202,7 +212,13 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
     <>
       <div className='row g-3'>
         <div className={'col-12'}>
-          {visaApplications.map((application: Record<string, any>, key: number) => (
+          {isLoading
+            ? (
+              <div className={'col-12 text-center'}>
+                <Loader size={32} className={'blink-animation'}/>
+              </div>
+            )
+            : visaApplications.map((application: Record<string, any>, key: number) => (
             <div key={`${application.country}-${key}`}>
               <div className="bg-danger p-2 rounded">
                 <p
