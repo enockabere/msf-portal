@@ -5,6 +5,7 @@ import {User, Mail, Phone, Calendar, TypeIcon} from "lucide-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useSession } from "next-auth/react";
+import { formatDate } from "@/app/utils/dateFormats";
 
 export default function DashboardProfile() {
   const { data: session } = useSession()
@@ -109,11 +110,7 @@ export default function DashboardProfile() {
             <span className="fw-semibold me-1">Date of Birth:</span>
             {isLoading ? (
               <Skeleton width={140} />
-            ) : (
-                session?.user?.profile?.dateOfBirth
-                    ? new Date(session?.user?.profile?.dateOfBirth).toLocaleDateString()
-                    : 'N/A'
-            )}
+            ) : (formatDate(session?.user?.profile?.dateOfBirth) || 'N/A')}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
