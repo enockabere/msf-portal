@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
-import { ArrowDown } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowDown, Undo2, XCircle } from "lucide-react";
 import { FormData } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
+import CustomModal from "@/app/components/modals/CustomModal";
+import AdvanceSettlementForm from "../AdvanceSettlementForm";
 
 interface OperationalHeaderStepProps {
   formData: FormData;
@@ -17,13 +19,16 @@ export default function OperationalHeaderStep({
   onFormChange,
   onNext,
 }: OperationalHeaderStepProps) {
+  const { imprestTypes, currencies, banks, bankBranches, paymentMethods } =
+    useMySetups();
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
 
-
-  const { imprestTypes, currencies, banks, bankBranches, paymentMethods } = useMySetups();
+  console.log("📋 formData.imprestType:", formData.no);
 
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
-    const type: string = findObjectFromArray(paymentMethods, "code", method)?.type as string;
+    const type: string = findObjectFromArray(paymentMethods, "code", method)
+      ?.type as string;
     switch (type) {
       case "Mpesa": {
         return (
@@ -91,19 +96,14 @@ export default function OperationalHeaderStep({
                   value={formData.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
                 >
-                  <option defaultValue={''}> --Select bank --</option>
-                  {
-                    banks.map((bank: Record<string, any>) => {
-                      return (
-                        <option
-                          key={bank.no}
-                          value={bank.no}
-                        >
-                          {bank.name}
-                        </option>
-                      )
-                    })
-                  }
+                  <option defaultValue={""}> --Select bank --</option>
+                  {banks.map((bank: Record<string, any>) => {
+                    return (
+                      <option key={bank.no} value={bank.no}>
+                        {bank.name}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="col-md-5 mb-3">
@@ -117,18 +117,13 @@ export default function OperationalHeaderStep({
                   onChange={(e) => onFormChange("branch", e.target.value)}
                 >
                   <option> --Select branch-- </option>
-                  {
-                    bankBranches.map((branch: Record<string, any>) => {
-                      return (
-                        <option
-                          key={branch.branchNo}
-                          value={branch.branchNo}
-                        >
-                          {branch.name}
-                        </option>
-                      )
-                    })
-                  }
+                  {bankBranches.map((branch: Record<string, any>) => {
+                    return (
+                      <option key={branch.branchNo} value={branch.branchNo}>
+                        {branch.name}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
@@ -178,14 +173,10 @@ export default function OperationalHeaderStep({
                   id="cash-hours"
                   className="form-select"
                   value={formData.cashHours}
-                  onChange={(e) =>
-                    onFormChange("cashHours", e.target.value)
-                  }
+                  onChange={(e) => onFormChange("cashHours", e.target.value)}
                   required
                 >
-                  <option value="Morning">
-                    Morning (8:00 AM - 12:00 PM)
-                  </option>
+                  <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>
                   <option value="Afternoon">
                     Afternoon (1:00 PM - 5:00 PM)
                   </option>
@@ -193,22 +184,23 @@ export default function OperationalHeaderStep({
               </div>
             </div>
           </div>
-        )
+        );
       }
     }
-
-  }
+  };
 
   return (
     <div className="card mb-4 border-secondary">
       <div className="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
         <h5 className="mb-0 text-dark">Step 1: Advance Request</h5>
-        {formData.amountToPayHeader &&
-          (
-            <div className="badge text-dark fs-6">
-              Total Advance: {findObjectFromArray(currencies, 'code', formData.currencyCode)?.description as string || 'KES'} {formData.amountToPayHeader}
-            </div>
-          )}
+        {formData.amountToPayHeader && (
+          <div className="badge text-dark fs-6">
+            Total Advance:{" "}
+            {(findObjectFromArray(currencies, "code", formData.currencyCode)
+              ?.description as string) || "KES"}{" "}
+            {formData.amountToPayHeader}
+          </div>
+        )}
       </div>
       <div className="card-body">
         <form className="p-2 pt-3">
@@ -221,23 +213,16 @@ export default function OperationalHeaderStep({
                 id="advance_type"
                 className="form-select"
                 value={formData.imprestType}
-                onChange={(e) =>
-                  onFormChange("imprestType", e.target.value)
-                }
+                onChange={(e) => onFormChange("imprestType", e.target.value)}
               >
-                <option defaultValue={''}>--select imprest type--</option>
-                {
-                  imprestTypes.map((type: Record<string, any>) => {
-                    return (
-                      <option
-                        value={type.code}
-                        key={type.code}
-                      >
-                        {type.description}
-                      </option>
-                    )
-                  })
-                }
+                <option defaultValue={""}>--select imprest type--</option>
+                {imprestTypes.map((type: Record<string, any>) => {
+                  return (
+                    <option value={type.code} key={type.code}>
+                      {type.description}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className="col-md-4 mb-3">
@@ -250,14 +235,14 @@ export default function OperationalHeaderStep({
                 value={formData.currencyCode}
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
-                <option defaultValue={''}> -- Select Currency -- </option>
-                {
-                  currencies.map((currency: Record<string, any>) => {
-                    return (
-                      <option value={currency.code} key={currency.code}>{currency.description}</option>
-                    )
-                  })
-                }
+                <option defaultValue={""}> -- Select Currency -- </option>
+                {currencies.map((currency: Record<string, any>) => {
+                  return (
+                    <option value={currency.code} key={currency.code}>
+                      {currency.description}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -271,16 +256,14 @@ export default function OperationalHeaderStep({
                 value={formData.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
-                <option defaultValue={''}> --Select payment method-- </option>
-                {
-                  paymentMethods.map((method: Record<string, any>) => {
-                    return (
-                      <option value={method.code} key={method.code}>
-                        {method.description}
-                      </option>
-                    );
-                  })
-                }
+                <option defaultValue={""}> --Select payment method-- </option>
+                {paymentMethods.map((method: Record<string, any>) => {
+                  return (
+                    <option value={method.code} key={method.code}>
+                      {method.description}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -302,10 +285,34 @@ export default function OperationalHeaderStep({
           </div>
 
           <div className="row mt-4">
-            <div className="col-12">
+            <div className="col-12 d-flex justify-content-end gap-3">
               <button
                 type="button"
-                className="btn btn-primary ms-auto d-flex align-items-center gap-2 fw-semibold"
+                className="btn btn-outline-warning d-flex align-items-center gap-2"
+                onClick={() => {
+                  console.log("💼 Settling advance:", formData.no);
+                  setShowSettlementModal(true);
+                }}
+              >
+                <Undo2 size={16} />
+                Settle Advance
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
+                onClick={() => {
+                  console.log("❌ Cancel Approval clicked");
+                  // add your cancel approval logic here
+                }}
+              >
+                <XCircle size={16} />
+                Cancel Approval
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary d-flex align-items-center gap-2 fw-semibold"
                 onClick={onNext}
               >
                 <ArrowDown size={16} />
@@ -315,6 +322,15 @@ export default function OperationalHeaderStep({
           </div>
         </form>
       </div>
+      <CustomModal
+        show={showSettlementModal}
+        onClose={() => setShowSettlementModal(false)}
+        title="Settle Advance"
+        titleIcon={<i className="las la-wallet fs-18" />}
+        size="xl"
+      >
+        <AdvanceSettlementForm advanceNo={formData.no} />
+      </CustomModal>
     </div>
   );
 }

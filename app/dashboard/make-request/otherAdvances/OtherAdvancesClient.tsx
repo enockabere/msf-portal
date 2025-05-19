@@ -130,7 +130,6 @@ export default function OtherAdvancesClient() {
       setShowModal(true);
     } else {
       setShowModal(false);
-      // setSelectedAdvance(null);
       dispatcher({
         type: 'OPEN_EXISTING_ADVANCE',
         payload: null,

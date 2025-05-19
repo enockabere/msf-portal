@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMySetups } from "@/app/context/SetupContext";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
 import {Advance, AdvanceTypeKey} from "@/app/types/advance";
 import { usePathname } from "next/navigation";
-import { GetColumnByType } from "../advances/AdvanceTableColumns";
+import { getColumnByType } from "../advances/AdvanceTableColumns";
+import CustomModal from "../modals/CustomModal";
+import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 
 interface Props {
   data: Advance[];
@@ -30,32 +33,44 @@ export default function ReusableSalaryAdvanceTabs({
   onCountsUpdate,
   initialTab,
   refetch,
-  setSelectedRowHandler
+  setSelectedRowHandler,
 }: Props) {
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
   const path = usePathname();
 
+  const { currencies } = useMySetups();
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
+    null
+  );
 
+  const advanceSet = path.includes("otherAdvances")
+    ? "otherAdvances"
+    : "salaryAdvance";
 
-
-
-
-  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
-  const columns = GetColumnByType(advanceSet, setSelectedRowHandler);
-
+  const columns = useMemo(() => {
+    return getColumnByType(advanceSet, setSelectedRowHandler, {
+      currentTab: activeTab,
+      currencies,
+      onSettleClick: (advanceNo: string) => {
+        setSettlementAdvanceNo(advanceNo);
+        setShowSettlementModal(true);
+      },
+    });
+  }, [advanceSet, setSelectedRowHandler, activeTab, currencies]);
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    const open = advanceByStatus.get('Open') || [];
-    const pending = advanceByStatus.get('Pending Approval') || [];
-    const released = advanceByStatus.get('Released') || [];
+    const open = advanceByStatus.get("Open") || [];
+    const pending = advanceByStatus.get("Pending Approval") || [];
+    const released = advanceByStatus.get("Released") || [];
 
     const counts = {
       open: open.length,
       pending: pending.length,
       released: released.length,
-      total: open.length + pending.length + released.length
+      total: open.length + pending.length + released.length,
     };
 
     // if (counts.total > 0) {
@@ -65,7 +80,7 @@ export default function ReusableSalaryAdvanceTabs({
     return {
       open,
       pending,
-      released
+      released,
     };
   }, [data, onCountsUpdate]);
 
@@ -130,6 +145,19 @@ export default function ReusableSalaryAdvanceTabs({
         setSelectedRowHandlerCallback={setSelectedRowHandler}
         onCloseView={() => setSelectedRowHandler(null)}
       />
+
+      <CustomModal
+        show={showSettlementModal}
+        onClose={() => {
+          setSettlementAdvanceNo(null);
+          setShowSettlementModal(false);
+        }}
+        title="Settle Advance"
+        titleIcon={<i className="las la-wallet fs-18" />}
+        size="xl"
+      >
+        <AdvanceSettlementForm advanceNo={settlementAdvanceNo} />
+      </CustomModal>
     </div>
   );
 }
