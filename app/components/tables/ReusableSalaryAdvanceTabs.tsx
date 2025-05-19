@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import { Advance } from "@/app/types/advance";
+import {Advance, AdvanceTypeKey} from "@/app/types/advance";
 import { usePathname } from "next/navigation";
-import { getColumnByType } from "../advances/AdvanceTableColumns";
+import { GetColumnByType } from "../advances/AdvanceTableColumns";
 
 interface Props {
   data: Advance[];
@@ -41,8 +41,8 @@ export default function ReusableSalaryAdvanceTabs({
 
 
 
-  const advanceSet = path.includes('otherAdvances') ? 'otherAdvances' : 'salaryAdvance';
-  const columns = getColumnByType(advanceSet, setSelectedRowHandler);
+  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
+  const columns = GetColumnByType(advanceSet, setSelectedRowHandler);
 
 
   const filteredByStatus = useMemo(() => {

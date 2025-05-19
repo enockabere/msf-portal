@@ -1,21 +1,22 @@
 import { useMySetups } from "@/app/context/SetupContext";
-import { Advance } from "@/app/types/advance";
+import {Advance, AdvanceTypeKey} from "@/app/types/advance";
 import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 import { findObjectFromArray } from "@/app/utils/helpers";
 
-const getTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-        Advance: "fa-solid fa-money-bill",
-        Travel: "fa-solid fa-plane",
-        Operational: "fa-solid fa-gear",
-    };
-    return icons[type] || "fa-solid fa-file-alt";
-};
-
-export const getColumnByType = (type: string, cb: (data: Advance | null) => void) => {
+export const GetColumnByType = (type: string, cb: (data: Advance | null) => void) => {
     const { currencies } = useMySetups();
-    const columns = {
-        salaryAdvance: [
+    const getTypeIcon = (type: string) => {
+        const icons: Record<AdvanceTypeKey, any> = {
+            Salary: "fa-solid fa-money-bill",
+            Other: {
+                Travel: "fa-solid fa-plane",
+                'OPERATIONAL ADVANCE': "fa-solid fa-gear",
+            },
+        };
+        return icons[type] || "fa-solid fa-file-alt";
+    };
+    const columns: Record<AdvanceTypeKey, any> = {
+        Salary: [
             {
                 name: "Advance No",
                 sortable: true,
@@ -38,9 +39,10 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                            <i className={`${getTypeIcon(type)['OPERATIONAL ADVANCE']} text-primary`} />
                         </div>
-                        <span>{row.advanceType}</span>
+
+                        <span>{type}</span>
                     </div>
                 ),
             },
@@ -123,7 +125,7 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                 ignoreRowClick: true,
             },
         ],
-        otherAdvances: [
+        Other: [
             {
                 name: "Advance No",
                 sortable: true,
@@ -146,9 +148,9 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                            <i className={`${getTypeIcon(type)} text-primary`} />
                         </div>
-                        <span>{row.advanceType}</span>
+                        <span>{row.imprestType}</span>
                     </div>
                 ),
             },
