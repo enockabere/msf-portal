@@ -63,7 +63,7 @@ export default function ProfileTabs({
           </div>
         )}
 
-        {activeTab === "dependents" && profileType === "Visitor" && (
+        {activeTab === "dependents" && profileType === "Employee" && (
           <div className="tab-pane fade show active">
             <DependentsTab
               dependents={dependents}

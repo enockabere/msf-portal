@@ -1,0 +1,23 @@
+.custom-modal-header {
+  min-height: 100px;
+  padding: 1.5rem;
+  text-align: center;
+  background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+}
+.modal-content {
+  border-radius: 20px !important;
+  overflow: hidden;
+  background: white !important;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15) !important;
+}
+
+.wizard-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.wizard-subtitle {
+  opacity: 0.9;
+  font-size: 1rem;
+}
