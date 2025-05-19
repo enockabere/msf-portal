@@ -206,7 +206,7 @@ export default function OperationalHeaderStep({
         {formData.amountToPayHeader &&
           (
             <div className="badge text-dark fs-6">
-              Total Advance: {formData.currencyCode} {formData.amountToPayHeader}
+              Total Advance: {findObjectFromArray(currencies, 'code', formData.currencyCode)?.description as string || 'KES'} {formData.amountToPayHeader}
             </div>
           )}
       </div>
@@ -247,6 +247,7 @@ export default function OperationalHeaderStep({
               <select
                 id="currency"
                 className="form-select"
+                value={formData.currencyCode}
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
                 <option defaultValue={''}> -- Select Currency -- </option>
@@ -267,6 +268,7 @@ export default function OperationalHeaderStep({
               <select
                 id="payment-method"
                 className="form-select"
+                value={formData.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
                 <option defaultValue={''}> --Select payment method-- </option>

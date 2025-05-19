@@ -6,18 +6,18 @@ export type AdvanceType =
   | "Advance";
 
 export interface Advance {
-  disbursed: any;
+  disbursed?: any;
   currencyCode: string;
-  no: string;
-  applicationDate: string;
-  employeeName: string;
-  advanceType: AdvanceType;
-  applicationAmount: number;
-  status: "Open" | "Pending Approval" | "Released";
-  documentStatus: string;
-  preferredDisbursementDate: string;
-  repaymentAmount: number;
-  repaymentInstallments: number;
+  no?: string;
+  applicationDate?: string;
+  employeeName?: string;
+  advanceType?: AdvanceType;
+  applicationAmount?: number;
+  status?: "Open" | "Pending Approval" | "Released";
+  documentStatus?: string;
+  preferredDisbursementDate?: string;
+  repaymentAmount?: number;
+  repaymentInstallments?: number;
   [key: string]: any;
 }
 
