@@ -59,7 +59,7 @@ const ProfileHeader = ({
               stroke="currentColor"
               strokeWidth="2"
               viewBox="0 0 24 24"
-              className="text-primary"
+              className="text-danger"
             >
               <path
                 strokeLinecap="round"
