@@ -189,7 +189,6 @@ export default function AdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   selectedAdvance={selectedAdvance}
@@ -208,7 +207,6 @@ export default function AdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   selectedAdvance={selectedAdvance}
@@ -226,7 +224,6 @@ export default function AdvancesClient() {
                 key={activeStatusTab}
                 data={advanceData}
                 loading={loading}
-                onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
                 selectedAdvance={selectedAdvance}

@@ -6,7 +6,7 @@ import { RequestOptions, RequestResponse } from "../types/options";
 import { ENDPOINTMAP } from "../utils/endpointMap";
 import { getResource } from "../lib/api/http";
 import Swal from "sweetalert2";
-import { AdvanceType, ExpenseItem, FormData } from "../types/advance";
+import { AdvanceCount, AdvanceType, ExpenseItem, FormData } from "../types/advance";
 import { useMySetups } from "./SetupContext";
 
 const initialState = {
@@ -40,6 +40,12 @@ const initialState = {
         no: "",
     } satisfies FormData,
     expenses: [] as ExpenseItem[],
+    advanceCounts: {
+        open: 0,
+        pending: 0,
+        released: 0,
+        total: 0
+    } satisfies AdvanceCount,
     isNew: false satisfies boolean,
     isEditing: false satisfies boolean,
     setForView: false satisfies boolean,
@@ -126,6 +132,13 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 ...action.payload,
+            }
+        }
+
+        case 'SET_ADVANCES_COUNTS': {
+            return {
+                ...state,
+                advanceCounts: action.payload,
             }
         }
     }

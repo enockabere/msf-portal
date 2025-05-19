@@ -1,20 +1,26 @@
 import { useMySetups } from "@/app/context/SetupContext";
-import {Advance, AdvanceTypeKey} from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 import { findObjectFromArray } from "@/app/utils/helpers";
+import { useEffect } from "react";
 
 export const GetColumnByType = (type: string, cb: (data: Advance | null) => void) => {
-    const { currencies } = useMySetups();
+    const { currencies, imprestTypes, fetchSetups } = useMySetups();
     const getTypeIcon = (type: string) => {
         const icons: Record<AdvanceTypeKey, any> = {
             Salary: "fa-solid fa-money-bill",
             Other: {
-                Travel: "fa-solid fa-plane",
+                TRAVEL: "fa-solid fa-plane",
                 'OPERATIONAL ADVANCE': "fa-solid fa-gear",
             },
         };
         return icons[type] || "fa-solid fa-file-alt";
     };
+    useEffect(() => {
+        fetchSetups([
+            'imprestTypes',
+        ]);
+    })
     const columns: Record<AdvanceTypeKey, any> = {
         Salary: [
             {
@@ -39,7 +45,7 @@ export const GetColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)['OPERATIONAL ADVANCE']} text-primary`} />
+                            <i className={`${getTypeIcon(type)} text-primary`} />
                         </div>
 
                         <span>{type}</span>
@@ -148,9 +154,9 @@ export const GetColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)} text-primary`} />
+                            <i className={`${getTypeIcon(type)[row.imprestType]} text-primary`} />
                         </div>
-                        <span>{row.imprestType}</span>
+                        <span>{findObjectFromArray(imprestTypes, 'code', row.imprestType)?.description as string}</span>
                     </div>
                 ),
             },

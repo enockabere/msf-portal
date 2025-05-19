@@ -4,20 +4,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import {Advance, AdvanceTypeKey} from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface Props {
   data: Advance[];
   selectedAdvance?: Advance;
   loading: boolean;
-  onCountsUpdate?: (counts: {
-    open: number;
-    pending: number;
-    released: number;
-    total: number;
-  }) => void;
   initialTab?: string;
   refetch: (updatedStatus?: string) => void;
   setSelectedRowHandler: (Advance: Advance | null) => void;
@@ -27,7 +22,6 @@ export default function ReusableSalaryAdvanceTabs({
   data,
   selectedAdvance,
   loading,
-  onCountsUpdate,
   initialTab,
   refetch,
   setSelectedRowHandler
@@ -35,7 +29,8 @@ export default function ReusableSalaryAdvanceTabs({
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
   const path = usePathname();
-
+  const { actions } = useAdvance();
+  const { dispatcher } = actions;
 
 
 
@@ -58,16 +53,19 @@ export default function ReusableSalaryAdvanceTabs({
       total: open.length + pending.length + released.length
     };
 
-    // if (counts.total > 0) {
-    //   onCountsUpdate(counts);
-    // }
+    if (counts.total > 0) {
+      dispatcher({
+        type: 'SET_ADVANCES_COUNTS',
+        payload: counts,
+      })
+    }
 
     return {
       open,
       pending,
       released
     };
-  }, [data, onCountsUpdate]);
+  }, [data]);
 
   useEffect(() => {
     if (
