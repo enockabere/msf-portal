@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
 import { TravelRequestProviders } from "@/app/types/travel";
 
 interface TravelTicketSelectorProps {

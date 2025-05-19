@@ -24,23 +24,6 @@ import { useAdvance } from "@/app/context/AdvanceContext";
 
 export default function OperationalAdvanceForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  // const [formData, setFormData] = useState<FormData>({
-  //   imprestType: "",
-  //   Purpose: "",
-  //   amountToPayHeader: null,
-  //   currencyCode: "",
-  //   paymentMethod: "",
-  //   cashCollectionDate: "",
-  //   cashHours: "",
-  //   idPassportNumber: "",
-  //   accountNo: "",
-  //   bankNo: "",
-  //   branch: "",
-  //   swiftCode: "",
-  //   phoneNo: "",
-  //   accountName: "",
-  // });
-  // const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>("");
   const {
@@ -51,12 +34,11 @@ export default function OperationalAdvanceForm() {
     expenseCodes,
     fetchSetups,
   } = useMySetups();
-  const { formData, expenses, isEditing, setForView, actions } = useAdvance();
+  const { formData, expenses, actions } = useAdvance();
   const { dispatcher, fetchLineSetup } = actions;
   const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
-    // setFormData((prev) => ({ ...prev, [field]: value }));
     dispatcher({
       type: "CHANGE_ADVANCE_FORMDATA_FIELD",
       payload: { [field]: value },
@@ -78,15 +60,11 @@ export default function OperationalAdvanceForm() {
         },
       },
     });
-    // const updated = [...expenses];
-    // updated[index][field] = value;
-    // setExpenses(updated);
+
   };
 
   const handleFileChange = (index: number, file: File | null) => {
-    // const updated = [...expenses];
-    // updated[index].receipt = file;
-    // setExpenses(updated);
+    console.log(index, file)
   };
 
   function handleSettingPaymentMethodType() {
@@ -200,8 +178,7 @@ export default function OperationalAdvanceForm() {
       if (isMissingRequiredProp.missing) {
         return Swal.fire(
           "Validation Error!",
-          `Missing [${isMissingRequiredProp.prop.join(",")}] ${
-            isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
+          `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
           }`
         );
       }
@@ -293,8 +270,7 @@ export default function OperationalAdvanceForm() {
         if (expenseRequestOption.length !== expenses.length)
           Swal.fire(
             "Alert!",
-            `${
-              addedLines > 1 ? "Some" : "The"
+            `${addedLines > 1 ? "Some" : "The"
             } advance ${lineCaption} will not be submitted due to errors`,
             "info"
           );
@@ -434,7 +410,7 @@ export default function OperationalAdvanceForm() {
   useEffect(() => {
     updateEmployeeBank(
       paymentMethodType !== "Cheques" &&
-        paymentMethodType !== "Bank_x0020_Transfer"
+      paymentMethodType !== "Bank_x0020_Transfer"
     );
     updateMobileMoneyFields(paymentMethodType !== "Mpesa");
     updateCashFields(paymentMethodType !== "Cash");
@@ -476,9 +452,8 @@ export default function OperationalAdvanceForm() {
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${
-              currentStep === step ? "bg-danger" : "bg-secondary"
-            }`}
+            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
+              }`}
             style={{
               width: "10px",
               height: "10px",

@@ -110,7 +110,7 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             }
         }
         case 'CHANGE_EXPENSE_LINE': {
-            let draftExpenses = state.expenses;
+            const draftExpenses = state.expenses;
             draftExpenses[action.payload.index] = {
                 ...draftExpenses[action.payload.index],
                 ...action.payload.update,
@@ -235,7 +235,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
         }
-    }), [advance, advance.actions, fetchAdvanceTypes]);
+    }), [advance, advance.actions, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
 
     return (
         <AdvanceContext.Provider value={contextValue} >

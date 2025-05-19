@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Advance } from "@/app/types/advance";
 import { useSearchParams } from "next/navigation";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -29,12 +30,7 @@ export default function AdvancesClient() {
   const [loading, setLoading] = useState(true);
   const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const { setBreadcrumb } = useBreadcrumb();
-  const [advanceCounts, setAdvanceCounts] = useState({
-    open: 0,
-    pending: 0,
-    released: 0,
-    total: 0,
-  });
+  const { advanceCounts } = useAdvance();
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "open";
   const [activeStatusTab, setActiveStatusTab] = useState(defaultTab);

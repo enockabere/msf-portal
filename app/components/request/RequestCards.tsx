@@ -14,8 +14,6 @@ import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
-import { useMySetups } from "@/app/context/SetupContext";
-import Swal from "sweetalert2";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { AdvanceType } from "@/app/types/advance";
 
@@ -195,6 +193,7 @@ export default function RequestCards() {
                       advanceTypes.map((type) => {
                         return (
                           <button
+                            key={type.key}
                             className="dropdown-item"
                             onClick={(e) => {
                               e.stopPropagation();

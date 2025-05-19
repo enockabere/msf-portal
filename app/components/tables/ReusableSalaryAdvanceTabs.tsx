@@ -10,6 +10,7 @@ import { GetColumnByType } from "../advances/AdvanceTableColumns";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import CustomModal from "../modals/CustomModal";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
   data: Advance[];
@@ -37,11 +38,14 @@ export default function ReusableSalaryAdvanceTabs({
   const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
     null
   );
+  const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
   const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
   const columns = useMemo(() => {
     return GetColumnByType(advanceSet, setSelectedRowHandler, {
       currentTab: activeTab,
+      currencies,
+      imprestTypes,
       onSettleClick: (advanceNo: string) => {
         setSettlementAdvanceNo(advanceNo);
         setShowSettlementModal(true);
@@ -87,6 +91,12 @@ export default function ReusableSalaryAdvanceTabs({
       didSetInitialTab.current = true;
     }
   }, [initialTab]);
+
+  useEffect(() => {
+    fetchSetups([
+      'imprestTypes',
+    ]);
+  })
 
   return (
     <div>
