@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {createResource, patchResource} from "@/app/lib/api/http";
+import {createResource, deleteResource, getResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import {Save} from "lucide-react";
 import {ChecklistItem} from "@/app/types/ChecklistItem";
@@ -16,6 +16,8 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
         if (!file) return;
 
         const base64String = await toBase64(file);
+
+
         setBase64(base64String);
 
         saveBase64File(base64String, file.name);
@@ -31,9 +33,63 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
 
     const saveBase64File = async (base64Data: unknown, fileName: string) => {
         // For example, send to backend
-        console.log("Saving file:", fileName);
-        console.log("Base64:", base64Data);
+        // console.log("Saving file:", fileName);
+        // console.log("Base64:", base64Data);
         const currentDate = new Date().toISOString();
+        let base64Only: any;
+        base64Only = base64Data?.split(',')[1];
+
+        const getAttachment = await getResource('travelAttachments', {
+            params: {
+                filters: {
+                    // relatedRecordId: row.id,
+                    no: 'NRTR001',
+                    lineNo: 0,
+                },
+                "$select": "keyID"
+            }
+        })
+
+        console.log('getAttachment', getAttachment.value[0].keyID)
+        //
+        // if (getAttachment.value) {
+        //     const deleteAttachment = deleteResource('travelAttachments', {
+        //         data: {
+        //             keyID: getAttachment.value[0].keyID
+        //         },
+        //         primaryKey: ['keyID']
+        //     })
+        //
+        //     try {
+        //         const res = await createResource('travelAttachments', {
+        //             data: {
+        //                 relatedRecordId: row.id,
+        //                 no: row.documentNo,
+        //                 lineNo: row.lineNo,
+        //                 documentCode: "",
+        //                 attachment: base64Data,
+        //                 attachedDate: currentDate,
+        //             }
+        //         })
+        //
+        //
+        //         if (res.error) {
+        //             Swal.fire(
+        //                 "Error",
+        //                 res.error?.message || "Failed to cancel approval.",
+        //                 "error"
+        //             );
+        //         } else {
+        //             Swal.fire(
+        //                 "Success",
+        //                 "Cancelled approval successfully!",
+        //                 "success"
+        //             );
+        //         }
+        //     } catch (err) {
+        //         Swal.fire("Error", "Error uploading Attachment.", err.message);
+        //     }
+        // }
 
         try {
             const res = await createResource('travelAttachments', {
@@ -41,8 +97,8 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
                     relatedRecordId: row.id,
                     no: row.documentNo,
                     lineNo: row.lineNo,
-                    documentCode: "",
-                    attachment: base64Data,
+                    documentCode: row.relatedDocumentCode,
+                    attachment: base64Only,
                     attachedDate: currentDate,
                 }
             })
@@ -64,7 +120,6 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
         } catch (err) {
             Swal.fire("Error", "Error uploading Attachment.", err.message);
         }
-
     };
 
     const handleSubmit = async () => {
@@ -75,8 +130,8 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
                 checklistType: row.checklistType,
                 documentNo: row.documentNo,
                 documentType: row.documentType,
-                expiryDate,
                 has,
+                ...(expiryDate !== '' && { expiryDate }),
             };
 
             console.log('checklist form data', payload)
@@ -113,7 +168,7 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
 
             </td>
             <td>
-                {!row.requiresAttachment ? (
+                {row.requiresAttachment ? (
                     <input
                         type="file"
                         checked={has}

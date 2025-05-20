@@ -12,4 +12,5 @@ export interface ChecklistItem {
     requiresAttachment: boolean;
     renewable: boolean;
     verified: boolean;
+    relatedDocumentCode: string;
 }
