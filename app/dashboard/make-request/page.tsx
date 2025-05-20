@@ -1,3 +1,4 @@
+import { AdvanceContextProvider } from "@/app/context/AdvanceContext";
 import MakeRequestClient from "@/app/dashboard/make-request/MakeRequestClient";
 
 export const metadata = {
@@ -5,5 +6,11 @@ export const metadata = {
 };
 
 export default function MakeRequestPage() {
-  return <MakeRequestClient />;
+  return (
+    <>
+      <AdvanceContextProvider>
+        <MakeRequestClient />
+      </AdvanceContextProvider>
+    </>
+  );
 }

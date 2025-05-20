@@ -17,7 +17,6 @@ import {
   ArrowRight,
   Save,
   Check,
-  Ticket,
   Link,
   DownloadIcon,
   FileDownIcon,
@@ -30,20 +29,17 @@ import { TravelRequest } from "@/app/types/travel";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
+import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
-import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
-import { Dependency } from "@/app/types/global";
 import {
-  checkIfMissingRequiredProperty,
+  checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
-  removeObjectProps
 } from "@/app/utils/helpers";
-import { Destination } from "@/app/types/Destination";
+import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 
 interface WizardStep {
   id: string;
@@ -59,19 +55,15 @@ interface stepAction {
   caption: string;
 }
 
-interface TicketItem {
-  id: string;
-  ticketNumber: string;
-  departure: string;
-  destination: string;
-  travelDate: string;
-  airline: string;
+interface Props {
+  requestNo?: string;
+  profile: Record<string, any>;
 }
 
-export default function TravelRequestWizard() {
+export default function TravelRequestWizard({requestNo, profile}: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [formData, setFormData] = useState<TravelRequest>({
+  const [travelRequestHeader, setTravelRequestHeader] = useState<TravelRequest>({
     documentType: '',
     no: '',
     travellerNo: '',
@@ -95,85 +87,23 @@ export default function TravelRequestWizard() {
     requirePerDiem: false,
     shortcutDimension1Code: '',
     shortcutDimension2Code: '',
+    approvalStatus: 'Open',
     travelRequestRoutes: [],
+    travellers: [],
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [isSaving, setIsSaving] = useState(false)
   const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
-
-  const [availableTickets] = useState<TicketItem[]>([
-    {
-      id: "1",
-      ticketNumber: "TK123456",
-      departure: "Nairobi",
-      destination: "London",
-      travelDate: "2025-06-10",
-      airline: "Kenya Airways",
-    },
-    {
-      id: "2",
-      ticketNumber: "TK654321",
-      departure: "Nairobi",
-      destination: "Dubai",
-      travelDate: "2025-07-02",
-      airline: "Emirates",
-    },
-  ]);
-
-  const {data: session} = useSession();
-  const profileNo = session?.user?.profile?.no
-  const [profile, setProfile] = useState(null)
-  const fetchTravelRequest = async (requestNo) => {
-    try {
-      const res = await getResource('travelRequests', {
-        params: {
-          filters: {
-            no: requestNo
-          },
-          '$expand': '*',
-        }
-      });
-
-      if (res.error) {
-        console.log('Travel request error: ', res.error);
-        toast.error(res.error.message)
-      } else {
-        setFormData(res.value.at(0))
-      }
-    } catch (error: any) {
-      console.log('Error fetching travel request!', error.message)
-    }
-  }
+  const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getResource('travelProfile', {
-          params: {
-            filters: {
-              no: profileNo
-            }
-          }
-        });
-
-        if (res.error) {
-          console.log("Response Error: ", res.error);
-          toast.error(res.error.message)
-        } else {
-          setProfile(res.value.at(0))
-        }
-      } catch (error: any) {
-        console.log('Error fetching profile!', error.message)
-      }
-    };
-
-    fetchProfile();
-  }, [profileNo]);
-
-  useEffect(() => {
-    if (profile) {
-      setFormData((prev) => ({
+    if (requestNo) {
+      setTravelRequestHeader((prev) => ({
+        ...prev,
+        documentType: profile.type
+      }))
+    } else {
+      setTravelRequestHeader((prev) => ({
         ...prev,
         documentType: profile.type,
         travellerNo: profile.no,
@@ -182,24 +112,148 @@ export default function TravelRequestWizard() {
         shortcutDimension1Code: profile.shortcutDimension1Code,
         shortcutDimension2Code: profile.shortcutDimension2Code,
       }))
-
-      setHeaderRequiredFields((prev) => {
-        if (profile.type === 'Employee') {
-          return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
-        } else if (profile.type === 'Visitor') {
-          return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
-        }
-        return [...prev]
-      })
     }
-  }, [profile]);
 
-  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-  const [availableDependencies, setAvailableDependencies] = useState<Dependency[]>([]);
+    setHeaderRequiredFields((prev) => {
+      if (profile.type === 'Employee') {
+        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+      } else if (profile.type === 'Visitor') {
+        return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+      }
+      return [...prev]
+    })
+  }, [profile, requestNo]);
 
-  const handleSelectTicket = useCallback((ticketId: string) => {
-    setSelectedTicketId(ticketId);
-  }, []);
+  useEffect(() => {
+    if (requestNo) {
+      fetchTravelRequest(requestNo)
+    }
+  }, [requestNo]);
+
+  const fetchTravelRequest = async (requestNo: string) => {
+    try {
+      const res = await getResource('travelRequests', {
+        params: {
+          filters: {
+            no: requestNo
+          },
+          '$expand': 'travelRequestRoutes,travelRequestLines,travellers,visaApplications',
+        }
+      });
+
+      if (res.error) {
+        console.log('Travel request error: ', res.error);
+        toast.error(res.error.message)
+      } else {
+        setTravelRequestHeader((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
+      }
+    } catch (error: any) {
+      console.log('Error fetching travel request!', error.message)
+    }
+  }
+
+  const saveTravelRequestHeader = async () => {
+    try {
+      const strippedPayLoad = removeNullAndUndefinedFromObject(travelRequestHeader);
+      const keysToRetain = [
+        'no',
+        'documentType',
+        'passportNo',
+        'shortcutDimension1Code',
+        'travellerNo',
+        'createdbyProfileNo',
+        'TypeOfTravel',
+        'purposeOfTravel',
+        'annualTrip',
+        'requirePerDiem',
+        'originCity',
+        'originCountryCode',
+        'destinationCity',
+        'destinationCountryCode',
+        'departureDate',
+        'arrivalDate',
+        'returnDate',
+        'modeOfTransport',
+        'accommodationType',
+        'estimatedTimeOfArrival',
+      ] as Array<string>;
+      const knownSchema = pickKeys(strippedPayLoad, keysToRetain);
+
+      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
+
+      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
+
+      if (isMissingRequiredProp.missing) {
+        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
+      }
+
+      setIsSaving(true)
+
+      const res = knownSchema.no
+        ? await patchResource('travelRequests', {
+          data: knownSchema,
+          primaryKey: ['no', 'documentType'],
+        })
+        : await createResource('travelRequests', {
+          data: knownSchema,
+        });
+
+      if (res.error) {
+        setIsSaving(false)
+        return Swal.fire(res.error.code, res.error.message);
+      }
+
+      // Refetch travel request
+      await fetchTravelRequest(res.no)
+
+      setIsSaving(false)
+
+      setCompletedSteps((prev) => new Set(prev).add("info"));
+
+      if (travelRequestHeader.documentType === 'Visitor') {
+        setActiveTab('checklist');
+      } else if (travelRequestHeader.documentType === 'Employee') {
+        setActiveTab('destinations');
+      }
+    } catch (error: any) {
+      await Swal.fire('Error!', error.message)
+      setIsSaving(false)
+    }
+  };
+
+  const canSubmitForApproval = useMemo(() => {
+    const canSubmit = travelRequestHeader.no && travelRequestHeader.approvalStatus && travelRequestHeader.approvalStatus === 'Open'
+    if (travelRequestHeader.documentType === 'Employee') {
+      return canSubmit && travelRequestHeader.travelRequestRoutes.length > 0
+    }
+
+    return canSubmit
+  }, [travelRequestHeader])
+
+  const handleSubmitForApproval = useCallback(async () => {
+    try {
+      setIsSubmitting(true)
+      const res = await codeUnit('sendTravelRequestForApproval', {
+        data: {
+          no: travelRequestHeader.no,
+        },
+      });
+
+      if (res.error) {
+        setIsSubmitting(false)
+        return Swal.fire("Error submitting for approval!", res.error.message);
+      }
+
+      // Refetch travel request
+      await fetchTravelRequest(res.no)
+
+      setIsSubmitting(false)
+      Swal.fire("Success", res.value);
+    } catch (error) {
+      setIsSubmitting(false)
+      Swal.fire("Error", error.message);
+    }
+  }, [travelRequestHeader.no])
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
@@ -218,24 +272,6 @@ export default function TravelRequestWizard() {
     }
   }, []);
 
-  const handleAddDestination = useCallback(() => {
-    setFormData((prev) => ({
-      ...prev,
-      travelRequestRoutes: [
-        ...prev.travelRequestRoutes,
-        {
-          id: Date.now().toString(),
-          originCountry: "",
-          originCity: "",
-          destinationCountry: "",
-          destinationCity: "",
-          travelDate: "",
-          transportMode: "",
-        } as any,
-      ],
-    }));
-  }, []);
-
   const allSteps = useMemo<WizardStep[]>(
     () => [
       {
@@ -249,15 +285,6 @@ export default function TravelRequestWizard() {
         icon: <Globe size={18}/>,
         title: "Travel Destinations",
         desc: "Travel destination details",
-        actions: [
-          {
-            id: "action-add-destination",
-            caption: "Add Destination",
-            fn: () => {
-              handleAddDestination();
-            },
-          },
-        ],
       },
       {
         id: "dependencies",
@@ -266,15 +293,15 @@ export default function TravelRequestWizard() {
         desc: "Related travel requirements",
       },
       {
-        id: "ticket",
-        icon: <Ticket size={18}/>,
-        title: "Annual Travel Ticket",
-        desc: "Flight/train reservations",
-      },
-      {
         id: "checklist",
         icon: <ListChecks size={18}/>,
-        title: "Checklist",
+        title: "Visa Checklist",
+        desc: "Visa Pre-travel requirements",
+      },
+      {
+        id: "traveller-checklist",
+        icon: <ListChecks size={18}/>,
+        title: "Traveller Checklist",
         desc: "Pre-travel requirements",
       },
       {
@@ -305,48 +332,46 @@ export default function TravelRequestWizard() {
         ],
       },
     ],
-    [handleAddDestination, handleCreateTravelAdvance]
+    [handleCreateTravelAdvance]
   ); // ✅ Correct dependencies
 
-  // Get the appropriate steps based on user type
+  // Get the appropriate steps based on user type & status
   const currentSteps = useMemo((): WizardStep[] => {
-    if (formData.documentType === "Employee") {
-      return [
-        "info",
-        "destinations",
-        "dependencies",
-        "ticket",
-        "checklist",
-        "visa",
-        "advance",
-      ].map((id) => allSteps.find((s) => s.id === id)!);
-    } else if (formData.documentType === "Visitor") {
-      return ["info", "dependencies", "checklist", "permit", "advance"].map(
-        (id) => allSteps.find((s) => s.id === id)!
-      );
+    if (travelRequestHeader.approvalStatus === 'Open') {
+      if (travelRequestHeader.documentType === "Employee") {
+        return [
+          "info",
+          "destinations",
+          "dependencies",
+        ].map((id) => allSteps.find((s) => s.id === id)!);
+      } else if (travelRequestHeader.documentType === "Visitor") {
+        return ["info", "dependencies"].map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
+      }
+    } else {
+      if (travelRequestHeader.documentType === "Employee") {
+        return [
+          "info",
+          "destinations",
+          "dependencies",
+          "checklist",
+          "traveller-checklist",
+          "visa",
+          "advance",
+        ].map((id) => allSteps.find((s) => s.id === id)!);
+      } else if (travelRequestHeader.documentType === "Visitor") {
+        return ["info", "dependencies", "checklist", "traveller-checklist", "permit", "advance"].map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
+      }
     }
-    return [allSteps.find((s) => s.id === "info")!];
-  }, [formData.documentType, allSteps]);
 
-  const profileDipendencies = async () => {
-    const res = await getResource('travelDependancies',
-      {
-        params: {
-            filters: {
-              profileNo: profileNo
-            }
-          }});
-    if (res.error) {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Error fetching profile dependecies!',
-      });
-      return
-    }
-    setAvailableDependencies(res.value);
-  }
+    return [allSteps.find((s) => s.id === "info")!];
+  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps]);
+
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
-    setFormData((prev) => ({
+    setTravelRequestHeader((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -356,9 +381,6 @@ export default function TravelRequestWizard() {
     if (validateCurrentStep()) {
       setActiveTab(stepId);
       setCompletedSteps((prev) => new Set(prev).add(activeTab));
-    }
-    if (stepId === "dependencies") {
-      await profileDipendencies();
     }
   };
 
@@ -378,89 +400,6 @@ export default function TravelRequestWizard() {
     {id: "duration", label: "Duration (days)", type: "number"},
     {id: "documents", label: "Required Documents", type: "file"},
   ];
-
-  const handleInitialSubmit = async () => {
-    try {
-      const strippedPayLoad = removeNullAndUndefinedFromObject(formData);
-      const knownSchema = removeObjectProps(strippedPayLoad, ['travelRequestRoutes']);
-
-      const isMissingRequiredProp = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
-
-      if (!isMissingRequiredProp) return Swal.fire("Validation Error!", `Not a valid payload`);
-
-      if (isMissingRequiredProp.missing) {
-        return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
-      }
-
-      setIsSubmitting(true)
-
-      console.log(knownSchema)
-
-      const res = knownSchema.no
-        ? await patchResource('travelRequests', {
-          data: knownSchema,
-          primaryKey: ['no'],
-        })
-        : await createResource('travelRequests', {
-          data: knownSchema,
-        });
-
-      if (res.error) {
-        setIsSubmitting(false)
-        return Swal.fire(res.error.code, res.error.message);
-      }
-
-      // Fetch created travel request
-      await fetchTravelRequest(res.no)
-
-      setIsSubmitting(false)
-
-      console.log('created travel request', formData);
-
-      setCompletedSteps((prev) => new Set(prev).add("info"));
-
-      if (formData.documentType === 'Visitor') {
-        setActiveTab('checklist');
-      } else if (formData.documentType === 'Employee') {
-        setActiveTab('destinations');
-      }
-    } catch (error: any) {
-      await Swal.fire('Error!', error.message)
-      setIsSubmitting(false)
-    }
-  };
-
-  const handleDestinationChange = useCallback(
-    <K extends keyof Destination>(
-      index: number,
-      field: K,
-      value: Destination[K]
-    ) => {
-      setFormData((prev) => {
-        const newDestinations = [...prev.travelRequestRoutes];
-        newDestinations[index] = {
-          ...newDestinations[index],
-          [field]: value,
-        };
-        return {
-          ...prev,
-          travelRequestRoutes: newDestinations,
-        };
-      });
-    },
-    []
-  );
-
-  const handleRemoveDestination = useCallback((index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      travelRequestRoutes: prev.travelRequestRoutes.filter((_, i) => i !== index),
-    }));
-  }, []);
-
-  useEffect(() => {
-
-  }, [activeTab, availableDependencies]);
 
   return (
     <div className="travel-wizard">
@@ -573,36 +512,43 @@ export default function TravelRequestWizard() {
                   </ul>
                 </div>
               )}
+              {canSubmitForApproval && (
+                <button
+                  className="primary-button"
+                  onClick={handleSubmitForApproval}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? <Loader size={16} className="button-icon blink-animation"/>
+                    : <Check size={16} className="button-icon"/>}
+                  Submit for Approval
+                </button>
+              )}
             </div>
 
             <form onSubmit={handleSubmit}>
               {activeTab === "info" && (
                 <TravelHeaderForm
-                  formData={formData}
+                  formData={travelRequestHeader}
                   requiredFields={headerRequiredFields}
+                  isReadOnly={isReadOnly}
                   onFormChange={handleFormChange}
                 />
               )}
 
               {activeTab === "destinations" && (
                 <TravelDestinations
-                  destinations={formData.travelRequestRoutes as any}
-                  onDestinationChange={handleDestinationChange}
-                  onRemoveDestination={handleRemoveDestination}
-                />
-              )}
-
-              {activeTab === "ticket" && (
-                <TravelTicketSelector
-                  tickets={availableTickets}
-                  selectedTicketId={selectedTicketId}
-                  onSelectTicket={handleSelectTicket}
+                  travelRequestHeader={travelRequestHeader}
+                  isReadOnly={isReadOnly}
+                  onSubmit={fetchTravelRequest}
                 />
               )}
 
               {activeTab === "dependencies" && (
                 <TravelDependencies
-                  availableDependencies={availableDependencies}
+                  travelRequestHeader={travelRequestHeader}
+                  isReadOnly={isReadOnly}
+                  onSubmit={fetchTravelRequest}
                 />
               )}
 
@@ -653,14 +599,14 @@ export default function TravelRequestWizard() {
 
               {activeTab === "advance" && (
                 <div>
-                  <TravelAdvanceDetails travelInfo={formData}/>
+                  <TravelAdvanceDetails travelInfo={travelRequestHeader}/>
                   <TravelAdvanceGLTable
                     glLines={[
                       {
                         account: "6001",
                         description: "Flight Ticket",
                         amount: 500,
-                        currency: formData.currency,
+                        currency: profile.currencyCode,
                         department: "",
                         project: "",
                       },
@@ -668,7 +614,7 @@ export default function TravelRequestWizard() {
                         account: "6002",
                         description: "Hotel",
                         amount: 300,
-                        currency: formData.currency,
+                        currency: profile.currencyCode,
                         department: "",
                         project: "",
                       },
@@ -679,97 +625,98 @@ export default function TravelRequestWizard() {
 
               {activeTab === "visa" && <VisaApplicationForm/>}
 
-              {activeTab === "checklist" && (
-                <div className="mb-3">
-                  <div className="bg-light-subtle p-3 rounded">
-                    <p className="fw-bold mb-2">Checklist</p>
-                    <ul className="mb-0">
-                      {formData.documentType === "Visitor" ? (
-                        <li>Work Permit is required for this trip.</li>
-                      ) : (
-                        <li>Visa is required for this trip.</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              <div className="step-actions">
-                {activeTab === "info" ? (
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={handleInitialSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting
-                      ? <Loader size={16} className="button-icon blink-animation"/>
-                      : <Save size={16} className="button-icon"/>}
-                    Save & Continue
-                  </button>
-                ) : (
-                  <div className="d-flex flex-wrap gap-2">
-                    {currentStepIndex > 0 && (
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() =>
-                          handleTabChange(currentSteps[currentStepIndex - 1].id)
-                        }
-                      >
-                        <ArrowLeft size={16} className="button-icon"/>
-                        Previous
-                      </button>
-                    )}
+              {activeTab === "traveller" && <VisaApplicationForm/>}
 
-                    {activeTab === "visa" &&
-                    formData.documentType === "Employee" ? (
-                      <button
-                        type="button"
-                        className="primary-button"
-                        onClick={() => {
-                          setCompletedSteps((prev) =>
-                            new Set(prev).add("visa")
-                          );
-                          setActiveTab("advance");
-                        }}
-                      >
-                        <Check size={16} className="button-icon"/>
-                        Submit Travel Request
-                      </button>
-                    ) : activeTab === "permit" &&
-                    formData.documentType === "Visitor" ? (
-                      <button
-                        type="button"
-                        className="primary-button"
-                        onClick={() => {
-                          setCompletedSteps((prev) =>
-                            new Set(prev).add("permit")
-                          );
-                          setActiveTab("advance");
-                        }}
-                      >
-                        <Check size={16} className="button-icon"/>
-                        Submit Travel Request
-                      </button>
-                    ) : currentStepIndex < currentSteps.length - 1 ? (
-                      <button
-                        type="button"
-                        className="primary-button"
-                        onClick={() =>
-                          handleTabChange(currentSteps[currentStepIndex + 1].id)
-                        }
-                      >
-                        <ArrowRight size={16} className="button-icon"/>
-                        Next
-                      </button>
-                    ) : (
-                      <button type="submit" className="submit-button">
-                        <Check size={16} className="button-icon"/>
-                        Submit Request
-                      </button>
-                    )}
-                  </div>
-                )}
+              {activeTab === "checklist" && <VisaChecklist travelInfo={travelRequestHeader}/>}
+
+              {activeTab === "traveller-checklist" && <TravellerChecklist travelInfo={travelRequestHeader}/>}
+
+              <div className="step-actions">
+                {activeTab === "info" && !isReadOnly
+                  ? (
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={saveTravelRequestHeader}
+                      disabled={isSaving}
+                    >
+                      {isSaving
+                        ? <Loader size={16} className="button-icon blink-animation"/>
+                        : <Save size={16} className="button-icon"/>}
+                      Save & Continue
+                    </button>
+                  )
+                  : (
+                    <div className="d-flex flex-wrap gap-2">
+                      {currentStepIndex > 0 && (
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() =>
+                            handleTabChange(currentSteps[currentStepIndex - 1].id)
+                          }
+                        >
+                          <ArrowLeft size={16} className="button-icon"/>
+                          Previous
+                        </button>
+                      )}
+
+                      {activeTab === "visa" &&
+                      travelRequestHeader.documentType === "Employee" ? (
+                        <button
+                          type="button"
+                          className="primary-button"
+                          onClick={() => {
+                            setCompletedSteps((prev) =>
+                              new Set(prev).add("visa")
+                            );
+                            setActiveTab("advance");
+                          }}
+                        >
+                          <Check size={16} className="button-icon"/>
+                          Submit Travel Request
+                        </button>
+                      ) : activeTab === "permit" &&
+                      travelRequestHeader.documentType === "Visitor" ? (
+                        <button
+                          type="button"
+                          className="primary-button"
+                          onClick={() => {
+                            setCompletedSteps((prev) =>
+                              new Set(prev).add("permit")
+                            );
+                            setActiveTab("advance");
+                          }}
+                        >
+                          <Check size={16} className="button-icon"/>
+                          Submit Travel Request
+                        </button>
+                      ) : currentStepIndex < currentSteps.length - 1 ? (
+                        <button
+                          type="button"
+                          className="primary-button"
+                          onClick={() =>
+                            handleTabChange(currentSteps[currentStepIndex + 1].id)
+                          }
+                        >
+                          <ArrowRight size={16} className="button-icon"/>
+                          Next
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="submit-button"
+                          onClick={handleSubmitForApproval}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting
+                            ? <Loader size={16} className="button-icon blink-animation"/>
+                            : <Check size={16} className="button-icon"/>}
+                          Submit for Approval
+                        </button>
+                      )}
+                    </div>
+                  )}
               </div>
             </form>
           </div>

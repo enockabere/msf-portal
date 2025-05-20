@@ -2,50 +2,47 @@
 
 import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import { Advance } from "@/app/types/advance";
+import { Wallet } from "lucide-react";
+import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
+import CustomModal from "@/app/components/modals/CustomModal";
+import { formatDate } from "@/app/utils/dateFormats";
 
 interface TravelRequestTableProps {
-  data: Advance[];
+  data: Array<Record<string, any>>;
   loading: boolean;
+  profile: Record<string, any>;
 }
 
 export default function TravelRequestTable({
-  data,
-  loading,
-}: TravelRequestTableProps) {
+                                             data,
+                                             loading,
+                                             profile,
+                                           }: TravelRequestTableProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [search, setSearch] = useState("");
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       return (
-        item.advanceType?.toLowerCase().includes(search.toLowerCase()) ||
-        item.employeeName?.toLowerCase().includes(search.toLowerCase())
+        item.no.toLowerCase().includes(search.toLowerCase())
       );
     });
   }, [search, data]);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const [selectedRequestNo, setSelectedRequestNo] = useState(null)
+  const [action, setAction] = useState('Update')
 
-  const getTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      Advance: "fa-solid fa-money-bill",
-      Travel: "fa-solid fa-plane",
-      Operational: "fa-solid fa-gear",
-    };
-    return icons[type] || "fa-solid fa-file-alt";
-  };
+  const handleCloseModal = () => setSelectedRequestNo(null)
+  const handleOpenModal = (requestNo: string, action: string) => {
+    setAction(action)
+    setSelectedRequestNo(requestNo)
+  }
 
   const columns = [
     {
-      name: "Advance No",
+      name: "Request No",
       sortable: true,
-      cell: (row: Advance) => (
+      cell: (row: Record<string, any>) => (
         <span
           className="text-blue text-decoration-underline cursor-pointer"
           onClick={() => console.log("View", row)}
@@ -55,26 +52,27 @@ export default function TravelRequestTable({
       ),
     },
     {
-      name: "Type",
-      selector: (row: Advance) => row.advanceType,
-      sortable: true,
-      cell: (row: Advance) => (
-        <div className="d-flex align-items-center gap-2">
-          <div
-            className="d-inline-flex justify-content-center align-items-center bg-primary-subtle rounded"
-            style={{ width: 32, height: 32 }}
-          >
-            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
-          </div>
-          <span>{row.advanceType}</span>
-        </div>
-      ),
+      name: "Application Date",
+      selector: (row: Record<string, any>) => formatDate(row.documentDate),
+    },
+    {
+      name: "Departure Date",
+      selector: (row: Record<string, any>) => formatDate(row.departureDate),
+    },
+    {
+      name: "Return Date",
+      selector: (row: Record<string, any>) => formatDate(row.returnDate),
+    },
+    {
+      name: "Amount",
+      selector: (row: Record<string, any>) =>
+        `${
+          row.currencyCode || "KES"
+        } ${row.totalAmount.toLocaleString()}`,
     },
     {
       name: "Status",
-      selector: (row: Advance) => row.status,
-      sortable: true,
-      cell: (row: Advance) => {
+      cell: (row: Record<string, any>) => {
         const badgeMap = {
           Open: "badge bg-info-subtle text-info",
           Released: "badge bg-success-subtle text-success",
@@ -86,77 +84,64 @@ export default function TravelRequestTable({
           "Pending Approval": "fas fa-clock me-1",
         };
         return (
-          <span className={badgeMap[row.status]}>
-            <i className={iconMap[row.status]} /> {row.status}
+          <span className={badgeMap[row.approvalStatus]}>
+            <i className={iconMap[row.approvalStatus]}/> {row.approvalStatus}
           </span>
         );
       },
     },
     {
-      name: "Amount",
-      selector: (row: Advance) =>
-        `${
-          row.currencyCode || "KES"
-        } ${row.applicationAmount.toLocaleString()}`,
-    },
-    {
-      name: "Application Date",
-      selector: (row: Advance) => formatDate(row.applicationDate),
-    },
-    {
-      name: "Disbursement Date",
-      selector: (row: Advance) => formatDate(row.preferredDisbursementDate),
-    },
-    {
       name: "Actions",
-      cell: (row: Advance) => (
+      cell: (row: Record<string, any>) => (
         <div className="d-flex gap-2">
-          {row.status === "Open" && (
-            <button
+          {row.approvalStatus === "Open"
+            ? (
+              <button
+                className="text-primary border-0 bg-transparent"
+                title="Edit"
+                onClick={() => handleOpenModal(row.no, 'Update')}
+              >
+                <i className="las la-pen fs-18"/>
+              </button>
+            )
+            : <button
               className="text-primary border-0 bg-transparent"
               title="Edit"
+              onClick={() => handleOpenModal(row.no, 'View')}
             >
-              <i className="las la-pen fs-18" />
+              <i className="las la-eye fs-18"/>
             </button>
-          )}
-          {row.status === "Pending Approval" && (
-            <button
-              className="text-success border-0 bg-transparent"
-              title="View"
-            >
-              <i className="las la-eye fs-18" />
-            </button>
-          )}
-          {row.status === "Released" && (
-            <>
-              <button
-                className="text-success border-0 bg-transparent"
-                title="View"
-              >
-                <i className="las la-eye fs-18" />
-              </button>
-              <button
-                className="text-warning border-0 bg-transparent"
-                title="Settle"
-              >
-                <i className="las la-coins fs-18" />
-              </button>
-            </>
-          )}
+          }
         </div>
       ),
       ignoreRowClick: true,
-      style: { minWidth: "120px" },
+      style: {minWidth: "120px"},
     },
   ];
 
   return (
-    <SkeletonDataTable
-      title=""
-      columns={columns}
-      data={loading ? [] : filteredData}
-      searchPlaceholder="Search travel requests..."
-      loading={loading}
-    />
+    <>
+      <SkeletonDataTable
+        title=""
+        columns={columns}
+        data={loading ? [] : filteredData}
+        searchPlaceholder="Search travel requests..."
+        loading={loading}
+      />
+
+      <CustomModal
+        show={!!selectedRequestNo}
+        onClose={handleCloseModal}
+        title={`${action} Travel Request (${selectedRequestNo})`}
+        size="xl"
+        titleIcon={<Wallet size={18} className="text-white"/>}
+      >
+        <div className="row">
+          <div className="col-md-12">
+            <TravelRequestWizard requestNo={selectedRequestNo} profile={profile}/>
+          </div>
+        </div>
+      </CustomModal>
+    </>
   );
 }

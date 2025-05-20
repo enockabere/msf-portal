@@ -15,6 +15,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { Advance } from "@/app/types/advance";
+import { getResource } from "@/app/lib/api/http";
+import Swal from "sweetalert2";
+import { useMySetups } from "@/app/context/SetupContext";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -26,30 +30,6 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-
-  const fetchAdvances = useCallback(async () => {
-    const employeeNo = session?.user?.profile?.number;
-    if (!employeeNo) return;
-    setLoading(true);
-
-    try {
-      const res = await fetch(
-        `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
-      );
-      const json = await res.json();
-      setAdvanceData(json["data"]["value"] || []);
-    } catch (err) {
-      console.error("❌ Parent failed to fetch advances:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [session]);
-
-  useEffect(() => {
-    fetchAdvances();
-  }, [fetchAdvances]);
-
-  const { setBreadcrumb } = useBreadcrumb();
   const [advanceCounts, setAdvanceCounts] = useState({
     open: 0,
     pending: 0,
@@ -61,34 +41,44 @@ export default function OtherAdvancesClient() {
     "right" | "top" | "bottom" | "left"
   >("top");
   const [showModal, setShowModal] = useState(false);
+  const { setBreadcrumb } = useBreadcrumb();
+  const { fetchSetups } = useMySetups();
+  const { actions } = useAdvance();
+  const { dispatcher } = actions;
+
+  const fetchAdvances = useCallback(async () => {
+    const employeeNo = session?.user?.profile?.no;
+    if (!employeeNo) return;
+    setLoading(true);
+
+    try {
+      const res = await getResource('imprest', {
+        params: {
+          filters: {
+            employeeNo,
+          },
+        }
+      });
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message, 'error');
+      }
+      setAdvanceData(res.value);
+    } catch (err: any) {
+      Swal.fire('Error!', err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
 
   const handleChangePlacement = (newPlacement: typeof placement) => {
     setPlacement(newPlacement);
     localStorage.setItem("advancePlacement", newPlacement);
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("advancePlacement") as
-      | typeof placement
-      | null;
-    if (saved && saved !== placement) {
-      setPlacement(saved);
-    }
-  }, [placement]);
-
-  useEffect(() => {
-    setBreadcrumb([
-      { label: "Dashboard", path: "/dashboard" },
-      { label: "Make Request", path: "/dashboard/make-request" },
-      {
-        label: "Advance Requests",
-        path: "/dashboard/make-request/advance requests",
-      },
-    ]);
-  }, [setBreadcrumb]);
-
   const handleNewRequestClick = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
+
 
   const cards = [
     {
@@ -125,6 +115,62 @@ export default function OtherAdvancesClient() {
     },
   ];
 
+  const handleSetSelectedRow = (advance: Advance | null = null) => {
+    if (advance) {
+      // setSelectedAdvance(advance);
+      dispatcher({
+        type: 'OPEN_EXISTING_ADVANCE',
+        payload: advance,
+      });
+      dispatcher({
+        type: 'ADVANCE_CREATION_STATUSES',
+        payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
+      });
+
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+      // setSelectedAdvance(null);
+      dispatcher({
+        type: 'OPEN_EXISTING_ADVANCE',
+        payload: null,
+      });
+      dispatcher({
+        type: 'ADVANCE_CREATION_STATUSES',
+        payload: { isNew: false, isEditing: false, setForView: false },
+      });
+    }
+  }
+  useEffect(() => {
+    const abortController = new AbortController();
+    Promise.allSettled([
+      fetchAdvances(),
+      fetchSetups([
+        'currencies',
+      ]),
+    ]);
+    return () => abortController.abort('Duplicate fetch!');
+  }, [fetchAdvances, fetchSetups]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("advancePlacement") as
+      | typeof placement
+      | null;
+    if (saved && saved !== placement) {
+      setPlacement(saved);
+    }
+  }, [placement]);
+
+  useEffect(() => {
+    setBreadcrumb([
+      { label: "Dashboard", path: "/dashboard" },
+      { label: "Make Request", path: "/dashboard/make-request" },
+      {
+        label: "Advance Requests",
+        path: "/dashboard/make-request/advance requests",
+      },
+    ]);
+  }, [setBreadcrumb]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -165,6 +211,7 @@ export default function OtherAdvancesClient() {
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -182,6 +229,7 @@ export default function OtherAdvancesClient() {
                   onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -199,6 +247,7 @@ export default function OtherAdvancesClient() {
                 onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
+                setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
               />
             </div>
           </div>

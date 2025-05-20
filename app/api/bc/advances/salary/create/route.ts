@@ -52,10 +52,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: {
-        no: response?.no || response?.value?.no || "",
-        status: "Pending Approval",
-      },
+      data: response,
       message: "Salary advance created successfully",
     });
   } catch (error: any) {

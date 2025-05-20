@@ -4,14 +4,14 @@ export const findObjectFromArray = (array: Array<Record<string, unknown>>, key: 
     return map.get(value)
 }
 
-export const safeTypechecker = (input: any) => {
+export const safeTypechecker = (input: any): string => {
     return Object.prototype.toString.call(input).slice(8, -1);
 }
 
 const validType = (value: any): boolean => {
     const type = safeTypechecker(value);
     let isValid = true;
-    switch(type) {
+    switch (type) {
         case 'Undefined':
         case 'Null':
             {
@@ -64,3 +64,25 @@ export const removeObjectProps = <T extends Record<string, any>>(object: T | any
     }
     return result;
 }
+
+export const pickKeys = <T extends Record<string, any>>(obj: T | any, props: string[]): Record<string, any> | undefined => {
+    const result = {} as Record<string, any>;
+    for (const prop of props) {
+        if (prop in obj) {
+            result[prop] = obj[prop];
+        }
+    }
+    return result;
+}
+
+export const decodeValue = (value: string) => {
+    return value.replace(/_x([0-9A-Fa-f]{4})_/g, (_, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+    );
+}
+
+export const constructDimension = (schema: Record<string, any>, schemaKey: string = 'globalDimensionNo', prefix: string = 'shortcutDimension', suffix: string = 'Code') => {
+    if (safeTypechecker(schema) === 'Object') {
+        return `${prefix}${schema[schemaKey]}${suffix}`
+    }
+};

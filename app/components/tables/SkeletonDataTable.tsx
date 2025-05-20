@@ -30,7 +30,7 @@ export default function SkeletonDataTable({
 }: SkeletonDataTableProps) {
   const [search, setSearch] = useState("");
   const { data: session } = useSession();
-  const filtered = data.filter((item) => {
+  const filtered = data?.filter((item) => {
     const values = Object.values(item).join(" ").toLowerCase();
     return values.includes(search.toLowerCase());
   });

@@ -16,6 +16,8 @@ const localSetupCache = new Map<string, any>();
 
 const state = {
   imprestTypes: [] as Array<Record<string, any>>,
+  DEPARTMENTS: [] as Array<Record<string, any>>,
+  PROJECT: [] as Array<Record<string, any>>,
   currencies: [] as Array<Record<string, any>>,
   dimensions: [] as Array<Record<string, any>>,
   expenseCodes: [] as Array<Record<string, any>>,
@@ -54,7 +56,13 @@ type Action =
 function reducer(state: MySetupsState, action: Action): MySetupsState {
   switch (action.type) {
     case "PATCH":
-      return { ...state, ...action.payload };
+      {
+        if (action.payload.dimensions) {
+          action.payload.PROJECT = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'PROJECT');
+          action.payload.DEPARTMENTS = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'DEPARTMENTS');
+        }
+        return { ...state, ...action.payload };
+      }
     case "RESET":
       return initialState;
     default:

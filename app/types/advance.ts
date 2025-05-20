@@ -6,42 +6,41 @@ export type AdvanceType =
   | "Advance";
 
 export interface Advance {
-  disbursed: any;
+  disbursed?: any;
   currencyCode: string;
-  no: string;
-  applicationDate: string;
-  employeeName: string;
-  advanceType: AdvanceType;
-  applicationAmount: number;
-  status: "Open" | "Pending Approval" | "Released";
-  documentStatus: string;
-  preferredDisbursementDate: string;
-  repaymentAmount: number;
-  repaymentInstallments: number;
+  no?: string;
+  applicationDate?: string;
+  employeeName?: string;
+  advanceType?: AdvanceType;
+  applicationAmount?: number;
+  status?: "Open" | "Pending Approval" | "Released";
+  documentStatus?: string;
+  preferredDisbursementDate?: string;
+  repaymentAmount?: number;
+  repaymentInstallments?: number;
+  [key: string]: any;
 }
 
 export interface SalaryAdvanceData extends Advance {
-  paymentMethod: string;
+  paymentMethod?: string;
   currencyCode: string;
-  accountNo: string;
-  bankCode: string;
-  employeeBranchCode: string;
-  mobilePhoneNo: string;
-  identificationDocumentNo: string;
-  chequeName: string;
-  swiftCode: string;
+  accountNo?: string;
+  bankCode?: string;
+  employeeBranchCode?: string;
+  mobilePhoneNo?: string;
+  identificationDocumentNo?: string;
+  chequeName?: string;
+  swiftCode?: string;
   payrollPeriod?: string;
 }
 
 export interface ExpenseItem {
-  category: string;
-  amount: number;
-  receipt?: File | null;
-  mileage: string;
+  expenseCode: string;
+  unitCost: number;
+  description?: string;
   costCenter: string;
   project: string;
-  surrenderedAmount?: number;
-  otherCategory?: string;
+  [key: string]: any;
 }
 
 export interface FormData {

@@ -32,3 +32,10 @@ export const formatDate = (date: string | undefined, dateFormat: string = 'MMM d
     }
     return baseFormat
 }
+
+export const formatDateToLcateDateString = (date: string) =>
+    new Date(date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    });

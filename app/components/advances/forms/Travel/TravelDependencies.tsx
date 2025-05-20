@@ -1,192 +1,174 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Dependency } from "@/app/types/global";
+import React, { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
-import { batchRequest, getResource } from "@/app/lib/api/http";
-import _ from 'lodash';
-import { useSession } from "next-auth/react";
+import { TravelRequest } from "@/app/types/travel";
+import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
+import { Loader, Trash2 } from "lucide-react";
 interface TravelDependenciesProps {
-  availableDependencies: Dependency[];
+  travelRequestHeader: TravelRequest;
+  isReadOnly: boolean;
+  onSubmit: (requestNo: string) => void;
 }
 
 export default function TravelDependencies({
-  availableDependencies,
+  travelRequestHeader,
+  isReadOnly,
+  onSubmit,
 }: TravelDependenciesProps) {
-  const [selectedDependencies, setSelectedDependencies] = useState<Dependency[]>(
-    []
-  );
-  const [filteredAvailableDependants, setFilteredAvailableDependants] = useState<Dependency[]>(
-    []
-  );
-  const [postSelectedDependencies, setPostSelectedDependencies] = useState<{ data: Dependency}[]>([]);
-  const { data } = useSession();
+  const [dependants, setDependants] = useState([])
 
-const handleSelect = (selectedOptions: any) => {
-  console.log('selected option: ', selectedOptions)
-  if (!selectedOptions) return;
-
-  const [profileNo, lineNo] = selectedOptions?.[0]?.value.split("-");
-  const dependant = availableDependencies.find(
-      (dep) =>
-        dep.profileNo === profileNo && dep.lineNo.toString() === lineNo
-    );
-    const dependantPayload = {
-      profileNo: data.user?.profile?.no,
-      dob: dependant.dob,
-      name:dependant.gender,
-      relation: dependant.relation,
-      gender: dependant.gender,
-      countryOfOrigin: dependant.countryOfOrigin,
-    }
-    setSelectedDependencies((prev: Dependency[]) =>[...prev, dependant]);
-    setPostSelectedDependencies((prev) => {
-      return [
-        ...prev,
-        {
-        method: 'POST',
-        endpoint: 'travelDependancies',
-        data: dependantPayload,
-      }
-      ]
-    });
-};
-const fetchDependencies = async (profNo: string)=>{
-   const res = await getResource('travelDependancies', {
-     params: {
-      filters: {
-        profileNo:profNo
-      }
-     },
-   }
-     );
-      if (res.error) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Error fetching profile dependecies!',
+  useEffect(() => {
+    const fetchDependants = async () => {
+      try {
+        const res = await getResource('profileDependants', {
+          params: {
+            filters: {
+              profileNo: travelRequestHeader.travellerNo
+            }
+          }
         });
-        return
+
+        if (res.error) {
+          return Swal.fire({ title: 'Error fetching profile dependants!', text: res.error.message });
+        }
+
+        setDependants(res.value)
+      } catch (error: any) {
+        console.log('Error fetching dependants', error.message)
       }
-      setSelectedDependencies((prev)=> {
-        return _.difference(res.value, prev);
-      })
-}
-const handleSaveDependencies = async () => {
-  if (postSelectedDependencies.length === 0) {
-    Swal.fire("No new dependencies to save", "", "info");
-    return;
-  }
-
-  try {
-    const res = await batchRequest({
-      batch: postSelectedDependencies,
-    });
-
-    if (res.error) {
-      console.error("Save Dependants Error:", res.error.message);
     }
 
-    Swal.fire("Dependencies saved successfully", "", "success");
+    fetchDependants()
+  }, [travelRequestHeader.travellerNo]);
 
-    // Optionally clear postSelectedDependencies after save
-    setPostSelectedDependencies([]);
-    fetchDependencies(data.user.profile.no);
-  } catch (error) {
-    console.error("Save failed:", error);
-    Swal.fire("Failed to save dependencies", "Please try again", "error");
-  }
-};
+  const travellers = useMemo(() =>
+    travelRequestHeader.travellers.filter(
+      (traveller: Record<string, any>) => traveller.travellerType !== 'Self'
+    ), [travelRequestHeader.travellers]
+  );
 
-useEffect(() => {
-    setFilteredAvailableDependants(()=> {
-    return _.difference(availableDependencies, selectedDependencies);
-  })
-}, [availableDependencies, selectedDependencies])
+  const travellerDependantNos = useMemo(
+    () => travellers.map((traveller: Record<string, any>) => traveller.dependantNo),
+    [travellers]
+  );
+
+  const selectableDependants = useMemo(
+    () => dependants.filter(dependant =>
+      !travellerDependantNos.includes(dependant.lineNo)
+    ),
+    [dependants, travellerDependantNos]
+  );
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dependantNoBeingDeleted, setDependantNoBeingDeleted] = useState(null);
+
+  const handleSelect = async (dependant: Record<string, any>) => {
+    try {
+      setIsSubmitting(true)
+      const res = await createResource('travellers', {
+        data: {
+          documentType: travelRequestHeader.documentType,
+          documentNo: travelRequestHeader.no,
+          travellerType: 'Dependant',
+          travellerNo: travelRequestHeader.travellerNo,
+          dependantNo: dependant.value,
+          travellerName: dependant.label,
+        }
+      })
+      if (res.error) {
+        setIsSubmitting(false)
+        return Swal.fire({ title: 'Error saving traveller!', text: res.error.message });
+      }
+
+      onSubmit(travelRequestHeader.no);
+      setIsSubmitting(false)
+    } catch (error: any) {
+      console.log('Error saving traveller', error.message)
+      setIsSubmitting(false)
+    }
+  };
+
+  const handleDelete = async (traveller: Record<string, any>) => {
+    try {
+      setDependantNoBeingDeleted(traveller.dependantNo)
+      const res = await deleteResource('travellers', {
+        data: traveller,
+        primaryKey: ['documentType', 'documentNo', 'lineNo']
+      })
+      if (res.error) {
+        setDependantNoBeingDeleted(null)
+        return Swal.fire({ title: 'Error deleting traveller!', text: res.error.message });
+      }
+
+      onSubmit(travelRequestHeader.no);
+      setDependantNoBeingDeleted(null)
+    } catch (error: any) {
+      setDependantNoBeingDeleted(null)
+      console.log('Error deleting traveller', error.message)
+    }
+  };
+
   return (
     <div className="card mb-4">
       <div className="card-body">
-        <div className="mb-4">
-          <Select
-            isMulti
-            options={filteredAvailableDependants.map((dep) => ({
-              value: `${dep.profileNo}-${dep.lineNo}`,
-              label: dep.name,
-            }))}
-            onChange={handleSelect}
-            value={[]}
-            placeholder="Select dependencies to add"
-          />
-        </div>
+        {!isReadOnly && (
+          <div className="mb-4">
+            <Select
+              options={selectableDependants.map((item) => ({
+                value: item.lineNo,
+                label: item.name,
+              }))}
+              value={null}
+              isLoading={isSubmitting}
+              onChange={handleSelect}
+              placeholder="Select the dependant you plan to travel with"
+            />
+          </div>
+        )}
 
         <table className="table table-bordered align-middle">
           <thead className="table-light">
             <tr>
               <th>#</th>
               <th>Name</th>
-              <th>Relationship</th>
-               <th>Nationality</th>
-              <th className="text-center">Action</th>
+              {!isReadOnly && (
+                <th className="text-center">Action</th>
+              )}
             </tr>
           </thead>
           <tbody>
-            {selectedDependencies.length === 0 ? (
+            {travellers.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-muted">
-                  No dependants added yet. Use the dropdown above to add.
+                  No dependants added yet as travellers. Use the dropdown above to add.
                 </td>
               </tr>
             ) : (
-              selectedDependencies.map((dep, idx) => (
+              travellers.map((dep, idx) => (
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
-                  <td>{dep.name}</td>
-                  <td>{dep.relation}</td>
-                  <td>{dep.countryOfOrigin}</td>
-                  <td className="text-center">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => {
-                        setSelectedDependencies((prev) =>
-                          prev.filter(
-                            (d) =>
-                              !(
-                                d.profileNo === dep.profileNo &&
-                                d.lineNo === dep.lineNo
-                              )
-                          )
-                        );
-
-                        setPostSelectedDependencies((prev) =>
-                          prev.filter(
-                            (item) =>
-                              !(
-                                item.data.profileNo === dep.profileNo
-                              )
-                          )
-                        );
-                      }}
-
-                    >
-                      Deselect
-                    </button>
-                  </td>
+                  <td>{dep.travellerName}</td>
+                  {!isReadOnly && (
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDelete(dep)}
+                      >
+                        {dependantNoBeingDeleted === dep.dependantNo
+                          ? <Loader size={16} className="button-icon blink-animation" />
+                          : <Trash2 size={16} className="button-icon" />}
+                        Drop
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
           </tbody>
         </table>
-
-        {selectedDependencies.length > 0 && (
-          <div className="text-end mt-3">
-            <button
-            className="btn btn-primary"
-            onClick={handleSaveDependencies}
-            >Save
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
