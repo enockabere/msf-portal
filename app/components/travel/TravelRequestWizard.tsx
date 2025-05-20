@@ -281,8 +281,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       {
         id: "info",
         icon: <User size={18}/>,
-        title: "Your Info",
-        desc: "Basic travel details",
+        title: "Travel Details",
+        desc: "General travel details",
       },
       {
         id: "destinations",

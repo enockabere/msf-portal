@@ -128,7 +128,7 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
   return (
     <>
       <div className="border rounded p-3 bg-light-subtle mt-3">
-        <h6 className="text-dark fw-bold">Travel Details</h6>
+        <h6 className="text-dark fw-bold">General information</h6>
         <div className="row g-3">
           {isLoading
             ? (
