@@ -45,7 +45,7 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
     countries,
   } = useMySetups();
 
-  function VisaApplicationLineRow({visaApplicationLine, countries}: {
+  function VisaApplicationLineCard({visaApplicationLine, countries}: {
     visaApplicationLine: Record<string, any>,
     countries: Array<Record<string, any>>
   }) {
@@ -220,7 +220,7 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
               </div>
 
               {application.visaApplicationLines.map((line: Record<string, any>, lineKey: number) => (
-                <VisaApplicationLineRow
+                <VisaApplicationLineCard
                   key={`${line.lineNo}-${lineKey}-${key}`}
                   visaApplicationLine={line}
                   countries={countries}
