@@ -9,20 +9,20 @@ import { decodeValue } from "@/app/utils/helpers";
 import { Loader } from "lucide-react";
 
 const travelTypes = [
-  { code: "Local", description: "Local" },
-  { code: "International", description: "International" },
+  {code: "Local", description: "Local"},
+  {code: "International", description: "International"},
 ];
 
 const accommodationTypes = [
-  { code: "Self-Arranged", description: "Self Arranged" },
-  { code: "Full Board", description: "Full Board" },
-  { code: "Half Board", description: "Half Board" },
-  { code: "Bed & Breakfast", description: "Bed & Breakfast" },
+  {code: "Self-Arranged", description: "Self Arranged"},
+  {code: "Full Board", description: "Full Board"},
+  {code: "Half Board", description: "Half Board"},
+  {code: "Bed & Breakfast", description: "Bed & Breakfast"},
 ];
 
 const yesNoOptions = [
-  { code: 'true', description: 'Yes' },
-  { code: 'false', description: 'No' },
+  {code: 'true', description: 'Yes'},
+  {code: 'false', description: 'No'},
 ];
 
 interface Props {
@@ -33,7 +33,7 @@ interface Props {
   onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ formData, requiredFields, isReadOnly, isLoading, onFormChange }: Props) {
+export default function TravelHeaderForm({formData, requiredFields, isReadOnly, isLoading, onFormChange}: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
@@ -53,7 +53,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
           'perDiemAllotments',
           {
             dimensions: {
-              filters: { dimensionCode: 'OC' }
+              filters: {dimensionCode: 'OC'}
             },
           },
         ]);
@@ -97,7 +97,33 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
     }
   }
 
-
+  function CabDetails({travelRequest}: { travelRequest: TravelRequest }) {
+    return (
+      <>
+        <div className={'card bg-light-subtle border mt-2'}>
+          <div className="card-body">
+            <h5 className="card-title fs-14 fw-bold">Cab Details</h5>
+            <div className="row">
+              <div className="col-12">
+                <label className="col-form-label">Pickup Location:</label>
+                <span className="text-dark mx-1">
+                {travelRequest.pickupLocation || 'N/A'}
+              </span>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-12">
+                <label className="col-form-label">Drop-off Location:</label>
+                <span className="text-dark mx-1">
+                {travelRequest.dropOffLocation || 'N/A'}
+              </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -364,7 +390,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                     <label className="form-label">Require Per Diem</label>
                     <select
                       className="form-select"
-                      value={formData.requirePerDiem }
+                      value={formData.requirePerDiem}
                       onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
                       required
                       disabled={isReadOnly}
@@ -401,6 +427,10 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
             )}
         </div>
       </div>
+
+      {formData.documentType === 'Visitor'
+        && (formData.pickupLocation || formData.dropOffLocation)
+        && <CabDetails travelRequest={formData}/>}
     </>
   );
 }
