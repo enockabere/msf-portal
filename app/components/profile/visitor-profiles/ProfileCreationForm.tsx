@@ -51,15 +51,14 @@ export default function ProfileCreationForm({
     city: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { countries, cities, genders, profileTitles, fetchSetups } =
-    useMySetups();
+  const { countries, cities, genders, fetchSetups } = useMySetups();
 
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        await fetchSetups(["countries", "cities", "genders", "profileTitles"]);
+        await fetchSetups(["countries", "cities", "genders"]);
       } catch (err) {
         console.log(err);
       }
@@ -86,13 +85,6 @@ export default function ProfileCreationForm({
       value: g.code,
       label: g.description,
     })) || [];
-
-  const titleOptions =
-    profileTitles?.map((t) => ({
-      value: t.code,
-      label: t.description,
-    })) || [];
-
   useEffect(() => {
     if (session?.user?.email) {
       setFormData((prev) => ({
@@ -133,7 +125,6 @@ export default function ProfileCreationForm({
           dateOfBirth: formData.dateOfBirth,
           gender: formData.gender,
           countryRegionCode: formData.countryRegionCode,
-          title: formData.title,
           passportIDNo: formData.passportIDNo.trim(),
           city: formData.city,
         };
@@ -263,7 +254,6 @@ export default function ProfileCreationForm({
                   <ProfileFormStepOne
                     formData={formData}
                     onChange={handleChange}
-                    titleOptions={titleOptions}
                     genderOptions={genderOptions}
                   />
                 </div>

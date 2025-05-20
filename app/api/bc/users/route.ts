@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       dateOfBirth: body.dateOfBirth,
       gender: body.gender,
       countryRegionCode: body.countryRegionCode,
-      title: body.title || "",
       passportIDNo: body.passportIDNo || "",
       city: body.city,
       citizenNonCitizen: "Citizen",
