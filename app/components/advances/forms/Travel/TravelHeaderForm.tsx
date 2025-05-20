@@ -57,8 +57,8 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
             },
           },
         ]);
-      } finally {
-        //
+      } catch (error: any) {
+        console.log('Error! ', error);
       }
     };
 

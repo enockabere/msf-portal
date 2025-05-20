@@ -212,8 +212,6 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
       setIsSaving(false)
 
-      setCompletedSteps((prev) => new Set(prev).add("info"));
-
       if (travelRequestHeader.documentType === 'Visitor') {
         setActiveTab('checklist');
       } else if (travelRequestHeader.documentType === 'Employee') {
@@ -275,6 +273,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       Swal.fire("Error", error.message);
     }
   }, [travelRequestHeader.no]);
+
 
   const allSteps = useMemo<WizardStep[]>(
     () => [
@@ -380,6 +379,42 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     return [allSteps.find((s) => s.id === "info")!];
   }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps]);
 
+  useEffect(() => {
+    const getCompletedSteps = () => {
+      const completed = new Set<string>();
+
+      currentSteps.forEach((step) => {
+        switch (step.id) {
+          case "info":
+            if (travelRequestHeader.no) {
+              completed.add("info");
+            }
+            break;
+          case "destinations":
+            if (travelRequestHeader.travelRequestRoutes?.length) {
+              completed.add("destinations");
+            }
+            break;
+          case "dependencies":
+            const travellers = travelRequestHeader.travellers?.filter(
+              (traveller: Record<string, any>) => traveller.travellerType !== "Self"
+            );
+            if (travellers?.length) {
+              completed.add("dependencies");
+            }
+            break;
+          // Add more if needed (e.g., visa, advance, etc.)
+        }
+      });
+
+      setCompletedSteps(completed);
+    };
+
+    if (travelRequestHeader) {
+      getCompletedSteps();
+    }
+  }, [travelRequestHeader, currentSteps]);
+
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
     setTravelRequestHeader((prev) => ({
       ...prev,
@@ -390,7 +425,6 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const handleTabChange = async (stepId: string) => {
     if (validateCurrentStep()) {
       setActiveTab(stepId);
-      setCompletedSteps((prev) => new Set(prev).add(activeTab));
     }
   };
 
