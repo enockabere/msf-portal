@@ -274,7 +274,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     } catch (error) {
       Swal.fire("Error", error.message);
     }
-  }, []);
+  }, [travelRequestHeader.no]);
 
   const allSteps = useMemo<WizardStep[]>(
     () => [
