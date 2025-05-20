@@ -24,7 +24,6 @@ export default function SettlementExpenseForm() {
     value: ExpenseItem[K]
   ) => {
     const updated = [...expenses];
-    updated[index][field] = value;
     let lineExist = false;
     const draftState = [...accountedLines];
     const newDraftState = draftState.map((line: Record<string, any>) => {
