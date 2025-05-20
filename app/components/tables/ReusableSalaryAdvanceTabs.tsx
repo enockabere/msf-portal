@@ -4,35 +4,54 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import { Advance } from "@/app/types/advance";
-import { findObjectFromArray } from "@/app/utils/helpers";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
+import { usePathname } from "next/navigation";
+import { GetColumnByType } from "../advances/AdvanceTableColumns";
+import { useAdvance } from "@/app/context/AdvanceContext";
+import CustomModal from "../modals/CustomModal";
+import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { useMySetups } from "@/app/context/SetupContext";
-import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 
 interface Props {
   data: Advance[];
+  selectedAdvance?: Advance;
   loading: boolean;
-  onCountsUpdate?: (counts: {
-    open: number;
-    pending: number;
-    released: number;
-    total: number;
-  }) => void;
   initialTab?: string;
   refetch: (updatedStatus?: string) => void;
+  setSelectedRowHandler: (Advance: Advance | null) => void;
 }
 
 export default function ReusableSalaryAdvanceTabs({
   data,
+  selectedAdvance,
   loading,
-  onCountsUpdate,
   initialTab,
   refetch,
+  setSelectedRowHandler,
 }: Props) {
-  const [selectedAdvance, setSelectedAdvance] = useState<Advance | null>(null);
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
-  const { currencies } = useMySetups();
+  const path = usePathname();
+  const { actions } = useAdvance();
+  const { dispatcher } = actions;
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
+    null
+  );
+  const { imprestTypes, currencies, fetchSetups } = useMySetups();
+
+  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
+  const columns = useMemo(() => {
+    return GetColumnByType(advanceSet, setSelectedRowHandler, {
+      currentTab: activeTab,
+      currencies,
+      imprestTypes,
+      onSettleClick: (advanceNo: string) => {
+        setSettlementAdvanceNo(advanceNo);
+        setShowSettlementModal(true);
+      },
+    })
+  }, [advanceSet, setSelectedRowHandler, activeTab]);
 
 
   const filteredByStatus = useMemo(() => {
@@ -41,32 +60,28 @@ export default function ReusableSalaryAdvanceTabs({
     const pending = advanceByStatus.get('Pending Approval') || [];
     const released = advanceByStatus.get('Released') || [];
 
-    const counts = {
-      open: open.length,
-      pending: pending.length,
-      released: released.length,
-      total: open.length + pending.length + released.length
-    };
-
-    if (counts.total > 0) {
-      onCountsUpdate(counts);
-    }
-
     return {
       open,
       pending,
-      released
+      released,
     };
-  }, [data, onCountsUpdate]);
+  }, [data]);
 
-  const getTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      Advance: "fa-solid fa-money-bill",
-      Travel: "fa-solid fa-plane",
-      Operational: "fa-solid fa-gear",
+  useEffect(() => {
+    const counts = {
+      open: filteredByStatus.open.length,
+      pending: filteredByStatus.pending.length,
+      released: filteredByStatus.released.length,
+      total: filteredByStatus.open.length + filteredByStatus.pending.length + filteredByStatus.released.length,
     };
-    return icons[type] || "fa-solid fa-file-alt";
-  };
+
+    if (counts.total > 0) {
+      dispatcher({
+        type: 'SET_ADVANCES_COUNTS',
+        payload: counts,
+      })
+    }
+  }, [filteredByStatus]);
 
   useEffect(() => {
     if (
@@ -79,120 +94,16 @@ export default function ReusableSalaryAdvanceTabs({
     }
   }, [initialTab]);
 
-
-  const columns = [
-    {
-      name: "Advance No",
-      sortable: true,
-      cell: (row: Advance) => (
-        <span
-          className="text-blue text-decoration-underline cursor-pointer"
-          onClick={() => setSelectedAdvance(row)}
-        >
-          {row.no}
-        </span>
-      ),
-    },
-    {
-      name: "Type",
-      selector: (row: Advance) => row.advanceType,
-      sortable: true,
-      cell: (row: Advance) => (
-        <div className="d-flex align-items-center gap-2">
-          <div
-            className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
-            style={{ width: 32, height: 32 }}
-          >
-            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
-          </div>
-          <span>{row.advanceType}</span>
-        </div>
-      ),
-    },
-    {
-      name: "Status",
-      selector: (row: Advance) => row.status,
-      sortable: true,
-      cell: (row: Advance) => {
-        const badgeMap = {
-          Open: "badge bg-info-subtle text-info",
-          Released: "badge bg-success-subtle text-success",
-          "Pending Approval": "badge bg-warning-subtle text-warning",
-        };
-        const iconMap = {
-          Open: "fas fa-folder-open me-1",
-          Released: "fas fa-check-circle me-1",
-          "Pending Approval": "fas fa-clock me-1",
-        };
-        return (
-          <span className={badgeMap[row.status]}>
-            <i className={iconMap[row.status]} /> {row.status}
-          </span>
-        );
-      },
-    },
-    {
-      name: "Amount",
-      selector: (row: Advance) =>
-        `${findObjectFromArray(currencies, 'code', row.currencyCode)?.description || "KES"
-        } ${row?.amountToPayHeader?.toLocaleString()}`,
-      sortable: true,
-    },
-    {
-      name: "Application Date",
-      selector: (row: Advance) => formatDateToLcateDateString(row?.postingDate),
-      sortable: true,
-    },
-    {
-      name: "Disbursement Date",
-      selector: (row: Advance) => formatDateToLcateDateString(row?.endDate),
-      sortable: true,
-    },
-    {
-      name: "Disbursed",
-      selector: (row: Advance) => (row?.imprestStatus === 'Issued' ? "Yes" : "No"),
-      sortable: true,
-      cell: (row: Advance) => (
-        <span
-          className={`badge ${row.disbursed
-            ? "bg-success-subtle text-success"
-            : "bg-secondary-subtle text-muted"
-            }`}
-        >
-          {row.disbursed ? "Yes" : "No"}
-        </span>
-      ),
-    },
-    {
-      name: "Actions",
-      cell: (row: Advance) => (
-        <div className="d-flex gap-2">
-          {row.status === "Open" && (
-            <button
-              className="text-primary border-0 bg-transparent"
-              onClick={() => setSelectedAdvance(row)}
-              title="Edit"
-            >
-              <i className="las la-pen fs-18" />
-            </button>
-          )}
-          <button
-            className="text-success border-0 bg-transparent"
-            onClick={() => setSelectedAdvance(row)}
-            title="View"
-          >
-            <i className="las la-eye fs-18" />
-          </button>
-        </div>
-      ),
-      ignoreRowClick: true,
-    },
-  ];
+  useEffect(() => {
+    fetchSetups([
+      'imprestTypes',
+    ]);
+  })
 
   return (
     <div>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
-        <Tab eventKey="open" title={`Open (${filteredByStatus?.open?.length ?? 0}`}>
+        <Tab eventKey="open" title={`Open (${filteredByStatus.open.length})`}>
           <div className="pt-3">
             <SkeletonDataTable
               columns={columns}
@@ -204,7 +115,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="pending"
-          title={`Pending (${filteredByStatus?.pending?.length ?? 0})`}
+          title={`Pending (${filteredByStatus.pending.length})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
@@ -217,7 +128,7 @@ export default function ReusableSalaryAdvanceTabs({
         </Tab>
         <Tab
           eventKey="released"
-          title={`Released (${filteredByStatus?.released?.length ?? 0})`}
+          title={`Released (${filteredByStatus.released.length})`}
         >
           <div className="pt-3">
             <SkeletonDataTable
@@ -233,11 +144,25 @@ export default function ReusableSalaryAdvanceTabs({
       <AdvanceRequestAction
         advance={selectedAdvance}
         refetch={(updatedStatus) => {
-          setSelectedAdvance(null);
+          setSelectedRowHandler(selectedAdvance);
           refetch(updatedStatus);
         }}
-        onCloseView={() => setSelectedAdvance(null)}
+        setSelectedRowHandlerCallback={setSelectedRowHandler}
+        onCloseView={() => setSelectedRowHandler(null)}
       />
+
+      <CustomModal
+        show={showSettlementModal}
+        onClose={() => {
+          setSettlementAdvanceNo(null);
+          setShowSettlementModal(false);
+        }}
+        title="Settle Advance"
+        titleIcon={<i className="las la-wallet fs-18" />}
+        size="xl"
+      >
+        <AdvanceSettlementForm advanceNo={settlementAdvanceNo} />
+      </CustomModal>
     </div>
   );
 }

@@ -23,7 +23,6 @@ import {
   FileDownIcon,
   Plus,
   Loader,
-  Send,
 } from "lucide-react";
 import "./TravelRequestWizard.css";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
@@ -33,11 +32,10 @@ import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
-import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
+import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { toast } from "react-toastify";
 import {
   checkIfMissingRequiredProperty, pickKeys,
   removeNullAndUndefinedFromObject,
@@ -58,21 +56,12 @@ interface stepAction {
   caption: string;
 }
 
-interface TicketItem {
-  id: string;
-  ticketNumber: string;
-  departure: string;
-  destination: string;
-  travelDate: string;
-  airline: string;
-}
-
 interface Props {
   requestNo?: string;
   profile: Record<string, any>;
 }
 
-export default function TravelRequestWizard({ requestNo, profile }: Props) {
+export default function TravelRequestWizard({requestNo, profile}: Props) {
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [travelRequestHeader, setTravelRequestHeader] = useState<TravelRequest>({
@@ -82,8 +71,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     createdbyProfileNo: '',
     originCountryCode: '',
     originCity: '',
-    destinationCountryCode: '',
-    destinationCity: '',
     TypeOfTravel: '',
     purposeOfTravel: '',
     accommodationType: '',
@@ -102,9 +89,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     approvalStatus: 'Open',
     travelRequestRoutes: [],
     travellers: [],
+    visaApplications: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'])
   const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
   useEffect(() => {
@@ -127,7 +117,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
     setHeaderRequiredFields((prev) => {
       if (profile.type === 'Employee') {
-        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType']
       } else if (profile.type === 'Visitor') {
         return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
       }
@@ -143,22 +133,25 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   const fetchTravelRequest = async (requestNo: string) => {
     try {
+      setIsLoading(true)
       const res = await getResource('travelRequests', {
         params: {
           filters: {
             no: requestNo
           },
-          '$expand': 'travelRequestRoutes,travelRequestLines,travellers,visaApplications',
+          '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
         }
       });
 
       if (res.error) {
-        console.log('Travel request error: ', res.error);
-        toast.error(res.error.message)
+        setIsLoading(false)
+        return Swal.fire('Failed to fetch travel request', res.error.message)
       } else {
         setTravelRequestHeader((prev: Record<string, any>) => ({...prev, ...res.value.at(0)}))
+        setIsLoading(false)
       }
     } catch (error: any) {
+      setIsLoading(false)
       console.log('Error fetching travel request!', error.message)
     }
   }
@@ -198,7 +191,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         return Swal.fire("Validation Error!", `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? 'Properties' : 'Property'}`);
       }
 
-      setIsSubmitting(true)
+      setIsSaving(true)
 
       const res = knownSchema.no
         ? await patchResource('travelRequests', {
@@ -210,14 +203,14 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         });
 
       if (res.error) {
-        setIsSubmitting(false)
+        setIsSaving(false)
         return Swal.fire(res.error.code, res.error.message);
       }
 
       // Refetch travel request
       await fetchTravelRequest(res.no)
 
-      setIsSubmitting(false)
+      setIsSaving(false)
 
       setCompletedSteps((prev) => new Set(prev).add("info"));
 
@@ -228,7 +221,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       }
     } catch (error: any) {
       await Swal.fire('Error!', error.message)
-      setIsSubmitting(false)
+      setIsSaving(false)
     }
   };
 
@@ -243,54 +236,34 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   const handleSubmitForApproval = useCallback(async () => {
     try {
+      setIsSubmitting(true)
       const res = await codeUnit('sendTravelRequestForApproval', {
         data: {
           no: travelRequestHeader.no,
         },
       });
+
       if (res.error) {
+        setIsSubmitting(false)
         return Swal.fire("Error submitting for approval!", res.error.message);
       }
 
       // Refetch travel request
       await fetchTravelRequest(res.no)
 
+      setIsSubmitting(false)
       Swal.fire("Success", res.value);
     } catch (error) {
+      setIsSubmitting(false)
       Swal.fire("Error", error.message);
     }
   }, [travelRequestHeader.no])
-
-  const [availableTickets] = useState<TicketItem[]>([
-    {
-      id: "1",
-      ticketNumber: "TK123456",
-      departure: "Nairobi",
-      destination: "London",
-      travelDate: "2025-06-10",
-      airline: "Kenya Airways",
-    },
-    {
-      id: "2",
-      ticketNumber: "TK654321",
-      departure: "Nairobi",
-      destination: "Dubai",
-      travelDate: "2025-07-02",
-      airline: "Emirates",
-    },
-  ]);
-
-  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-
-  const handleSelectTicket = useCallback((ticketId: string) => {
-    setSelectedTicketId(ticketId);
-  }, []);
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
       const res = await codeUnit("createTravelAdvanceFromTravel", {
         data: {
-          no: "",
+          no: travelRequestHeader.no,
         },
       });
       if (res.error) {
@@ -301,15 +274,15 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error) {
       Swal.fire("Error", error.message);
     }
-  }, []);
+  }, [travelRequestHeader.no]);
 
   const allSteps = useMemo<WizardStep[]>(
     () => [
       {
         id: "info",
         icon: <User size={18}/>,
-        title: "Your Info",
-        desc: "Basic travel details",
+        title: "Travel Details",
+        desc: "General travel details",
       },
       {
         id: "destinations",
@@ -324,10 +297,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         desc: "Related travel requirements",
       },
       {
-        id: "ticket",
+        id: "providers",
         icon: <Ticket size={18}/>,
-        title: "Annual Travel Ticket",
-        desc: "Flight/train reservations",
+        title: "Service Providers",
+        desc: "Service providers details",
       },
       {
         id: "checklist",
@@ -372,26 +345,40 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     [handleCreateTravelAdvance]
   ); // ✅ Correct dependencies
 
-  // Get the appropriate steps based on user type
+  // Get the appropriate steps based on user type & status
   const currentSteps = useMemo((): WizardStep[] => {
-    if (travelRequestHeader.documentType === "Employee") {
-      return [
-        "info",
-        "destinations",
-        "dependencies",
-        "ticket",
-        "checklist",
-        "traveller-checklist",
-        "visa",
-        "advance",
-      ].map((id) => allSteps.find((s) => s.id === id)!);
-    } else if (travelRequestHeader.documentType === "Visitor") {
-      return ["info", "dependencies", "checklist", "traveller-checklist", "permit", "advance"].map(
-        (id) => allSteps.find((s) => s.id === id)!
-      );
+    if (travelRequestHeader.approvalStatus === 'Open') {
+      if (travelRequestHeader.documentType === "Employee") {
+        return [
+          "info",
+          "destinations",
+          "dependencies",
+        ].map((id) => allSteps.find((s) => s.id === id)!);
+      } else if (travelRequestHeader.documentType === "Visitor") {
+        return ["info", "dependencies"].map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
+      }
+    } else {
+      if (travelRequestHeader.documentType === "Employee") {
+        return [
+          "info",
+          "destinations",
+          "dependencies",
+          "checklist",
+          "traveller-checklist",
+          "visa",
+          "advance",
+        ].map((id) => allSteps.find((s) => s.id === id)!);
+      } else if (travelRequestHeader.documentType === "Visitor") {
+        return ["info", "dependencies", "providers", "checklist", "traveller-checklist", "permit", "advance"].map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
+      }
     }
+
     return [allSteps.find((s) => s.id === "info")!];
-  }, [travelRequestHeader.documentType, allSteps]);
+  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps]);
 
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
     setTravelRequestHeader((prev) => ({
@@ -411,9 +398,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
   const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
@@ -423,6 +407,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     {id: "duration", label: "Duration (days)", type: "number"},
     {id: "documents", label: "Required Documents", type: "file"},
   ];
+
+  const disableTabs = useMemo(() => !travelRequestHeader.no, [travelRequestHeader.no])
 
   return (
     <div className="travel-wizard">
@@ -458,6 +444,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                   aria-controls={`${step.id}-panel`}
                   id={`${step.id}-tab`}
                   tabIndex={activeTab === step.id ? 0 : -1}
+                  disabled={disableTabs}
                 >
                   <span className="step-icon-wrapper">
                     <span className="step-icon">{step.icon}</span>
@@ -539,140 +526,126 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                 <button
                   className="primary-button"
                   onClick={handleSubmitForApproval}
+                  disabled={isSubmitting}
                 >
-                  <Send size={16}/>
+                  {isSubmitting
+                    ? <Loader size={16} className="button-icon blink-animation"/>
+                    : <Check size={16} className="button-icon"/>}
                   Submit for Approval
                 </button>
               )}
             </div>
 
-            <form onSubmit={handleSubmit}>
-              {activeTab === "info" && (
-                <TravelHeaderForm
-                  formData={travelRequestHeader}
-                  requiredFields={headerRequiredFields}
-                  isReadOnly={isReadOnly}
-                  onFormChange={handleFormChange}
-                />
-              )}
+            {activeTab === "info" && (
+              <TravelHeaderForm
+                formData={travelRequestHeader}
+                requiredFields={headerRequiredFields}
+                isReadOnly={isReadOnly}
+                isLoading={isLoading}
+                onFormChange={handleFormChange}
+              />
+            )}
 
-              {activeTab === "destinations" && (
-                <TravelDestinations
-                  travelRequestHeader={travelRequestHeader}
-                  isReadOnly={isReadOnly}
-                  onSubmit={fetchTravelRequest}
-                />
-              )}
+            {activeTab === "destinations" && (
+              <TravelDestinations
+                travelRequestHeader={travelRequestHeader}
+                isReadOnly={isReadOnly}
+                onSubmit={fetchTravelRequest}
+              />
+            )}
 
-              {activeTab === "ticket" && (
-                <TravelTicketSelector
-                  tickets={availableTickets}
-                  selectedTicketId={selectedTicketId}
-                  onSelectTicket={handleSelectTicket}
-                />
-              )}
+            {activeTab === "dependencies" && (
+              <TravelDependencies
+                travelRequestHeader={travelRequestHeader}
+                isReadOnly={isReadOnly}
+                onSubmit={fetchTravelRequest}
+              />
+            )}
 
-              {activeTab === "dependencies" && (
-                <TravelDependencies
-                  travelRequestHeader={travelRequestHeader}
-                  isReadOnly={isReadOnly}
-                  onSubmit={fetchTravelRequest}
-                />
-              )}
+            {activeTab === "providers" && (
+              <ServiceProvidersList
+                travelRequest={travelRequestHeader}
+              />
+            )}
 
-              {activeTab === "permit" && (
-                <div className="permit-form">
-                  <div className="permit-notice mb-4">
-                    <p className="notice-text">
-                      <strong>Note:</strong> Work permit applications typically
-                      take 3-4 weeks to process. Please ensure all documents are
-                      uploaded completely and accurately.
-                    </p>
-                  </div>
-
-                  <div className="form-grid">
-                    {workPermitFields.map((field) => (
-                      <div key={field.id} className="form-group">
-                        <label htmlFor={field.id}>{field.label}</label>
-                        {field.type === "file" ? (
-                          <input
-                            type="file"
-                            id={field.id}
-                            className="form-control"
-                            onChange={(e) =>
-                              handleFormChange(
-                                field.id as keyof TravelRequest,
-                                e.target.files
-                              )
-                            }
-                          />
-                        ) : (
-                          <input
-                            type={field.type}
-                            id={field.id}
-                            className="form-control"
-                            onChange={(e) =>
-                              handleFormChange(
-                                field.id as keyof TravelRequest,
-                                e.target.value
-                              )
-                            }
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
+            {activeTab === "permit" && (
+              <div className="permit-form">
+                <div className="permit-notice mb-4">
+                  <p className="notice-text">
+                    <strong>Note:</strong> Work permit applications typically
+                    take 3-4 weeks to process. Please ensure all documents are
+                    uploaded completely and accurately.
+                  </p>
                 </div>
-              )}
 
-              {activeTab === "advance" && (
-                <div>
-                  <TravelAdvanceDetails travelInfo={travelRequestHeader}/>
-                  <TravelAdvanceGLTable
-                    glLines={[
-                      {
-                        account: "6001",
-                        description: "Flight Ticket",
-                        amount: 500,
-                        currency: travelRequestHeader.currency,
-                        department: "",
-                        project: "",
-                      },
-                      {
-                        account: "6002",
-                        description: "Hotel",
-                        amount: 300,
-                        currency: travelRequestHeader.currency,
-                        department: "",
-                        project: "",
-                      },
-                    ]}
-                  />
+                <div className="form-grid">
+                  {workPermitFields.map((field) => (
+                    <div key={field.id} className="form-group">
+                      <label htmlFor={field.id}>{field.label}</label>
+                      {field.type === "file" ? (
+                        <input
+                          type="file"
+                          id={field.id}
+                          className="form-control"
+                          onChange={(e) =>
+                            handleFormChange(
+                              field.id as keyof TravelRequest,
+                              e.target.files
+                            )
+                          }
+                        />
+                      ) : (
+                        <input
+                          type={field.type}
+                          id={field.id}
+                          className="form-control"
+                          onChange={(e) =>
+                            handleFormChange(
+                              field.id as keyof TravelRequest,
+                              e.target.value
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {activeTab === "visa" && <VisaApplicationForm />}
+            {activeTab === "advance" && (
+              <div>
+                <TravelAdvanceDetails travelInfo={travelRequestHeader}/>
+                <TravelAdvanceGLTable
+                  glLines={ travelRequestHeader?.travelRequestLines	}
+                />
+              </div>
+            )}
 
-              {activeTab === "traveller" && <VisaApplicationForm/>}
+            {activeTab === "visa" && (
+              <VisaApplicationForm travelRequest={travelRequestHeader}/>
+            )}
 
-              {activeTab === "checklist" && <VisaChecklist travelInfo={travelRequestHeader}/>}
+            {activeTab === "checklist" && <VisaChecklist travelInfo={travelRequestHeader}/>}
 
-              {activeTab === "traveller-checklist" && <TravellerChecklist travelInfo={travelRequestHeader}/>}
+            {activeTab === "traveller-checklist" && <TravellerChecklist travelInfo={travelRequestHeader}/>}
 
-              <div className="step-actions">
-                {activeTab === "info" && !isReadOnly ? (
+            <div className="step-actions">
+              {activeTab === "info" && !isReadOnly
+                ? (
                   <button
                     type="button"
                     className="primary-button"
                     onClick={saveTravelRequestHeader}
-                    disabled={isSubmitting}
+                    disabled={isSaving}
                   >
-                    {isSubmitting
+                    {isSaving
                       ? <Loader size={16} className="button-icon blink-animation"/>
                       : <Save size={16} className="button-icon"/>}
                     Save & Continue
                   </button>
-                ) : (
+                )
+                : (
                   <div className="d-flex flex-wrap gap-2">
                     {currentStepIndex > 0 && (
                       <button
@@ -729,15 +702,21 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                         Next
                       </button>
                     ) : (
-                      <button type="submit" className="submit-button">
-                        <Check size={16} className="button-icon"/>
-                        Submit Request
+                      <button
+                        type="submit"
+                        className="submit-button"
+                        onClick={handleSubmitForApproval}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting
+                          ? <Loader size={16} className="button-icon blink-animation"/>
+                          : <Check size={16} className="button-icon"/>}
+                        Submit for Approval
                       </button>
                     )}
                   </div>
                 )}
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

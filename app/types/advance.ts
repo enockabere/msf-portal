@@ -1,36 +1,36 @@
-export type AdvanceType =
-  | "Salary"
-  | "Operational"
-  | "Settlement"
-  | "Travel"
-  | "Advance";
+// export type AdvanceType =
+//   | "Salary"
+//   | "Operational"
+//   | "Settlement"
+//   | "Travel"
+//   | "Advance";
 
 export interface Advance {
-  disbursed: any;
+  disbursed?: any;
   currencyCode: string;
-  no: string;
-  applicationDate: string;
-  employeeName: string;
-  advanceType: AdvanceType;
-  applicationAmount: number;
-  status: "Open" | "Pending Approval" | "Released";
-  documentStatus: string;
-  preferredDisbursementDate: string;
-  repaymentAmount: number;
-  repaymentInstallments: number;
+  no?: string;
+  applicationDate?: string;
+  employeeName?: string;
+  advanceType?: AdvanceType;
+  applicationAmount?: number;
+  status?: "Open" | "Pending Approval" | "Released";
+  documentStatus?: string;
+  preferredDisbursementDate?: string;
+  repaymentAmount?: number;
+  repaymentInstallments?: number;
   [key: string]: any;
 }
 
 export interface SalaryAdvanceData extends Advance {
-  paymentMethod: string;
+  paymentMethod?: string;
   currencyCode: string;
-  accountNo: string;
-  bankCode: string;
-  employeeBranchCode: string;
-  mobilePhoneNo: string;
-  identificationDocumentNo: string;
-  chequeName: string;
-  swiftCode: string;
+  accountNo?: string;
+  bankCode?: string;
+  employeeBranchCode?: string;
+  mobilePhoneNo?: string;
+  identificationDocumentNo?: string;
+  chequeName?: string;
+  swiftCode?: string;
   payrollPeriod?: string;
 }
 
@@ -58,5 +58,22 @@ export interface FormData {
   swiftCode: string;
   phoneNo: string;
   accountName: string;
+  no?: string;
   [key: string]: any;
+}
+
+export type AdvanceTypeKey = "Salary" | "Other" | null;
+
+export interface AdvanceType {
+  title: string;
+  key: AdvanceTypeKey;
+  route?: string;
+  [key: string]: any;
+}
+
+export interface AdvanceCount {
+  open: number;
+  pending: number;
+  released: number;
+  total: number;
 }

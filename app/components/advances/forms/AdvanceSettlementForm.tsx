@@ -7,7 +7,11 @@ import ProgressIndicator from "./Operational/ProgressIndicator";
 import { ExpenseItem } from "@/app/types/advance";
 import { AlertTriangle, ArrowDown, ArrowUp, Check } from "lucide-react";
 
-export default function AdvanceSettlementForm() {
+interface Props {
+  advanceNo?: string | null;
+}
+
+export default function AdvanceSettlementForm({ advanceNo }: Props) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [selectedAdvanceId, setSelectedAdvanceId] = useState<string>("");
   const [totalAdvanceAmount, setSelectedAmount] = useState<number>(0);
@@ -28,6 +32,14 @@ export default function AdvanceSettlementForm() {
   const overspent = totalSurrendered > totalAdvanceAmount;
   const fullyAccounted = totalSurrendered === totalAdvanceAmount;
   const underspent = totalSurrendered < totalAdvanceAmount;
+
+  useEffect(() => {
+    if (advanceNo) {
+      // Load advance data using advanceNo
+    } else {
+      // Setup blank form
+    }
+  }, [advanceNo]);
 
   useEffect(() => {
     if (totalSurrendered > 0 && underspent) {
@@ -61,6 +73,7 @@ export default function AdvanceSettlementForm() {
                   selectedAdvanceId={selectedAdvanceId}
                   setSelectedAdvanceId={setSelectedAdvanceId}
                   setSelectedAmount={setSelectedAmount}
+                  advanceNo={advanceNo}
                 />
               ) : (
                 <>
@@ -252,7 +265,7 @@ export default function AdvanceSettlementForm() {
                           totalAdvanceAmount,
                           expenses,
                         });
-                        setIsSubmitted(true); 
+                        setIsSubmitted(true);
                       }}
                     >
                       <Check size={16} />
@@ -270,8 +283,8 @@ export default function AdvanceSettlementForm() {
                       if (expenses.length === 0) {
                         setExpenses([
                           {
-                            category: "Accommodation",
-                            amount: totalAdvanceAmount,
+                            expenseCode: "Accommodation",
+                            unitCost: totalAdvanceAmount,
                             receipt: null,
                             mileage: "",
                             costCenter: "ICT",

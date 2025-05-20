@@ -18,6 +18,7 @@ import { Advance } from "@/app/types/advance";
 import { getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -29,12 +30,6 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-  const [advanceCounts, setAdvanceCounts] = useState({
-    open: 0,
-    pending: 0,
-    released: 0,
-    total: 0,
-  });
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -42,9 +37,9 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
+  const { formData, actions, advanceCounts } = useAdvance();
+  const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
-
-  const abortController = new AbortController();
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.no;
     if (!employeeNo) return;
@@ -74,8 +69,134 @@ export default function OtherAdvancesClient() {
     localStorage.setItem("advancePlacement", newPlacement);
   };
 
-  const handleNewRequestClick = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const handleNewRequestClick = async () => {
+    await handleFetchingSetup();
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: true, isEditing: false, setForView: false },
+    });
+    setShowModal(true);
+  }
+  const handleCloseModal = () => {
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: false, setForView: false },
+    });
+    setShowModal(false)
+  };
+
+
+
+  const cards = [
+    {
+      title: "Open",
+      value: `${advanceCounts?.open} Open`,
+      description: "Open Advances",
+      icon: <FileClock size={28} />,
+      bgColorClass: "bg-light-warning",
+      textColorClass: "text-warning",
+    },
+    {
+      title: "Approvals",
+      value: `${advanceCounts?.pending} Pending`,
+      description: "Pending Approval",
+      icon: <ClipboardList size={28} />,
+      bgColorClass: "bg-light-success",
+      textColorClass: "text-success",
+    },
+    {
+      title: "Approved",
+      value: `${advanceCounts?.released} Approved`,
+      description: "Released Advances",
+      icon: <BadgeCheck size={28} />,
+      bgColorClass: "bg-light-info",
+      textColorClass: "text-info",
+    },
+    {
+      title: "Total",
+      value: `${advanceCounts?.total} Total`,
+      description: "Total Requests",
+      icon: <Layers3 size={28} />,
+      bgColorClass: "bg-light-warning",
+      textColorClass: "text-secondary",
+    },
+  ];
+
+  const handleSetSelectedRow = (advance: Advance | null = null) => {
+    if (advance) {
+      handleFetchingSetup();
+      dispatcher({
+        type: 'OPEN_EXISTING_ADVANCE',
+        payload: advance,
+      });
+      dispatcher({
+        type: 'ADVANCE_CREATION_STATUSES',
+        payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
+      });
+
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+      dispatcher({
+        type: 'OPEN_EXISTING_ADVANCE',
+        payload: {
+          imprestType: "",
+          Purpose: "",
+          amountToPayHeader: null,
+          currencyCode: "",
+          paymentMethod: "",
+          cashCollectionDate: "",
+          cashHours: "",
+          idPassportNumber: "",
+          accountNo: "",
+          bankNo: "",
+          branch: "",
+          swiftCode: "",
+          phoneNo: "",
+          accountName: "",
+          no: "",
+          imprestStatus: "",
+          status: "",
+        },
+      });
+      dispatcher({
+        type: 'ADVANCE_CREATION_STATUSES',
+        payload: { isNew: false, isEditing: false, setForView: false },
+      });
+    }
+  }
+  useEffect(() => {
+    const abortController = new AbortController();
+    Promise.allSettled([
+      fetchAdvances(),
+      fetchSetups([
+        'currencies',
+      ]),
+    ]);
+    return () => abortController.abort('Duplicate fetch!');
+  }, [fetchAdvances, fetchSetups]);
 
   useEffect(() => {
     const saved = localStorage.getItem("advancePlacement") as
@@ -98,50 +219,35 @@ export default function OtherAdvancesClient() {
   }, [setBreadcrumb]);
 
   useEffect(() => {
-    Promise.allSettled([
-      fetchAdvances(),
-      fetchSetups([
-        'currencies',
-      ]),
+    const abortController = new AbortController();
+    const fetchAdvanceLines = async () => {
+
+      const res = await getResource('imprestLine', {
+        params: {
+          filters: {
+            documentNo: formData?.no,
+          },
+        },
+      });
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message, 'error');
+      }
+      dispatcher(
+        {
+          type: 'SET_EXISTING_ADVANCE_LINES',
+          payload: res.value,
+        },
+      );
+    }
+    if (formData?.no) {
+
+    }
+    Promise.all([
+      fetchLineSetup(),
+      fetchAdvanceLines(),
     ]);
-    return () => abortController.abort('Duplicate fetch!');
-  }, [fetchAdvances, fetchSetups]);
-
-  const cards = [
-    {
-      title: "Open",
-      value: `${advanceCounts.open} Open`,
-      description: "Open Advances",
-      icon: <FileClock size={28} />,
-      bgColorClass: "bg-light-warning",
-      textColorClass: "text-warning",
-    },
-    {
-      title: "Approvals",
-      value: `${advanceCounts.pending} Pending`,
-      description: "Pending Approval",
-      icon: <ClipboardList size={28} />,
-      bgColorClass: "bg-light-success",
-      textColorClass: "text-success",
-    },
-    {
-      title: "Approved",
-      value: `${advanceCounts.released} Approved`,
-      description: "Released Advances",
-      icon: <BadgeCheck size={28} />,
-      bgColorClass: "bg-light-info",
-      textColorClass: "text-info",
-    },
-    {
-      title: "Total",
-      value: `${advanceCounts.total} Total`,
-      description: "Total Requests",
-      icon: <Layers3 size={28} />,
-      bgColorClass: "bg-light-warning",
-      textColorClass: "text-secondary",
-    },
-  ];
-
+    return () => abortController.abort('Duplicate request');
+  }, [showModal, formData]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -179,9 +285,9 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -196,9 +302,9 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
+                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
                 />
               </div>
             </div>
@@ -213,9 +319,9 @@ export default function OtherAdvancesClient() {
                 key={activeStatusTab}
                 data={advanceData}
                 loading={loading}
-                onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
+                setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
               />
             </div>
           </div>
@@ -231,7 +337,7 @@ export default function OtherAdvancesClient() {
       >
         <div className="row">
           <div className="col-md-12">
-            <OperationalAdvanceForm />
+            <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
           </div>
         </div>
       </CustomModal>

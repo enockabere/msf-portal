@@ -15,32 +15,16 @@ import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import RequisitionForm from "../requisitions/forms/RequisitionForm";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
-import { useMySetups } from "@/app/context/SetupContext";
-import Swal from "sweetalert2";
+import { useAdvance } from "@/app/context/AdvanceContext";
+import { AdvanceType } from "@/app/types/advance";
 
 type AdvanceTypeKey = "Salary" | "Other" | null;
 type RequestType = "Advance" | "Expense" | "Requisition" | null;
-
-interface AdvanceType {
-  title: string;
-  key: AdvanceTypeKey;
-  [key: string]: any;
-}
 
 const captions = {
   Other: "",
 }
 
-const advances: AdvanceType[] = [
-  {
-    title: 'Salary Advance',
-    key: 'Salary'
-  },
-  {
-    title: 'Other Advance',
-    key: 'Other'
-  },
-];
 
 export default function RequestCards() {
   const router = useRouter();
@@ -57,8 +41,8 @@ export default function RequestCards() {
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: session } = useSession();
   const { showLoader } = usePageLoader();
-  const { fetchSetups } = useMySetups()
-
+  const { advanceTypes, actions } = useAdvance();
+  const { dispatcher, handleFetchingSetup } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -84,21 +68,10 @@ export default function RequestCards() {
       }
       case 'Other': {
         //setloader
-        await fetchSetups([
-          'imprestTypes',
-          'currencies',
-          {
-            paymentMethods: {
-              filters: {
-                isImprest: true,
-              }
-            }
-          }
-        ]).catch((err) => {
-          Swal.fire({
-            title: "Error Fetching setups!",
-            text: "Please try again later. " + err.message,
-          });
+        await handleFetchingSetup();
+        dispatcher({
+          type: 'ADVANCE_CREATION_STATUSES',
+          payload: { isNew: true, isEditing: false, setForView: false },
         });
         setAdvanceType(dataType);
         setShowNewDropdown(false);
@@ -107,6 +80,32 @@ export default function RequestCards() {
       }
     }
   }
+
+  const handleCloseModal = () => (setShowModal(false), dispatcher({
+    type: 'ADVANCE_CREATION_STATUSES',
+    payload: { isNew: false, isEditing: false, setForView: false },
+  }), dispatcher({
+    type: 'OPEN_EXISTING_ADVANCE',
+    payload: {
+      imprestType: "",
+      Purpose: "",
+      amountToPayHeader: null,
+      currencyCode: "",
+      paymentMethod: "",
+      cashCollectionDate: "",
+      cashHours: "",
+      idPassportNumber: "",
+      accountNo: "",
+      bankNo: "",
+      branch: "",
+      swiftCode: "",
+      phoneNo: "",
+      accountName: "",
+      no: "",
+      imprestStatus: "",
+      status: "",
+    },
+  }));
 
   const fetchAdvances = useCallback(async () => {
     if (!session?.user?.profile?.no) return;
@@ -220,29 +219,23 @@ export default function RequestCards() {
                       zIndex: 1000,
                     }}
                   >
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowViewDropdown(false);
-                        handleNavigate(e, "/dashboard/make-request/advances");
-                      }}
-                    >
-                      Salary Advances
-                    </button>
-                    <button
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowViewDropdown(false);
-                        handleNavigate(
-                          e,
-                          "/dashboard/make-request/otherAdvances"
-                        );
-                      }}
-                    >
-                      Other Advances
-                    </button>
+                    {
+                      advanceTypes.map((type) => {
+                        return (
+                          <button
+                            key={type.key}
+                            className="dropdown-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowViewDropdown(false);
+                              handleNavigate(e, `/dashboard/make-request/${type.route}`);
+                            }}
+                          >
+                            {type.title}
+                          </button>
+                        )
+                      })
+                    }
                   </div>
                 )}
               </div>
@@ -267,7 +260,7 @@ export default function RequestCards() {
                     }}
                   >
                     {
-                      advances.map((advance: AdvanceType) => {
+                      advanceTypes.map((advance: AdvanceType) => {
                         return (
                           <button
                             className="dropdown-item"
@@ -375,7 +368,7 @@ export default function RequestCards() {
       </div>
       <CustomModal
         show={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
         title={ requestType === "Expense" ? "Record Expense" : requestType === "Requisition" ? "New Requisition"  : `Request ${captions[advanceType]} Advance`}
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
@@ -398,7 +391,7 @@ export default function RequestCards() {
           )}
           {requestType === "Advance" && advanceType === "Other" && (
             <div className="col-md-12">
-              <OperationalAdvanceForm />
+              <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
             </div>
           )}
           {requestType === "Expense" && (

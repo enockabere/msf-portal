@@ -1,3 +1,4 @@
+import { AdvanceContextProvider } from "@/app/context/AdvanceContext";
 import OtherAdvancesClient from "@/app/dashboard/make-request/otherAdvances/OtherAdvancesClient";
 
 export const metadata = {
@@ -5,5 +6,12 @@ export const metadata = {
 };
 
 export default function OtherAdvancesPage() {
-  return <OtherAdvancesClient />;
+  return (
+    <>
+      <AdvanceContextProvider>
+        <OtherAdvancesClient />
+      </AdvanceContextProvider>
+    </>
+  );
+
 }

@@ -38,7 +38,12 @@ export default function SkeletonDataTable({
   const exportCSV = () => {
     const csv = Papa.unparse(filtered);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    saveAs(blob, `${title.split(" ").join("")}-${session.user.profile.number}-${Date.now()}.csv`);
+    saveAs(
+      blob,
+      `${title.split(" ").join("")}-${
+        session.user.profile.number
+      }-${Date.now()}.csv`
+    );
   };
 
   return (
@@ -87,9 +92,7 @@ export default function SkeletonDataTable({
               </div>
             ))}
           </div>
-          <div className="text-center text-muted mt-2">
-            Loading advance data...
-          </div>
+          <div className="text-center text-muted mt-2">Loading data...</div>
         </div>
       ) : (
         <DataTable

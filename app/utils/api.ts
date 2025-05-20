@@ -74,17 +74,17 @@ export async function apiFetch(
         const otherOptions = { params: params as never, ...rest };
         switch (method.toLowerCase()) {
             case 'get':
-                response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest); break;
+                response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest as unknown); break;
             case 'post':
-                response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+                response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'put':
-                response = await transport.put<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+                response = await transport.put<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'patch':
-                response = await transport.patch<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+                response = await transport.patch<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'delete':
-                response = await transport.delete<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+                response = await transport.delete<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'cu':
-                response = await transport.cu<RequestResponse>(memoryMap.get(endpoint), data, otherOptions); break;
+                response = await transport.cu<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'batch': {
                 const batchReponse = await transport.batch<RequestResponse>(batchRequests);
                 if (!batchReponse || !Array.isArray(batchReponse)) {
