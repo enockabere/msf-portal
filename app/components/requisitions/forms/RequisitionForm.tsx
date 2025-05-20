@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import {ArrowLeft, ArrowUp, Check, PencilIcon, Plus, Trash2, UploadCloud} from "lucide-react";
 
 export default function RequisitionForm() {
@@ -9,6 +9,31 @@ export default function RequisitionForm() {
         // Handle form submission logic here
         console.log("Form submitted");
     }
+
+    const [billingItems, setBillingItems] = useState([
+        {
+            id: 1,
+            title: "Item 1",
+            quantity: 2,
+            unitPrice: 50,
+            totalPrice: 100
+        }
+    ]);
+
+    const addBillingItem = () => {
+        const newItem = {
+            id: billingItems.length + 1,
+            title: "",
+            quantity: 0,
+            unitPrice: 0,
+            totalPrice: 0
+        };
+        setBillingItems([...billingItems, newItem]);
+    };
+
+    const removeBillingItem = (id) => {
+        setBillingItems(billingItems.filter(item => item.id !== id));
+    };
 
     return (
         <div className="container-fluid d-flex flex-column">
@@ -159,7 +184,7 @@ export default function RequisitionForm() {
                         <button
                             type="button"
                             className="btn btn-success d-flex align-items-center gap-1"
-                            onClick={() => console.log("Add Billing Item")}>
+                            onClick={addBillingItem}>
                             <Plus size={16} />
                             Add Billing Item
                         </button>
@@ -179,7 +204,8 @@ export default function RequisitionForm() {
                             </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                            {billingItems.map((billingItem, idx) => (
+                                <tr key={`${idx}-${billingItem.id}`}>
                                 <td>
                                     <div className="">
                                         <label className="form-label">
@@ -280,12 +306,13 @@ export default function RequisitionForm() {
                                     <button
                                         type="button"
                                         className="btn btn-sm btn-outline-danger"
-                                        onClick={() => console.log("Remove")}
+                                        onClick={() => removeBillingItem(billingItem.id)}
                                     >
                                         <Trash2 size={16} />
                                     </button>
                                 </td>
                             </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
