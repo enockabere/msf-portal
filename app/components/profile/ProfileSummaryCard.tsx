@@ -26,8 +26,16 @@ export default function ProfileSummaryCard({
 
   const profile = session?.user?.profile;
   const avatarUrl = "/assets/images/avatar.png";
-  const name = `${profile?.firstName || ""} ${profile?.secondName || ""} ${profile?.lastName || ""}`.trim();
-  const role = profile?.type === "Visitor" ? "Visitor Profile" : profile?.profileTitle || "User";
+  const name = `${profile?.firstName || ""} ${profile?.secondName || ""} ${
+    profile?.lastName || ""
+  }`.trim();
+  const role =
+    profile?.type === "Visitor"
+      ? "Visitor Profile"
+      : profile?.type === "Employee"
+      ? "Employee Profile"
+      : "User";
+
   const location = profile?.city || "Unknown";
 
   return (

@@ -31,7 +31,7 @@ export const ProfileActionButtons = ({
     } catch (err) {
       console.error("Error continuing to dashboard:", err);
     } finally {
-      setTimeout(() => setLoadingContinue(false), 2000); // Optional delay
+      setTimeout(() => setLoadingContinue(false), 2000); 
     }
   };
 

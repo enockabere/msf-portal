@@ -29,7 +29,7 @@ export default function PersonalInfoCard() {
             </li>
             <li className="mt-2">
               <Briefcase className="me-2 text-secondary" size={20} />
-              <b>Position</b> : {profile?.profileTitle || "Visitor"}
+              <b>Position</b> : {profile?.type}
             </li>
             <li className="mt-2">
               <IdCard className="me-2 text-secondary" size={20} />
