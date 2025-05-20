@@ -176,7 +176,7 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
                     >
                       <option value="">-- Select City --</option>
                       {originCities.map((item) => (
-                        <option key={item.code} value={item.code}>
+                        <option key={item.city} value={item.city}>
                           {item.city}
                         </option>
                       ))}
