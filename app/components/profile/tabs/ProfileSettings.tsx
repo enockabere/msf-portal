@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import PageLoader from "@/app/components/loaders/PageLoader";
+import { ArrowLeft, Save } from "lucide-react";
 
 export default function ProfileSettings() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { genders, countries, cities, profileTitles, fetchSetups } =
-    useMySetups();
+  const { genders, countries, fetchSetups } = useMySetups();
   const profile = session?.user?.profile;
 
   const isEditable = profile?.type === "Visitor";
@@ -21,20 +21,17 @@ export default function ProfileSettings() {
     firstName: "",
     secondName: "",
     lastName: "",
-    title: "",
     phoneNo: "",
     dateOfBirth: "",
     gender: "",
     countryCode: "",
-    city: "",
     email: "",
-    citizenNonCitizen: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchSetups(["genders", "countries", "cities", "profileTitles"]);
+    fetchSetups(["genders", "countries"]);
   }, [fetchSetups]);
 
   useEffect(() => {
@@ -45,14 +42,11 @@ export default function ProfileSettings() {
         firstName: profile.firstName ?? "",
         secondName: profile.secondName ?? "",
         lastName: profile.lastName ?? "",
-        title: profile.title ?? "",
         phoneNo: profile.phoneNo ?? "",
         dateOfBirth: profile.dateOfBirth ?? "",
         gender: profile.genderOption ?? "",
         countryCode: profile.countryCode ?? "",
-        city: profile.city ?? "",
         email: session?.user?.email ?? "",
-        citizenNonCitizen: profile.citizenNonCitizen ?? "",
       });
     }
   }, [status, router, profile, session?.user?.email]);
@@ -137,12 +131,15 @@ export default function ProfileSettings() {
       </div>
       <form className="card-body pt-0" onSubmit={handleSubmit}>
         {[
-          ["First Name", "firstName"],
-          ["Middle Name", "secondName"],
-          ["Last Name", "lastName"],
-        ].map(([label, name]) => (
+          { label: "First Name", name: "firstName", required: true },
+          { label: "Middle Name", name: "secondName", required: false },
+          { label: "Last Name", name: "lastName", required: true },
+        ].map(({ label, name, required }) => (
           <div className="form-group mb-3 row" key={name}>
-            <label className="col-xl-3 text-end">{label}</label>
+            <label className="col-xl-3 text-end">
+              {label} {required && <span className="text-danger">*</span>}
+            </label>
+
             <div className="col-lg-9 col-xl-8">
               <input
                 className="form-control"
@@ -155,31 +152,11 @@ export default function ProfileSettings() {
             </div>
           </div>
         ))}
-
-        {/* Title */}
-        <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">Title</label>
-          <div className="col-lg-9 col-xl-8">
-            <select
-              name="title"
-              className="form-select"
-              value={form.title}
-              onChange={handleChange}
-              disabled={!isEditable}
-            >
-              <option value="">Select Title</option>
-              {profileTitles?.map((t) => (
-                <option key={t.code} value={t.code}>
-                  {t.description}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         {/* Date of Birth */}
         <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">Date of Birth</label>
+          <label className="col-xl-3 text-end">
+            Date of Birth <span className="text-danger">*</span>
+          </label>
           <div className="col-lg-9 col-xl-8">
             <input
               type="date"
@@ -195,7 +172,9 @@ export default function ProfileSettings() {
 
         {/* Gender */}
         <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">Gender</label>
+          <label className="col-xl-3 text-end">
+            Gender <span className="text-danger">*</span>
+          </label>
           <div className="col-lg-9 col-xl-8">
             <select
               name="gender"
@@ -232,7 +211,9 @@ export default function ProfileSettings() {
 
         {/* Country */}
         <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">Country</label>
+          <label className="col-xl-3 text-end">
+            Country <span className="text-danger">*</span>
+          </label>
           <div className="col-lg-9 col-xl-8">
             <select
               name="countryCode"
@@ -251,64 +232,19 @@ export default function ProfileSettings() {
           </div>
         </div>
 
-        {/* City */}
-        <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">City</label>
-          <div className="col-lg-9 col-xl-8">
-            <select
-              name="city"
-              className="form-select"
-              value={form.city}
-              onChange={handleChange}
-              disabled={!form.countryCode}
-            >
-              <option value="">Select City</option>
-              {cities
-                ?.filter((c) => c.countryRegionCode === form.countryCode)
-                .map((city) => (
-                  <option key={city.code} value={city.city}>
-                    {city.city}
-                  </option>
-                ))}
-            </select>
-          </div>
-        </div>
-        {/* Citizenship */}
-        <div className="form-group mb-3 row">
-          <label className="col-xl-3 text-end">Citizenship</label>
-          <div className="col-lg-9 col-xl-8">
-            <select
-              name="citizenNonCitizen"
-              className="form-select"
-              value={form.citizenNonCitizen}
-              onChange={handleChange}
-              required
-              disabled={!isEditable}
-            >
-              <option value="">Select Citizenship</option>
-              <option value="Citizen">Citizen</option>
-              <option value="Non-Citizen">Non-Citizen</option>
-            </select>
-          </div>
-        </div>
-
         {/* Buttons */}
         <div className="form-group row">
           <div className="col-lg-9 col-xl-8 offset-lg-3">
-            <button
-              type="submit"
-              className="btn btn-primary me-2"
-              disabled={isLoading || !isEditable}
-            >
-              {isLoading ? "Saving..." : "Save Changes"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => router.refresh()}
-            >
-              Cancel
-            </button>
+            {profile?.type === "Visitor" && (
+              <button
+                type="submit"
+                className="btn btn-danger me-2 d-flex align-items-center gap-2"
+                disabled={isLoading || !isEditable}
+              >
+                <Save size={16} />
+                {isLoading ? "Saving..." : "Edit Visitor Profile"}
+              </button>
+            )}
           </div>
         </div>
       </form>

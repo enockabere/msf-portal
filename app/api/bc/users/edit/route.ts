@@ -35,9 +35,6 @@ export async function PATCH(request: Request) {
       gender: body.gender,
       countryRegionCode: body.countryRegionCode || body.countryCode,
       passportIDNo: body.passportIDNo || body.identificationDocumentNo || "",
-      city: body.city,
-      citizenNonCitizen: body.citizenNonCitizen || "",
-      title: body.profileTitle || "",
     };
 
     const options: any = {
