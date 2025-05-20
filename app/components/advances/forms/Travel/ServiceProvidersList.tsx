@@ -26,9 +26,8 @@ export default function ServiceProvidersList({travelRequest}: { travelRequest: T
       const res = await getResource('travelRequestProviders', {
         params: {
           filters: {
-            // documentNo: travelRequest.no,
-            // documentType: travelRequest.documentType,
-            documentType: 'Visitor',
+            documentNo: travelRequest.no,
+            documentType: travelRequest.documentType,
           },
         }
       });

@@ -94,7 +94,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo'])
+  const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'])
   const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
     setHeaderRequiredFields((prev) => {
       if (profile.type === 'Employee') {
-        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'requirePerDiem', 'accommodationType']
+        return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType']
       } else if (profile.type === 'Visitor') {
         return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
       }
@@ -353,10 +353,9 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
-          "providers",
         ].map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "providers"].map(
+        return ["info", "dependencies"].map(
           (id) => allSteps.find((s) => s.id === id)!
         );
       }
@@ -366,7 +365,6 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
-          "providers",
           "checklist",
           "traveller-checklist",
           "visa",
