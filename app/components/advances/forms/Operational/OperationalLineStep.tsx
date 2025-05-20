@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Check, Undo2, Trash2, Plus, ArrowUp, XCircle } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
 import CustomModal from "@/app/components/modals/CustomModal";
 import AdvanceSettlementForm from "../AdvanceSettlementForm";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface OperationalLineStepProps {
   expenses: ExpenseItem[];
+  buttonsArray: any;
   onExpenseChange: <K extends keyof ExpenseItem>(
     index: number,
     field: K,
@@ -18,31 +20,35 @@ interface OperationalLineStepProps {
   onFileChange: (index: number, file: File | null) => void;
   onRemoveExpense: (index: number) => void;
   onAddExpense: () => void;
-  onSubmit: () => void;
   onCancel: () => void;
-  onSurrender: () => void;
   currency: string;
   advanceNo: string;
 }
 
 export default function OperationalLineStep({
   expenses,
+  buttonsArray,
   onExpenseChange,
   onRemoveExpense,
   onAddExpense,
-  onSubmit,
   onCancel,
-  onSurrender,
   currency,
   advanceNo,
 }: OperationalLineStepProps) {
   const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
+  const { formData, isNew } = useAdvance();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
   const selectedCurrency = findObjectFromArray(currencies, "code", currency)
     ?.description as string;
   const [showSettlementModal, setShowSettlementModal] = useState(false);
 
+  const buttonSet = buttonsArray(
+    isNew ? 'isNew'
+      : formData?.imprestStatus === 'Issued' ? 'Issued'
+        : formData?.status === 'Open' || formData?.status === 'Pending Approval'
+          ? formData?.status : 'default'
+  );
   return (
     <>
       <div className="card mb-4">
@@ -128,7 +134,7 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                          `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
@@ -153,7 +159,7 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                          `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
@@ -196,7 +202,22 @@ export default function OperationalLineStep({
             <ArrowUp size={16} />
             Previous Step
           </button>
-          <button
+          {
+            buttonSet.filter((btn: any) => btn.stepTwo).map((button: any) => {
+              return (
+                <button
+                  key={button.id}
+                  type="button"
+                  className={button.classes}
+                  onClick={button.action}
+                >
+                  {button.icon}
+                  {button.label}
+                </button>
+              )
+            })
+          }
+          {/* <button
             type="button"
             className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
             onClick={() => {
@@ -226,7 +247,7 @@ export default function OperationalLineStep({
           >
             <Undo2 size={16} />
             Settle Advance
-          </button>
+          </button> */}
         </div>
       </div>
       <CustomModal

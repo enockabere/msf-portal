@@ -30,12 +30,6 @@ export default function OtherAdvancesClient() {
   const [advanceData, setAdvanceData] = useState<Advance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
-  const [advanceCounts, setAdvanceCounts] = useState({
-    open: 0,
-    pending: 0,
-    released: 0,
-    total: 0,
-  });
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -43,7 +37,7 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
-  const { formData, actions } = useAdvance();
+  const { formData, actions, advanceCounts } = useAdvance();
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
   const fetchAdvances = useCallback(async () => {
@@ -75,15 +69,50 @@ export default function OtherAdvancesClient() {
     localStorage.setItem("advancePlacement", newPlacement);
   };
 
-  const handleNewRequestClick = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const handleNewRequestClick = async () => {
+    await handleFetchingSetup();
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: true, isEditing: false, setForView: false },
+    });
+    setShowModal(true);
+  }
+  const handleCloseModal = () => {
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: false, setForView: false },
+    });
+    setShowModal(false)
+  };
 
 
 
   const cards = [
     {
       title: "Open",
-      value: `${advanceCounts.open} Open`,
+      value: `${advanceCounts?.open} Open`,
       description: "Open Advances",
       icon: <FileClock size={28} />,
       bgColorClass: "bg-light-warning",
@@ -91,7 +120,7 @@ export default function OtherAdvancesClient() {
     },
     {
       title: "Approvals",
-      value: `${advanceCounts.pending} Pending`,
+      value: `${advanceCounts?.pending} Pending`,
       description: "Pending Approval",
       icon: <ClipboardList size={28} />,
       bgColorClass: "bg-light-success",
@@ -99,7 +128,7 @@ export default function OtherAdvancesClient() {
     },
     {
       title: "Approved",
-      value: `${advanceCounts.released} Approved`,
+      value: `${advanceCounts?.released} Approved`,
       description: "Released Advances",
       icon: <BadgeCheck size={28} />,
       bgColorClass: "bg-light-info",
@@ -107,7 +136,7 @@ export default function OtherAdvancesClient() {
     },
     {
       title: "Total",
-      value: `${advanceCounts.total} Total`,
+      value: `${advanceCounts?.total} Total`,
       description: "Total Requests",
       icon: <Layers3 size={28} />,
       bgColorClass: "bg-light-warning",
@@ -132,7 +161,25 @@ export default function OtherAdvancesClient() {
       setShowModal(false);
       dispatcher({
         type: 'OPEN_EXISTING_ADVANCE',
-        payload: null,
+        payload: {
+          imprestType: "",
+          Purpose: "",
+          amountToPayHeader: null,
+          currencyCode: "",
+          paymentMethod: "",
+          cashCollectionDate: "",
+          cashHours: "",
+          idPassportNumber: "",
+          accountNo: "",
+          bankNo: "",
+          branch: "",
+          swiftCode: "",
+          phoneNo: "",
+          accountName: "",
+          no: "",
+          imprestStatus: "",
+          status: "",
+        },
       });
       dispatcher({
         type: 'ADVANCE_CREATION_STATUSES',
@@ -178,7 +225,7 @@ export default function OtherAdvancesClient() {
       const res = await getResource('imprestLine', {
         params: {
           filters: {
-            documentNo: formData.no,
+            documentNo: formData?.no,
           },
         },
       });
@@ -192,7 +239,7 @@ export default function OtherAdvancesClient() {
         },
       );
     }
-    if (formData.no) {
+    if (formData?.no) {
 
     }
     Promise.all([
@@ -238,7 +285,6 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
@@ -256,7 +302,6 @@ export default function OtherAdvancesClient() {
                   key={activeStatusTab}
                   data={advanceData}
                   loading={loading}
-                  onCountsUpdate={setAdvanceCounts}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
@@ -274,7 +319,6 @@ export default function OtherAdvancesClient() {
                 key={activeStatusTab}
                 data={advanceData}
                 loading={loading}
-                onCountsUpdate={setAdvanceCounts}
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
                 setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
@@ -293,7 +337,7 @@ export default function OtherAdvancesClient() {
       >
         <div className="row">
           <div className="col-md-12">
-            <OperationalAdvanceForm />
+            <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
           </div>
         </div>
       </CustomModal>

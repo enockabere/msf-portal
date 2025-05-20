@@ -263,7 +263,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     try {
       const res = await codeUnit("createTravelAdvanceFromTravel", {
         data: {
-          no: "",
+          no: travelRequestHeader.no,
         },
       });
       if (res.error) {
@@ -616,24 +616,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               <div>
                 <TravelAdvanceDetails travelInfo={travelRequestHeader}/>
                 <TravelAdvanceGLTable
-                  glLines={[
-                    {
-                      account: "6001",
-                      description: "Flight Ticket",
-                      amount: 500,
-                      currency: profile.currencyCode,
-                      department: "",
-                      project: "",
-                    },
-                    {
-                      account: "6002",
-                      description: "Hotel",
-                      amount: 300,
-                      currency: profile.currencyCode,
-                      department: "",
-                      project: "",
-                    },
-                  ]}
+                  glLines={ travelRequestHeader?.travelRequestLines	}
                 />
               </div>
             )}

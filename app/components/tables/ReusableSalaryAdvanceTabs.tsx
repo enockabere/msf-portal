@@ -1,26 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMySetups } from "@/app/context/SetupContext";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import {Advance, AdvanceTypeKey} from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { usePathname } from "next/navigation";
-import { getColumnByType } from "../advances/AdvanceTableColumns";
+import { GetColumnByType } from "../advances/AdvanceTableColumns";
+import { useAdvance } from "@/app/context/AdvanceContext";
 import CustomModal from "../modals/CustomModal";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
   data: Advance[];
   selectedAdvance?: Advance;
   loading: boolean;
-  onCountsUpdate?: (counts: {
-    open: number;
-    pending: number;
-    released: number;
-    total: number;
-  }) => void;
   initialTab?: string;
   refetch: (updatedStatus?: string) => void;
   setSelectedRowHandler: (Advance: Advance | null) => void;
@@ -30,7 +25,6 @@ export default function ReusableSalaryAdvanceTabs({
   data,
   selectedAdvance,
   loading,
-  onCountsUpdate,
   initialTab,
   refetch,
   setSelectedRowHandler,
@@ -38,51 +32,56 @@ export default function ReusableSalaryAdvanceTabs({
   const [activeTab, setActiveTab] = useState("open");
   const didSetInitialTab = useRef(false);
   const path = usePathname();
-
-  const { currencies } = useMySetups();
+  const { actions } = useAdvance();
+  const { dispatcher } = actions;
   const [showSettlementModal, setShowSettlementModal] = useState(false);
   const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
     null
   );
+  const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
-  const advanceSet = path.includes("otherAdvances")
-    ? "otherAdvances"
-    : "salaryAdvance";
-
+  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
   const columns = useMemo(() => {
-    return getColumnByType(advanceSet, setSelectedRowHandler, {
+    return GetColumnByType(advanceSet, setSelectedRowHandler, {
       currentTab: activeTab,
       currencies,
+      imprestTypes,
       onSettleClick: (advanceNo: string) => {
         setSettlementAdvanceNo(advanceNo);
         setShowSettlementModal(true);
       },
-    });
-  }, [advanceSet, setSelectedRowHandler, activeTab, currencies]);
+    })
+  }, [advanceSet, setSelectedRowHandler, activeTab]);
+
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    const open = advanceByStatus.get("Open") || [];
-    const pending = advanceByStatus.get("Pending Approval") || [];
-    const released = advanceByStatus.get("Released") || [];
-
-    const counts = {
-      open: open.length,
-      pending: pending.length,
-      released: released.length,
-      total: open.length + pending.length + released.length,
-    };
-
-    // if (counts.total > 0) {
-    //   onCountsUpdate(counts);
-    // }
+    const open = advanceByStatus.get('Open') || [];
+    const pending = advanceByStatus.get('Pending Approval') || [];
+    const released = advanceByStatus.get('Released') || [];
 
     return {
       open,
       pending,
       released,
     };
-  }, [data, onCountsUpdate]);
+  }, [data]);
+
+  useEffect(() => {
+    const counts = {
+      open: filteredByStatus.open.length,
+      pending: filteredByStatus.pending.length,
+      released: filteredByStatus.released.length,
+      total: filteredByStatus.open.length + filteredByStatus.pending.length + filteredByStatus.released.length,
+    };
+
+    if (counts.total > 0) {
+      dispatcher({
+        type: 'SET_ADVANCES_COUNTS',
+        payload: counts,
+      })
+    }
+  }, [filteredByStatus]);
 
   useEffect(() => {
     if (
@@ -94,6 +93,12 @@ export default function ReusableSalaryAdvanceTabs({
       didSetInitialTab.current = true;
     }
   }, [initialTab]);
+
+  useEffect(() => {
+    fetchSetups([
+      'imprestTypes',
+    ]);
+  })
 
   return (
     <div>

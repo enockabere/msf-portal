@@ -16,31 +16,19 @@ import {
 } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { batchRequest, createResource } from "@/app/lib/api/http";
+import { batchRequest, codeUnit, createResource, getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
 import { batchRequestOptions, BatchRequestResponse } from "@/app/types/options";
 import { useAdvance } from "@/app/context/AdvanceContext";
+import { ArrowDown, Check, Undo2, XCircle } from "lucide-react";
 
-export default function OperationalAdvanceForm() {
+export default function OperationalAdvanceForm({
+  closeModalHandler
+}: {
+  closeModalHandler?: () => void
+}) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  // const [formData, setFormData] = useState<FormData>({
-  //   imprestType: "",
-  //   Purpose: "",
-  //   amountToPayHeader: null,
-  //   currencyCode: "",
-  //   paymentMethod: "",
-  //   cashCollectionDate: "",
-  //   cashHours: "",
-  //   idPassportNumber: "",
-  //   accountNo: "",
-  //   bankNo: "",
-  //   branch: "",
-  //   swiftCode: "",
-  //   phoneNo: "",
-  //   accountName: "",
-  // });
-  // const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>("");
   const {
@@ -51,12 +39,11 @@ export default function OperationalAdvanceForm() {
     expenseCodes,
     fetchSetups,
   } = useMySetups();
-  const { formData, expenses, isEditing, setForView, actions } = useAdvance();
+  const { formData, expenses, actions } = useAdvance();
   const { dispatcher, fetchLineSetup } = actions;
   const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
-    // setFormData((prev) => ({ ...prev, [field]: value }));
     dispatcher({
       type: "CHANGE_ADVANCE_FORMDATA_FIELD",
       payload: { [field]: value },
@@ -78,23 +65,19 @@ export default function OperationalAdvanceForm() {
         },
       },
     });
-    // const updated = [...expenses];
-    // updated[index][field] = value;
-    // setExpenses(updated);
+
   };
 
   const handleFileChange = (index: number, file: File | null) => {
-    // const updated = [...expenses];
-    // updated[index].receipt = file;
-    // setExpenses(updated);
+    console.log(index, file)
   };
 
   function handleSettingPaymentMethodType() {
-    if (!formData.paymentMethod) return null;
+    if (!formData?.paymentMethod) return null;
     const type: string = findObjectFromArray(
       paymentMethods,
       "code",
-      formData.paymentMethod
+      formData?.paymentMethod
     )?.type as string;
     setPaymentMethodType(type);
   }
@@ -106,9 +89,6 @@ export default function OperationalAdvanceForm() {
         index,
       },
     });
-    // const updated = [...expenses];
-    // updated.splice(index, 1);
-    // setExpenses(updated);
   };
 
   const addExpenseLine = () => {
@@ -122,16 +102,6 @@ export default function OperationalAdvanceForm() {
         project: "",
       },
     });
-    // setExpenses((prev) => [
-    //   ...prev,
-    //   {
-    //     expenseCode: "",
-    //     unitCost: NaN,
-    //     description: "",
-    //     costCenter: "",
-    //     project: "",
-    //   },
-    // ]);
   };
 
   const handleNext = async () => {
@@ -159,10 +129,36 @@ export default function OperationalAdvanceForm() {
   const handlePrev = () => {
     setCurrentStep(1);
   };
+  const postResourceAction = async (resourceCode: any) => {
+    const response = await getResource('imprest', {
+      params: {
+        filters: {
+          no: resourceCode,
+        }
+      }
+    });
+    if (response.error) {
+      Swal.fire('Error!', 'Error retrieving the just created advance.', 'error');
+      closeModalHandler();
+      return;
+    }
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: response.value?.at(0),
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: response?.status === 'Open', setForView: true },
+    });
+    handlePrev();
+  }
 
   const handleSubmit = async () => {
     setIsSubmitted(true);
     try {
+      if (!expenses.length) {
+        return Swal.fire('Error!', 'You must add at least one advance line to proceed!', 'warning');
+      }
       const pDate = new Date().toISOString();
       const presets: Record<string, any> = {
         documentType: "Imprest",
@@ -170,6 +166,9 @@ export default function OperationalAdvanceForm() {
         employeeNo: data.user?.profile?.no,
         requestedBy: data.user?.profile?.no,
         requestedByFor: data.user?.profile?.no,
+        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
+        shortcutDimension2Code: data.user?.profile?.shortcutDimension2Code,
+        shortcutDimension3Code: data.user?.profile?.shortcutDimension2Code,
       };
       const strippedPayLoad = removeNullAndUndefinedFromObject({
         ...formData,
@@ -200,8 +199,7 @@ export default function OperationalAdvanceForm() {
       if (isMissingRequiredProp.missing) {
         return Swal.fire(
           "Validation Error!",
-          `Missing [${isMissingRequiredProp.prop.join(",")}] ${
-            isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
+          `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
           }`
         );
       }
@@ -211,13 +209,17 @@ export default function OperationalAdvanceForm() {
       if (res.error) {
         return Swal.fire(res.error.code, res.error.message, "error");
       }
-      console.log("response for created imprest: ", res);
       await handleSubmittingAdvanceLine(res as FormData);
       Swal.fire(
         "Success",
-        `${formData.imprestType} advance was created successfully!`,
+        `${res.imprestType} advance was created successfully!`,
         "success"
-      );
+      ).then(async (result) => {
+        if (result.isConfirmed) {
+          await postResourceAction(res?.no);
+        }
+      });
+
     } catch (error: any) {
       Swal.fire("Error!", error.message, "error");
     } finally {
@@ -227,7 +229,6 @@ export default function OperationalAdvanceForm() {
 
   async function handleSubmittingAdvanceLine(header: FormData) {
     try {
-      console.log("header passed to lines: ", header);
       if (safeTypechecker(header) !== "Object" || !Object.keys(header).length) {
         throw new Error("We ran into an error!, Try again later!");
       }
@@ -235,6 +236,8 @@ export default function OperationalAdvanceForm() {
         documentType: "Imprest",
         documentNo: header.no,
         Quantity: 1,
+        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
+        shortcutDimension3Code: data.user?.profile?.shortcutDimension2Code,
       };
       const expenseRequestOption = expenses.map((expense: ExpenseItem) => {
         const costCenterDimension = findObjectFromArray(
@@ -256,8 +259,6 @@ export default function OperationalAdvanceForm() {
         expense[constructDimension(costCenterDimension)] = expense.costCenter;
         expense[constructDimension(projectDimension)] = expense.project;
         expense.description = glAccount.description as string;
-        delete expense.costCenter;
-        delete expense.project;
         const linePayload = {
           ...expense,
           ...defaults,
@@ -293,8 +294,7 @@ export default function OperationalAdvanceForm() {
         if (expenseRequestOption.length !== expenses.length)
           Swal.fire(
             "Alert!",
-            `${
-              addedLines > 1 ? "Some" : "The"
+            `${addedLines > 1 ? "Some" : "The"
             } advance ${lineCaption} will not be submitted due to errors`,
             "info"
           );
@@ -323,12 +323,159 @@ export default function OperationalAdvanceForm() {
       throw new Error(error.message);
     }
   }
-  const handleSurrender = () => {
-    console.log("Apply for surrender");
-  };
+  // const handleSurrender = () => {
+  //   console.log("Apply for surrender");
+  // };
+  const handleSendForApproval = async () => {
+    try {
+      if (formData.no) {
+        const response = await codeUnit('SendAdvanceForApproval', {
+          data: {
+            docNo: formData.no,
+          }
+        });
+        if (response.error) {
+          return Swal.fire(response.error.code, response.error.message, 'error');
+        }
+        Swal.fire('Success', `${formData.imprestType} advance successfully sent for approval`, 'success')
+          .then(async (result) => {
+            if (result.isConfirmed) {
+              await postResourceAction(formData.no);
+            }
+          })
+      }
+    } catch (error: any) {
+      Swal.fire('Error', error.message, 'error');
+    }
+  }
+
+  const handleCancelApprovalRequest = async () => {
+    try {
+      if (formData.no) {
+        const response = await codeUnit('CancelAdvanceApprovalRequest', {
+          data: {
+            docNo: formData.no,
+          }
+        });
+        if (response.error) {
+          return Swal.fire(response.error.code, response.error.message, 'error');
+        }
+        Swal.fire('Success', `${formData.imprestType} advance approval request successfully cancelled`, 'success')
+          .then(async (result) => {
+            if (result.isConfirmed) {
+              await postResourceAction(formData.no);
+            }
+          })
+      }
+    } catch (error: any) {
+      Swal.fire('Error', error.message, 'error');
+    }
+  }
+  const getConditionButtons = (condtion: any) => {
+    const conditionalButtons = {
+      default: [
+        {
+          id: 'klkfrtrsjro',
+          action: () => { },
+          label: 'Save & Continue',
+          icon: <ArrowDown size={16} />,
+          classes: 'btn btn-primary d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: false,
+        },
+      ],
+      isNew: [
+        {
+          id: 'ewrtyujhht',
+          action: async () => await handleNext(),
+          label: 'Save & Continue',
+          icon: <ArrowDown size={16} />,
+          classes: 'btn btn-primary d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: false,
+        },
+        {
+          id: 'fghgjgttuyutr',
+          action: async () => await handleSubmit(),
+          label: 'Submit Advance',
+          icon: <Check size={16} />,
+          classes: 'btn btn-success  d-flex align-items-center gap-2',
+          stepOne: false,
+          stepTwo: true,
+        },
+      ],
+      Open: [
+        {
+          id: 'ggjifojoiejfefocnnei',
+          action: () => { },
+          label: 'Update Advance',
+          icon: '',
+          stepOne: false,
+          stepTwo: true,
+        },
+        {
+          id: 'rsgrthpokpoktr',
+          action: async () => handleSendForApproval(),
+          label: 'Send For Approval',
+          stepOne: true,
+          stepTwo: true,
+        },
+        {
+          id: 'hoiyhjtoigjfoieje',
+          action: async () => await handleNext(),
+          label: 'Save & Continue',
+          icon: <ArrowDown size={16} />,
+          classes: 'btn btn-primary d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: false,
+        },
+      ],
+      'Pending Approval': [
+        {
+          id: 'poeirtorwfnviwireu',
+          action: async () => await handleCancelApprovalRequest(),
+          label: 'Cancel Approval Request',
+          icon: <XCircle size={16} />,
+          classes: 'btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: true,
+        },
+        {
+          id: 'qsfrgjorijioji',
+          action: async () => await handleNext(),
+          label: 'Save & Continue',
+          icon: <ArrowDown size={16} />,
+          classes: 'btn btn-primary d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: false,
+        },
+      ],
+      Issued: [
+        {
+          id: 'yiourwivenunnuw',
+          action: () => { },
+          label: 'Settle Advance',
+          icon: <Undo2 size={16} />,
+          classes: 'btn btn-outline-warning d-flex align-items-center gap-2',
+          stepOne: true,
+          stepTwo: true,
+        },
+        {
+          id: 'iutieorvtrutnriewh',
+          action: async () => await handleNext(),
+          label: 'Save & Continue',
+          icon: <ArrowDown size={16} />,
+          classes: 'btn btn-primary d-flex align-items-center gap-2 fw-semibold',
+          stepOne: true,
+          stepTwo: false,
+        },
+      ],
+    };
+    return conditionalButtons[condtion];
+  }
 
   const getProfileValues = async () => {
-    if (!formData.paymentMethod) return null;
+    if (!formData?.paymentMethod) return null;
     switch (paymentMethodType) {
       case "Mpesa": {
         updateMobileMoneyFields();
@@ -367,9 +514,9 @@ export default function OperationalAdvanceForm() {
 
   const getBankBranches = async () => {
     if (
-      !formData.bankNo ||
-      formData.bankNo === "undefined" ||
-      formData.bankNo === "null"
+      !formData?.bankNo ||
+      formData?.bankNo === "undefined" ||
+      formData?.bankNo === "null"
     )
       return null;
     await fetchSetups(
@@ -377,7 +524,7 @@ export default function OperationalAdvanceForm() {
         {
           bankBranches: {
             filters: {
-              mainBank: formData.bankNo,
+              mainBank: formData?.bankNo,
             },
           },
         },
@@ -429,16 +576,16 @@ export default function OperationalAdvanceForm() {
 
   useEffect(() => {
     getBankBranches();
-  }, [formData.bankNo]);
+  }, [formData?.bankNo]);
 
   useEffect(() => {
     updateEmployeeBank(
       paymentMethodType !== "Cheques" &&
-        paymentMethodType !== "Bank_x0020_Transfer"
+      paymentMethodType !== "Bank_x0020_Transfer"
     );
     updateMobileMoneyFields(paymentMethodType !== "Mpesa");
     updateCashFields(paymentMethodType !== "Cash");
-  }, [employeeBanks, formData.paymentMethod, paymentMethodType]);
+  }, [employeeBanks, formData?.paymentMethod, paymentMethodType]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
@@ -448,7 +595,7 @@ export default function OperationalAdvanceForm() {
             <OperationalHeaderStep
               formData={formData}
               onFormChange={handleFormChange}
-              onNext={handleNext}
+              buttonsArray={getConditionButtons}
             />
           ) : (
             <OperationalLineStep
@@ -457,11 +604,10 @@ export default function OperationalAdvanceForm() {
               onFileChange={handleFileChange}
               onRemoveExpense={removeExpenseLine}
               onAddExpense={addExpenseLine}
-              onSubmit={handleSubmit}
               onCancel={handlePrev}
-              onSurrender={handleSurrender}
-              currency={formData.currencyCode}
-              advanceNo={formData.no}
+              currency={formData?.currencyCode}
+              advanceNo={formData?.no}
+              buttonsArray={getConditionButtons}
             />
           )}
         </div>
@@ -476,9 +622,8 @@ export default function OperationalAdvanceForm() {
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${
-              currentStep === step ? "bg-danger" : "bg-secondary"
-            }`}
+            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
+              }`}
             style={{
               width: "10px",
               height: "10px",
