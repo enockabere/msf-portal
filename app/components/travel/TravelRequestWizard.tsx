@@ -408,6 +408,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     {id: "documents", label: "Required Documents", type: "file"},
   ];
 
+  const disableTabs = useMemo(() => !travelRequestHeader.no, [travelRequestHeader.no])
+
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
@@ -442,6 +444,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
                   aria-controls={`${step.id}-panel`}
                   id={`${step.id}-tab`}
                   tabIndex={activeTab === step.id ? 0 : -1}
+                  disabled={disableTabs}
                 >
                   <span className="step-icon-wrapper">
                     <span className="step-icon">{step.icon}</span>
