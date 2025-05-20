@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import PageLoader from "@/app/components/loaders/PageLoader";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 export default function ProfileSettings() {
   const { data: session, status } = useSession();

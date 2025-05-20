@@ -58,7 +58,7 @@ export default function ProfileClient() {
       <div className="container-xxl">
         <ProfileSummaryCard
           dependents={dependents.length}
-          travelRequests={12}
+          travelRequests={0}
           leaveBalance={21}
           carbonCredits={350}
         />
