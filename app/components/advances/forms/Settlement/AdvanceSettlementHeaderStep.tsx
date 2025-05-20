@@ -12,6 +12,7 @@ interface Props {
   selectedAdvanceId: string;
   setSelectedAdvanceId: (id: string) => void;
   setSelectedAmount: (amount: number) => void;
+  advanceNo?: string | null;
 }
 
 const advances: AdvanceOption[] = [
@@ -24,6 +25,7 @@ export default function AdvanceSettlementHeaderStep({
   selectedAdvanceId,
   setSelectedAdvanceId,
   setSelectedAmount,
+  advanceNo,
 }: Props) {
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
@@ -36,18 +38,26 @@ export default function AdvanceSettlementHeaderStep({
     <div className="card border-0 shadow-sm mb-4">
       <div className="card-body">
         <h5 className="mb-3 fw-semibold">Select Advance to Settle</h5>
-        <select
-          className="form-select"
-          value={selectedAdvanceId}
-          onChange={handleSelect}
-        >
-          <option value="">-- Select Advance --</option>
-          {advances.map((adv) => (
-            <option key={adv.id} value={adv.id}>
-              {adv.description} (KES {adv.amount.toLocaleString()})
-            </option>
-          ))}
-        </select>
+        {advanceNo ? (
+          <div className="alert alert-info mb-0">
+            Settling advance number: <strong>{advanceNo}</strong>
+          </div>
+        ) : (
+          <>
+            <select
+              className="form-select"
+              value={selectedAdvanceId}
+              onChange={handleSelect}
+            >
+              <option value="">-- Select Advance --</option>
+              {advances.map((adv) => (
+                <option key={adv.id} value={adv.id}>
+                  {adv.description} (KES {adv.amount.toLocaleString()})
+                </option>
+              ))}
+            </select>
+          </>
+        )}
       </div>
     </div>
   );

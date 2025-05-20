@@ -102,5 +102,5 @@ const handler = NextAuth({
   },
 } satisfies NextAuthOptions);
 
-export const authOptions = handler.authOptions;
+// export const authOptions = handler.authOptions;
 export { handler as GET, handler as POST };

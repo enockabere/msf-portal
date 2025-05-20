@@ -6,7 +6,7 @@ import { RequestOptions, RequestResponse } from "../types/options";
 import { ENDPOINTMAP } from "../utils/endpointMap";
 import { getResource } from "../lib/api/http";
 import Swal from "sweetalert2";
-import { AdvanceType, ExpenseItem, FormData } from "../types/advance";
+import { AdvanceCount, AdvanceType, ExpenseItem, FormData } from "../types/advance";
 import { useMySetups } from "./SetupContext";
 
 const initialState = {
@@ -38,8 +38,16 @@ const initialState = {
         phoneNo: "",
         accountName: "",
         no: "",
+        imprestStatus: "",
+        status: "",
     } satisfies FormData,
     expenses: [] as ExpenseItem[],
+    advanceCounts: {
+        open: 0,
+        pending: 0,
+        released: 0,
+        total: 0
+    } satisfies AdvanceCount,
     isNew: false satisfies boolean,
     isEditing: false satisfies boolean,
     setForView: false satisfies boolean,
@@ -104,7 +112,7 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             }
         }
         case 'CHANGE_EXPENSE_LINE': {
-            let draftExpenses = state.expenses;
+            const draftExpenses = state.expenses;
             draftExpenses[action.payload.index] = {
                 ...draftExpenses[action.payload.index],
                 ...action.payload.update,
@@ -126,6 +134,13 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 ...action.payload,
+            }
+        }
+
+        case 'SET_ADVANCES_COUNTS': {
+            return {
+                ...state,
+                advanceCounts: action.payload,
             }
         }
     }
@@ -205,7 +220,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
                 {
                     expenseCodes: {
                         filters: {
-                            imprestType: advance.formData.imprestType
+                            imprestType: advance.formData?.imprestType
                         }
                     }
                 }
@@ -222,7 +237,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
         }
-    }), [advance, advance.actions, fetchAdvanceTypes]);
+    }), [advance, advance.actions, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
 
     return (
         <AdvanceContext.Provider value={contextValue} >

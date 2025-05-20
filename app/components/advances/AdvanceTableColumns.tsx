@@ -1,15 +1,25 @@
-import { useMySetups } from "@/app/context/SetupContext";
-import {Advance, AdvanceTypeKey} from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 import { findObjectFromArray } from "@/app/utils/helpers";
 
-export const GetColumnByType = (type: string, cb: (data: Advance | null) => void) => {
-    const { currencies } = useMySetups();
+export const GetColumnByType = (
+    type: string,
+    cb: (data: Advance | null) => void,
+    options?: {
+        currentTab?: string;
+        currencies?: Record<string, any>[];
+        imprestTypes?: Record<string, any>[];
+        onSettleClick?: (advanceNo: string) => void;
+    }
+) => {
+    const isReleasedTab = options?.currentTab === "released";
+    const { currencies, imprestTypes } = options;
+
     const getTypeIcon = (type: string) => {
         const icons: Record<AdvanceTypeKey, any> = {
             Salary: "fa-solid fa-money-bill",
             Other: {
-                Travel: "fa-solid fa-plane",
+                TRAVEL: "fa-solid fa-plane",
                 'OPERATIONAL ADVANCE': "fa-solid fa-gear",
             },
         };
@@ -31,15 +41,15 @@ export const GetColumnByType = (type: string, cb: (data: Advance | null) => void
             },
             {
                 name: "Type",
-                selector: (row: Advance) => row.advanceType,
+                selector: (row: Advance) => row.advanceType || row.imprestType || "Unknown",
                 sortable: true,
-                cell: (row: Advance) => (
+                cell: () => (
                     <div className="d-flex align-items-center gap-2">
                         <div
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)['OPERATIONAL ADVANCE']} text-primary`} />
+                            <i className={`${getTypeIcon(type)} text-primary`} />
                         </div>
 
                         <span>{type}</span>
@@ -148,9 +158,9 @@ export const GetColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)} text-primary`} />
+                            <i className={`${getTypeIcon(type)[row.imprestType]} text-primary`} />
                         </div>
-                        <span>{row.imprestType}</span>
+                        <span>{findObjectFromArray(imprestTypes, 'code', row.imprestType)?.description as string}</span>
                     </div>
                 ),
             },
@@ -216,6 +226,18 @@ export const GetColumnByType = (type: string, cb: (data: Advance | null) => void
                                 <i className="las la-pen fs-18" />
                             </button>
                         )}
+
+                        {row.status === "Released" && isReleasedTab && (
+                            <button
+                                key="settle"
+                                className="text-danger border-0 bg-transparent"
+                                onClick={() => options?.onSettleClick?.(row.no)}
+                                title="Settle"
+                            >
+                                <i className="las la-wallet fs-18" /> Settle
+                            </button>
+                        )}
+
                         <button
                             className="text-success border-0 bg-transparent"
                             onClick={() => cb(row)}
