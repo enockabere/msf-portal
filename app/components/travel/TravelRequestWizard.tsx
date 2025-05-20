@@ -33,7 +33,7 @@ import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaAppl
 import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
-import TravelTicketSelector from "../advances/forms/Travel/TravelTicketSelector";
+import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import {
@@ -139,7 +139,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           filters: {
             no: requestNo
           },
-          '$expand': 'travelRequestRoutes,travelRequestLines,travellers,travelRequestProviders',
+          '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
         }
       });
 
@@ -297,10 +297,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         desc: "Related travel requirements",
       },
       {
-        id: "ticket",
+        id: "providers",
         icon: <Ticket size={18}/>,
-        title: "Ticket and Accommodation Details",
-        desc: "Flight/train reservations",
+        title: "Service Providers",
+        desc: "Service providers details",
       },
       {
         id: "checklist",
@@ -353,10 +353,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
-          "ticket",
+          "providers",
         ].map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "ticket"].map(
+        return ["info", "dependencies", "providers"].map(
           (id) => allSteps.find((s) => s.id === id)!
         );
       }
@@ -366,14 +366,14 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           "info",
           "destinations",
           "dependencies",
-          "ticket",
+          "providers",
           "checklist",
           "traveller-checklist",
           "visa",
           "advance",
         ].map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "ticket", "checklist", "traveller-checklist", "permit", "advance"].map(
+        return ["info", "dependencies", "providers", "checklist", "traveller-checklist", "permit", "advance"].map(
           (id) => allSteps.find((s) => s.id === id)!
         );
       }
@@ -561,9 +561,9 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               />
             )}
 
-            {activeTab === "ticket" && (
-              <TravelTicketSelector
-                tickets={travelRequestHeader.travelRequestProviders}
+            {activeTab === "providers" && (
+              <ServiceProvidersList
+                travelRequest={travelRequestHeader}
               />
             )}
 
@@ -638,7 +638,9 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               </div>
             )}
 
-            {activeTab === "visa" && <VisaApplicationForm travelRequest={travelRequestHeader}/>}
+            {activeTab === "visa" && (
+              <VisaApplicationForm travelRequest={travelRequestHeader}/>
+            )}
 
             {activeTab === "checklist" && <VisaChecklist travelInfo={travelRequestHeader}/>}
 

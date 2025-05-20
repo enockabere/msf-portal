@@ -113,29 +113,23 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
             <h5 className="card-title fs-14 fw-bold">Traveller: {visaApplicationLine.name || 'N/A'}</h5>
             <form onSubmit={handleSubmit} className="row g-3">
               <div className="col-md-6">
-                <div className="form-floating mb-3">
-                  <label htmlFor="countryOfOrigin">Email address</label>
-                  <input type="email" className="form-control" id="floatingInput" placeholder="name@example.com"/>
-                </div>
-                <div className="form-floating mb-3">
-                  <label htmlFor="countryOfOrigin" className="form-label">Nationality</label>
-                  <select
-                    className="form-select"
-                    id="countryOfOrigin"
-                    value={formData.countryOfOrigin}
-                    onChange={async (e) => {
-                      handleFormChange('countryOfOrigin', e.target.value)
-                    }}
-                    required
-                  >
-                    <option value="">-- Select Country --</option>
-                    {countries.map((item) => (
-                      <option key={item.code} value={item.code}>
-                        {item.displayName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <label htmlFor="countryOfOrigin" className="form-label">Nationality</label>
+                <select
+                  className="form-select"
+                  id="countryOfOrigin"
+                  value={formData.countryOfOrigin}
+                  onChange={async (e) => {
+                    handleFormChange('countryOfOrigin', e.target.value)
+                  }}
+                  required
+                >
+                  <option value="">-- Select Country --</option>
+                  {countries.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.displayName}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="col-md-6">
                 <label htmlFor="validVisa" className="form-label">Valid visa?</label>
