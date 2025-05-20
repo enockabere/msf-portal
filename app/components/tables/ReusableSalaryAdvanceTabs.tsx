@@ -60,11 +60,19 @@ export default function ReusableSalaryAdvanceTabs({
     const pending = advanceByStatus.get('Pending Approval') || [];
     const released = advanceByStatus.get('Released') || [];
 
+    return {
+      open,
+      pending,
+      released,
+    };
+  }, [data]);
+
+  useEffect(() => {
     const counts = {
-      open: open.length,
-      pending: pending.length,
-      released: released.length,
-      total: open.length + pending.length + released.length,
+      open: filteredByStatus.open.length,
+      pending: filteredByStatus.pending.length,
+      released: filteredByStatus.released.length,
+      total: filteredByStatus.open.length + filteredByStatus.pending.length + filteredByStatus.released.length,
     };
 
     if (counts.total > 0) {
@@ -73,13 +81,7 @@ export default function ReusableSalaryAdvanceTabs({
         payload: counts,
       })
     }
-
-    return {
-      open,
-      pending,
-      released,
-    };
-  }, [data]);
+  }, [filteredByStatus]);
 
   useEffect(() => {
     if (

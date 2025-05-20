@@ -1,30 +1,37 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowDown, Undo2, XCircle } from "lucide-react";
 import { FormData } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
 import CustomModal from "@/app/components/modals/CustomModal";
 import AdvanceSettlementForm from "../AdvanceSettlementForm";
+import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface OperationalHeaderStepProps {
   formData: FormData;
   onFormChange: (field: keyof FormData, value: string) => void;
-  onNext: () => void;
+  buttonsArray?: any;
 }
 
 export default function OperationalHeaderStep({
   formData,
   onFormChange,
-  onNext,
+  buttonsArray,
 }: OperationalHeaderStepProps) {
   const { imprestTypes, currencies, banks, bankBranches, paymentMethods } =
     useMySetups();
   const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const { isNew } = useAdvance();
 
-  console.log("📋 formData.imprestType:", formData.no);
 
+
+  const buttonSet = buttonsArray(
+    isNew ? 'isNew'
+      : formData?.imprestStatus === 'Issued' ? 'Issued'
+        : formData?.status === 'Open' || formData?.status === 'Pending Approval'
+          ? formData?.status : 'default'
+  );
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
     const type: string = findObjectFromArray(paymentMethods, "code", method)
@@ -44,7 +51,7 @@ export default function OperationalHeaderStep({
                     type="tel"
                     className="form-control"
                     id="mpesa-phone"
-                    value={formData.phoneNo}
+                    value={formData?.phoneNo}
                     onChange={(e) => onFormChange("phoneNo", e.target.value)}
                     maxLength={25}
                   />
@@ -58,7 +65,7 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   id="id-passport"
-                  value={formData.idPassportNumber}
+                  value={formData?.idPassportNumber}
                   onChange={(e) =>
                     onFormChange("idPassportNumber", e.target.value)
                   }
@@ -82,7 +89,7 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   id="account-no"
-                  value={formData.accountNo}
+                  value={formData?.accountNo}
                   onChange={(e) => onFormChange("accountNo", e.target.value)}
                 />
               </div>
@@ -93,7 +100,7 @@ export default function OperationalHeaderStep({
                 <select
                   className="form-select"
                   id="bank"
-                  value={formData.bankNo}
+                  value={formData?.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
                 >
                   <option defaultValue={""}> --Select bank --</option>
@@ -113,7 +120,7 @@ export default function OperationalHeaderStep({
                 <select
                   className="form-select"
                   id="branch"
-                  value={formData.branch}
+                  value={formData?.branch}
                   onChange={(e) => onFormChange("branch", e.target.value)}
                 >
                   <option> --Select branch-- </option>
@@ -137,7 +144,7 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   id="swift-code"
-                  value={formData.swiftCode}
+                  value={formData?.swiftCode}
                   onChange={(e) => onFormChange("swiftCode", e.target.value)}
                 />
               </div>
@@ -157,7 +164,7 @@ export default function OperationalHeaderStep({
                   type="date"
                   id="cash-collection-date"
                   className="form-control"
-                  value={formData.cashCollectionDate}
+                  value={formData?.cashCollectionDate}
                   onChange={(e) =>
                     onFormChange("cashCollectionDate", e.target.value)
                   }
@@ -172,7 +179,7 @@ export default function OperationalHeaderStep({
                 <select
                   id="cash-hours"
                   className="form-select"
-                  value={formData.cashHours}
+                  value={formData?.cashHours}
                   onChange={(e) => onFormChange("cashHours", e.target.value)}
                   required
                 >
@@ -193,12 +200,12 @@ export default function OperationalHeaderStep({
     <div className="card mb-4 border-secondary">
       <div className="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
         <h5 className="mb-0 text-dark">Step 1: Advance Request</h5>
-        {formData.amountToPayHeader && (
+        {formData?.amountToPayHeader && (
           <div className="badge text-dark fs-6">
             Total Advance:{" "}
-            {(findObjectFromArray(currencies, "code", formData.currencyCode)
+            {(findObjectFromArray(currencies, "code", formData?.currencyCode)
               ?.description as string) || "KES"}{" "}
-            {formData.amountToPayHeader}
+            {formData?.amountToPayHeader}
           </div>
         )}
       </div>
@@ -212,7 +219,7 @@ export default function OperationalHeaderStep({
               <select
                 id="advance_type"
                 className="form-select"
-                value={formData.imprestType}
+                value={formData?.imprestType}
                 onChange={(e) => onFormChange("imprestType", e.target.value)}
               >
                 <option defaultValue={""}>--select imprest type--</option>
@@ -232,7 +239,7 @@ export default function OperationalHeaderStep({
               <select
                 id="currency"
                 className="form-select"
-                value={formData.currencyCode}
+                value={formData?.currencyCode}
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
                 <option defaultValue={""}> -- Select Currency -- </option>
@@ -253,7 +260,7 @@ export default function OperationalHeaderStep({
               <select
                 id="payment-method"
                 className="form-select"
-                value={formData.paymentMethod}
+                value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
               >
                 <option defaultValue={""}> --Select payment method-- </option>
@@ -267,7 +274,7 @@ export default function OperationalHeaderStep({
               </select>
             </div>
           </div>
-          {renderViewByTypes(formData.paymentMethod)}
+          {renderViewByTypes(formData?.paymentMethod)}
           <div className="row">
             <div className="col-md-12 mb-3">
               <label htmlFor="purpose" className="form-label">
@@ -278,7 +285,7 @@ export default function OperationalHeaderStep({
                 id="purpose"
                 className="form-control"
                 placeholder="e.g. Fuel, petty cash..."
-                value={formData.Purpose}
+                value={formData?.Purpose}
                 onChange={(e) => onFormChange("Purpose", e.target.value)}
               />
             </div>
@@ -286,7 +293,23 @@ export default function OperationalHeaderStep({
 
           <div className="row mt-4">
             <div className="col-12 d-flex justify-content-end gap-3">
-              <button
+              {
+                buttonSet.filter((btn: any) => {
+                  return btn.stepOne
+                }).map((button: any) => {
+                  return (
+                    <button
+                      key={button.id}
+                      type="button"
+                      className={button.classes}
+                      onClick={button.action}
+                    >
+                      {button.icon}
+                      {button.label}
+                    </button>
+                  )
+                })}
+              {/* formData.imprestStatus === 'Issued' && <button
                 type="button"
                 className="btn btn-outline-warning d-flex align-items-center gap-2"
                 onClick={() => {
@@ -297,17 +320,14 @@ export default function OperationalHeaderStep({
                 <Undo2 size={16} />
                 Settle Advance
               </button>
-
               <button
                 type="button"
                 className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
                 onClick={() => {
-                  console.log("❌ Cancel Approval clicked");
-                  // add your cancel approval logic here
                 }}
               >
                 <XCircle size={16} />
-                Cancel Approval
+                
               </button>
 
               <button
@@ -317,7 +337,7 @@ export default function OperationalHeaderStep({
               >
                 <ArrowDown size={16} />
                 Save & Continue
-              </button>
+              </button> */}
             </div>
           </div>
         </form>
@@ -329,7 +349,7 @@ export default function OperationalHeaderStep({
         titleIcon={<i className="las la-wallet fs-18" />}
         size="xl"
       >
-        <AdvanceSettlementForm advanceNo={formData.no} />
+        <AdvanceSettlementForm advanceNo={formData?.no} />
       </CustomModal>
     </div>
   );

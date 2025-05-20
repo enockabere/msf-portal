@@ -38,6 +38,8 @@ const initialState = {
         phoneNo: "",
         accountName: "",
         no: "",
+        imprestStatus: "",
+        status: "",
     } satisfies FormData,
     expenses: [] as ExpenseItem[],
     advanceCounts: {
@@ -218,7 +220,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
                 {
                     expenseCodes: {
                         filters: {
-                            imprestType: advance.formData.imprestType
+                            imprestType: advance.formData?.imprestType
                         }
                     }
                 }
