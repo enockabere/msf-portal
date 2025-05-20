@@ -81,7 +81,7 @@ export default function AdvancesClient() {
   const cards = [
     {
       title: "Open",
-      value: `${advanceCounts.open} Open`,
+      value: `${advanceCounts?.open} Open`,
       description: "Open Advances",
       icon: <FileClock size={28} />,
       bgColorClass: "bg-light-warning",
@@ -89,7 +89,7 @@ export default function AdvancesClient() {
     },
     {
       title: "Approvals",
-      value: `${advanceCounts.pending} Pending`,
+      value: `${advanceCounts?.pending} Pending`,
       description: "Pending Approval",
       icon: <ClipboardList size={28} />,
       bgColorClass: "bg-light-success",
@@ -97,7 +97,7 @@ export default function AdvancesClient() {
     },
     {
       title: "Approved",
-      value: `${advanceCounts.released} Approved`,
+      value: `${advanceCounts?.released} Approved`,
       description: "Released Advances",
       icon: <BadgeCheck size={28} />,
       bgColorClass: "bg-light-info",
@@ -105,7 +105,7 @@ export default function AdvancesClient() {
     },
     {
       title: "Total",
-      value: `${advanceCounts.total} Total`,
+      value: `${advanceCounts?.total} Total`,
       description: "Total Requests",
       icon: <Layers3 size={28} />,
       bgColorClass: "bg-light-warning",

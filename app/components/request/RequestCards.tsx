@@ -42,7 +42,7 @@ export default function RequestCards() {
   const { data: session } = useSession();
   const { showLoader } = usePageLoader();
   const { advanceTypes, actions } = useAdvance();
-  const { handleFetchingSetup } = actions;
+  const { dispatcher, handleFetchingSetup } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -69,6 +69,10 @@ export default function RequestCards() {
       case 'Other': {
         //setloader
         await handleFetchingSetup();
+        dispatcher({
+          type: 'ADVANCE_CREATION_STATUSES',
+          payload: { isNew: true, isEditing: false, setForView: false },
+        });
         setAdvanceType(dataType);
         setShowNewDropdown(false);
         handleOpenModal("Advance");
@@ -76,6 +80,32 @@ export default function RequestCards() {
       }
     }
   }
+
+  const handleCloseModal = () => (setShowModal(false), dispatcher({
+    type: 'ADVANCE_CREATION_STATUSES',
+    payload: { isNew: false, isEditing: false, setForView: false },
+  }), dispatcher({
+    type: 'OPEN_EXISTING_ADVANCE',
+    payload: {
+      imprestType: "",
+      Purpose: "",
+      amountToPayHeader: null,
+      currencyCode: "",
+      paymentMethod: "",
+      cashCollectionDate: "",
+      cashHours: "",
+      idPassportNumber: "",
+      accountNo: "",
+      bankNo: "",
+      branch: "",
+      swiftCode: "",
+      phoneNo: "",
+      accountName: "",
+      no: "",
+      imprestStatus: "",
+      status: "",
+    },
+  }));
 
   const fetchAdvances = useCallback(async () => {
     if (!session?.user?.profile?.no) return;
@@ -341,7 +371,7 @@ export default function RequestCards() {
       </div>
       <CustomModal
         show={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
         title={
           requestType === "Expense"
             ? "Record Expense"
@@ -368,7 +398,7 @@ export default function RequestCards() {
           )}
           {requestType === "Advance" && advanceType === "Other" && (
             <div className="col-md-12">
-              <OperationalAdvanceForm />
+              <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
             </div>
           )}
           {requestType === "Expense" && (
