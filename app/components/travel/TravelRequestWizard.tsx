@@ -119,7 +119,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       if (profile.type === 'Employee') {
         return [...prev, 'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType']
       } else if (profile.type === 'Visitor') {
-        return [...prev, 'originCity', 'originCountryCode', 'destinationCity', 'destinationCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
+        return [...prev, 'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival']
       }
       return [...prev]
     })
