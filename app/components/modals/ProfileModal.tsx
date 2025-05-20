@@ -22,7 +22,6 @@ export default function ProfileModal({
   show,
   onClose,
   title,
-  titleIcon,
   children,
   footer,
   size,
