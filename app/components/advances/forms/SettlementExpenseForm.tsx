@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { UploadCloud, Save } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useAdvance } from "@/app/context/AdvanceContext";
@@ -14,8 +14,10 @@ interface Props {
 
 export default function SettlementExpenseForm() {
 
+  const [accountedLines, setAccountedLines] = useState<Record<string, any>[]>([]);
   const { expenses } = useAdvance();
   const { DEPARTMENTS, PROJECT } = useMySetups();
+
   const handleChange = <K extends keyof ExpenseItem>(
     index: number,
     field: K,
@@ -23,7 +25,31 @@ export default function SettlementExpenseForm() {
   ) => {
     const updated = [...expenses];
     updated[index][field] = value;
-    // setExpenses(updated);
+    let lineExist = false;
+    const draftState = [...accountedLines];
+    const newDraftState = draftState.map((line: Record<string, any>) => {
+      if (line.DetailedLineMgtLineNo === updated[index].lineNo) {
+        lineExist = true;
+        return {
+          ...line,
+          [field]: value,
+        };
+      } else {
+        return line;
+      }
+    });
+    if (!lineExist) {
+      newDraftState.push(
+        {
+          [field]: value,
+          description: '',
+          DetailedLineMgtDocType: 'Imprest',
+          DetailedLineMgtDocNo: updated[index].documentNo,
+          DetailedLineMgtLineNo: updated[index].lineNo,
+        }
+      );
+    }
+    setAccountedLines(newDraftState);
   };
 
   const handleFileChange = (index: number, file: File | null) => {

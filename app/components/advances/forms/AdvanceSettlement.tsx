@@ -22,7 +22,7 @@ export default function AdvanceSettlement() {
   const { advanceLineSelectedForAccounting } = useAdvance();
 
   const { expenses, formData } = useAdvance();
-  const { currencies } = useMySetups();
+  const { currencies, fetchSetups, userProfiles } = useMySetups();
 
   const totalSurrendered = expenses.reduce(
     (sum, item) => sum + (item?.accountedAmount || 0),
@@ -31,10 +31,11 @@ export default function AdvanceSettlement() {
 
   const totalBalanceAmount = expenses.reduce((sum, item) => sum + item?.balance, 0);
   const overspent = 0 > totalBalanceAmount;
-  const fullyAccounted = 0;
+  const fullyAccounted = totalBalanceAmount === 0;
   const underspent = 0 < totalBalanceAmount;
+
   useEffect(() => {
-    if (totalSurrendered > 0 && underspent) {
+    if (totalBalanceAmount > 0) {
       setReturnAdvanceBalance("Yes");
     } else {
       setReturnAdvanceBalance("No");
@@ -45,7 +46,13 @@ export default function AdvanceSettlement() {
     } else {
       setClaimOverspent("No");
     }
-  }, [totalSurrendered, overspent, underspent]);
+  }, [totalBalanceAmount, overspent]);
+
+  useEffect(() => {
+    fetchSetups([
+      'userProfiles'
+    ]);
+  }, [totalBalanceAmount, overspent]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
@@ -101,7 +108,8 @@ export default function AdvanceSettlement() {
                           <strong>Claim:</strong>{" "}
                           <strong>
                             {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
-                            {Math.abs(balanceToBeAccounted).toLocaleString()}
+                            {" "}
+                            {Math.abs(totalBalanceAmount).toLocaleString()}
                           </strong>{" "}
                           overspent
                         </div>
@@ -120,7 +128,9 @@ export default function AdvanceSettlement() {
                         <div>
                           <strong>Surrender:</strong> Remaining balance of{" "}
                           <strong>
-                            KES {balanceToBeAccounted.toLocaleString()}
+                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
+                            {" "}
+                            {totalBalanceAmount.toLocaleString()}
                           </strong>
                         </div>
                       </>
@@ -157,18 +167,13 @@ export default function AdvanceSettlement() {
                             setSelectedRecipient(e.target.value)
                           }
                         >
-                          <option value="">-- Select Recipient --</option>
-                          {[
-                            "John Doe",
-                            "Jane Smith",
-                            "Michael Johnson",
-                            "Sarah Williams",
-                            "David Brown",
-                          ].map((r) => (
-                            <option key={r} value={r}>
-                              {r}
-                            </option>
-                          ))}
+                          <option defaultValue="">-- Select Recipient --</option>
+                          {
+                            userProfiles?.map((profile: Record<string, any>) => (
+                              <option key={profile?.no} value={profile?.no}>
+                                {`${profile?.firstName} ${profile?.secondName} ${profile?.lastName}`}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     )}
@@ -204,18 +209,13 @@ export default function AdvanceSettlement() {
                             setSelectedDeliverer(e.target.value)
                           }
                         >
-                          <option value="">-- Select Deliverer --</option>
-                          {[
-                            "John Doe",
-                            "Jane Smith",
-                            "Michael Johnson",
-                            "Sarah Williams",
-                            "David Brown",
-                          ].map((r) => (
-                            <option key={r} value={r}>
-                              {r}
-                            </option>
-                          ))}
+                          <option defaultValue="">-- Select Deliverer --</option>
+                          {
+                            userProfiles?.map((profile: Record<string, any>) => (
+                              <option key={profile?.no} value={profile?.no}>
+                                {`${profile?.firstName} ${profile?.secondName} ${profile?.lastName}`}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     )}
@@ -223,34 +223,23 @@ export default function AdvanceSettlement() {
                 )}
               </>
               <div className="d-flex justify-content-between mt-4">
-                {currentStep > 1 && (
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => setCurrentStep(1)}
-                    >
-                      <ArrowUp size={16} className="me-1" />
-                      Back
-                    </button>
+                <div className="d-flex gap-2">
 
-                    <button
-                      type="button"
-                      className="btn btn-success d-flex align-items-center gap-1"
-                      onClick={() => {
-                        console.log("✅ Submitting settlement with data:", {
-                          advanceId: selectedAdvanceId,
-                          totalAdvanceAmount,
-                          expenses,
-                        });
-                        setIsSubmitted(true);
-                      }}
-                    >
-                      <Check size={16} />
-                      Submit Settlement
-                    </button>
-                  </div>
-                )}
+                  <button
+                    type="button"
+                    className="btn btn-success d-flex align-items-center gap-1"
+                    onClick={() => {
+                      console.log("✅ Submitting settlement with data:", {
+                        advanceId: selectedAdvanceId,
+                        expenses,
+                      });
+                      setIsSubmitted(true);
+                    }}
+                  >
+                    <Check size={16} />
+                    Send Settlement For Approval
+                  </button>
+                </div>
               </div>
             </div>
           </div>
