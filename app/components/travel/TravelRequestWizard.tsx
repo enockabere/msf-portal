@@ -93,7 +93,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [headerRequiredFields, setHeaderRequiredFields] = useState(['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'])
   const isReadOnly = useMemo(() => travelRequestHeader.approvalStatus !== 'Open', [travelRequestHeader.approvalStatus])
 
@@ -142,6 +142,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
         }
       });
+
+      console.log('Travel request', res)
 
       if (res.error) {
         setIsLoading(false)

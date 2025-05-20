@@ -130,13 +130,11 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
       <div className="border rounded p-3 bg-light-subtle mt-3">
         <h6 className="text-dark fw-bold">General information</h6>
         <div className="row g-3">
-          {isLoading
-            ? (
+          {isLoading ? (
               <div className={'col-12 text-center'}>
                 <Loader size={32} className={'blink-animation'}/>
               </div>
-            )
-            : (
+            ) : (
               <>
                 {requiredFields.includes('originCountryCode') && (
                   <div className="col-md-4">
