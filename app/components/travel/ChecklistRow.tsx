@@ -29,21 +29,42 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
             reader.onerror = reject;
         });
 
-    const saveBase64File = (base64Data, fileName) => {
+    const saveBase64File = async (base64Data: unknown, fileName: string) => {
         // For example, send to backend
         console.log("Saving file:", fileName);
         console.log("Base64:", base64Data);
+        const currentDate = new Date().toISOString();
 
-        const res = createResource('travelAttachments', {
-            data: {
-                    relatedRecordId: "",
-                no: "",
-                lineNo: "",
-                documentCode: "",
-                attachment: "",
-                attachedDate: "",
+        try {
+            const res = await createResource('travelAttachments', {
+                data: {
+                    relatedRecordId: row.id,
+                    no: row.documentNo,
+                    lineNo: row.lineNo,
+                    documentCode: "",
+                    attachment: base64,
+                    attachedDate: currentDate,
+                }
+            })
+
+
+            if (res.error) {
+                Swal.fire(
+                    "Error",
+                    res.error?.message || "Failed to cancel approval.",
+                    "error"
+                );
+            } else {
+                Swal.fire(
+                    "Success",
+                    "Cancelled approval successfully!",
+                    "success"
+                );
             }
-        })
+        } catch (err) {
+            Swal.fire("Error", "Error uploading Attachment.", err.message);
+        }
+
     };
 
     const handleSubmit = async () => {
@@ -80,18 +101,22 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
         <tr>
             <td>{row.checklistItem}. {row.checklistItemDescription}</td>
             <td>
-                <input
-                    type="date"
-                    value={expiryDate ? new Date(expiryDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                />
+                {row.renewable ? (
+                    <input
+                        type="date"
+                        value={expiryDate ? new Date(expiryDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => setExpiryDate(e.target.value)}
+                    />
+                ) : (
+                    <p className="text-center">N/A</p>
+                )}
+
             </td>
             <td>
                 {!row.requiresAttachment ? (
                     <input
                         type="file"
                         checked={has}
-                        disabled={!row.requiresAttachment}
                         onChange={handleFileChange}
                     />
                 ) : (

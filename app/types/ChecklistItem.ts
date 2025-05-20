@@ -1,4 +1,5 @@
 export interface ChecklistItem {
+    id: string;
     documentNo: string;
     lineNo: string;
     checklistItem: string;
@@ -9,4 +10,6 @@ export interface ChecklistItem {
     documentType: string;
     has: boolean;
     requiresAttachment: boolean;
+    renewable: boolean;
+    verified: boolean;
 }
