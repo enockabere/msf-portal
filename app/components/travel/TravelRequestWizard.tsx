@@ -143,8 +143,6 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         }
       });
 
-      console.log('Travel request', res)
-
       if (res.error) {
         setIsLoading(false)
         return Swal.fire('Failed to fetch travel request', res.error.message)
