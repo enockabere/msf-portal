@@ -42,7 +42,7 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
                     no: row.documentNo,
                     lineNo: row.lineNo,
                     documentCode: "",
-                    attachment: base64,
+                    attachment: base64Data,
                     attachedDate: currentDate,
                 }
             })
