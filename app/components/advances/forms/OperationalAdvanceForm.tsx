@@ -371,6 +371,12 @@ export default function OperationalAdvanceForm({
       Swal.fire('Error', error.message, 'error');
     }
   }
+  const handleSettlementButton = () => {
+    dispatcher({
+      type: 'SET_SETTLEMENT_MODAL',
+      payload: true,
+    })
+  }
   const getConditionButtons = (condtion: any) => {
     const conditionalButtons = {
       default: [
@@ -409,6 +415,7 @@ export default function OperationalAdvanceForm({
           id: 'ggjifojoiejfefocnnei',
           action: () => { },
           label: 'Update Advance',
+          classes: 'btn btn-outline-primary d-flex align-items-center gap-2 fw-semibold',
           icon: '',
           stepOne: false,
           stepTwo: true,
@@ -417,6 +424,7 @@ export default function OperationalAdvanceForm({
           id: 'rsgrthpokpoktr',
           action: async () => handleSendForApproval(),
           label: 'Send For Approval',
+          classes: 'btn btn-info d-flex align-items-center gap-2 fw-semibold',
           stepOne: true,
           stepTwo: true,
         },
@@ -453,7 +461,7 @@ export default function OperationalAdvanceForm({
       Issued: [
         {
           id: 'yiourwivenunnuw',
-          action: () => { },
+          action: () => handleSettlementButton(),
           label: 'Settle Advance',
           icon: <Undo2 size={16} />,
           classes: 'btn btn-outline-warning d-flex align-items-center gap-2',
@@ -606,7 +614,6 @@ export default function OperationalAdvanceForm({
               onAddExpense={addExpenseLine}
               onCancel={handlePrev}
               currency={formData?.currencyCode}
-              advanceNo={formData?.no}
               buttonsArray={getConditionButtons}
             />
           )}

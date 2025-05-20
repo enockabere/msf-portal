@@ -6,7 +6,7 @@ import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
 import CustomModal from "@/app/components/modals/CustomModal";
-import AdvanceSettlementForm from "../AdvanceSettlementForm";
+import AdvanceSettlementForm from "../AdvanceSettlement";
 import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface OperationalLineStepProps {
@@ -22,7 +22,6 @@ interface OperationalLineStepProps {
   onAddExpense: () => void;
   onCancel: () => void;
   currency: string;
-  advanceNo: string;
 }
 
 export default function OperationalLineStep({
@@ -33,10 +32,10 @@ export default function OperationalLineStep({
   onAddExpense,
   onCancel,
   currency,
-  advanceNo,
 }: OperationalLineStepProps) {
   const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
-  const { formData, isNew } = useAdvance();
+  const { actions, formData, isNew, } = useAdvance();
+  const { dispatcher } = actions;
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
   const selectedCurrency = findObjectFromArray(currencies, "code", currency)
@@ -49,6 +48,40 @@ export default function OperationalLineStep({
         : formData?.status === 'Open' || formData?.status === 'Pending Approval'
           ? formData?.status : 'default'
   );
+
+  const handleSettlementClosing = () => {
+    dispatcher({
+      type: 'SET_SETTLEMENT_MODAL',
+      payload: false,
+    });
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: false, setForView: false },
+    });
+  }
+
   return (
     <>
       <div className="card mb-4">
@@ -257,7 +290,7 @@ export default function OperationalLineStep({
         titleIcon={<i className="las la-wallet fs-18" />}
         size="xl"
       >
-        <AdvanceSettlementForm advanceNo={advanceNo} />
+        <AdvanceSettlementForm />
       </CustomModal>
     </>
   );

@@ -11,7 +11,7 @@ import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
-import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import AdvanceSettlementForm from "../advances/forms/AdvanceSettlement";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useRouter } from "next/navigation";
 import { useAdvance } from "@/app/context/AdvanceContext";

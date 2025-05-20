@@ -51,6 +51,8 @@ const initialState = {
     isNew: false satisfies boolean,
     isEditing: false satisfies boolean,
     setForView: false satisfies boolean,
+    showAdvannceSettlementForm: false satisfies boolean,
+    advanceLineSelectedForAccounting: {} as Record<string, any>,
     actions: {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
@@ -141,6 +143,18 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 advanceCounts: action.payload,
+            }
+        }
+        case 'SET_SETTLEMENT_MODAL': {
+            return {
+                ...state,
+                showAdvannceSettlementForm: action.payload
+            }
+        }
+        case 'SET_ADVANCE_LINE_SELECTED_FOR_ACCOUNTING': {
+            return {
+                ...state,
+                advanceLineSelectedForAccounting: action.payload
             }
         }
     }

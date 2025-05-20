@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import CustomModal from "../modals/CustomModal";
-import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
+import AdvanceSettlementForm from "../advances/forms/AdvanceSettlement";
 import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
@@ -34,10 +34,6 @@ export default function ReusableSalaryAdvanceTabs({
   const path = usePathname();
   const { actions } = useAdvance();
   const { dispatcher } = actions;
-  const [showSettlementModal, setShowSettlementModal] = useState(false);
-  const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
-    null
-  );
   const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
   const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
@@ -46,13 +42,42 @@ export default function ReusableSalaryAdvanceTabs({
       currentTab: activeTab,
       currencies,
       imprestTypes,
-      onSettleClick: (advanceNo: string) => {
-        setSettlementAdvanceNo(advanceNo);
-        setShowSettlementModal(true);
-      },
     })
   }, [advanceSet, setSelectedRowHandler, activeTab]);
 
+
+  const handleClosingSettlementModal = () => {
+    dispatcher({
+      type: 'SET_SETTLEMENT_MODAL',
+      payload: false,
+    });
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: false, setForView: false },
+    });
+  }
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
@@ -151,18 +176,15 @@ export default function ReusableSalaryAdvanceTabs({
         onCloseView={() => setSelectedRowHandler(null)}
       />
 
-      <CustomModal
+      {/* <CustomModal
         show={showSettlementModal}
-        onClose={() => {
-          setSettlementAdvanceNo(null);
-          setShowSettlementModal(false);
-        }}
+        onClose={handleClosingSettlementModal}
         title="Settle Advance"
         titleIcon={<i className="las la-wallet fs-18" />}
         size="xl"
       >
-        <AdvanceSettlementForm advanceNo={settlementAdvanceNo} />
-      </CustomModal>
+        <AdvanceSettlementForm />
+      </CustomModal> */}
     </div>
   );
 }

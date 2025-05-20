@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { FormData } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
-import CustomModal from "@/app/components/modals/CustomModal";
-import AdvanceSettlementForm from "../AdvanceSettlementForm";
 import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface OperationalHeaderStepProps {
@@ -21,9 +19,7 @@ export default function OperationalHeaderStep({
 }: OperationalHeaderStepProps) {
   const { imprestTypes, currencies, banks, bankBranches, paymentMethods } =
     useMySetups();
-  const [showSettlementModal, setShowSettlementModal] = useState(false);
-  const { isNew } = useAdvance();
-
+  const { actions, isNew } = useAdvance();
 
 
   const buttonSet = buttonsArray(
@@ -32,6 +28,8 @@ export default function OperationalHeaderStep({
         : formData?.status === 'Open' || formData?.status === 'Pending Approval'
           ? formData?.status : 'default'
   );
+
+
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
     const type: string = findObjectFromArray(paymentMethods, "code", method)
@@ -342,15 +340,6 @@ export default function OperationalHeaderStep({
           </div>
         </form>
       </div>
-      <CustomModal
-        show={showSettlementModal}
-        onClose={() => setShowSettlementModal(false)}
-        title="Settle Advance"
-        titleIcon={<i className="las la-wallet fs-18" />}
-        size="xl"
-      >
-        <AdvanceSettlementForm advanceNo={formData?.no} />
-      </CustomModal>
     </div>
   );
 }

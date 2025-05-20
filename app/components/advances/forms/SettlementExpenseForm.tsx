@@ -3,16 +3,19 @@
 import React from "react";
 import { UploadCloud, Save } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
+import { useAdvance } from "@/app/context/AdvanceContext";
+import { useMySetups } from "@/app/context/SetupContext";
+import { findObjectFromArray } from "@/app/utils/helpers";
 
 interface Props {
   expenses: ExpenseItem[];
   setExpenses: (expenses: ExpenseItem[]) => void;
 }
 
-export default function SettlementExpenseForm({
-  expenses,
-  setExpenses,
-}: Props) {
+export default function SettlementExpenseForm() {
+
+  const { expenses } = useAdvance();
+  const { DEPARTMENTS, PROJECT } = useMySetups();
   const handleChange = <K extends keyof ExpenseItem>(
     index: number,
     field: K,
@@ -20,13 +23,13 @@ export default function SettlementExpenseForm({
   ) => {
     const updated = [...expenses];
     updated[index][field] = value;
-    setExpenses(updated);
+    // setExpenses(updated);
   };
 
   const handleFileChange = (index: number, file: File | null) => {
     const updated = [...expenses];
     updated[index].receipt = file;
-    setExpenses(updated);
+    // setExpenses(updated);
   };
 
   return (
@@ -45,11 +48,19 @@ export default function SettlementExpenseForm({
 
       <tbody>
         {expenses.map((exp, idx) => (
-          <tr key={idx}>
-            <td>Accomodation</td>
-            <td>KES {exp.amount.toLocaleString()}</td>
-            <td>ICT</td>
-            <td>Project A</td>
+          <tr key={`${exp?.expenseCode}-${exp?.lineNo}`}>
+            <td>{exp.description || exp.expenseCode}</td>
+            <td>KES {exp.amountToPay?.toLocaleString()}</td>
+            <td>{
+              findObjectFromArray(DEPARTMENTS, 'code', exp[
+                `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
+              ])?.name as string
+            }</td>
+            <td>{
+              findObjectFromArray(PROJECT, 'code', exp[
+                `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
+              ])?.name as string
+            }</td>
             <td>
               <label className="btn btn-sm btn-outline-secondary w-100">
                 <UploadCloud size={14} className="me-1" /> Upload
@@ -69,7 +80,7 @@ export default function SettlementExpenseForm({
                 className="form-control"
                 value={
                   typeof exp.surrenderedAmount === "number" &&
-                  !isNaN(exp.surrenderedAmount)
+                    !isNaN(exp.surrenderedAmount)
                     ? exp.surrenderedAmount
                     : ""
                 }

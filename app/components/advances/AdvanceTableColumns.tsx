@@ -4,12 +4,11 @@ import { findObjectFromArray } from "@/app/utils/helpers";
 
 export const GetColumnByType = (
     type: string,
-    cb: (data: Advance | null) => void,
+    cb: (data: Advance | null, ...args: any) => void,
     options?: {
         currentTab?: string;
         currencies?: Record<string, any>[];
         imprestTypes?: Record<string, any>[];
-        onSettleClick?: (advanceNo: string) => void;
     }
 ) => {
     const isReleasedTab = options?.currentTab === "released";
@@ -199,7 +198,7 @@ export const GetColumnByType = (
                 sortable: true,
             },
             {
-                name: "Released",
+                name: "Issued",
                 selector: (row: Advance) => (row.imprestStatus === 'Issued' ? "Yes" : "No"),
                 sortable: true,
                 cell: (row: Advance) => (
@@ -231,7 +230,7 @@ export const GetColumnByType = (
                             <button
                                 key="settle"
                                 className="text-danger border-0 bg-transparent"
-                                onClick={() => options?.onSettleClick?.(row.no)}
+                                onClick={() => cb(row, 'isSettlement')}
                                 title="Settle"
                             >
                                 <i className="las la-wallet fs-18" /> Settle

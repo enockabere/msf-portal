@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdvance } from "@/app/context/AdvanceContext";
 import React from "react";
 
 interface AdvanceOption {
@@ -12,52 +13,41 @@ interface Props {
   selectedAdvanceId: string;
   setSelectedAdvanceId: (id: string) => void;
   setSelectedAmount: (amount: number) => void;
-  advanceNo?: string | null;
 }
 
-const advances: AdvanceOption[] = [
-  { id: "ADV001", description: "Travel Advance to Nairobi", amount: 58300 },
-  { id: "ADV002", description: "Training Advance", amount: 42000 },
-  { id: "ADV003", description: "Operational Advance", amount: 76000 },
-];
+export default function AdvanceSettlementHeaderStep() {
 
-export default function AdvanceSettlementHeaderStep({
-  selectedAdvanceId,
-  setSelectedAdvanceId,
-  setSelectedAmount,
-  advanceNo,
-}: Props) {
+  const { actions, formData, expenses, advanceLineSelectedForAccounting } = useAdvance();
+  const { dispatcher } = actions;
+
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
-    const selected = advances.find((a) => a.id === id);
-    setSelectedAdvanceId(id);
-    setSelectedAmount(selected?.amount || 0);
+    const val = e.target.value;
+    const selected: Record<string, any> = expenses.find((line: Record<string, any>) => line.expenseCode === val);
+    dispatcher({
+      type: 'SET_ADVANCE_LINE_SELECTED_FOR_ACCOUNTING',
+      payload: selected,
+    });
   };
 
   return (
     <div className="card border-0 shadow-sm mb-4">
       <div className="card-body">
         <h5 className="mb-3 fw-semibold">Select Advance to Settle</h5>
-        {advanceNo ? (
-          <div className="alert alert-info mb-0">
-            Settling advance number: <strong>{advanceNo}</strong>
-          </div>
-        ) : (
-          <>
-            <select
-              className="form-select"
-              value={selectedAdvanceId}
-              onChange={handleSelect}
-            >
-              <option value="">-- Select Advance --</option>
-              {advances.map((adv) => (
-                <option key={adv.id} value={adv.id}>
-                  {adv.description} (KES {adv.amount.toLocaleString()})
-                </option>
-              ))}
-            </select>
-          </>
-        )}
+        <div className="alert alert-info mb-0">
+          Settling advance number: <strong>{formData?.no}</strong>
+        </div>
+        <select
+          className="form-select"
+          value={advanceLineSelectedForAccounting.expenseCode}
+          onChange={handleSelect}
+        >
+          <option defaultValue={''}>--Selected Advance line--</option>
+          {expenses.map((adv: Record<string, any>) => (
+            <option key={`${adv?.expenseCode}-${adv?.lineNo}`} value={adv.expenseCode}>
+              {adv?.description} (KES {adv?.amountToPay.toLocaleString()})
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
