@@ -27,5 +27,5 @@ export default function TabbedTravelRequests({ records, profile }: Props) {
     { key: "released", label: "Approved", data: approvedRequests },
   ];
 
-  return <ReusableTabbedAdvanceTable tabs={tabData} profile={profile} />;
+  return <ReusableTabbedAdvanceTable tabs={tabData} profile={profile} type="travel"/>;
 }

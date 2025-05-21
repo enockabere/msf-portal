@@ -1774,7 +1774,7 @@ html[data-startbar="dark"] .logo-dark {
   display: none;
 }
 .startbar-enable .startbar-overlay {
-  display: block;
+  /*display: block;*/
 }
 @media (max-width: 1199.98px) {
   [data-sidebar-size="default"] .startbar-overlay {

@@ -64,7 +64,7 @@ export default function SidebarUserInfo() {
                 <div className="d-flex align-items-center">
                     <i className="iconoir-female me-2 text-danger"></i>
                     <span className="text-muted">
-                        {session?.user?.profile?.gender || "N/A"}
+                        {session?.user?.profile?.genderOption || "N/A"}
                     </span>
                 </div>
             </div>
