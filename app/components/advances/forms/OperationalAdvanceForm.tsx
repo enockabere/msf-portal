@@ -16,17 +16,19 @@ import {
 } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { batchRequest, codeUnit, createResource, getResource } from "@/app/lib/api/http";
+import { batchRequest, codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
-import { batchRequestOptions, BatchRequestResponse } from "@/app/types/options";
+import { batchRequestOptions, BatchRequestResponse, RequestResponse } from "@/app/types/options";
 import { useAdvance } from "@/app/context/AdvanceContext";
-import { ArrowDown, Check, Undo2, XCircle } from "lucide-react";
+import { ArrowDown, ArrowRightCircle, Check, RefreshCw, Undo2, XCircle } from "lucide-react";
 
 export default function OperationalAdvanceForm({
-  closeModalHandler
+  closeModalHandler,
+  openSettlmentModalFactory,
 }: {
-  closeModalHandler?: () => void
+  closeModalHandler?: () => void;
+  openSettlmentModalFactory?: (data: FormData, ...args: any) => void;
 }) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -39,7 +41,7 @@ export default function OperationalAdvanceForm({
     expenseCodes,
     fetchSetups,
   } = useMySetups();
-  const { formData, expenses, actions } = useAdvance();
+  const { formData, expenses, actions, isEditing } = useAdvance();
   const { dispatcher, fetchLineSetup } = actions;
   const { data } = useSession();
 
@@ -156,6 +158,23 @@ export default function OperationalAdvanceForm({
   const handleSubmit = async () => {
     setIsSubmitted(true);
     try {
+      if (!expenses.length && (isEditing || formData?.status === 'Open')) {
+        const res = await getResource('imprestLine', {
+          params: {
+            filters: {
+              documentNo: formData?.no,
+            }
+          }
+        });
+        if (res.error) {
+          Swal.fire(res.error.code, res.error.message, 'error');
+          return;
+        }
+        dispatcher({
+          type: 'SET_EXISTING_ADVANCE_LINES',
+          payload: res.value,
+        });
+      }
       if (!expenses.length) {
         return Swal.fire('Error!', 'You must add at least one advance line to proceed!', 'warning');
       }
@@ -203,9 +222,17 @@ export default function OperationalAdvanceForm({
           }`
         );
       }
-      const res = await createResource("imprest", {
-        data: knownSchema,
-      });
+      let res: RequestResponse = {};
+      if (isEditing || formData?.status === 'Open') {
+        res = await patchResource("imprest", {
+          primaryKey: ['no', 'documentType'],
+          data: knownSchema,
+        });
+      } else {
+        res = await createResource("imprest", {
+          data: knownSchema,
+        });
+      }
       if (res.error) {
         return Swal.fire(res.error.code, res.error.message, "error");
       }
@@ -239,7 +266,9 @@ export default function OperationalAdvanceForm({
         shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
         shortcutDimension3Code: data.user?.profile?.shortcutDimension2Code,
       };
-      const expenseRequestOption = expenses.map((expense: ExpenseItem) => {
+      const expenseRequestOption: batchRequestOptions[] = [];
+      const patchBatchRequestOptions = [];
+      expenses.forEach((expense: ExpenseItem) => {
         const costCenterDimension = findObjectFromArray(
           DEPARTMENTS,
           "code",
@@ -277,55 +306,73 @@ export default function OperationalAdvanceForm({
         if (validateRequiredProps.missing) {
           return {};
         }
-        return {
-          method: "POST",
-          endpoint: "imprestLine",
-          data: validSchema,
-        } satisfies batchRequestOptions;
+        if ((isEditing || formData?.status === 'Open') && validSchema?.lineNo >= 0) {
+          patchBatchRequestOptions.push(
+            patchResource('imprestLine', {
+              primaryKey: ['documentNo', 'documentType', 'lineNo'],
+              data: validSchema
+            })
+          );
+        } else {
+          expenseRequestOption.push({
+            method: "POST",
+            endpoint: "imprestLine",
+            data: validSchema,
+          } satisfies batchRequestOptions);
+        }
       });
       const addedLines = expenses.length;
       const lineCaption = addedLines > 1 ? "lines" : "line";
-      expenseRequestOption.forEach((item, index) => {
-        if (!Object.keys(item).length) {
-          expenseRequestOption.splice(index, 1);
-        }
-      });
-      if (expenseRequestOption.length) {
-        if (expenseRequestOption.length !== expenses.length)
-          Swal.fire(
-            "Alert!",
-            `${addedLines > 1 ? "Some" : "The"
-            } advance ${lineCaption} will not be submitted due to errors`,
-            "info"
-          );
-        const res: BatchRequestResponse = await batchRequest({
-          batch: expenseRequestOption,
+      if (!isEditing || !formData?.status) {
+        expenseRequestOption.forEach((item, index) => {
+          if (!Object.keys(item).length) {
+            expenseRequestOption.splice(index, 1);
+          }
         });
-        if (res.error) {
-          throw new Error(res.error.message);
-        } else {
-          let failedLines = 0;
-          for (const [, value] of Object.entries(res)) {
-            if (value.error) {
-              failedLines++;
+
+        if (expenseRequestOption.length) {
+          if (expenseRequestOption.length !== expenses.length)
+            Swal.fire(
+              "Alert!",
+              `${addedLines > 1 ? "Some" : "The"
+              } advance ${lineCaption} will not be submitted due to errors`,
+              "info"
+            );
+          const res: BatchRequestResponse = await batchRequest({
+            batch: expenseRequestOption,
+          });
+          if (res.error) {
+            throw new Error(res.error.message);
+          } else {
+            let failedLines = 0;
+            for (const [, value] of Object.entries(res)) {
+              if (value.error) {
+                failedLines++;
+              }
+            }
+            if (failedLines) {
+              throw new Error(`${failedLines} advances did not save!`);
             }
           }
-          if (failedLines) {
-            throw new Error(`${failedLines} advances did not save!`);
-          }
+        } else {
+          throw new Error(
+            `The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} add update lines!`
+          );
         }
       } else {
-        throw new Error(
-          `The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} add update lines!`
-        );
+        Promise.all([
+          batchRequest({
+            batch: expenseRequestOption,
+          }),
+          Promise.all(patchBatchRequestOptions)
+        ]).then((response) => {
+          console.log('type of response on promisy: ', response);
+        });
       }
     } catch (error) {
       throw new Error(error.message);
     }
   }
-  // const handleSurrender = () => {
-  //   console.log("Apply for surrender");
-  // };
   const handleSendForApproval = async () => {
     try {
       if (formData.no) {
@@ -372,10 +419,7 @@ export default function OperationalAdvanceForm({
     }
   }
   const handleSettlementButton = () => {
-    dispatcher({
-      type: 'SET_SETTLEMENT_MODAL',
-      payload: true,
-    })
+    openSettlmentModalFactory(formData, 'isSettlement');
   }
   const getConditionButtons = (condtion: any) => {
     const conditionalButtons = {
@@ -413,11 +457,11 @@ export default function OperationalAdvanceForm({
       Open: [
         {
           id: 'ggjifojoiejfefocnnei',
-          action: () => { },
+          action: async () => await handleSubmit(),
           label: 'Update Advance',
           classes: 'btn btn-outline-primary d-flex align-items-center gap-2 fw-semibold',
-          icon: '',
-          stepOne: false,
+          icon: <RefreshCw size={16} />,
+          stepOne: true,
           stepTwo: true,
         },
         {
@@ -425,6 +469,7 @@ export default function OperationalAdvanceForm({
           action: async () => handleSendForApproval(),
           label: 'Send For Approval',
           classes: 'btn btn-info d-flex align-items-center gap-2 fw-semibold',
+          icon: <ArrowRightCircle size={16} />,
           stepOne: true,
           stepTwo: true,
         },

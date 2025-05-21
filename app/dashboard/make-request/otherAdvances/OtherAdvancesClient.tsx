@@ -14,7 +14,7 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
-import { Advance } from "@/app/types/advance";
+import { Advance, FormData } from "@/app/types/advance";
 import { getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
@@ -99,6 +99,10 @@ export default function OtherAdvancesClient() {
       },
     });
     dispatcher({
+      type: 'SET_EXISTING_ADVANCE_LINES',
+      payload: [],
+    });
+    dispatcher({
       type: 'ADVANCE_CREATION_STATUSES',
       payload: { isNew: false, isEditing: false, setForView: false },
     });
@@ -181,7 +185,7 @@ export default function OtherAdvancesClient() {
     },
   ];
 
-  const handleSetSelectedRow = async (advance: Advance | null = null, ...args: any) => {
+  const handleSetSelectedRow = async (advance: FormData | null = null, ...args: any) => {
     if (advance) {
       await handleFetchingSetup();
       await fetchLineSetup();
@@ -294,7 +298,7 @@ export default function OtherAdvancesClient() {
       fetchAdvanceLines(),
     ]);
     return () => abortController.abort('Duplicate request');
-  }, [showModal, formData]);
+  }, [showModal, formData, dispatcher, fetchLineSetup]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -335,7 +339,7 @@ export default function OtherAdvancesClient() {
                     loading={loading}
                     initialTab={activeStatusTab}
                     refetch={fetchAdvances}
-                    setSelectedRowHandler={(advance: Advance, ...args: any) => handleSetSelectedRow(advance, args)}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
                   />
                 </div>
               </div>
@@ -352,7 +356,7 @@ export default function OtherAdvancesClient() {
                     loading={loading}
                     initialTab={activeStatusTab}
                     refetch={fetchAdvances}
-                    setSelectedRowHandler={(advance: Advance, ...args: any) => handleSetSelectedRow(advance, args)}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
                   />
                 </div>
               </div>
@@ -369,7 +373,7 @@ export default function OtherAdvancesClient() {
                   loading={loading}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
-                  setSelectedRowHandler={(advance: Advance, ...args: any) => handleSetSelectedRow(advance, args)}
+                  setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
                 />
               </div>
             </div>
@@ -385,7 +389,7 @@ export default function OtherAdvancesClient() {
         >
           <div className="row">
             <div className="col-md-12">
-              <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
+              <OperationalAdvanceForm closeModalHandler={handleCloseModal} openSettlmentModalFactory={handleSetSelectedRow} />
             </div>
           </div>
         </CustomModal>
@@ -397,7 +401,7 @@ export default function OtherAdvancesClient() {
         titleIcon={<i className="las la-wallet fs-18" />}
         size="xl"
       >
-        <AdvanceSettlement />
+        <AdvanceSettlement closeSettlementDialog={handleSettlementClosing} />
       </CustomModal>
     </>
   );

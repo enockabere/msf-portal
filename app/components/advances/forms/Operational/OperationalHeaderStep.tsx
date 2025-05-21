@@ -19,7 +19,7 @@ export default function OperationalHeaderStep({
 }: OperationalHeaderStepProps) {
   const { imprestTypes, currencies, banks, bankBranches, paymentMethods } =
     useMySetups();
-  const { actions, isNew } = useAdvance();
+  const { isNew } = useAdvance();
 
 
   const buttonSet = buttonsArray(
@@ -307,35 +307,6 @@ export default function OperationalHeaderStep({
                     </button>
                   )
                 })}
-              {/* formData.imprestStatus === 'Issued' && <button
-                type="button"
-                className="btn btn-outline-warning d-flex align-items-center gap-2"
-                onClick={() => {
-                  console.log("💼 Settling advance:", formData.no);
-                  setShowSettlementModal(true);
-                }}
-              >
-                <Undo2 size={16} />
-                Settle Advance
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
-                onClick={() => {
-                }}
-              >
-                <XCircle size={16} />
-                
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-primary d-flex align-items-center gap-2 fw-semibold"
-                onClick={onNext}
-              >
-                <ArrowDown size={16} />
-                Save & Continue
-              </button> */}
             </div>
           </div>
         </form>

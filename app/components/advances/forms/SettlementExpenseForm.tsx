@@ -1,21 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { UploadCloud, Save } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { useMySetups } from "@/app/context/SetupContext";
-import { findObjectFromArray } from "@/app/utils/helpers";
+import { findObjectFromArray, safeTypechecker } from "@/app/utils/helpers";
 
 interface Props {
-  expenses: ExpenseItem[];
-  setExpenses: (expenses: ExpenseItem[]) => void;
+  saveAccountingLine?: (index: number, exp: Record<string, any>) => Promise<void>;
 }
 
-export default function SettlementExpenseForm() {
-
-  const [accountedLines, setAccountedLines] = useState<Record<string, any>[]>([]);
-  const { expenses } = useAdvance();
+export default function SettlementExpenseForm(
+  {
+    saveAccountingLine,
+  }: Props
+) {
+  const { actions, accountedLines, expenses } = useAdvance();
+  const { dispatcher } = actions;
   const { DEPARTMENTS, PROJECT } = useMySetups();
 
   const handleChange = <K extends keyof ExpenseItem>(
@@ -23,6 +25,11 @@ export default function SettlementExpenseForm() {
     field: K,
     value: ExpenseItem[K]
   ) => {
+    if (
+      safeTypechecker(index) === 'Null' ||
+      safeTypechecker(index) === 'Undefined' ||
+      index < 0
+    ) return;
     const updated = [...expenses];
     let lineExist = false;
     const draftState = [...accountedLines];
@@ -48,14 +55,55 @@ export default function SettlementExpenseForm() {
         }
       );
     }
-    setAccountedLines(newDraftState);
+    dispatcher({
+      type: 'SET_DETAILED_ACCOUNTING_LINES',
+      payload: newDraftState,
+    });
   };
 
   const handleFileChange = (index: number, file: File | null) => {
-    const updated = [...expenses];
-    updated[index].receipt = file;
-    // setExpenses(updated);
+    if (
+      safeTypechecker(index) === 'Null' ||
+      safeTypechecker(index) === 'Undefined' ||
+      index < 0
+    ) return;
+    if (!file) return;
+    const draftExpenses = [...expenses];
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const changingDraftLine = draftExpenses[index];
+      const draftAccountedLinesState = [...accountedLines];
+      let itemExist = false;
+      const rawBase64 = reader.result as string;
+      const newDraftAccountedLinesState = draftAccountedLinesState.map((line: Record<string, any>) => {
+        if (line.DetailedLineMgtLineNo === changingDraftLine.lineNo) {
+          itemExist = true;
+          return {
+            ...line,
+            attachment: rawBase64.split(',')[1],
+          }
+        }
+        return line;
+      });
+
+      if (!itemExist) {
+        newDraftAccountedLinesState.push({
+          attachment: rawBase64.split(',')[1],
+          description: '',
+          DetailedLineMgtDocType: 'Imprest',
+          DetailedLineMgtDocNo: changingDraftLine.documentNo,
+          DetailedLineMgtLineNo: changingDraftLine.lineNo,
+        });
+      }
+      dispatcher({
+        type: 'SET_DETAILED_ACCOUNTING_LINES',
+        payload: newDraftAccountedLinesState,
+      });
+    }
+
   };
+
 
   return (
     <table className="table table-bordered my-3 align-middle">
@@ -103,16 +151,11 @@ export default function SettlementExpenseForm() {
               <input
                 type="number"
                 className="form-control"
-                value={
-                  typeof exp.surrenderedAmount === "number" &&
-                    !isNaN(exp.surrenderedAmount)
-                    ? exp.surrenderedAmount
-                    : ""
-                }
+                value={accountedLines[idx]?.amount}
                 onChange={(e) =>
                   handleChange(
                     idx,
-                    "surrenderedAmount",
+                    "amount",
                     e.target.value === ""
                       ? undefined
                       : parseFloat(e.target.value)
@@ -125,7 +168,7 @@ export default function SettlementExpenseForm() {
               <button
                 type="button"
                 className="btn btn-sm btn-outline-success"
-                onClick={() => console.log("Save row", idx)}
+                onClick={async () => await saveAccountingLine(idx, exp)}
               >
                 <Save size={16} /> save
               </button>

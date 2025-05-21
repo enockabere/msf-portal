@@ -8,8 +8,6 @@ import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
 import { useAdvance } from "@/app/context/AdvanceContext";
-import CustomModal from "../modals/CustomModal";
-import AdvanceSettlementForm from "../advances/forms/AdvanceSettlement";
 import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
@@ -45,40 +43,6 @@ export default function ReusableSalaryAdvanceTabs({
     })
   }, [advanceSet, setSelectedRowHandler, activeTab]);
 
-
-  const handleClosingSettlementModal = () => {
-    dispatcher({
-      type: 'SET_SETTLEMENT_MODAL',
-      payload: false,
-    });
-    dispatcher({
-      type: 'OPEN_EXISTING_ADVANCE',
-      payload: {
-        imprestType: "",
-        Purpose: "",
-        amountToPayHeader: null,
-        currencyCode: "",
-        paymentMethod: "",
-        cashCollectionDate: "",
-        cashHours: "",
-        idPassportNumber: "",
-        accountNo: "",
-        bankNo: "",
-        branch: "",
-        swiftCode: "",
-        phoneNo: "",
-        accountName: "",
-        no: "",
-        imprestStatus: "",
-        status: "",
-      },
-    });
-    dispatcher({
-      type: 'ADVANCE_CREATION_STATUSES',
-      payload: { isNew: false, isEditing: false, setForView: false },
-    });
-  }
-
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
     const open = advanceByStatus.get('Open') || [];
@@ -106,7 +70,7 @@ export default function ReusableSalaryAdvanceTabs({
         payload: counts,
       })
     }
-  }, [filteredByStatus]);
+  }, [filteredByStatus, dispatcher]);
 
   useEffect(() => {
     if (
@@ -175,16 +139,6 @@ export default function ReusableSalaryAdvanceTabs({
         setSelectedRowHandlerCallback={setSelectedRowHandler}
         onCloseView={() => setSelectedRowHandler(null)}
       />
-
-      {/* <CustomModal
-        show={showSettlementModal}
-        onClose={handleClosingSettlementModal}
-        title="Settle Advance"
-        titleIcon={<i className="las la-wallet fs-18" />}
-        size="xl"
-      >
-        <AdvanceSettlementForm />
-      </CustomModal> */}
     </div>
   );
 }
