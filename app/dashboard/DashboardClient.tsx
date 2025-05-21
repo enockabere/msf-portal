@@ -71,14 +71,12 @@ export default function DashboardClient() {
         backdrop="static"
         keyboard={false}
         title={`${session?.user?.email}'s Profile Setup`}
-        titleIcon={<i className="las la-user fs-18" />}
         size="lg"
         closable={true}
       >
         <ProfileCreationForm
           onSuccess={() => {
             setShowModal(false);
-            window.location.reload();
           }}
         />
       </ProfileModal>

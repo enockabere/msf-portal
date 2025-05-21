@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import ProfileSummaryCard from "@/app/components/profile/ProfileSummaryCard";
 import PersonalInfoCard from "@/app/components/profile/PersonalInfoCard";
 import ProfileTabs from "@/app/components/profile/ProfileTabs";
+import { getResource } from "@/app/lib/api/http";
+import { toast } from "react-toastify";
 
 interface Dependent {
   name: string;
@@ -19,8 +21,11 @@ export default function ProfileClient() {
   const { setBreadcrumb } = useBreadcrumb();
   const { data: session, status } = useSession();
   const [dependents, setDependents] = useState<Dependent[]>([]);
+  const [travelRequests, setTravelRequests] = useState<any[]>([]);
 
-  const employeeNo = session?.user?.profile?.no || "";
+  const profile = session?.user?.profile;
+  const profileNo = profile?.no || "";
+  const profileType = profile?.type || "";
 
   useEffect(() => {
     setBreadcrumb([
@@ -31,11 +36,11 @@ export default function ProfileClient() {
 
   useEffect(() => {
     const fetchDependents = async () => {
-      if (!employeeNo) return;
+      if (!profileNo) return;
 
       try {
         const res = await fetch(
-          `/api/bc/users/dependants?employeeNo=${employeeNo}`
+          `/api/bc/users/dependants?employeeNo=${profileNo}`
         );
         const result = await res.json();
         if (res.ok && Array.isArray(result?.data?.value)) {
@@ -48,17 +53,41 @@ export default function ProfileClient() {
       }
     };
 
+    const fetchVisitorTravelRequests = async () => {
+      if (!profileNo || profileType !== "Visitor") return;
+
+      try {
+        const res = await getResource("travelRequests", {
+          params: {
+            filters: {
+              travellerNo: profileNo,
+            },
+          },
+        });
+
+        if (res.error) {
+          console.warn("Error fetching travel requests:", res.error);
+          toast.error(res.error.message);
+        } else {
+          setTravelRequests([...res.value]);
+        }
+      } catch (error: any) {
+        console.error("Error fetching travel requests!", error.message);
+      }
+    };
+
     if (status === "authenticated") {
       fetchDependents();
+      fetchVisitorTravelRequests();
     }
-  }, [status, employeeNo]);
+  }, [status, profileNo, profileType]);
 
   return (
     <div className="page-content">
       <div className="container-xxl">
         <ProfileSummaryCard
           dependents={dependents.length}
-          travelRequests={0}
+          travelRequests={travelRequests.length}
           leaveBalance={21}
           carbonCredits={350}
         />

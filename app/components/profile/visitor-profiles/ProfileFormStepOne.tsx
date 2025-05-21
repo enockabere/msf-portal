@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Cake, IdCard } from "lucide-react";
+import { User, Cake, IdCard, Flag, Phone } from "lucide-react";
 import VisitorProfileFormField from "./VisitorProfileFormField";
 
 interface Option {
@@ -14,12 +14,14 @@ interface StepOneProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   genderOptions: Option[];
+  countryOptions: Option[];
 }
 
 export default function ProfileFormStepOne({
   formData,
   onChange,
   genderOptions,
+  countryOptions,
 }: StepOneProps) {
   return (
     <div className="row row-cols-1 row-cols-md-3 gx-4">
@@ -73,6 +75,26 @@ export default function ProfileFormStepOne({
         onChange={onChange}
         disabled={false}
         icon={IdCard}
+      />
+      <VisitorProfileFormField
+        label="Country/Region"
+        name="countryRegionCode"
+        value={formData.countryRegionCode}
+        onChange={onChange}
+        disabled={false}
+        type="select"
+        icon={Flag}
+        options={countryOptions}
+      />
+      <VisitorProfileFormField
+        label="Phone"
+        name="phone"
+        value={formData.phone}
+        onChange={onChange}
+        disabled={false}
+        type="tel"
+        icon={Phone}
+        options={undefined}
       />
     </div>
   );

@@ -3,6 +3,7 @@
 import { JSX } from "react";
 import { Modal } from "react-bootstrap";
 import "./custom-modal.css";
+import { User } from "lucide-react";
 
 type ProfileModalProps = {
   show: boolean;
@@ -45,7 +46,10 @@ export default function ProfileModal({
           closeVariant="white"
         >
           <Modal.Title>
-            <h1 className="wizard-title">Complete Your Profile</h1>
+            <h1 className="wizard-title">
+              {" "}
+              <User size={20} /> Complete Your Profile
+            </h1>
             <p className="wizard-subtitle">Help us get to know you better</p>
           </Modal.Title>
         </Modal.Header>

@@ -1,5 +1,5 @@
 export const endpointMap = {
-  batch: '',
+  batch: "",
   imprestTypes: "/api/KineticTechnology/CashMgt/v2.0/imprestTypeApi",
   currencies: "/api/KineticTechnology/Payroll/v2.0/currencies",
   dimensions: "/api/KineticTechnology/CashMgt/v2.0/dimensionValuesApi",
@@ -33,7 +33,8 @@ export const endpointMap = {
   imprest: "/api/KineticTechnology/CashMgt/v2.0/imprestApi",
   imprestLine: "/api/KineticTechnology/CashMgt/v2.0/imprestLinesAPI",
   cashManagementAttachment: "/api/KineticTechnology/CashMgt/v2.0/attachments",
-  imprestDetailedLine: "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines",
+  imprestDetailedLine:
+    "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines",
   requisitions: "/api/kinetics/requisition/v1.0/requisitions",
   delegateApproval: "/ODataV4/ApprovalsManagement_delegateDoc",
   approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
@@ -49,11 +50,15 @@ export const endpointMap = {
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
   perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
-  sendTravelRequestForApproval: "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  sendTravelRequestForApproval:
+    "/ODataV4/TravelManager_sendTravelRequestForApproval",
   travellerChecklist: "/api/kinetics/adminTravel/v1.0/travellerChecklist",
-  travellers:"/api/kinetics/adminTravel/v1.0/travellers",
+  travellers: "/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",
   profileTitles: "/api/kinetics/enigma/v1.0/profileTitles",
+  travel_attachments: "/api/kinetics/adminTravel/v1.0/attachments",
+  getLetterOfInvitation: "/ODataV4/TravelManager_getLetterOfInvitation",
+
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

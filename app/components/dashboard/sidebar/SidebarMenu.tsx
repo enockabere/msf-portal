@@ -90,15 +90,11 @@ export default function SidebarMenu() {
         <>
           <li className="nav-item">
             <a
-              href="/dashboard/make-request/otherAdvances"
+              href="/dashboard/make-request/travel"
               className={`nav-link ${
-                currentPath === "/dashboard/make-request/otherAdvances"
-                  ? "active"
-                  : ""
+                currentPath === "/dashboard/make-request/travel" ? "active" : ""
               }`}
-              onClick={(e) =>
-                handleNav(e, "/dashboard/make-request/otherAdvances")
-              }
+              onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
             >
               <i className="iconoir-airplane menu-icon"></i>
               <span>Travel Request</span>
