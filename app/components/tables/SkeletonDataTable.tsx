@@ -1,7 +1,7 @@
 "use client";
 
 import DataTable from "react-data-table-component";
-import { Search, Download } from "lucide-react";
+import {Search, Download, Calendar} from "lucide-react";
 import { useState } from "react";
 import { Button } from "react-bootstrap";
 import Papa from "papaparse";
@@ -17,6 +17,8 @@ interface SkeletonDataTableProps {
   actions?: React.ReactNode;
   searchPlaceholder?: string;
   loading?: boolean;
+  includeStatusFilter?: boolean;
+  includeDateFilter?: boolean;
 }
 
 export default function SkeletonDataTable({
@@ -27,6 +29,8 @@ export default function SkeletonDataTable({
   actions,
   searchPlaceholder = "Search...",
   loading = false,
+  includeStatusFilter = false,
+  includeDateFilter = false,
 }: SkeletonDataTableProps) {
   const [search, setSearch] = useState("");
   const { data: session } = useSession();
@@ -51,23 +55,54 @@ export default function SkeletonDataTable({
       {title && <h5 className="fw-bold mb-3">{title}</h5>}
 
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-        <div className="d-flex gap-2 align-items-center flex-grow-1">
-          <div className="position-relative me-2">
-            <Search
-              className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"
-              size={16}
-            />
-            <input
-              type="text"
-              className="form-control ps-4"
-              placeholder={searchPlaceholder}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              disabled={loading}
-            />
+        <div className="d-flex align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-grow-1">
+            <div className="position-relative me-2">
+              <Search
+                  className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"
+                  size={16}
+              />
+              <input
+                  type="text"
+                  className="form-control ps-4"
+                  placeholder={searchPlaceholder}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  disabled={loading}
+              />
+            </div>
+            {filters}
+            {actions}
           </div>
-          {filters}
-          {actions}
+
+          {includeStatusFilter && (
+            <div className="d-flex">
+              <select className="form-select" disabled={loading}>
+                <option value="">Select Status</option>
+                <option value="all">All</option>
+                <option value="open">Open</option>
+                <option value="released">Released</option>
+              </select>
+            </div>
+            )}
+
+          {includeDateFilter && (
+              <div className="d-flex ps-2">
+                <div className="position-relative">
+                  <Calendar
+                      className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"
+                      size={16}
+                  />
+                  <input
+                      type="date"
+                      className="form-control ps-4"
+                      placeholder="Search by date"
+                      onChange={(e) => console.log(e.target.value)}
+                      disabled={loading}
+                  />
+                </div>
+              </div>
+          )}
         </div>
 
         <div>
