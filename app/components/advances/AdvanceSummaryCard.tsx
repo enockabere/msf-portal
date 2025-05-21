@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
 import "../dashboard/cards/Cards.css";
 import CustomModal from "../modals/CustomModal";
-import AdvanceSettlementForm from "./forms/AdvanceSettlementForm";
+import AdvanceSettlementForm from "./forms/AdvanceSettlement";
 import VerticalProgressCard from "./forms/VerticalProgressCard";
 
 type AdvanceSummaryCardProps = {
@@ -63,9 +63,8 @@ export default function AdvanceSummaryCard({
                   {["right", "top", "left", "bottom"].map((pos) => (
                     <a
                       key={pos}
-                      className={`dropdown-item ${
-                        currentPlacement === pos ? "active" : ""
-                      }`}
+                      className={`dropdown-item ${currentPlacement === pos ? "active" : ""
+                        }`}
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();

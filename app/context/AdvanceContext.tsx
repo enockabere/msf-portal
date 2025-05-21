@@ -51,6 +51,9 @@ const initialState = {
     isNew: false satisfies boolean,
     isEditing: false satisfies boolean,
     setForView: false satisfies boolean,
+    showAdvannceSettlementForm: false satisfies boolean,
+    advanceLineSelectedForAccounting: {} as Record<string, any>,
+    accountedLines: [] as Record<string, any>[],
     actions: {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
@@ -143,6 +146,24 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
                 advanceCounts: action.payload,
             }
         }
+        case 'SET_SETTLEMENT_MODAL': {
+            return {
+                ...state,
+                showAdvannceSettlementForm: action.payload
+            }
+        }
+        case 'SET_ADVANCE_LINE_SELECTED_FOR_ACCOUNTING': {
+            return {
+                ...state,
+                advanceLineSelectedForAccounting: action.payload
+            }
+        }
+        case 'SET_DETAILED_ACCOUNTING_LINES': {
+            return {
+                ...state,
+                accountedLines: action.payload,
+            }
+        }
     }
 }
 
@@ -189,7 +210,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
         dispatcher(option);
     }, []);
 
-    const handleFetchingSetup = async () => {
+    const handleFetchingSetup = useCallback(async () => {
         await fetchSetups([
             'imprestTypes',
             'currencies',
@@ -206,8 +227,8 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
                 text: "Please try again later. " + err.message,
             });
         });
-    }
-    const fetchLineSetup = () => {
+    }, [fetchSetups]);
+    const fetchLineSetup = useCallback(async () => {
         Promise.all([
             fetchSetups([
                 {
@@ -226,7 +247,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
                 }
             ], true),
         ])
-    }
+    }, [advance.formData, fetchSetups]);
     const contextValue = useMemo(() => ({
 
         ...advance,
@@ -237,7 +258,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
         }
-    }), [advance, advance.actions, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
+    }), [advance, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
 
     return (
         <AdvanceContext.Provider value={contextValue} >
