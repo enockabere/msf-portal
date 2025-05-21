@@ -6,7 +6,7 @@ import { useMemo } from "react";
 interface Props {
     records: Array<Record<string, any>>
 }
-export default function TabbedRequisitionRequests({ records, profile }: Props) {
+export default function TabbedRequisitionRequests({ records }: Props) {
     const userRequisitions = useMemo(() => {
         return records.filter((item) => item.documentType === 'Purchase_x0020_Requisition')
     }, [records])

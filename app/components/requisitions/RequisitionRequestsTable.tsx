@@ -84,7 +84,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                     <button
                         className="text-primary border-0 bg-transparent"
                         title="View"
-                        onClick={() => console.log("open")}
+                        onClick={() => console.log("open", row)}
                     >
                         <i className="las la-eye fs-18"/>
                     </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, {useState} from "react";
-import {ArrowLeft, ArrowUp, Check, PencilIcon, Plus, Trash2, UploadCloud} from "lucide-react";
+import {ArrowLeft, Check, PencilIcon, Plus, Trash2, UploadCloud} from "lucide-react";
 
 export default function RequisitionForm() {
     const handleSubmit = (e) => {
@@ -51,7 +51,6 @@ export default function RequisitionForm() {
                             value=""
                             onChange={(e) => console.log(e.target.value)}
                             required
-                            disabled=""
                         />
                     </div>
 
@@ -67,7 +66,6 @@ export default function RequisitionForm() {
                             value=""
                             onChange={(e) => console.log(e.target.value)}
                             required
-                            disabled=""
                         />
                     </div>
 
@@ -103,7 +101,6 @@ export default function RequisitionForm() {
                             value=""
                             onChange={(e) => console.log(e.target.value)}
                             required
-                            disabled=""
                         />
                     </div>
 
@@ -134,7 +131,6 @@ export default function RequisitionForm() {
                                 value=""
                                 onChange={(e) => console.log(e.target.value)}
                                 placeholder="Select ENTITY"
-                                disabled=""
                             />
                         </div>
 
@@ -145,7 +141,6 @@ export default function RequisitionForm() {
                                 value=""
                                 onChange={(e) => console.log(e.target.value)}
                                 placeholder="Select OC"
-                                disabled=""
                             />
                         </div>
                     </div>
@@ -158,7 +153,6 @@ export default function RequisitionForm() {
                                 value=""
                                 onChange={(e) => console.log(e.target.value)}
                                 placeholder="Select DEPARTMENTS"
-                                disabled=""
                             />
                         </div>
 
@@ -169,7 +163,6 @@ export default function RequisitionForm() {
                                 value=""
                                 onChange={(e) => console.log(e.target.value)}
                                 placeholder="Select COUNTRY"
-                                disabled=""
                             />
                         </div>
                     </div>
@@ -218,7 +211,6 @@ export default function RequisitionForm() {
                                             value=""
                                             onChange={(e) => console.log(e.target.value)}
                                             required
-                                            disabled=""
                                         />
                                     </div>
                                 </td>
@@ -234,7 +226,6 @@ export default function RequisitionForm() {
                                             value=""
                                             onChange={(e) => console.log(e.target.value)}
                                             required
-                                            disabled=""
                                         />
                                     </div>
                                 </td>
@@ -250,7 +241,6 @@ export default function RequisitionForm() {
                                                 value=""
                                                 onChange={(e) => console.log(e.target.value)}
                                                 required
-                                                disabled=""
                                             />
                                         </div>
                                     </td>
@@ -266,7 +256,6 @@ export default function RequisitionForm() {
                                                 value=""
                                                 onChange={(e) => console.log(e.target.value)}
                                                 required
-                                                disabled=""
                                             />
                                         </div>
                                     </td>
@@ -282,7 +271,6 @@ export default function RequisitionForm() {
                                                 value=""
                                                 onChange={(e) => console.log(e.target.value)}
                                                 required
-                                                disabled=""
                                             />
                                         </div>
                                     </td>
@@ -298,7 +286,6 @@ export default function RequisitionForm() {
                                                 value=""
                                                 onChange={(e) => console.log(e.target.value)}
                                                 required
-                                                disabled=""
                                             />
                                         </div>
                                     </td>

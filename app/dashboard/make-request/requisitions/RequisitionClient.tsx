@@ -4,7 +4,7 @@ import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequi
 import {useEffect, useState} from "react";
 import {getResource} from "@/app/lib/api/http";
 import {toast} from "react-toastify";
-import {Briefcase, PlusCircle, ShoppingCartIcon, Store, User, Wallet} from "lucide-react";
+import {Briefcase, PlusCircle, ShoppingCartIcon, Store, User} from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import CustomModal from "@/app/components/modals/CustomModal";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
@@ -84,7 +84,6 @@ export default function RequisitionClient() {
                         cards={cards}
                         layout="horizontal"
                         currentPlacement="top"
-                        onPlacementChange=""
                         actionButton={
                             <button
                                 className="btn bg-danger text-white btn-md"
