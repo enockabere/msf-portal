@@ -8,8 +8,6 @@ import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
 import { useAdvance } from "@/app/context/AdvanceContext";
-import CustomModal from "../modals/CustomModal";
-import AdvanceSettlementForm from "../advances/forms/AdvanceSettlementForm";
 import { useMySetups } from "@/app/context/SetupContext";
 
 interface Props {
@@ -34,10 +32,6 @@ export default function ReusableSalaryAdvanceTabs({
   const path = usePathname();
   const { actions } = useAdvance();
   const { dispatcher } = actions;
-  const [showSettlementModal, setShowSettlementModal] = useState(false);
-  const [settlementAdvanceNo, setSettlementAdvanceNo] = useState<string | null>(
-    null
-  );
   const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
   const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
@@ -46,13 +40,8 @@ export default function ReusableSalaryAdvanceTabs({
       currentTab: activeTab,
       currencies,
       imprestTypes,
-      onSettleClick: (advanceNo: string) => {
-        setSettlementAdvanceNo(advanceNo);
-        setShowSettlementModal(true);
-      },
     })
   }, [advanceSet, setSelectedRowHandler, activeTab]);
-
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
@@ -81,7 +70,7 @@ export default function ReusableSalaryAdvanceTabs({
         payload: counts,
       })
     }
-  }, [filteredByStatus]);
+  }, [filteredByStatus, dispatcher]);
 
   useEffect(() => {
     if (
@@ -150,19 +139,6 @@ export default function ReusableSalaryAdvanceTabs({
         setSelectedRowHandlerCallback={setSelectedRowHandler}
         onCloseView={() => setSelectedRowHandler(null)}
       />
-
-      <CustomModal
-        show={showSettlementModal}
-        onClose={() => {
-          setSettlementAdvanceNo(null);
-          setShowSettlementModal(false);
-        }}
-        title="Settle Advance"
-        titleIcon={<i className="las la-wallet fs-18" />}
-        size="xl"
-      >
-        <AdvanceSettlementForm advanceNo={settlementAdvanceNo} />
-      </CustomModal>
     </div>
   );
 }

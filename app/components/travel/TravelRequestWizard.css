@@ -354,7 +354,7 @@
   padding: 0.5rem;
   border: 1px solid #ced4da;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
