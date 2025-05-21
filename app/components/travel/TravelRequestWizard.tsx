@@ -398,6 +398,52 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     return true;
   };
 
+  const downLoadIntroductoryLetter = async () => {
+    setIsSaving(true)
+    try {
+      const res = await codeUnit('getIntroductoryLetter', {
+        data: {
+          docType: travelRequestHeader.documentType,
+          docNo: travelRequestHeader.no,
+          destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+        }
+      })
+
+      console.log('downLoadIntroductoryLetter', res)
+      if (res.error) {
+        setIsSaving(false)
+        return Swal.fire(res.error.code, res.error.message);
+      }
+    } catch (error) {
+      return Swal.fire(error.code, error.message);
+    }
+  }
+
+  const downLoadBtaCertificate = async () => {
+    try {
+      const res = await codeUnit('getIntroductoryLetter', {
+        data: {
+          docType: travelRequestHeader.documentType,
+          docNo: travelRequestHeader.no
+        }
+      })
+
+      console.log('downLoadBtaCertificate', res)
+      if (res.error) {
+        setIsSaving(false)
+        return Swal.fire(res.error.code, res.error.message);
+      }
+
+      Swal.fire(
+          "Success",
+          `${res.imprestType} advance was created successfully!`,
+          "success"
+      )
+    } catch (error) {
+      return Swal.fire(error.code, error.message);
+    }
+  }
+
   const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
@@ -514,9 +560,15 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
                       </button>
                     </li>
                     <li>
-                      <button className="dropdown-item" type="button">
+                      <button className="dropdown-item" type="button" onClick={downLoadIntroductoryLetter}>
                         <FileDownIcon size={16} className="button-icon"/>
-                        Letter of intent
+                        Introductory Letter
+                      </button>
+                    </li>
+                    <li>
+                      <button className="dropdown-item" type="button" onClick={downLoadBtaCertificate}>
+                        <FileDownIcon size={16} className="button-icon"/>
+                        BTA Certificate
                       </button>
                     </li>
                   </ul>
