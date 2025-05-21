@@ -40,7 +40,7 @@ export default function OperationalLineStep({
 
   const creatLine = (status: string) => {
     switch (status) {
-      case ' Open': {
+      case 'Open': {
         return (
           <button
             type="button"
@@ -52,7 +52,7 @@ export default function OperationalLineStep({
           </button >
         )
       }
-      default: {
+      case 'default': {
         return (
           <button
             type="button"
