@@ -426,8 +426,7 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
         </div>
       </div>
 
-      {formData.documentType === 'Visitor'
-        && (formData.pickupLocation || formData.dropOffLocation)
+      {(formData.pickupLocation || formData.dropOffLocation)
         && <CabDetails travelRequest={formData}/>}
     </>
   );
