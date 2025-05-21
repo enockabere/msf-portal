@@ -34,7 +34,8 @@ export default function ReusableSalaryAdvanceTabs({
   const { dispatcher } = actions;
   const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
-  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
+  const isOtherAdvances = path.includes('otherAdvances');
+  const advanceSet: AdvanceTypeKey = isOtherAdvances ? 'Other' : 'Salary';
   const columns = useMemo(() => {
     return GetColumnByType(advanceSet, setSelectedRowHandler, {
       currentTab: activeTab,
@@ -45,9 +46,27 @@ export default function ReusableSalaryAdvanceTabs({
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    const open = advanceByStatus.get('Open') || [];
-    const pending = advanceByStatus.get('Pending Approval') || [];
-    const released = advanceByStatus.get('Released') || [];
+    let open = advanceByStatus.get('Open') || [];
+    let pending = advanceByStatus.get('Pending Approval') || [];
+    let released = advanceByStatus.get('Released') || [];
+
+    if (isOtherAdvances) {
+      const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
+      open = advancesByImprestStatus.get('Draft') || [];
+      pending = advancesByImprestStatus.get('Pending') || [];
+      released = [
+        ...advancesByImprestStatus.get('Approved') || [],
+        ...advancesByImprestStatus.get('Issued') || [],
+        ...advancesByImprestStatus.get('Accounted') || [],
+        ...advancesByImprestStatus.get('Settled') || [],
+        ...advancesByImprestStatus.get('Posted') || [],
+        ...advancesByImprestStatus.get('Pending Liquidation') || [],
+        ...advancesByImprestStatus.get('Rejected') || [],
+        ...advancesByImprestStatus.get('Liquidation Rejected') || [],
+        ...advancesByImprestStatus.get('Reversed') || [],
+      ];
+    }
+
 
     return {
       open,

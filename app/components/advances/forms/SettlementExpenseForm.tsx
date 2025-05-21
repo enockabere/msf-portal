@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { UploadCloud, Save } from "lucide-react";
+import { UploadCloud, Save, CheckCheck } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray, safeTypechecker } from "@/app/utils/helpers";
+import Swal from "sweetalert2";
 
 interface Props {
   saveAccountingLine?: (index: number, exp: Record<string, any>) => Promise<void>;
@@ -68,8 +69,13 @@ export default function SettlementExpenseForm(
       index < 0
     ) return;
     if (!file) return;
+    if (file.size / (1024 * 1024) > 10) {
+      Swal.fire('Error!', 'File size is too large (max 10 MB)', 'error');
+      return;
+    }
     const draftExpenses = [...expenses];
     const reader = new FileReader();
+    const attachmentName = `${file.name}`
     reader.readAsDataURL(file);
     reader.onload = () => {
       const changingDraftLine = draftExpenses[index];
@@ -82,6 +88,7 @@ export default function SettlementExpenseForm(
           return {
             ...line,
             attachment: rawBase64.split(',')[1],
+            attachmentName,
           }
         }
         return line;
@@ -90,8 +97,9 @@ export default function SettlementExpenseForm(
       if (!itemExist) {
         newDraftAccountedLinesState.push({
           attachment: rawBase64.split(',')[1],
+          attachmentName,
           description: '',
-          DetailedLineMgtDocType: 'Imprest',
+          DetailedLineMgtDocType: changingDraftLine.documentType,
           DetailedLineMgtDocNo: changingDraftLine.documentNo,
           DetailedLineMgtLineNo: changingDraftLine.lineNo,
         });
@@ -135,8 +143,22 @@ export default function SettlementExpenseForm(
               ])?.name as string
             }</td>
             <td>
-              <label className="btn btn-sm btn-outline-secondary w-100">
-                <UploadCloud size={14} className="me-1" /> Upload
+              <label className={`btn btn-sm btn-outline-secondary w-100`}>
+                {
+                  findObjectFromArray(accountedLines, 'DetailedLineMgtLineNo', exp.lineNo) ?
+                    (
+                      <>
+                        <CheckCheck size={14} className="me-1" /> Uploaded
+                      </>
+                    )
+                    :
+                    (
+                      <>
+                        <UploadCloud size={14} className="me-1" /> Upload
+                      </>
+                    )
+                }
+
                 <input
                   type="file"
                   accept="image/*,.pdf"
@@ -151,7 +173,7 @@ export default function SettlementExpenseForm(
               <input
                 type="number"
                 className="form-control"
-                value={accountedLines[idx]?.amount}
+                value={findObjectFromArray(accountedLines, 'DetailedLineMgtLineNo', exp.lineNo)?.amount as string}
                 onChange={(e) =>
                   handleChange(
                     idx,
