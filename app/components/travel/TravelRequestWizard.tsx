@@ -110,53 +110,74 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   // Effects
   useEffect(() => {
+    const initializeProfileData = () => {
+      const baseData = {
+        documentType: profile.type,
+        travellerNo: profile.no,
+        createdbyProfileNo: profile.no,
+        passportNo: profile.passportIDNo,
+        shortcutDimension1Code: profile.shortcutDimension1Code,
+        shortcutDimension2Code: profile.shortcutDimension2Code,
+      };
+
+      setTravelRequestHeader(prev => ({
+        ...prev,
+        ...(requestNo ? {documentType: profile.type} : baseData)
+      }));
+    };
+
+    const setRequiredFieldsBasedOnProfile = () => {
+      const baseFields = ['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'];
+
+      if (profile.type === 'Employee') {
+        setHeaderRequiredFields([
+          ...baseFields,
+          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType'
+        ]);
+      } else if (profile.type === 'Visitor') {
+        setHeaderRequiredFields([
+          ...baseFields,
+          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival'
+        ]);
+      } else {
+        setHeaderRequiredFields(baseFields);
+      }
+    };
+
     initializeProfileData();
     setRequiredFieldsBasedOnProfile();
   }, [profile, requestNo]);
 
   useEffect(() => {
+    const fetchTravelRequest = async (requestNo: string) => {
+      try {
+        setIsLoading(true);
+        const res = await getResource('travelRequests', {
+          params: {
+            filters: { no: requestNo },
+            '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
+          }
+        });
+
+        if (res.error) {
+          Swal.fire('Failed to fetch travel request', res.error.message);
+        } else {
+          setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
+        }
+      } catch (error: any) {
+        console.error('Error fetching travel request:', error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (requestNo) {
       fetchTravelRequest(requestNo);
     }
   }, [requestNo]);
 
-  // Helper functions
-  const initializeProfileData = () => {
-    const baseData = {
-      documentType: profile.type,
-      travellerNo: profile.no,
-      createdbyProfileNo: profile.no,
-      passportNo: profile.passportIDNo,
-      shortcutDimension1Code: profile.shortcutDimension1Code,
-      shortcutDimension2Code: profile.shortcutDimension2Code,
-    };
-
-    setTravelRequestHeader(prev => ({
-      ...prev,
-      ...(requestNo ? {documentType: profile.type} : baseData)
-    }));
-  };
-
-  const setRequiredFieldsBasedOnProfile = () => {
-    const baseFields = ['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'];
-
-    if (profile.type === 'Employee') {
-      setHeaderRequiredFields([
-        ...baseFields,
-        'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType'
-      ]);
-    } else if (profile.type === 'Visitor') {
-      setHeaderRequiredFields([
-        ...baseFields,
-        'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival'
-      ]);
-    } else {
-      setHeaderRequiredFields(baseFields);
-    }
-  };
-
   // API operations
-  const fetchTravelRequest = async (requestNo?: string) => {
+  const fetchTravelRequest = useCallback(async (requestNo?: string) => {
     try {
       setIsLoading(true);
       const res = await getResource('travelRequests', {
@@ -176,7 +197,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [travelRequestHeader.no]);
 
   const saveTravelRequestHeader = async () => {
     try {
@@ -243,7 +264,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [travelRequestHeader.no]);
+  }, [fetchTravelRequest, travelRequestHeader.no]);
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
@@ -260,7 +281,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     } catch (error: any) {
       Swal.fire("Error", error.message);
     }
-  }, [travelRequestHeader.no]);
+  }, [fetchTravelRequest, travelRequestHeader.no]);
 
   // Step configuration
   const allSteps = useMemo<WizardStep[]>(() => [
