@@ -113,7 +113,7 @@ export default function VisaApplicationForm({travelRequest}: { travelRequest: Tr
             <h5 className="card-title fs-14 fw-bold">Traveller: {visaApplicationLine.name || 'N/A'}</h5>
             <form onSubmit={handleSubmit} className="row g-3">
               <div className="col-md-6">
-                <label htmlFor="countryOfOrigin" className="form-label">Nationality</label>
+                <label htmlFor="countryOfOrigin" className="form-label">Country of Origin</label>
                 <select
                   className="form-select"
                   id="countryOfOrigin"
