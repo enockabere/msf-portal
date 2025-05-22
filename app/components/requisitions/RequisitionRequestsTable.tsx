@@ -103,6 +103,8 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                 data={loading ? [] : filteredData}
                 searchPlaceholder="Search travel requests..."
                 loading={loading}
+                includeStatusFilter={true}
+                includeDateFilter={true}
             />
         </>
     );
