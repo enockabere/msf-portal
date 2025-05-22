@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("Received form data:", JSON.stringify(body, null, 2));
 
     const payload: Record<string, any> = {
       type: body.type || "51650",
@@ -18,32 +17,18 @@ export async function POST(request: Request) {
       dateOfBirth: body.dateOfBirth,
       gender: body.gender,
       countryRegionCode: body.countryRegionCode,
-      title: body.title || "",
       passportIDNo: body.passportIDNo || "",
-      city: body.city,
-      citizenNonCitizen: body.citizenNonCitizen,
     };
-    console.log("Constructed payload:", JSON.stringify(payload, null, 2));
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
       options.params = { company: process.env.BC_COMPANY_NAME };
-      console.log("Using company parameter:", process.env.BC_COMPANY_NAME);
     }
-    console.log(
-      "Making request to /api/kinetics/adminTravel/v1.0/userProfiles with payload:",
-      payload
-    );
 
     const response = (await transport.post(
       "/api/kinetics/adminTravel/v1.0/userProfiles",
       payload,
       options
     )) as { id?: string; status?: string; value?: { id?: string } };
-
-    console.log(
-      "Received response from API:",
-      JSON.stringify(response, null, 2)
-    );
 
     if ((response as any)?.error) {
       console.error("API returned error:", (response as any).error);
@@ -65,11 +50,6 @@ export async function POST(request: Request) {
       },
       message: "User profile updated successfully",
     };
-
-    console.log(
-      "Returning success response:",
-      JSON.stringify(successResponse, null, 2)
-    );
 
     return NextResponse.json(successResponse);
   } catch (error: any) {

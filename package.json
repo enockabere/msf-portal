@@ -38,6 +38,7 @@
     "react-bootstrap": "^2.10.9",
     "react-data-table-component": "^7.7.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
     "react-hot-toast": "^2.5.2",
     "react-loader-spinner": "^6.1.6",
     "react-loading-skeleton": "^3.5.0",

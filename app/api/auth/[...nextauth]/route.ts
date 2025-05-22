@@ -4,7 +4,6 @@ import { transport } from "@brainspore/hypernexus";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";
 
-// ✅ Define reusable UserProfile type
 interface UserProfile {
   no: string;
   type: string;
@@ -26,11 +25,11 @@ interface UserProfile {
   [key: string]: any;
 }
 
-// ✅ Extend next-auth module types
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
     error?: string;
+    needsProfileSetup?: boolean;
     user: {
       id?: string;
       name?: string | null;
@@ -44,10 +43,10 @@ declare module "next-auth" {
     accessToken?: string;
     profile?: UserProfile | null;
     error?: string;
+    needsProfileSetup?: boolean;
   }
 }
 
-// ✅ Profile type guard
 function isValidProfile(profile: any): profile is UserProfile {
   return (
     profile &&
@@ -59,7 +58,6 @@ function isValidProfile(profile: any): profile is UserProfile {
   );
 }
 
-// ✅ NextAuth handler
 const handler = NextAuth({
   providers: [
     AzureAD({
@@ -69,13 +67,17 @@ const handler = NextAuth({
     }),
   ],
   session: {
-    maxAge: 1 * 24 * 60 * 60, // 1 day
+    maxAge: 1 * 24 * 60 * 60,
   },
   callbacks: {
-    // Handles both default and update-triggered sessions
     async session({ session, token }: any) {
       session.user.profile = token.profile ?? null;
-      if (token.error) session.error = token.error;
+      session.needsProfileSetup = token.needsProfileSetup ?? false;
+
+      if (token.error) {
+        session.error = token.error;
+      }
+
       return session;
     },
 
@@ -90,8 +92,11 @@ const handler = NextAuth({
           })) as Record<string, any>;
 
           const userProfile = response?.value?.at(0);
-          console.log('user profile', userProfile)
           token.profile = isValidProfile(userProfile) ? userProfile : null;
+
+          if (!token.profile) {
+            token.needsProfileSetup = true;
+          }
         } catch (error: any) {
           console.error("Error fetching user profile:", error);
           token.error = "Failed to fetch user profile. Please try again later.";
@@ -103,5 +108,5 @@ const handler = NextAuth({
   },
 } satisfies NextAuthOptions);
 
-// export const authOptions = handler.authOptions;
+export const authOptions = handler.authOptions;
 export { handler as GET, handler as POST };

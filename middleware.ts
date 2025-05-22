@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (type === "Visitor") {
-      return NextResponse.redirect(new URL("/dashboard/profile", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 

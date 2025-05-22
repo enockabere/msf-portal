@@ -1,11 +1,12 @@
-// components/ProfileFormField.tsx
 import { LucideIcon } from "lucide-react";
 
 interface ProfileFormFieldProps {
   label: string;
   name: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => void;
   disabled?: boolean;
   type?: string;
   icon?: LucideIcon;
@@ -39,7 +40,9 @@ export const ProfileFormField = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`w-full ${Icon ? 'pl-8' : 'pl-2'} pr-2 py-1.5 border rounded-md focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-sm ${
+          className={`w-full ${
+            Icon ? "pl-8" : "pl-2"
+          } pr-2 py-1.5 border rounded-md focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-sm ${
             disabled ? "bg-gray-50" : "bg-white"
           }`}
         >
@@ -57,7 +60,9 @@ export const ProfileFormField = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`w-full ${Icon ? 'pl-8' : 'pl-2'} pr-2 py-1.5 border rounded-md focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-sm ${
+          className={`w-full ${
+            Icon ? "pl-8" : "pl-2"
+          } pr-2 py-1.5 border rounded-md focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-sm ${
             disabled ? "bg-gray-50" : "bg-white"
           }`}
         />

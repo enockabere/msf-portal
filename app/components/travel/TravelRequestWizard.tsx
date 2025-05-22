@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
   User, ListChecks, Globe, Briefcase, FilePlus2, ArrowLeft,
-  ArrowRight, Save, Check, Ticket, Link, DownloadIcon, FileDownIcon, Plus,
+  ArrowRight, Save, Check, Ticket, Link, DownloadIcon, FileDownIcon, Plus, DownloadCloud,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "./TravelRequestWizard.css";
@@ -25,6 +25,7 @@ import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 import {downloadFileFromBase64} from "@/app/utils/downloadBas64";
+import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 
 // Type definitions
 interface WizardStep {
@@ -345,6 +346,12 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         fn: handleCreateTravelAdvance,
       }],
     },
+    {
+      id: "documents",
+      icon: <DownloadCloud size={18} />,
+      title: "Travel Documentation",
+      desc: "Supporting travel files",
+    },
   ], [handleCreateTravelAdvance]);
 
   const currentSteps = useMemo(() => {
@@ -353,7 +360,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         return ["info", "destinations", "dependencies", "checklist", "traveller-checklist", "visa", "advance"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "providers", "checklist", "traveller-checklist", "permit", "advance"]
+        return ["info", "dependencies", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
@@ -361,7 +368,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         return ["info", "destinations", "dependencies"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies"]
+        return ["info", "dependencies", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     }
@@ -787,6 +794,18 @@ const StepContent: React.FC<StepContentProps> = ({
       return <VisaChecklist travelInfo={travelRequestHeader}/>;
     case "traveller-checklist":
       return <TravellerChecklist travelInfo={travelRequestHeader}/>;
+    case "documents":
+      return (
+        <TravelDocuments
+          primaryKey={{
+            no: travelRequestHeader.no,
+            documentType: travelRequestHeader.documentType,
+          }}
+          status={travelRequestHeader.approvalStatus}
+          requireETA={travelRequestHeader.requireETA}
+          travelId={travelRequestHeader.id}
+        />
+      );
     default:
       return null;
   }

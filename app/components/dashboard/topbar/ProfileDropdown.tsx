@@ -24,6 +24,13 @@ export default function ProfileDropdown() {
     }
   };
 
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    showLoader();
+    await signOut({ callbackUrl: "/", redirect: false });
+    router.push("/");
+  };
+
   return (
     <li className="dropdown topbar-item">
       <a
@@ -79,29 +86,34 @@ export default function ProfileDropdown() {
           Profile
         </button>
 
-        <a className="dropdown-item" href="#">
+        <button
+          className="dropdown-item w-100 text-start"
+          onClick={(e) => handleNav(e, "/documentation")}
+        >
           <i className="las la-file-alt fs-18 me-1 align-text-bottom" />
           Documentation
-        </a>
+        </button>
 
         <small className="text-muted px-2 py-1 d-block">Settings</small>
-        <a className="dropdown-item" href="#">
+
+        <button
+          className="dropdown-item w-100 text-start"
+          onClick={(e) => handleNav(e, "/settings")}
+        >
           <i className="las la-cog fs-18 me-1 align-text-bottom" />
           Account Settings
-        </a>
-        <a className="dropdown-item" href="#">
+        </button>
+
+        <button
+          className="dropdown-item w-100 text-start"
+          onClick={(e) => handleNav(e, "/help")}
+        >
           <i className="las la-question-circle fs-18 me-1 align-text-bottom" />
           Help Center
-        </a>
+        </button>
 
         <div className="dropdown-divider mb-0" />
-        <button
-          className="dropdown-item text-danger"
-          onClick={async () => {
-            showLoader();
-            await signOut({ callbackUrl: "/" });
-          }}
-        >
+        <button className="dropdown-item text-danger" onClick={handleLogout}>
           <i className="las la-power-off fs-18 me-1 align-text-bottom" />
           Logout
         </button>

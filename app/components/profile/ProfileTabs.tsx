@@ -26,12 +26,11 @@ export default function ProfileTabs({
 
   const availableTabs = useMemo(() => {
     const baseTabs = [{ id: "profile-settings", label: "Profile Settings" }];
-
-    if (profileType === "Visitor") {
-      baseTabs.push({ id: "dependents", label: "Dependants" });
+    if (profileType === "Employee") {
+      baseTabs.push({ id: "dependents", label: "Dependents" });
     }
 
-    baseTabs.push({ id: "gallery", label: "Gallery" }); // Gallery now last
+    baseTabs.push({ id: "gallery", label: "Gallery" });
 
     return baseTabs;
   }, [profileType]);
@@ -63,7 +62,7 @@ export default function ProfileTabs({
           </div>
         )}
 
-        {activeTab === "dependents" && profileType === "Visitor" && (
+        {activeTab === "dependents" && profileType === "Employee" && (
           <div className="tab-pane fade show active">
             <DependentsTab
               dependents={dependents}
