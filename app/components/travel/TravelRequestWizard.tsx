@@ -410,18 +410,22 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   const validateCurrentStep = (): boolean => true;
 
+  // UI calculations
+  const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
+  const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
+
   const downLoadIntroductoryLetter = async () => {
     setIsSaving(true)
     try {
       const res = await codeUnit('getIntroductoryLetter', {
         data: {
           docType: travelRequestHeader?.documentType === "Employee"
-                ? "0"
-                : travelRequestHeader.documentType === "Visitor"
-                    ? "1"
-                    : travelRequestHeader.documentType === "Non-Resident"
-                        ? "2"
-                        : "Unknown",
+              ? "0"
+              : travelRequestHeader.documentType === "Visitor"
+                  ? "1"
+                  : travelRequestHeader.documentType === "Non-Resident"
+                      ? "2"
+                      : "Unknown",
           docNo: travelRequestHeader.no,
           destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
         }
@@ -429,16 +433,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
       if (res.error) {
         setIsSaving(false)
-        return Swal.fire(res.error.code, res.error.message);
+        Swal.fire(res.error.code, res.error.message);
+      } else {
+        downloadFileFromBase64(res.value, "Introductory Letter")
       }
-
-      downloadFileFromBase64(res.value , "Introductory Letter")
-
-      Swal.fire(
-          "Success",
-          `Introductory Letter downloaded successfully!`,
-          "success"
-      )
     } catch (error) {
       return Swal.fire(error.code, error.message);
     }
@@ -462,23 +460,13 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       if (res.error) {
         setIsSaving(false)
         return Swal.fire(res.error.code, res.error.message);
+      } else {
+        downloadFileFromBase64(res.value, "BtaCertificate")
       }
-
-      downloadFileFromBase64(res.value , "BtaCertificate")
-
-      Swal.fire(
-          "Success",
-          `${res.imprestType} Bta Certificate downloaded successfully!`,
-          "success"
-      )
     } catch (error) {
-      return Swal.fire(error.code, error.message);
+      Swal.fire(error.code, error.message);
     }
   }
-
-  // UI calculations
-  const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
-  const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
   return (
     <div className="travel-wizard">
@@ -542,6 +530,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               canSubmitForApproval={canSubmitForApproval}
               isSubmitting={isSubmitting}
               handleSubmitForApproval={handleSubmitForApproval}
+              downLoadBtaCertificate={downLoadBtaCertificate}
+              downLoadIntroductoryLetter={downLoadIntroductoryLetter}
             />
 
             <StepContent
@@ -579,6 +569,8 @@ interface StepHeaderProps {
   canSubmitForApproval: boolean;
   isSubmitting: boolean;
   handleSubmitForApproval: () => Promise<void>;
+  downLoadIntroductoryLetter: () => void;
+  downLoadBtaCertificate: () => void;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -587,6 +579,8 @@ const StepHeader: React.FC<StepHeaderProps> = ({
                                                  canSubmitForApproval,
                                                  isSubmitting,
                                                  handleSubmitForApproval,
+                                                 downLoadIntroductoryLetter,
+                                                 downLoadBtaCertificate
                                                }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
@@ -632,6 +626,18 @@ const StepHeader: React.FC<StepHeaderProps> = ({
             <button className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon"/>
               Letter of intent
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon"/>
+              Introductory Letter
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon"/>
+              Bta Certificate
             </button>
           </li>
         </ul>
