@@ -58,7 +58,8 @@ export const endpointMap = {
   profileTitles: "/api/kinetics/enigma/v1.0/profileTitles",
   travel_attachments: "/api/kinetics/adminTravel/v1.0/attachments",
   getLetterOfInvitation: "/ODataV4/TravelManager_getLetterOfInvitation",
-
+  stageDocumentChecklist:
+    "/api/kinetics/adminTravel/v1.0/stageDocumentChecklist",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

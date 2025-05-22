@@ -2,37 +2,31 @@
 
 import React, { useState } from "react";
 import Swal from "sweetalert2";
-import {
-  DownloadCloud,
-  FileText,
-  Building,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Info,
-} from "lucide-react";
-import "./download.css";
+import { DownloadCloud, FileText, Building, X } from "lucide-react";
 import { getResource } from "@/app/lib/api/http";
+import "./download.css";
 
 interface NoEtaDownloadsProps {
   primaryKey: { no: string; documentType: string };
+  requireETA?: boolean;
+  compact?: boolean;
 }
 
-interface DocumentStatus {
+interface DownloadStatus {
   loi: "idle" | "loading" | "success" | "error";
   voucher: "idle" | "loading" | "success" | "error";
 }
 
-const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({ primaryKey }) => {
-  const [downloadStatus, setDownloadStatus] = useState<DocumentStatus>({
+const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
+  primaryKey,
+  requireETA,
+  compact = false,
+}) => {
+  const [downloadStatus, setDownloadStatus] = useState<DownloadStatus>({
     loi: "idle",
     voucher: "idle",
   });
-
-  const [downloadTimestamps, setDownloadTimestamps] = useState<{
-    loi?: Date;
-    voucher?: Date;
-  }>({});
+  const [showInfoAlert, setShowInfoAlert] = useState(true);
 
   const handleDownloadLOI = async () => {
     try {
@@ -82,7 +76,6 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({ primaryKey }) => {
       document.body.removeChild(link);
 
       setDownloadStatus((prev) => ({ ...prev, loi: "success" }));
-      setDownloadTimestamps((prev) => ({ ...prev, loi: new Date() }));
 
       Swal.fire({
         icon: "success",
@@ -113,7 +106,7 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({ primaryKey }) => {
       const res = await getResource("travel_attachments", {
         params: {
           filters: {
-            no: "primaryKey.no",
+            no: primaryKey.no,
           },
         },
       });
@@ -134,7 +127,6 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({ primaryKey }) => {
       document.body.removeChild(link);
 
       setDownloadStatus((prev) => ({ ...prev, voucher: "success" }));
-      setDownloadTimestamps((prev) => ({ ...prev, voucher: new Date() }));
 
       Swal.fire({
         icon: "success",
@@ -150,145 +142,87 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({ primaryKey }) => {
     }
   };
 
-  const formatTimestamp = (date?: Date) => {
-    if (!date) return "";
-    return date.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <CheckCircle size={18} className="text-success" />;
-      case "error":
-        return <AlertTriangle size={18} className="text-danger" />;
-      case "loading":
-        return <Clock size={18} className="text-warning" />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="travel-documents-container">
-      <div className="info-alert">
-        <AlertTriangle size={24} className="text-warning" />
-        <div className="info-alert-content">
-          <p className="info-alert-text">
-            Please download and print all the following documents before your
-            travel. You must present these documents to immigration authorities
-            upon arrival.
-          </p>
+    <div className={`no-eta-downloads ${compact ? "compact" : ""}`}>
+      {!requireETA && showInfoAlert && (
+        <div className="info-alert">
+          <div className="alert-content">
+            <p>
+              Please download and print these documents before your travel. You
+              must present them to immigration authorities.
+            </p>
+          </div>
+          <button
+            className="alert-close"
+            onClick={() => setShowInfoAlert(false)}
+            aria-label="Close alert"
+          >
+            <X size={16} />
+          </button>
         </div>
-      </div>
+      )}
 
       <div className="documents-grid">
         <div className="document-card">
-          <div
-            className="document-icon"
-            style={{ background: "rgba(52, 152, 219, 0.1)", color: "#ff0000" }}
-          >
-            <FileText size={28} />
+          <div className="card-icon bg-primary-light">
+            <FileText size={compact ? 16 : 20} />
           </div>
-          <h3 className="document-title">Letter of Invitation</h3>
-          <p className="document-description">
-            Official document confirming you've been invited. Required for visa
-            processing.
-          </p>
-          <button
-            className="btn btn-download btn-primary-custom"
-            onClick={handleDownloadLOI}
-            disabled={downloadStatus.loi === "loading"}
-          >
-            {downloadStatus.loi === "loading" ? (
-              <>
-                <div className="loading-spinner"></div> Generating...
-              </>
-            ) : (
-              <>
-                <DownloadCloud size={18} /> Download Letter of Invitation
-              </>
-            )}
-          </button>
-          <div className="document-footer">
-            <div className="download-status">
-              {getStatusIcon(downloadStatus.loi)}
-              <span className={`status-text status-${downloadStatus.loi}`}>
-                {downloadStatus.loi === "success"
-                  ? "Downloaded"
-                  : downloadStatus.loi === "error"
-                  ? "Download Failed"
-                  : downloadStatus.loi === "loading"
-                  ? "Downloading..."
-                  : "Not Downloaded"}
-              </span>
-            </div>
-            {downloadTimestamps.loi && (
-              <div className="document-timestamp">
-                {formatTimestamp(downloadTimestamps.loi)}
-              </div>
-            )}
+          <div className="card-content">
+            <h3 className="card-title">Letter of Invitation</h3>
+            <p className="card-description">
+              Official document confirming your invitation
+            </p>
+            <button
+              className={`download-btn ${
+                downloadStatus.loi === "loading" ? "loading" : ""
+              }`}
+              onClick={handleDownloadLOI}
+              disabled={downloadStatus.loi === "loading"}
+            >
+              {downloadStatus.loi === "loading" ? (
+                <>
+                  <span className="spinner"></span>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <DownloadCloud size={compact ? 14 : 16} />
+                  Download
+                </>
+              )}
+            </button>
           </div>
         </div>
-        <div className="document-card">
-          <div
-            className="document-icon"
-            style={{ background: "rgba(46, 204, 113, 0.1)", color: "#2ecc71" }}
-          >
-            <Building size={28} />
-          </div>
-          <h3 className="document-title">Accommodation Voucher</h3>
-          <p className="document-description">
-            Proof of accommodation arrangements during your stay.
-          </p>
-          <button
-            className="btn btn-download btn-primary-custom"
-            onClick={handleDownloadVoucher}
-            disabled={downloadStatus.voucher === "loading"}
-          >
-            {downloadStatus.voucher === "loading" ? (
-              <>
-                <div className="loading-spinner"></div> Generating...
-              </>
-            ) : (
-              <>
-                <DownloadCloud size={18} /> Download Accommodation Voucher
-              </>
-            )}
-          </button>
-          <div className="document-footer">
-            <div className="download-status">
-              {getStatusIcon(downloadStatus.voucher)}
-              <span className={`status-text status-${downloadStatus.voucher}`}>
-                {downloadStatus.voucher === "success"
-                  ? "Downloaded"
-                  : downloadStatus.voucher === "error"
-                  ? "Download Failed"
-                  : downloadStatus.voucher === "loading"
-                  ? "Downloading..."
-                  : "Not Downloaded"}
-              </span>
-            </div>
-            {downloadTimestamps.voucher && (
-              <div className="document-timestamp">
-                {formatTimestamp(downloadTimestamps.voucher)}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      <div className="mt-4 pt-3 border-top">
-        <div className="d-flex align-items-start gap-2">
-          <Info size={18} className="text-muted mt-1" />
-          <p className="text-muted small mb-0">
-            Documents will download as PDF files. If you encounter any issues
-            during download, please refresh the page or contact support.
-          </p>
+        <div className="document-card">
+          <div className="card-icon bg-success-light">
+            <Building size={compact ? 16 : 20} />
+          </div>
+          <div className="card-content">
+            <h3 className="card-title">Accommodation Voucher</h3>
+            <p className="card-description">
+              Proof of accommodation arrangements
+            </p>
+            <button
+              className={`download-btn ${
+                downloadStatus.voucher === "loading" ? "loading" : ""
+              }`}
+              onClick={handleDownloadVoucher}
+              disabled={downloadStatus.voucher === "loading"}
+            >
+              {downloadStatus.voucher === "loading" ? (
+                <>
+                  <span className="spinner"></span>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <DownloadCloud size={compact ? 14 : 16} />
+                  Download
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

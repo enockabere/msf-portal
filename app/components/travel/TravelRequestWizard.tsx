@@ -391,9 +391,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       },
     ],
     [handleCreateTravelAdvance]
-  ); // ✅ Correct dependencies
-
-  // Get the appropriate steps based on user type & status
+  );
   const currentSteps = useMemo((): WizardStep[] => {
     const isVisitor = travelRequestHeader.documentType === "Visitor";
 
@@ -432,7 +430,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [
     travelRequestHeader.documentType,
     travelRequestHeader.approvalStatus,
-    travelRequestHeader.no,
     allSteps,
   ]);
 

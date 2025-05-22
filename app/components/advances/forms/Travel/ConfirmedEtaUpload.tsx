@@ -37,6 +37,8 @@ interface UploadedFile {
   lineNo: number;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
 const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
   status,
   travelId,
@@ -44,7 +46,38 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [documentCode, setDocumentCode] = useState<string>("");
 
+  const fetchDocumentCode = useCallback(async () => {
+    try {
+      const travelRes = await getResource("travelRequests", {
+        params: { filters: { no: travelNo } },
+      });
+
+      if (travelRes.error || !travelRes.value?.[0]) {
+        throw new Error("Failed to fetch travel request");
+      }
+
+      const currentStage = travelRes.value[0].currentStage;
+      if (!currentStage) throw new Error("Missing current stage");
+
+      const stageRes = await getResource("stageDocumentChecklist", {
+        params: { filters: { stageCode: currentStage } },
+      });
+
+      if (stageRes.error || !stageRes.value?.[0]) {
+        throw new Error("No checklist found for stage");
+      }
+
+      const docID = stageRes.value[0].documentIDCode;
+      setDocumentCode(docID || "UNKNOWN DOCUMENT");
+    } catch (err: any) {
+      console.error("❌ Stage fetch error:", err.message);
+      setDocumentCode("PLANE TICKET"); // fallback
+    }
+  }, [travelNo]);
+
+  // 🔁 Fetch uploaded files
   const fetchAttachments = useCallback(async () => {
     try {
       const res = await getResource("travel_attachments", {
@@ -74,8 +107,9 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
   }, [travelNo]);
 
   useEffect(() => {
+    fetchDocumentCode();
     fetchAttachments();
-  }, [fetchAttachments]);
+  }, [fetchAttachments, fetchDocumentCode]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -91,6 +125,15 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
       const file = acceptedFiles[0];
       if (!file) return;
 
+      if (file.size > MAX_FILE_SIZE) {
+        Swal.fire(
+          "File too large",
+          "Please upload a file smaller than 5MB.",
+          "warning"
+        );
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = (reader.result as string).split(",")[1];
@@ -98,7 +141,7 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
         const payload = {
           relatedRecordId: travelId,
           no: travelNo,
-          documentCode: "PASSPORT PHOTO",
+          documentCode: documentCode || "PLANE TICKET",
           attachment: base64,
         };
 
@@ -132,7 +175,7 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
 
       reader.readAsDataURL(file);
     },
-    [status, travelId, travelNo, fetchAttachments]
+    [status, travelId, travelNo, documentCode, fetchAttachments]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -226,8 +269,8 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
       <div className="upload-info">
         <AlertCircle size={20} className="text-primary" />
         <p className="upload-info-text">
-          Upload travel ticket (PDF or image). Request must be{" "}
-          <strong>Open</strong>.
+          Upload travel ticket (PDF or image).{" "}
+          <strong>Max file size: 5MB.</strong>
         </p>
       </div>
 
