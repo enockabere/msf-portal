@@ -24,6 +24,7 @@ import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
+import {downloadFileFromBase64} from "@/app/utils/downloadBas64";
 
 // Type definitions
 interface WizardStep {
@@ -413,6 +414,60 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
+  const downLoadIntroductoryLetter = async () => {
+    setIsSaving(true)
+    try {
+      const res = await codeUnit('getIntroductoryLetter', {
+        data: {
+          docType: travelRequestHeader?.documentType === "Employee"
+              ? "0"
+              : travelRequestHeader.documentType === "Visitor"
+                  ? "1"
+                  : travelRequestHeader.documentType === "Non-Resident"
+                      ? "2"
+                      : "Unknown",
+          docNo: travelRequestHeader.no,
+          destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+        }
+      })
+
+      if (res.error) {
+        setIsSaving(false)
+        Swal.fire(res.error.code, res.error.message);
+      } else {
+        downloadFileFromBase64(res.value, "Introductory Letter")
+      }
+    } catch (error) {
+      return Swal.fire(error.code, error.message);
+    }
+  }
+
+  const downLoadBtaCertificate = async () => {
+    try {
+      const res = await codeUnit('getBTACertificate', {
+        data: {
+          docType: travelRequestHeader?.documentType === "Employee"
+              ? "0"
+              : travelRequestHeader.documentType === "Visitor"
+                  ? "1"
+                  : travelRequestHeader.documentType === "Non-Resident"
+                      ? "2"
+                      : "Unknown",
+          docNo: travelRequestHeader.no,
+        }
+      })
+
+      if (res.error) {
+        setIsSaving(false)
+        return Swal.fire(res.error.code, res.error.message);
+      } else {
+        downloadFileFromBase64(res.value, "BtaCertificate")
+      }
+    } catch (error) {
+      Swal.fire(error.code, error.message);
+    }
+  }
+
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
@@ -475,6 +530,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               canSubmitForApproval={canSubmitForApproval}
               isSubmitting={isSubmitting}
               handleSubmitForApproval={handleSubmitForApproval}
+              downLoadBtaCertificate={downLoadBtaCertificate}
+              downLoadIntroductoryLetter={downLoadIntroductoryLetter}
             />
 
             <StepContent
@@ -512,6 +569,8 @@ interface StepHeaderProps {
   canSubmitForApproval: boolean;
   isSubmitting: boolean;
   handleSubmitForApproval: () => Promise<void>;
+  downLoadIntroductoryLetter: () => void;
+  downLoadBtaCertificate: () => void;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -520,6 +579,8 @@ const StepHeader: React.FC<StepHeaderProps> = ({
                                                  canSubmitForApproval,
                                                  isSubmitting,
                                                  handleSubmitForApproval,
+                                                 downLoadIntroductoryLetter,
+                                                 downLoadBtaCertificate
                                                }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
@@ -565,6 +626,18 @@ const StepHeader: React.FC<StepHeaderProps> = ({
             <button className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon"/>
               Letter of intent
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon"/>
+              Introductory Letter
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon"/>
+              Bta Certificate
             </button>
           </li>
         </ul>
