@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader, Save, Trash2 } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
 import { Destination } from "@/app/types/Destination";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { formatDate } from "@/app/utils/dateFormats";
+import SectionLoader from "@/app/components/loaders/SectionLoader";
 
 interface TravelDestinationsProps {
     travelRequestHeader: TravelRequest;
@@ -275,7 +276,7 @@ export default function TravelDestinations({
                     title="Save"
                   >
                       {isSubmitting ?
-                        (<Loader size={16} className="button-icon blink-animation"/>)
+                        (<SectionLoader size={16} classes={'button-icon'}/>)
                         : (<Save size={16} className="button-icon" />)}
                       Save
                   </button>
@@ -347,7 +348,7 @@ export default function TravelDestinations({
                                 onClick={() => deleteDestination(route)}
                               >
                                   {isDeleting ?
-                                    (<Loader size={16} className="button-icon blink-animation"/>)
+                                    (<SectionLoader size={16} classes={'button-icon'}/>)
                                     : (<Trash2 size={16} className="button-icon" />)}
                                   Delete
                               </button>
