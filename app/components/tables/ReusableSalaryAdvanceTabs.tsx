@@ -34,20 +34,66 @@ export default function ReusableSalaryAdvanceTabs({
   const { dispatcher } = actions;
   const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
-  const advanceSet: AdvanceTypeKey = path.includes('otherAdvances') ? 'Other' : 'Salary';
+  const isOtherAdvances = path.includes('otherAdvances');
+  const advanceSet: AdvanceTypeKey = isOtherAdvances ? 'Other' : 'Salary';
+  const searchPlaceHolder = isOtherAdvances ? 'Search advances...' : 'Search salary advances...'
+  const getTypeIcon = (type: string, ...args: any) => {
+    const icons: Record<AdvanceTypeKey, any> = {
+      Salary: "fa-solid fa-money-bill",
+      Other: {
+        TRAVEL: "fa-solid fa-plane",
+        OPERATION: "fa-solid fa-gear",
+      },
+    };
+    if (isOtherAdvances) {
+      let passedImprestType = '';
+      for (const prop in icons[type]) {
+        if (args.length && args[0].length) {
+          const [value] = args;
+          if (value) {
+            if (value.toLowerCase().split(' ').join("").includes(prop.toLowerCase())) {
+              passedImprestType = prop;
+            };
+          }
+        }
+      }
+      return icons['Other'][passedImprestType] || "fa-solid fa-file-alt";
+    }
+    return icons[type] || "fa-solid fa-file-alt";
+  };
   const columns = useMemo(() => {
     return GetColumnByType(advanceSet, setSelectedRowHandler, {
       currentTab: activeTab,
       currencies,
       imprestTypes,
+      getTypeIcon,
+
     })
   }, [advanceSet, setSelectedRowHandler, activeTab]);
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    const open = advanceByStatus.get('Open') || [];
-    const pending = advanceByStatus.get('Pending Approval') || [];
-    const released = advanceByStatus.get('Released') || [];
+    let open = advanceByStatus.get('Open') || [];
+    let pending = advanceByStatus.get('Pending Approval') || [];
+    let released = advanceByStatus.get('Released') || [];
+
+    if (isOtherAdvances) {
+      const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
+      open = advancesByImprestStatus.get('Draft') || [];
+      pending = advancesByImprestStatus.get('Pending') || [];
+      released = [
+        ...advancesByImprestStatus.get('Approved') || [],
+        ...advancesByImprestStatus.get('Issued') || [],
+        ...advancesByImprestStatus.get('Accounted') || [],
+        ...advancesByImprestStatus.get('Settled') || [],
+        ...advancesByImprestStatus.get('Posted') || [],
+        ...advancesByImprestStatus.get('Pending Liquidation') || [],
+        ...advancesByImprestStatus.get('Rejected') || [],
+        ...advancesByImprestStatus.get('Liquidation Rejected') || [],
+        ...advancesByImprestStatus.get('Reversed') || [],
+      ];
+    }
+
 
     return {
       open,
@@ -84,10 +130,12 @@ export default function ReusableSalaryAdvanceTabs({
   }, [initialTab]);
 
   useEffect(() => {
-    fetchSetups([
-      'imprestTypes',
-    ]);
-  })
+    if (isOtherAdvances) {
+      fetchSetups([
+        'imprestTypes',
+      ]);
+    }
+  });
 
   return (
     <div>
@@ -97,7 +145,7 @@ export default function ReusableSalaryAdvanceTabs({
             <SkeletonDataTable
               columns={columns}
               data={filteredByStatus.open}
-              searchPlaceholder="Search salary advances..."
+              searchPlaceholder={searchPlaceHolder}
               loading={loading}
             />
           </div>
@@ -110,7 +158,7 @@ export default function ReusableSalaryAdvanceTabs({
             <SkeletonDataTable
               columns={columns}
               data={filteredByStatus.pending}
-              searchPlaceholder="Search salary advances..."
+              searchPlaceholder={searchPlaceHolder}
               loading={loading}
             />
           </div>
@@ -123,7 +171,7 @@ export default function ReusableSalaryAdvanceTabs({
             <SkeletonDataTable
               columns={columns}
               data={filteredByStatus.released}
-              searchPlaceholder="Search salary advances..."
+              searchPlaceholder={searchPlaceHolder}
               loading={loading}
             />
           </div>

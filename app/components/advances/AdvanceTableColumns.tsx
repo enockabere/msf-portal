@@ -9,21 +9,22 @@ export const GetColumnByType = (
         currentTab?: string;
         currencies?: Record<string, any>[];
         imprestTypes?: Record<string, any>[];
+        getTypeIcon?: (type: string, ...args: any) => ''
     }
 ) => {
     const isReleasedTab = options?.currentTab === "released";
     const { currencies, imprestTypes } = options;
 
-    const getTypeIcon = (type: string) => {
-        const icons: Record<AdvanceTypeKey, any> = {
-            Salary: "fa-solid fa-money-bill",
-            Other: {
-                TRAVEL: "fa-solid fa-plane",
-                'OPERATIONAL ADVANCE': "fa-solid fa-gear",
-            },
-        };
-        return icons[type] || "fa-solid fa-file-alt";
-    };
+    const issuedStatus = [
+        'Issued',
+        'Accounted',
+        'Settled',
+        'Posted',
+        'Pending Liquidation',
+        'Rejected',
+        'Liquidation Rejected',
+        'Reversed'
+    ];
     const columns: Record<AdvanceTypeKey, any> = {
         Salary: [
             {
@@ -48,7 +49,7 @@ export const GetColumnByType = (
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)} text-primary`} />
+                            <i className={`${options.getTypeIcon(type)} text-primary`} />
                         </div>
 
                         <span>{type}</span>
@@ -157,7 +158,7 @@ export const GetColumnByType = (
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(type)[row.imprestType]} text-primary`} />
+                            <i className={`${options.getTypeIcon(type, row.imprestType)} text-primary`} />
                         </div>
                         <span>{findObjectFromArray(imprestTypes, 'code', row.imprestType)?.description as string}</span>
                     </div>
@@ -199,16 +200,16 @@ export const GetColumnByType = (
             },
             {
                 name: "Issued",
-                selector: (row: Advance) => (row.imprestStatus === 'Issued' ? "Yes" : "No"),
+                selector: (row: Advance) => (issuedStatus.includes(row.imprestStatus) ? "Yes" : "No"),
                 sortable: true,
                 cell: (row: Advance) => (
                     <span
-                        className={`badge ${row.imprestStatus === 'Issued'
+                        className={`badge ${issuedStatus.includes(row.imprestStatus)
                             ? "bg-success-subtle text-success"
                             : "bg-secondary-subtle text-muted"
                             }`}
                     >
-                        {row.imprestStatus === 'Issued' ? "Yes" : "No"}
+                        {issuedStatus.includes(row.imprestStatus) ? "Yes" : "No"}
                     </span>
                 ),
             },
@@ -226,7 +227,7 @@ export const GetColumnByType = (
                             </button>
                         )}
 
-                        {row.imprestStatus === "Issued" && isReleasedTab && (
+                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && isReleasedTab && (
                             <button
                                 key="settle"
                                 className="text-danger border-0 bg-transparent"

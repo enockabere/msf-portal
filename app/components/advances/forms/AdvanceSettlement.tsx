@@ -41,16 +41,26 @@ export default function AdvanceSettlement({
 
 
   const validateDetailedLinePayload = (line: Record<string, any>) => {
+    console.log('passed line: ', line);
     const strippedPayLoad = removeNullAndUndefinedFromObject(line);
+    console.log('stripped line: ', strippedPayLoad)
     const isMissingRequiredProp = checkIfMissingRequiredProperty(
       strippedPayLoad,
-      [
-        "DetailedLineMgtDocType",
-        "DetailedLineMgtDocNo",
-        "DetailedLineMgtLineNo",
-        "amount",
-        "attachment",
-      ]
+      line.entryNo >= 0 ?
+        [
+          "DetailedLineMgtDocType",
+          "DetailedLineMgtDocNo",
+          "DetailedLineMgtLineNo",
+          "amount",
+        ]
+        :
+        [
+          "DetailedLineMgtDocType",
+          "DetailedLineMgtDocNo",
+          "DetailedLineMgtLineNo",
+          "amount",
+          "attachment",
+        ]
     );
     if (!isMissingRequiredProp)
       throw new Error("Validation Error!. Not a valid payload");
@@ -83,17 +93,20 @@ export default function AdvanceSettlement({
         payload: rest,
       });
       const updatedAccountingDetails = [];
-      const refetchedLines = imprestLinesAPI?.map((line: Record<string, any>) => {
+      const refetchedLines = [];
+      imprestLinesAPI?.forEach((line: Record<string, any>) => {
         const { detailedImprestLines, ...otherProps } = line;
         updatedAccountingDetails.push(detailedImprestLines);
-        return otherProps;
+        refetchedLines.push(otherProps);
       });
       dispatcher({
         type: 'SET_EXISTING_ADVANCE_LINES',
         payload: refetchedLines,
       });
       const draftAccountedLinesState = [...accountedLines];
-      const uniqueAccountingLines = _.differenceWith(draftAccountedLinesState, updatedAccountingDetails, _.isEqual);
+      const uniqueAccountingLines = _.differenceWith(draftAccountedLinesState, updatedAccountingDetails, (draft: Record<string, any>, updated: Record<string, any>) => {
+        return draft.DetailedLineMgtLineNo === updated.DetailedLineMgtLineNo;
+      });
       console.log('unique lines: ', uniqueAccountingLines);
       console.log('from fetch lines: ', updatedAccountingDetails);
       dispatcher({
@@ -121,7 +134,7 @@ export default function AdvanceSettlement({
         Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
         return;
       }
-      if (!lineAccounted.amoun || !lineAccounted.attachment) {
+      if (!lineAccounted.amount || !lineAccounted.attachment) {
         Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
         return;
       }
@@ -142,6 +155,7 @@ export default function AdvanceSettlement({
         return;
       }
       await postRequest();
+      Swal.fire('Success', 'Line successfully accounted!', 'success');
     } catch (error: any) {
       Swal.fire('Error', error.message, 'error');
     }
@@ -154,6 +168,10 @@ export default function AdvanceSettlement({
       accountedLines.forEach((line: Record<string, any>) => {
         if (safeTypechecker(line.entryNo) === 'Null' || safeTypechecker(line.entryNo) === 'Undefined') {
           validateDetailedLinePayload(line);
+          if (!line.amount || !line.attachment) {
+            Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
+            return;
+          }
           accountingLinesNotSavedRequestOptions.push({
             method: 'POST',
             endpoint: 'imprestDetailedLine',
@@ -175,6 +193,10 @@ export default function AdvanceSettlement({
         Promise.all(savedAccountingLinesRequestOptions)
       ]).then(async (response) => {
         console.log('response from concurrency: ', response)
+        dispatcher({
+          type: 'SET_DETAILED_ACCOUNTING_LINES',
+          payload: response,
+        });
         const res = await codeUnit('AdvnaceLiquidation', {
           data: {
             docNo: formData?.no,
@@ -184,9 +206,10 @@ export default function AdvanceSettlement({
           return Swal.fire(res.error.code, res.error.message, 'error');
         }
         await postRequest();
+        Swal.fire('Success', 'Successfully sent settlement for approval.', 'success');
       });
     } catch (error: any) {
-      Swal.fire('Error!', error.meesage, 'error');
+      Swal.fire('Error!', error?.message, 'error');
     }
   }
 
@@ -201,6 +224,7 @@ export default function AdvanceSettlement({
         return Swal.fire(res.error.code, res.error.message, 'error');
       }
       await postRequest();
+      Swal.fire('Success', 'Successfully cancelled settlment approval request', 'success');
     } catch (error: any) {
       Swal.fire('Error!', error.meesage, 'error');
     }
@@ -225,6 +249,34 @@ export default function AdvanceSettlement({
       'userProfiles'
     ]);
   });
+
+  useEffect(() => {
+    if (expenses && expenses.length) {
+      const getExpenseLinesAccountingLines = expenses.map((line: Record<string, any>) => {
+        return getResource('imprestDetailedLine', {
+          params: {
+            filters: {
+              DetailedLineMgtDocType: line.documentType,
+              DetailedLineMgtDocNo: line.documentNo,
+              DetailedLineMgtLineNo: line.lineNo,
+            },
+            '$select': 'entryNo, DetailedLineMgtDocType, DetailedLineMgtDocNo, DetailedLineMgtLineNo, description, amount, financeAmount, attachmentName',
+          }
+        });
+      });
+      Promise.all(getExpenseLinesAccountingLines)
+        .then((response) => {
+          console.log('response from the concurrent query: ', response[0].value);
+          dispatcher({
+            type: 'SET_DETAILED_ACCOUNTING_LINES',
+            payload: response[0].value,
+          });
+        })
+        .catch((error: any) => {
+          Swal.fire('Error!', error.message, 'error');
+        })
+    }
+  }, [expenses, dispatcher]);
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">

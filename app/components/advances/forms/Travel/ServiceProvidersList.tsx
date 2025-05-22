@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
 import { getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { Loader } from "lucide-react";
+import SectionLoader from "@/app/components/loaders/SectionLoader";
 
 interface ServiceProvider {
   serviceCode: string;
@@ -62,7 +62,7 @@ export default function ServiceProvidersList({travelRequest}: { travelRequest: T
     <div className='row g-3'>
       {isLoading ? (
         <div className={'col-12 text-center'}>
-          <Loader size={32} className={'blink-animation'} />
+          <SectionLoader size={32} />
         </div>
       ) : (
         <div className="col-12">
