@@ -160,10 +160,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         });
 
         if (res.error) {
-          Swal.fire('Failed to fetch travel request', res.error.message);
-        } else {
-          setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
+          throw new Error(res.error.message);
         }
+
+        setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
       } catch (error: any) {
         console.error('Error fetching travel request:', error.message);
       } finally {
@@ -188,10 +188,10 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       });
 
       if (res.error) {
-        Swal.fire('Failed to fetch travel request', res.error.message);
-      } else {
-        setTravelRequestHeader(prev => ({...prev, ...res.value.at(0)}));
+        throw new Error(res.error.message);
       }
+
+      setTravelRequestHeader(prev => ({...prev, ...res.value.at(0)}));
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
     } finally {
@@ -225,14 +225,14 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
         const res = await operation;
         if (res.error) {
-          Swal.fire("Error saving travel request!", res.error.message);
-        } else {
-          await fetchTravelRequest(res.no);
-          navigateToNextStepAfterSave();
+          throw new Error(res.error.message);
         }
+
+        await fetchTravelRequest(res.no);
+        navigateToNextStepAfterSave();
       }
     } catch (error: any) {
-      Swal.fire('Error!', error.message);
+      Swal.fire('Error saving request!', error.message);
     } finally {
       setIsSaving(false);
     }
@@ -254,13 +254,13 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       });
 
       if (res.error) {
-        Swal.fire("Error submitting for approval!", res.error.message);
-      } else {
-        await fetchTravelRequest(travelRequestHeader.no);
-        Swal.fire("Success", res.value);
+        throw new Error(res.error.message);
       }
+
+      await fetchTravelRequest(travelRequestHeader.no);
+      Swal.fire("Success", res.value);
     } catch (error: any) {
-      Swal.fire("Error", error.message);
+      Swal.fire("Error submitting for approval", error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -273,13 +273,13 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       });
 
       if (res.error) {
-        Swal.fire("Error creating travel advance!", res.error.message);
-      } else {
-        await fetchTravelRequest(travelRequestHeader.no);
-        Swal.fire("Success", "Travel advance created successfully!");
+        throw new Error(res.error.message);
       }
+
+      await fetchTravelRequest(travelRequestHeader.no);
+      Swal.fire("Success", "Travel advance created successfully!");
     } catch (error: any) {
-      Swal.fire("Error", error.message);
+      Swal.fire("Error creating advance", error.message);
     }
   }, [fetchTravelRequest, travelRequestHeader.no]);
 
