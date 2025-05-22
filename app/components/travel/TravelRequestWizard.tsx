@@ -432,41 +432,45 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       })
 
       if (res.error) {
-        setIsSaving(false)
-        Swal.fire(res.error.code, res.error.message);
-      } else {
-        downloadFileFromBase64(res.value, "Introductory Letter")
+        throw new Error(res.error.message)
       }
+      downloadFileFromBase64(res.value, "Introductory Letter")
     } catch (error) {
-      return Swal.fire(error.code, error.message);
+      Swal.fire('Download Failed', error.message);
+    } finally {
+      setIsSaving(false)
     }
   }
+
+  const getDocumentTypeCode = (type) => {
+    const typeMap = {
+      Employee: "0",
+      Visitor: "1",
+      "Non-Resident": "2",
+    };
+    return typeMap[type] || "Unknown";
+  };
 
   const downLoadBtaCertificate = async () => {
     try {
+      const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
+      const docNo = travelRequestHeader?.no;
+
       const res = await codeUnit('getBTACertificate', {
-        data: {
-          docType: travelRequestHeader?.documentType === "Employee"
-              ? "0"
-              : travelRequestHeader.documentType === "Visitor"
-                  ? "1"
-                  : travelRequestHeader.documentType === "Non-Resident"
-                      ? "2"
-                      : "Unknown",
-          docNo: travelRequestHeader.no,
-        }
-      })
+        data: { docType, docNo }
+      });
 
       if (res.error) {
-        setIsSaving(false)
-        return Swal.fire(res.error.code, res.error.message);
-      } else {
-        downloadFileFromBase64(res.value, "BtaCertificate")
+       throw new Error(res.error.message)
       }
+      downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
-      Swal.fire(error.code, error.message);
+      Swal.fire( "Error", error.message || "An unexpected error occurred.");
+    } finally {
+      setIsSaving(false);
     }
-  }
+  };
+
 
   return (
     <div className="travel-wizard">
