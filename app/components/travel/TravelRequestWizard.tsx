@@ -41,6 +41,7 @@ import {
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
+import {downloadFileFromBase64} from "@/app/utils/downloadBas64";
 
 interface WizardStep {
   id: string;
@@ -437,7 +438,13 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     try {
       const res = await codeUnit('getIntroductoryLetter', {
         data: {
-          docType: travelRequestHeader.documentType,
+          docType: travelRequestHeader?.documentType === "Employee"
+                ? "0"
+                : travelRequestHeader.documentType === "Visitor"
+                    ? "1"
+                    : travelRequestHeader.documentType === "Non-Resident"
+                        ? "2"
+                        : "Unknown",
           docNo: travelRequestHeader.no,
           destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
         }
@@ -448,6 +455,14 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         setIsSaving(false)
         return Swal.fire(res.error.code, res.error.message);
       }
+
+      downloadFileFromBase64(res.value , "Introductory Letter")
+
+      Swal.fire(
+          "Success",
+          `Introductory Letter downloaded successfully!`,
+          "success"
+      )
     } catch (error) {
       return Swal.fire(error.code, error.message);
     }
@@ -455,10 +470,16 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   const downLoadBtaCertificate = async () => {
     try {
-      const res = await codeUnit('getIntroductoryLetter', {
+      const res = await codeUnit('getBTACertificate', {
         data: {
-          docType: travelRequestHeader.documentType,
-          docNo: travelRequestHeader.no
+          docType: travelRequestHeader?.documentType === "Employee"
+              ? "0"
+              : travelRequestHeader.documentType === "Visitor"
+                  ? "1"
+                  : travelRequestHeader.documentType === "Non-Resident"
+                      ? "2"
+                      : "Unknown",
+          docNo: travelRequestHeader.no,
         }
       })
 
@@ -468,9 +489,11 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         return Swal.fire(res.error.code, res.error.message);
       }
 
+      downloadFileFromBase64(res.value , "BtaCertificate")
+
       Swal.fire(
           "Success",
-          `${res.imprestType} advance was created successfully!`,
+          `${res.imprestType} Bta Certificate downloaded successfully!`,
           "success"
       )
     } catch (error) {
