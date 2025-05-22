@@ -6,6 +6,7 @@ import { Wallet } from "lucide-react";
 import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
 import CustomModal from "@/app/components/modals/CustomModal";
 import { formatDate } from "@/app/utils/dateFormats";
+import { decodeValue } from "@/app/utils/helpers";
 
 interface TravelRequestTableProps {
   data: Array<Record<string, any>>;
@@ -45,7 +46,7 @@ export default function TravelRequestTable({
       cell: (row: Record<string, any>) => (
         <span
           className="text-blue text-decoration-underline cursor-pointer"
-          onClick={() => console.log("View", row)}
+          onClick={() => handleOpenModal(row.no, 'View')}
         >
           {row.no}
         </span>
@@ -84,8 +85,8 @@ export default function TravelRequestTable({
           "Pending Approval": "fas fa-clock me-1",
         };
         return (
-          <span className={badgeMap[row.approvalStatus]}>
-            <i className={iconMap[row.approvalStatus]}/> {row.approvalStatus}
+          <span className={badgeMap[decodeValue(row.approvalStatus)]}>
+            <i className={iconMap[decodeValue(row.approvalStatus)]}/> {decodeValue(row.approvalStatus)}
           </span>
         );
       },

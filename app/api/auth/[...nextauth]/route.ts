@@ -91,7 +91,7 @@ const handler = NextAuth({
             company: process.env.BC_COMPANY_NAME,
           })) as Record<string, any>;
 
-          const userProfile = response?.value?.[0];
+          const userProfile = response?.value?.at(0);
           token.profile = isValidProfile(userProfile) ? userProfile : null;
 
           if (!token.profile) {

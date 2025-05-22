@@ -1,21 +1,32 @@
-import { useMySetups } from "@/app/context/SetupContext";
-import { Advance } from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "@/app/types/advance";
 import { formatDateToLcateDateString } from "@/app/utils/dateFormats";
 import { findObjectFromArray } from "@/app/utils/helpers";
 
-const getTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-        Advance: "fa-solid fa-money-bill",
-        Travel: "fa-solid fa-plane",
-        Operational: "fa-solid fa-gear",
-    };
-    return icons[type] || "fa-solid fa-file-alt";
-};
+export const GetColumnByType = (
+    type: string,
+    cb: (data: Advance | null, ...args: any) => void,
+    options?: {
+        currentTab?: string;
+        currencies?: Record<string, any>[];
+        imprestTypes?: Record<string, any>[];
+        getTypeIcon?: (type: string, ...args: any) => ''
+    }
+) => {
+    const isReleasedTab = options?.currentTab === "released";
+    const { currencies, imprestTypes } = options;
 
-export const getColumnByType = (type: string, cb: (data: Advance | null) => void) => {
-    const { currencies } = useMySetups();
-    const columns = {
-        salaryAdvance: [
+    const issuedStatus = [
+        'Issued',
+        'Accounted',
+        'Settled',
+        'Posted',
+        'Pending Liquidation',
+        'Rejected',
+        'Liquidation Rejected',
+        'Reversed'
+    ];
+    const columns: Record<AdvanceTypeKey, any> = {
+        Salary: [
             {
                 name: "Advance No",
                 sortable: true,
@@ -30,17 +41,18 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
             },
             {
                 name: "Type",
-                selector: (row: Advance) => row.advanceType,
+                selector: (row: Advance) => row.advanceType || row.imprestType || "Unknown",
                 sortable: true,
-                cell: (row: Advance) => (
+                cell: () => (
                     <div className="d-flex align-items-center gap-2">
                         <div
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                            <i className={`${options.getTypeIcon(type)} text-primary`} />
                         </div>
-                        <span>{row.advanceType}</span>
+
+                        <span>{type}</span>
                     </div>
                 ),
             },
@@ -123,7 +135,7 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                 ignoreRowClick: true,
             },
         ],
-        otherAdvances: [
+        Other: [
             {
                 name: "Advance No",
                 sortable: true,
@@ -146,9 +158,9 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                             className="bg-primary-subtle rounded d-flex justify-content-center align-items-center"
                             style={{ width: 32, height: 32 }}
                         >
-                            <i className={`${getTypeIcon(row.advanceType)} text-primary`} />
+                            <i className={`${options.getTypeIcon(type, row.imprestType)} text-primary`} />
                         </div>
-                        <span>{row.advanceType}</span>
+                        <span>{findObjectFromArray(imprestTypes, 'code', row.imprestType)?.description as string}</span>
                     </div>
                 ),
             },
@@ -187,17 +199,17 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                 sortable: true,
             },
             {
-                name: "Released",
-                selector: (row: Advance) => (row.imprestStatus === 'Issued' ? "Yes" : "No"),
+                name: "Issued",
+                selector: (row: Advance) => (issuedStatus.includes(row.imprestStatus) ? "Yes" : "No"),
                 sortable: true,
                 cell: (row: Advance) => (
                     <span
-                        className={`badge ${row.imprestStatus === 'Issued'
+                        className={`badge ${issuedStatus.includes(row.imprestStatus)
                             ? "bg-success-subtle text-success"
                             : "bg-secondary-subtle text-muted"
                             }`}
                     >
-                        {row.imprestStatus === 'Issued' ? "Yes" : "No"}
+                        {issuedStatus.includes(row.imprestStatus) ? "Yes" : "No"}
                     </span>
                 ),
             },
@@ -214,6 +226,18 @@ export const getColumnByType = (type: string, cb: (data: Advance | null) => void
                                 <i className="las la-pen fs-18" />
                             </button>
                         )}
+
+                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && isReleasedTab && (
+                            <button
+                                key="settle"
+                                className="text-danger border-0 bg-transparent"
+                                onClick={() => cb(row, 'isSettlement')}
+                                title="Settle"
+                            >
+                                <i className="las la-wallet fs-18" /> Settle
+                            </button>
+                        )}
+
                         <button
                             className="text-success border-0 bg-transparent"
                             onClick={() => cb(row)}
