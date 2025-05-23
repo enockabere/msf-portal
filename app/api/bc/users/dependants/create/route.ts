@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Failed to create profile dependent",
+          message: "Failed to create profile dependant",
           rawResponse: response,
         },
         { status: 400 }
@@ -39,11 +39,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Dependent created successfully",
+      message: "Dependant created successfully",
       data: response,
     });
   } catch (error: any) {
-    console.error("❌ Unexpected error while creating dependent:", error);
+    console.error("❌ Unexpected error while creating dependant:", error);
     return NextResponse.json(
       {
         success: false,

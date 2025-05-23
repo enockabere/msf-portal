@@ -10,6 +10,7 @@ import {
   MapPin,
   Globe,
 } from "lucide-react";
+import { formatDate } from "@/app/utils/dateFormats";
 
 export default function PersonalInfoCard() {
   const { data: session } = useSession();
@@ -26,7 +27,7 @@ export default function PersonalInfoCard() {
             {profile?.dateOfBirth && profile.dateOfBirth !== "N/A" && (
               <li className="mt-2">
                 <Cake className="me-2 text-secondary" size={20} />
-                <b>Birth Date</b> : {profile.dateOfBirth}
+                <b>Birth Date</b> : {formatDate(profile.dateOfBirth) || 'N/A'}
               </li>
             )}
             {profile?.type && (
