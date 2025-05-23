@@ -56,6 +56,7 @@ export const endpointMap = {
   travellers: "/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",
   profileTitles: "/api/kinetics/enigma/v1.0/profileTitles",
+  travelAttachments: "/api/kinetics/adminTravel/v1.0/attachments",
   visaApplications: "/api/kinetics/adminTravel/v1.0/visaApplications",
   visaApplicationLines: "/api/kinetics/adminTravel/v1.0/visaApplicationLines",
   travelRequestProviders: "/api/kinetics/adminTravel/v1.0/travelRequestProviders",

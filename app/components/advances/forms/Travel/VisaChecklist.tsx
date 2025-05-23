@@ -17,6 +17,8 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
             }
         })
 
+        console.log('getVisaChecklist', res)
+
         setVisaChecklist(res?.value || [])
     }, [travelInfo]); // Only re-create when this value changes
 
@@ -53,6 +55,7 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
                                     <tr>
                                         <th>Item - Description</th>
                                         <th>Expiry Date</th>
+                                        <th>Attachment</th>
                                         <th>Verify</th>
                                         <th>Action</th>
                                     </tr>
