@@ -63,7 +63,7 @@ export default function SalaryAdvanceForm({
   advance = null,
   isViewMode = false,
   onSuccess,
-  setSelectedRowHandler
+  setSelectedRowHandler,
 }: SalaryAdvanceFormProps) {
   const advanceNo = advance?.no;
   const advanceBankCode = advance?.bankCode;
@@ -103,6 +103,7 @@ export default function SalaryAdvanceForm({
 
   const { data: session } = useSession();
   const employeeNo = session?.user?.profile?.no;
+  const advanceStatus = advance?.status || "Open";
 
   const {
     currencies,
@@ -154,7 +155,7 @@ export default function SalaryAdvanceForm({
               },
             },
           } as any,
-        ]).then(() => { });
+        ]).then(() => {});
       } finally {
         setIsLoading(false);
       }
@@ -471,14 +472,14 @@ export default function SalaryAdvanceForm({
               approvalJson?.error?.details?.[0]?.message ||
               "Approval failed.";
             Swal.fire("Warning", approvalError, "warning");
-            onSuccess?.(advance?.status || 'Open');
+            onSuccess?.(advanceStatus);
           } else {
             Swal.fire(
               "Success",
               "Advance submitted for approval successfully.",
               "success"
             );
-            onSuccess?.(advance?.status || 'Open');
+            onSuccess?.(advanceStatus);
           }
         } catch (approvalError: any) {
           Swal.fire(
@@ -486,7 +487,7 @@ export default function SalaryAdvanceForm({
             approvalError.message || "Saved but failed to submit for approval.",
             "warning"
           );
-          onSuccess?.(advance?.status || 'Open');
+          onSuccess?.(advanceStatus);
         }
       } catch (error: any) {
         let message = "An unexpected error occurred.";
@@ -530,7 +531,7 @@ export default function SalaryAdvanceForm({
       swiftCode,
       advanceApplicationDate,
       setSelectedRowHandler,
-      advance?.status
+      advanceStatus,
     ]
   );
 
@@ -557,7 +558,10 @@ export default function SalaryAdvanceForm({
           </>
         ) : (
           <>
-            <SalaryAdvanceHeader advanceNo={advanceNo} status={advance?.status} />
+            <SalaryAdvanceHeader
+              advanceNo={advanceNo}
+              status={advance?.status}
+            />
             <SalaryAdvanceFields
               advanceAmount={advanceAmount}
               setAdvanceAmount={setAdvanceAmount}

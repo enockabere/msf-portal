@@ -52,11 +52,13 @@ export const ProfileHeader = ({
           {firstName} {middleName} {lastName}
         </h1>
         <p className="text-red-100 mt-1">{title}</p>
-        <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-          <span className="flex items-center text-xs bg-white/10 px-2 py-0.5 rounded-full">
-            <MapPin size={12} className="mr-1" /> {city}
-          </span>
-        </div>
+        {city && (
+          <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
+            <span className="flex items-center text-xs bg-white/10 px-2 py-0.5 rounded-full">
+              <MapPin size={12} className="mr-1" /> {city}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   </div>

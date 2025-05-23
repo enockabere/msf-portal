@@ -65,7 +65,9 @@ export default function LandingPage() {
   const handleSSORedirect = async () => {
     sessionStorage.setItem("loginAttempt", "true");
     setIsLoggingIn(true);
-    await signIn("azure-ad");
+    await signIn("azure-ad", {
+      callbackUrl: "/dashboard",
+    });
   };
 
   if (status === "loading") {

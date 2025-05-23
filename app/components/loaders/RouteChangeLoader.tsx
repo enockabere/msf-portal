@@ -9,11 +9,20 @@ export default function RouteChangeLoader() {
   const { hideLoader } = usePageLoader();
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      hideLoader();
-    }, 300); // wait for route to mount and content to render
+    let raf: number;
 
-    return () => clearTimeout(timeout);
+    const onFrame = () => {
+      raf = window.requestAnimationFrame(() => {
+        setTimeout(() => {
+          hideLoader();
+        }, 1000);
+      });
+    };
+    onFrame();
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [pathname, hideLoader]);
 
   return null;

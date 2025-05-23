@@ -22,19 +22,14 @@ export default function ProfileTabs({
   setDependents: React.Dispatch<React.SetStateAction<Dependent[]>>;
 }) {
   const { data: session } = useSession();
-  const profileType = session?.user?.profile?.type || "";
 
   const availableTabs = useMemo(() => {
-    const baseTabs = [{ id: "profile-settings", label: "Profile Settings" }];
-
-    if (profileType === "Visitor") {
-      baseTabs.push({ id: "dependents", label: "Dependants" });
-    }
-
-    baseTabs.push({ id: "gallery", label: "Gallery" }); // Gallery now last
-
-    return baseTabs;
-  }, [profileType]);
+    return [
+      { id: "profile-settings", label: "Profile Settings" },
+      { id: "dependents", label: "Dependents" }, // Always include this tab
+      { id: "gallery", label: "Gallery" },
+    ];
+  }, []);
 
   const [activeTab, setActiveTab] = useState("profile-settings");
 
@@ -63,7 +58,7 @@ export default function ProfileTabs({
           </div>
         )}
 
-        {activeTab === "dependents" && profileType === "Visitor" && (
+        {activeTab === "dependents" && (
           <div className="tab-pane fade show active">
             <DependentsTab
               dependents={dependents}

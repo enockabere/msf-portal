@@ -12,7 +12,11 @@ export default function SidebarMenu() {
   const { showLoader } = usePageLoader();
   const [isNavigating, setIsNavigating] = useState(false);
   const [approvalCount, setApprovalCount] = useState(0);
-  const { data: employee } = useSession();
+  const { data: session, status } = useSession();
+
+  const profile = session?.user?.profile;
+  const isVisitor = profile?.type === "Visitor";
+  const isEmployee = profile?.type === "Employee";
 
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -21,19 +25,26 @@ export default function SidebarMenu() {
       showLoader();
       startTransition(() => {
         router.push(href);
-        setIsNavigating(false); // resets after render
+        setIsNavigating(false);
       });
     }
   };
 
+  const isGroupActive = (prefix: string) =>
+    !isNavigating &&
+    currentPath.startsWith(prefix) &&
+    currentPath !== "/dashboard";
+
   useEffect(() => {
+    if (!profile?.no || isVisitor) return;
+
     const fetchApprovalCount = async () => {
       try {
         const res = await getResource("approvalEntries", {
           params: {
             filters: {
               status: "Open",
-              approverID: employee?.user?.profile?.no,
+              approverID: profile.no,
             },
             $count: true,
           },
@@ -46,11 +57,14 @@ export default function SidebarMenu() {
     };
 
     fetchApprovalCount();
-  }, [employee?.user?.profile?.no]);
+  }, [profile?.no, isVisitor]);
+
+  // Prevent flicker
+  if (status === "loading") return null;
 
   return (
     <ul className="navbar-nav mb-auto w-100">
-      {/* Main Menu Label */}
+      {/* Main Menu */}
       <li className="menu-label pt-0 mt-0">
         <small className="label-border">
           <div className="border_left hidden-xs"></div>
@@ -58,6 +72,8 @@ export default function SidebarMenu() {
         </small>
         <span>Main Menu</span>
       </li>
+
+      {/* Dashboard - always visible */}
       <li className="nav-item">
         <a
           href="/dashboard"
@@ -69,196 +85,230 @@ export default function SidebarMenu() {
         </a>
       </li>
 
-      <li className="nav-item">
-        <a
-          className={`nav-link ${
-            currentPath.startsWith("/dashboard/make-request") ? "active" : ""
-          }`}
-          href="#sidebarMyRequests"
-          data-bs-toggle="collapse"
-          aria-expanded={currentPath.startsWith("/dashboard/make-request")}
-          aria-controls="sidebarMyRequests"
-        >
-          <i className="iconoir-shopping-bag menu-icon"></i>
-          <span>My Requests</span>
-        </a>
-        <div
-          className={`collapse ${
-            currentPath.startsWith("/dashboard/make-request") ? "show" : ""
-          }`}
-          id="sidebarMyRequests"
-        >
-          <ul className="nav flex-column">
-            <li className="nav-item">
-              <a
-                href="/dashboard/make-request"
-                className={`nav-link ${
-                  currentPath === "/dashboard/make-request" ? "active" : ""
-                }`}
-                onClick={(e) => handleNav(e, "/dashboard/make-request")}
-              >
-                Request Dashboard
-              </a>
-            </li>
-          </ul>
-        </div>
-      </li>
-
-      {/* <li className="nav-item">
-        <a
-          className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
-          href="#sidebarHRServices"
-          data-bs-toggle="collapse"
-          aria-expanded={isGroupActive("/hr")}
-          aria-controls="sidebarHRServices"
-        >
-          <i className="iconoir-user menu-icon"></i>
-          <span>HR Services</span>
-        </a>
-        <div
-          className={`collapse ${isGroupActive("/hr") ? "show" : ""}`}
-          id="sidebarHRServices"
-        >
-          <ul className="nav flex-column">
-            <li className="nav-item">
-              <span className="nav-link">
-                Recruitment <span className="badge bg-warning ms-2">Soon</span>
-              </span>
-            </li>
-            <li className="nav-item">
-              <span className="nav-link">
-                Employee Services{" "}
-                <span className="badge bg-warning ms-2">Soon</span>
-              </span>
-            </li>
-            <li className="nav-item">
-              <span className="nav-link">
-                Performance Management{" "}
-                <span className="badge bg-warning ms-2">Soon</span>
-              </span>
-            </li>
-          </ul>
-        </div>
-      </li> */}
-
-      {/* <li className="nav-item">
-        <a
-          className={`nav-link ${
-            isGroupActive("/procurement") ? "active" : ""
-          }`}
-          href="#sidebarProcFinance"
-          data-bs-toggle="collapse"
-          role="button"
-          aria-expanded={isGroupActive("/procurement")}
-          aria-controls="sidebarProcFinance"
-        >
-          <i className="iconoir-wallet menu-icon"></i>
-          <span>Procurement & Finance</span>
-        </a>
-        <div
-          className={`collapse ${isGroupActive("/procurement") ? "show" : ""}`}
-          id="sidebarProcFinance"
-        >
-          <ul className="nav flex-column">
-            {[
-              "Requisitions",
-              "Procurement Plan",
-              "RFQs and Quotes",
-              "Contracts",
-              "Tendering",
-              "Vendor Evaluation",
-            ].map((text, index) => (
-              <li className="nav-item" key={index}>
-                <a className="nav-link" href="#">
-                  {text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </li> */}
-
-      {/* Static Links */}
-      {[
-        { label: "Planning & Budgeting", icon: "page", link: "#" },
-        {
-          label: "Admin & Travel",
-          icon: "airplane",
-          soon: true,
-          link: "#",
-        },
-        {
-          label: "IT & Facilities",
-          icon: "server-connection",
-          soon: true,
-          link: "#",
-        },
-        {
-          label: "Learning & Development",
-          icon: "graduation-cap",
-          link: "#",
-        },
-        {
-          label: "Approvals & Reviews",
-          icon: "check-circle",
-          link: "/dashboard/approvals",
-          badge: approvalCount,
-          badgeClass: "bg-danger",
-        },
-        {
-          label: "Reports & Insights",
-          icon: "doc-star",
-          soon: true,
-          link: "#",
-        },
-        { label: "Social Center", icon: "chat-bubble", soon: true, link: "#" },
-      ].map(({ label, icon, soon, link, badge, badgeClass }) => (
-        <li className="nav-item" key={label}>
-          <a className="nav-link" href={link}>
-            <i className={`iconoir-${icon} menu-icon`}></i>
-            <span>
-              {label}
-              {soon && <span className="badge bg-warning ms-2">Soon</span>}
-              {badge >= 0 && (
-                <span
-                  className={`badge ${badgeClass} text-white rounded-pill ms-2`}
-                >
-                  {badge}
-                </span>
-              )}
-            </span>
-          </a>
-        </li>
-      ))}
-
-      {/* Help & Support */}
-      <li className="menu-label mt-2">
-        <small className="label-border">
-          <div className="border_left hidden-xs"></div>
-          <div className="border_right"></div>
-        </small>
-        <span>
-          Help & Support <span className="badge bg-warning ms-2">Soon</span>
-        </span>
-      </li>
-      {["FAQs", "Submit a Ticket", "Contact IT/Admin/HR", "Documentation"].map(
-        (label, index) => (
-          <li className="nav-item" key={index}>
-            <a className="nav-link" href="#">
-              <i
-                className={`iconoir-${
-                  ["archive", "submit-document", "headset-help", "book"][index]
-                } menu-icon`}
-              ></i>
-              <span>
-                {label} <span className="badge bg-warning ms-2">Soon</span>
-              </span>
+      {/* Visitor view only */}
+      {isVisitor && (
+        <>
+          <li className="nav-item">
+            <a
+              href="/dashboard/make-request/travel"
+              className={`nav-link ${
+                currentPath === "/dashboard/make-request/travel" ? "active" : ""
+              }`}
+              onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
+            >
+              <i className="iconoir-airplane menu-icon"></i>
+              <span>Travel Request</span>
             </a>
           </li>
-        )
+        </>
       )}
 
-      {/* Logout */}
+      {/* Employee view only */}
+      {isEmployee && (
+        <>
+          {/* My Requests */}
+          <li className="nav-item">
+            <a
+              className={`nav-link ${
+                currentPath.startsWith("/dashboard/make-request")
+                  ? "active"
+                  : ""
+              }`}
+              href="#sidebarMyRequests"
+              data-bs-toggle="collapse"
+              aria-expanded={currentPath.startsWith("/dashboard/make-request")}
+              aria-controls="sidebarMyRequests"
+            >
+              <i className="iconoir-shopping-bag menu-icon"></i>
+              <span>My Requests</span>
+            </a>
+            <div
+              className={`collapse ${
+                currentPath.startsWith("/dashboard/make-request") ? "show" : ""
+              }`}
+              id="sidebarMyRequests"
+            >
+              <ul className="nav flex-column">
+                <li className="nav-item">
+                  <a
+                    href="/dashboard/make-request"
+                    className={`nav-link ${
+                      currentPath === "/dashboard/make-request" ? "active" : ""
+                    }`}
+                    onClick={(e) => handleNav(e, "/dashboard/make-request")}
+                  >
+                    Request Dashboard
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          {/* HR Services */}
+          <li className="nav-item">
+            <a
+              className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
+              href="#sidebarHRServices"
+              data-bs-toggle="collapse"
+              aria-expanded={isGroupActive("/hr")}
+              aria-controls="sidebarHRServices"
+            >
+              <i className="iconoir-user menu-icon"></i>
+              <span>HR Services</span>
+            </a>
+            <div
+              className={`collapse ${isGroupActive("/hr") ? "show" : ""}`}
+              id="sidebarHRServices"
+            >
+              <ul className="nav flex-column">
+                {[
+                  "Recruitment",
+                  "Employee Services",
+                  "Performance Management",
+                ].map((item) => (
+                  <li className="nav-item" key={item}>
+                    <span className="nav-link">
+                      {item} <span className="badge bg-warning ms-2">Soon</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+
+          {/* Procurement & Finance */}
+          <li className="nav-item">
+            <a
+              className={`nav-link ${
+                isGroupActive("/procurement") ? "active" : ""
+              }`}
+              href="#sidebarProcFinance"
+              data-bs-toggle="collapse"
+              role="button"
+              aria-expanded={isGroupActive("/procurement")}
+              aria-controls="sidebarProcFinance"
+            >
+              <i className="iconoir-wallet menu-icon"></i>
+              <span>Procurement & Finance</span>
+            </a>
+            <div
+              className={`collapse ${
+                isGroupActive("/procurement") ? "show" : ""
+              }`}
+              id="sidebarProcFinance"
+            >
+              <ul className="nav flex-column">
+                {[
+                  "Requisitions",
+                  "Procurement Plan",
+                  "RFQs and Quotes",
+                  "Contracts",
+                  "Tendering",
+                  "Vendor Evaluation",
+                ].map((text, index) => (
+                  <li className="nav-item" key={index}>
+                    <a className="nav-link" href="#">
+                      {text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+
+          {/* Static Links */}
+          {[
+            { label: "Planning & Budgeting", icon: "page", link: "#" },
+            {
+              label: "Admin & Travel",
+              icon: "airplane",
+              soon: true,
+              link: "#",
+            },
+            {
+              label: "IT & Facilities",
+              icon: "server-connection",
+              soon: true,
+              link: "#",
+            },
+            {
+              label: "Learning & Development",
+              icon: "graduation-cap",
+              link: "#",
+            },
+            {
+              label: "Approvals & Reviews",
+              icon: "check-circle",
+              link: "/dashboard/approvals",
+              badge: approvalCount,
+              badgeClass: "bg-danger",
+            },
+            {
+              label: "Reports & Insights",
+              icon: "doc-star",
+              soon: true,
+              link: "#",
+            },
+            {
+              label: "Social Center",
+              icon: "chat-bubble",
+              soon: true,
+              link: "#",
+            },
+          ].map(({ label, icon, soon, link, badge, badgeClass }) => (
+            <li className="nav-item" key={label}>
+              <a className="nav-link" href={link}>
+                <i className={`iconoir-${icon} menu-icon`}></i>
+                <span>
+                  {label}
+                  {soon && <span className="badge bg-warning ms-2">Soon</span>}
+                  {badge >= 0 && (
+                    <span
+                      className={`badge ${badgeClass} text-white rounded-pill ms-2`}
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </span>
+              </a>
+            </li>
+          ))}
+
+          {/* Help & Support */}
+          <li className="menu-label mt-2">
+            <small className="label-border">
+              <div className="border_left hidden-xs"></div>
+              <div className="border_right"></div>
+            </small>
+            <span>
+              Help & Support <span className="badge bg-warning ms-2">Soon</span>
+            </span>
+          </li>
+          {[
+            "FAQs",
+            "Submit a Ticket",
+            "Contact IT/Admin/HR",
+            "Documentation",
+          ].map((label, index) => (
+            <li className="nav-item" key={index}>
+              <a className="nav-link" href="#">
+                <i
+                  className={`iconoir-${
+                    ["archive", "submit-document", "headset-help", "book"][
+                      index
+                    ]
+                  } menu-icon`}
+                ></i>
+                <span>
+                  {label} <span className="badge bg-warning ms-2">Soon</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </>
+      )}
+
+      {/* Logout - always visible */}
       <li className="nav-item">
         <a
           href="#"
