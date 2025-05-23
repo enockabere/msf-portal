@@ -14,11 +14,12 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
-import { Advance } from "@/app/types/advance";
+import { Advance, FormData } from "@/app/types/advance";
 import { getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
+import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -37,7 +38,7 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
-  const { formData, actions, advanceCounts } = useAdvance();
+  const { formData, actions, advanceCounts, showAdvannceSettlementForm } = useAdvance();
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
   const fetchAdvances = useCallback(async () => {
@@ -69,8 +70,48 @@ export default function OtherAdvancesClient() {
     localStorage.setItem("advancePlacement", newPlacement);
   };
 
+
+  const handleSettlementClosing = () => {
+    dispatcher({
+      type: 'SET_SETTLEMENT_MODAL',
+      payload: false,
+    });
+    dispatcher({
+      type: 'OPEN_EXISTING_ADVANCE',
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    });
+    dispatcher({
+      type: 'SET_EXISTING_ADVANCE_LINES',
+      payload: [],
+    });
+    dispatcher({
+      type: 'ADVANCE_CREATION_STATUSES',
+      payload: { isNew: false, isEditing: false, setForView: false },
+    });
+
+  }
+
   const handleNewRequestClick = async () => {
     await handleFetchingSetup();
+    await fetchLineSetup();
     dispatcher({
       type: 'ADVANCE_CREATION_STATUSES',
       payload: { isNew: true, isEditing: false, setForView: false },
@@ -144,9 +185,10 @@ export default function OtherAdvancesClient() {
     },
   ];
 
-  const handleSetSelectedRow = (advance: Advance | null = null) => {
+  const handleSetSelectedRow = async (advance: FormData | null = null, ...args: any) => {
     if (advance) {
-      handleFetchingSetup();
+      await handleFetchingSetup();
+      await fetchLineSetup();
       dispatcher({
         type: 'OPEN_EXISTING_ADVANCE',
         payload: advance,
@@ -155,8 +197,17 @@ export default function OtherAdvancesClient() {
         type: 'ADVANCE_CREATION_STATUSES',
         payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
       });
-
-      setShowModal(true);
+      if (args.length && args[0].length) {
+        const [isSettlement] = args[0];
+        if (isSettlement) {
+          dispatcher({
+            type: 'SET_SETTLEMENT_MODAL',
+            payload: true,
+          })
+        }
+      } else {
+        setShowModal(true);
+      }
     } else {
       setShowModal(false);
       dispatcher({
@@ -247,7 +298,7 @@ export default function OtherAdvancesClient() {
       fetchAdvanceLines(),
     ]);
     return () => abortController.abort('Duplicate request');
-  }, [showModal, formData]);
+  }, [showModal, formData, dispatcher, fetchLineSetup]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -268,79 +319,90 @@ export default function OtherAdvancesClient() {
   );
 
   return (
-    <div className="page-content dashboard-container p-3">
-      {(placement === "top" || placement === "bottom") && (
-        <div className="row gx-1 mb-2">
-          <div className="col-12">{renderSummary()}</div>
+    <>
+      <div className="page-content dashboard-container p-3">
+        {(placement === "top" || placement === "bottom") && (
+          <div className="row gx-1 mb-2">
+            <div className="col-12">{renderSummary()}</div>
+          </div>
+        )}
+
+        <div className="row gx-1">
+          {placement === "left" && (
+            <>
+              <div className="col-lg-3">{renderSummary()}</div>
+              <div className="col-lg-9">
+                <div className="card h-100 p-2">
+                  <ReusableSalaryAdvanceTabs
+                    key={activeStatusTab}
+                    data={advanceData}
+                    loading={loading}
+                    initialTab={activeStatusTab}
+                    refetch={fetchAdvances}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {placement === "right" && (
+            <>
+              <div className="col-lg-9">
+                <div className="card h-100 p-2">
+                  <ReusableSalaryAdvanceTabs
+                    key={activeStatusTab}
+                    data={advanceData}
+                    loading={loading}
+                    initialTab={activeStatusTab}
+                    refetch={fetchAdvances}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                  />
+                </div>
+              </div>
+              <div className="col-lg-3">{renderSummary()}</div>
+            </>
+          )}
+
+          {placement === "top" || placement === "bottom" ? (
+            <div className="col-12">
+              <div className="card h-100 p-2">
+                <ReusableSalaryAdvanceTabs
+                  key={activeStatusTab}
+                  data={advanceData}
+                  loading={loading}
+                  initialTab={activeStatusTab}
+                  refetch={fetchAdvances}
+                  setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
-      )}
 
-      <div className="row gx-1">
-        {placement === "left" && (
-          <>
-            <div className="col-lg-3">{renderSummary()}</div>
-            <div className="col-lg-9">
-              <div className="card h-100 p-2">
-                <ReusableSalaryAdvanceTabs
-                  key={activeStatusTab}
-                  data={advanceData}
-                  loading={loading}
-                  initialTab={activeStatusTab}
-                  refetch={fetchAdvances}
-                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
-                />
-              </div>
-            </div>
-          </>
-        )}
-
-        {placement === "right" && (
-          <>
-            <div className="col-lg-9">
-              <div className="card h-100 p-2">
-                <ReusableSalaryAdvanceTabs
-                  key={activeStatusTab}
-                  data={advanceData}
-                  loading={loading}
-                  initialTab={activeStatusTab}
-                  refetch={fetchAdvances}
-                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
-                />
-              </div>
-            </div>
-            <div className="col-lg-3">{renderSummary()}</div>
-          </>
-        )}
-
-        {placement === "top" || placement === "bottom" ? (
-          <div className="col-12">
-            <div className="card h-100 p-2">
-              <ReusableSalaryAdvanceTabs
-                key={activeStatusTab}
-                data={advanceData}
-                loading={loading}
-                initialTab={activeStatusTab}
-                refetch={fetchAdvances}
-                setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
-              />
+        <CustomModal
+          show={showModal}
+          onClose={handleCloseModal}
+          title="Request Advance"
+          size="xl"
+          titleIcon={<Wallet size={18} className="text-white" />}
+        >
+          <div className="row">
+            <div className="col-md-12">
+              <OperationalAdvanceForm closeModalHandler={handleCloseModal} openSettlmentModalFactory={handleSetSelectedRow} />
             </div>
           </div>
-        ) : null}
+        </CustomModal>
       </div>
-
       <CustomModal
-        show={showModal}
-        onClose={handleCloseModal}
-        title="Request Advance"
+        show={showAdvannceSettlementForm}
+        onClose={handleSettlementClosing}
+        title="Settle Advance"
+        titleIcon={<i className="las la-wallet fs-18" />}
         size="xl"
-        titleIcon={<Wallet size={18} className="text-white" />}
       >
-        <div className="row">
-          <div className="col-md-12">
-            <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
-          </div>
-        </div>
+        <AdvanceSettlement closeSettlementDialog={handleSettlementClosing} />
       </CustomModal>
-    </div>
+    </>
   );
 }

@@ -61,7 +61,7 @@ export default function DashboardProfile() {
                   {isLoading ? (
                     <Skeleton width={140} />
                   ) : (
-                    session?.user?.profile?.title || ''
+                    session?.user?.profile?.type || ''
                   )}
                 </p>
               </div>
@@ -115,18 +115,18 @@ export default function DashboardProfile() {
 
           <div className="text-body mb-2 d-flex align-items-center">
             <TypeIcon size={20} className="me-2 text-muted" />
-            <span className="fw-semibold me-1">Type:</span>
+            <span className="fw-semibold me-1">Origin:</span>
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
-              session?.user?.profile?.type || "N/A"
+              session?.user?.profile?.citizenNonCitizen || "N/A"
             )}
           </div>
 
           <div className="text-body d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
-            {isLoading ? <Skeleton width={80} /> : session?.user?.profile?.gender || "N/A"}
+            {isLoading ? <Skeleton width={80} /> : session?.user?.profile?.genderOption || "N/A"}
           </div>
         </div>
       </div>

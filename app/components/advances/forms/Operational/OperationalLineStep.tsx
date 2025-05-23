@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Trash2, Plus, ArrowUp } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useMySetups } from "@/app/context/SetupContext";
 import { findObjectFromArray } from "@/app/utils/helpers";
-import CustomModal from "@/app/components/modals/CustomModal";
-import AdvanceSettlementForm from "../AdvanceSettlementForm";
 import { useAdvance } from "@/app/context/AdvanceContext";
 
 interface OperationalLineStepProps {
@@ -22,7 +20,6 @@ interface OperationalLineStepProps {
   onAddExpense: () => void;
   onCancel: () => void;
   currency: string;
-  advanceNo: string;
 }
 
 export default function OperationalLineStep({
@@ -33,16 +30,42 @@ export default function OperationalLineStep({
   onAddExpense,
   onCancel,
   currency,
-  advanceNo,
 }: OperationalLineStepProps) {
   const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
-  const { formData, isNew } = useAdvance();
+  const { formData, isNew, } = useAdvance();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
   const selectedCurrency = findObjectFromArray(currencies, "code", currency)
     ?.description as string;
-  const [showSettlementModal, setShowSettlementModal] = useState(false);
 
+  const creatLine = (status: string) => {
+    switch (status) {
+      case 'Open': {
+        return (
+          <button
+            type="button"
+            className="btn btn-success d-flex align-items-center gap-1"
+            onClick={onAddExpense}
+          >
+            <Plus size={16} />
+            Add Expense Line
+          </button >
+        )
+      }
+      case 'default': {
+        return (
+          <button
+            type="button"
+            className="btn btn-success d-flex align-items-center gap-1"
+            onClick={onAddExpense}
+          >
+            <Plus size={16} />
+            Add Expense Line
+          </button >
+        )
+      }
+    }
+  }
   const buttonSet = buttonsArray(
     isNew ? 'isNew'
       : formData?.imprestStatus === 'Issued' ? 'Issued'
@@ -57,14 +80,9 @@ export default function OperationalLineStep({
           style={{ background: "#f43434" }}
         >
           <h5 className="mb-0 text-dark">Step 2: Expense Details</h5>
-          <button
-            type="button"
-            className="btn btn-success d-flex align-items-center gap-1"
-            onClick={onAddExpense}
-          >
-            <Plus size={16} />
-            Add Expense Line
-          </button>
+          {
+            creatLine(formData?.status || 'default')
+          }
         </div>
         <div className="card-body">
           <table className="table table-bordered mb-0 align-middle">
@@ -217,48 +235,8 @@ export default function OperationalLineStep({
               )
             })
           }
-          {/* <button
-            type="button"
-            className="btn btn-outline-danger d-flex align-items-center gap-2 fw-semibold"
-            onClick={() => {
-              console.log("❌ Cancel Approval clicked");
-              // add your cancel approval logic here
-            }}
-          >
-            <XCircle size={16} />
-            Cancel Approval
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-success  d-flex align-items-center gap-2"
-            onClick={onSubmit}
-          >
-            <Check size={16} />
-            Submit Advance
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-outline-warning d-flex align-items-center gap-2"
-            onClick={() => {
-              setShowSettlementModal(true);
-            }}
-          >
-            <Undo2 size={16} />
-            Settle Advance
-          </button> */}
         </div>
       </div>
-      <CustomModal
-        show={showSettlementModal}
-        onClose={() => setShowSettlementModal(false)}
-        title="Settle Advance"
-        titleIcon={<i className="las la-wallet fs-18" />}
-        size="xl"
-      >
-        <AdvanceSettlementForm advanceNo={advanceNo} />
-      </CustomModal>
     </>
   );
 }

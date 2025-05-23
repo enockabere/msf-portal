@@ -90,6 +90,7 @@ const handler = NextAuth({
           })) as Record<string, any>;
 
           const userProfile = response?.value?.at(0);
+          console.log('user profile', userProfile)
           token.profile = isValidProfile(userProfile) ? userProfile : null;
         } catch (error: any) {
           console.error("Error fetching user profile:", error);

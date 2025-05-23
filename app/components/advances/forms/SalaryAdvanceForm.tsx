@@ -529,7 +529,8 @@ export default function SalaryAdvanceForm({
       payrollPeriods,
       swiftCode,
       advanceApplicationDate,
-      setSelectedRowHandler
+      setSelectedRowHandler,
+      advance?.status
     ]
   );
 

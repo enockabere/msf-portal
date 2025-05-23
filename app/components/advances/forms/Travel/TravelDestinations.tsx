@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import DataTable, { TableColumn } from "react-data-table-component";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
@@ -9,6 +8,7 @@ import { Destination } from "@/app/types/Destination";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { formatDate } from "@/app/utils/dateFormats";
+import SectionLoader from "@/app/components/loaders/SectionLoader";
 
 interface TravelDestinationsProps {
     travelRequestHeader: TravelRequest;
@@ -29,6 +29,8 @@ export default function TravelDestinations({
     const [originCities, setOriginCities] = useState([])
     const [destinationCities, setDestinationCities] = useState([])
     const [destinations, setDestinations] = useState<Destination[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDestinationChange = <K extends keyof Destination>(
         index: number,
@@ -66,16 +68,21 @@ export default function TravelDestinations({
         destination['documentNo'] = travelRequestHeader.no;
 
         try {
+            setIsSubmitting(true);
+
             const res = await createResource('travelRoutes', {
                 data: destination,
             });
 
             if (res.error) {
+                setIsSubmitting(false);
                 return Swal.fire('Error!', res.error.message)
             }
             removeDestination(index)
+            setIsSubmitting(false);
             onSubmit(travelRequestHeader.no);
         } catch (e) {
+            setIsSubmitting(false);
             Swal.fire('Error!', e.message)
         }
 
@@ -83,18 +90,22 @@ export default function TravelDestinations({
 
     const deleteDestination = async (row: Destination) => {
         try {
-            console.log(row)
+            setIsDeleting(true);
             const res = await deleteResource('travelRoutes', {
                 data: row,
                 primaryKey: ['documentType', 'documentNo', 'sequenceNo'],
             });
 
             if (res.error) {
+                setIsDeleting(false);
                 return Swal.fire('Error!', res.error.message)
             }
+
+            setIsDeleting(false);
             onSubmit(travelRequestHeader.no);
         } catch (e) {
-            Swal.fire('Error!', e.message)
+            setIsDeleting(false);
+            Swal.fire('Error!', e.message);
         }
     }
 
@@ -150,6 +161,9 @@ export default function TravelDestinations({
         return (
           <div className="row g-2 mb-2 pb-2 border-bottom m-1">
               <div className="col-4">
+                  <label className="form-label">
+                      Origin Country <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     value={destination.originCountryCode}
@@ -168,6 +182,9 @@ export default function TravelDestinations({
               </div>
 
               <div className="col-4">
+                  <label className="form-label">
+                      Origin City <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     value={destination.originCity}
@@ -183,6 +200,9 @@ export default function TravelDestinations({
               </div>
 
               <div className="col-4">
+                  <label className="form-label">
+                      Destination Country <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     value={destination.destinationCountryCode}
@@ -201,6 +221,9 @@ export default function TravelDestinations({
               </div>
 
               <div className="col-4">
+                  <label className="form-label">
+                      Destination City <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     value={destination.destinationCity}
@@ -216,6 +239,9 @@ export default function TravelDestinations({
               </div>
 
               <div className="col-4">
+                  <label className="form-label">
+                      Travel Date <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="date"
                     className="form-control"
@@ -225,12 +251,15 @@ export default function TravelDestinations({
               </div>
 
               <div className="col-4">
+                  <label className="form-label">
+                      Mode of Transport <span className="text-danger">*</span>
+                  </label>
                   <select
                     className="form-select"
                     value={destination.modeOfTransport}
                     onChange={(e) => handleDestinationChange(index, "modeOfTransport", e.target.value)}
                   >
-                      <option value="">-- Transport Mode --</option>
+                      <option value="">-- Select Mode --</option>
                       {modeOfTransport.map((mode) => (
                         <option key={mode.code} value={mode.code}>
                             {mode.description}
@@ -246,7 +275,10 @@ export default function TravelDestinations({
                     onClick={() => saveDestination(index)}
                     title="Save"
                   >
-                      <Save size={16} />
+                      {isSubmitting ?
+                        (<SectionLoader size={16} classes={'button-icon'}/>)
+                        : (<Save size={16} className="button-icon" />)}
+                      Save
                   </button>
                   <button
                     type="button"
@@ -254,52 +286,12 @@ export default function TravelDestinations({
                     onClick={() => removeDestination(index)}
                     title="Delete"
                   >
-                      <Trash2 size={16} />
+                      <Trash2 size={16} className="button-icon" />
+                      Drop
                   </button>
               </div>
           </div>
         );
-    }
-    const routesColumns: Array<Record<string, any>> = [
-        {
-            name: "From",
-            cell: (row: Destination) => (
-                <span>{`${row.originCountryCode} - ${row.originCity}`}</span>
-            ),
-        },
-        {
-            name: "To",
-            cell: (row: Destination) => (
-                <span>{`${row.destinationCountryCode} - ${row.destinationCity}`}</span>
-            ),
-        },
-        {
-            name: 'Travel Date',
-            selector: (row: Destination) => row.travelDate,
-            sortable: true,
-            cell: (row: Destination) => (
-                <span>{formatDate(row.travelDate)}</span>
-            ),
-        },
-    ];
-
-    if (!isReadOnly) {
-        routesColumns.push({
-            name: "Actions",
-            cell: (row: Destination) => (
-                <div className="d-flex gap-2">
-                    <button
-                        type="button"
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => deleteDestination(row)}
-                        title="Delete"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
-            ),
-            style: { minWidth: "100px" },
-        })
     }
 
     return (
@@ -324,46 +316,49 @@ export default function TravelDestinations({
               <TravelDestinationForm key={key} destination={destination} index={key}/>
             ))}
 
-            <DataTable
-              columns={routesColumns}
-              data={travelRequestHeader.travelRequestRoutes}
-              dense
-              responsive
-              highlightOnHover
-              persistTableHead
-              customStyles={{
-                  table: {
-                      style: {
-                          border: "1px solid #dee2e6", // outer border
-                      },
-                  },
-                  headRow: {
-                      style: {
-                          backgroundColor: "#f1f1f1", // light grey
-                          borderBottom: "1px solid #dee2e6",
-                      },
-                  },
-                  headCells: {
-                      style: {
-                          fontSize: "14px",
-                          paddingLeft: "12px",
-                          paddingRight: "12px",
-                          borderRight: "1px solid #dee2e6",
-                      },
-                  },
-                  rows: {
-                      style: {
-                          borderBottom: "1px solid #dee2e6",
-                      },
-                  },
-                  cells: {
-                      style: {
-                          padding: "6px 12px",
-                          borderRight: "1px solid #dee2e6",
-                      },
-                  },
-              }}
-            />
+            <table className="table table-bordered align-middle">
+                <thead className="table-light">
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Travel Date</th>
+                    {!isReadOnly && (
+                      <th className="text-center">Action</th>
+                    )}
+                </tr>
+                </thead>
+                <tbody>
+                {travelRequestHeader.travelRequestRoutes.length === 0 ? (
+                  <tr>
+                      <td colSpan={4} className="text-center text-muted">
+                          No destinations added so far.
+                      </td>
+                  </tr>
+                ) : (
+                  travelRequestHeader.travelRequestRoutes.map((route, key) => (
+                    <tr key={`${route.originCountryCode}-${key}`}>
+                        <td>{`${route.originCountryCode} - ${route.originCity}`}</td>
+                        <td>{`${route.destinationCountryCode} - ${route.destinationCity}`}</td>
+                        <td>{formatDate(route.travelDate)}</td>
+                        {!isReadOnly && (
+                          <td className="text-center">
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => deleteDestination(route)}
+                              >
+                                  {isDeleting ?
+                                    (<SectionLoader size={16} classes={'button-icon'}/>)
+                                    : (<Trash2 size={16} className="button-icon" />)}
+                                  Delete
+                              </button>
+                          </td>
+                        )}
+                    </tr>
+                  ))
+                )}
+                </tbody>
+            </table>
         </div>
     );
 }

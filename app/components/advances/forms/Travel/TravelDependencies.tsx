@@ -5,7 +5,8 @@ import Select from "react-select";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
-import { Loader, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import SectionLoader from "@/app/components/loaders/SectionLoader";
 interface TravelDependenciesProps {
   travelRequestHeader: TravelRequest;
   isReadOnly: boolean;
@@ -158,7 +159,7 @@ export default function TravelDependencies({
                         onClick={() => handleDelete(dep)}
                       >
                         {dependantNoBeingDeleted === dep.dependantNo
-                          ? <Loader size={16} className="button-icon blink-animation" />
+                          ? <SectionLoader size={16} classes={'button-icon'}/>
                           : <Trash2 size={16} className="button-icon" />}
                         Drop
                       </button>
