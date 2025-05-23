@@ -107,6 +107,11 @@ export async function apiFetch(
                 break;
             }
         }
+        if (response.error) {
+            if (response?.error?.message) {
+                response.error.message = response.error.message.split('CorrelationId')[0];
+            }
+        }
         return response;
     }
 }
