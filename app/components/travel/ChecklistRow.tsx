@@ -31,96 +31,61 @@ export default function ChecklistRow({ row, fetchChecklist }: {row: ChecklistIte
             reader.onerror = reject;
         });
 
-    const saveBase64File = async (base64Data: unknown, fileName: string) => {
-        // For example, send to backend
-        // console.log("Saving file:", fileName);
-        // console.log("Base64:", base64Data);
+    type Base64String = string | unknown | null;
+
+
+    const saveBase64File = async (
+        base64Data: Base64String,
+        fileName: string,
+    ) => {
+        if (!base64Data || typeof base64Data !== 'string') {
+            Swal.fire("Error", "Invalid base64 data.", "error");
+            return;
+        }
+
+        const base64Only = base64Data.split(',')[1];
         const currentDate = new Date().toISOString();
-        let base64Only: any;
-        base64Only = base64Data?.split(',')[1];
-
-        const getAttachment = await getResource('travelAttachments', {
-            params: {
-                filters: {
-                    // relatedRecordId: row.id,
-                    no: 'NRTR001',
-                    lineNo: 0,
-                },
-                "$select": "keyID"
-            }
-        })
-
-        console.log('getAttachment', getAttachment.value[0].keyID)
-        //
-        // if (getAttachment.value) {
-        //     const deleteAttachment = deleteResource('travelAttachments', {
-        //         data: {
-        //             keyID: getAttachment.value[0].keyID
-        //         },
-        //         primaryKey: ['keyID']
-        //     })
-        //
-        //     try {
-        //         const res = await createResource('travelAttachments', {
-        //             data: {
-        //                 relatedRecordId: row.id,
-        //                 no: row.documentNo,
-        //                 lineNo: row.lineNo,
-        //                 documentCode: "",
-        //                 attachment: base64Data,
-        //                 attachedDate: currentDate,
-        //             }
-        //         })
-        //
-        //
-        //         if (res.error) {
-        //             Swal.fire(
-        //                 "Error",
-        //                 res.error?.message || "Failed to cancel approval.",
-        //                 "error"
-        //             );
-        //         } else {
-        //             Swal.fire(
-        //                 "Success",
-        //                 "Cancelled approval successfully!",
-        //                 "success"
-        //             );
-        //         }
-        //     } catch (err) {
-        //         Swal.fire("Error", "Error uploading Attachment.", err.message);
-        //     }
-        // }
 
         try {
+            const getAttachment = await getResource('travelAttachments', {
+                params: {
+                    filters: {
+                        no: 'NRTR001',
+                        lineNo: 0,
+                    },
+                    "$select": "keyID"
+                }
+            });
+
+            if (getAttachment?.value?.length) {
+                await deleteResource('travelAttachments', {
+                    data: { keyID: getAttachment.value[0].keyID },
+                    primaryKey: ['keyID']
+                });
+            }
+
             const res = await createResource('travelAttachments', {
                 data: {
                     relatedRecordId: row.id,
-                    no: row.documentNo,
+                    no: row.documentNo	,
                     lineNo: row.lineNo,
                     documentCode: row.relatedDocumentCode,
                     attachment: base64Only,
                     attachedDate: currentDate,
                 }
-            })
-
+            });
 
             if (res.error) {
-                Swal.fire(
-                    "Error",
-                    res.error?.message || "Failed to cancel approval.",
-                    "error"
-                );
-            } else {
-                Swal.fire(
-                    "Success",
-                    "Cancelled approval successfully!",
-                    "success"
-                );
+                throw new Error(res.error.message);
             }
-        } catch (err) {
-            Swal.fire("Error", "Error uploading Attachment.", err.message);
+
+            Swal.fire("Success", "Attachment uploaded successfully!", "success");
+
+        } catch (err: any) {
+            Swal.fire("Error", "Error uploading Attachment.", err.message || "Unknown error");
         }
     };
+
 
     const handleSubmit = async () => {
         try {
