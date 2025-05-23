@@ -2,6 +2,7 @@
 
 import { Tabs, Tab } from "react-bootstrap";
 import TravelRequestTable from "../travel/TravelRequestTable";
+import RequisitionRequestsTable from "../requisitions/RequisitionRequestsTable";
 
 interface TabConfig {
   key: string;
@@ -11,12 +12,14 @@ interface TabConfig {
 
 interface ReusableTabbedAdvanceTableProps {
   tabs: TabConfig[];
-  profile: Record<string, any>;
+  profile?: Record<string, any>;
+  type: string;
 }
 
 export default function ReusableTabbedAdvanceTable({
   tabs,
-  profile
+  profile,
+  type
 }: ReusableTabbedAdvanceTableProps) {
   return (
     <div className="position-relative">
@@ -30,7 +33,8 @@ export default function ReusableTabbedAdvanceTable({
                 title={`${tab.label} (${tab.data.length})`}
               >
                 <div className="pt-3">
-                  <TravelRequestTable data={tab.data} loading={false} profile={profile} />
+                  {type === "travel" && (<TravelRequestTable data={tab.data} loading={false} profile={profile} />)}
+                  {type === "requisition" && (<RequisitionRequestsTable data={tab.data} loading={false} />)}
                 </div>
               </Tab>
             ))}

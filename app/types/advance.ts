@@ -1,9 +1,9 @@
-export type AdvanceType =
-  | "Salary"
-  | "Operational"
-  | "Settlement"
-  | "Travel"
-  | "Advance";
+// export type AdvanceType =
+//   | "Salary"
+//   | "Operational"
+//   | "Settlement"
+//   | "Travel"
+//   | "Advance";
 
 export interface Advance {
   disbursed?: any;
@@ -58,5 +58,22 @@ export interface FormData {
   swiftCode: string;
   phoneNo: string;
   accountName: string;
+  no?: string;
   [key: string]: any;
+}
+
+export type AdvanceTypeKey = "Salary" | "Other" | null;
+
+export interface AdvanceType {
+  title: string;
+  key: AdvanceTypeKey;
+  route?: string;
+  [key: string]: any;
+}
+
+export interface AdvanceCount {
+  open: number;
+  pending: number;
+  released: number;
+  total: number;
 }

@@ -10,14 +10,15 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         const res = await getResource('travellerChecklist', {
             params: {
                 filters: {
-                    documentNo: travelInfo.documentNo,
+                    documentNo: travelInfo.no,
                     documentType: travelInfo.documentType,
                     checklistType: "Visa",
                 }
             }
         })
 
-        console.log('getTravelChecklist', res?.value);
+        console.log('getVisaChecklist', res)
+
         setVisaChecklist(res?.value || [])
     }, [travelInfo]); // Only re-create when this value changes
 
@@ -39,31 +40,49 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
     return (
         <>
             <div className='row g-3'>
-                <div className={'col-12'}>
-                    {Object.entries(groupByTravellerName(visaChecklist)).map(([travellerName, items]) => (
-                        <div key={travellerName}>
-                            <div className="bg-danger p-2 rounded">
-                                <p className="text-white m-0"><strong>{travellerName}</strong></p>
+                <div className="col-12">
+                    {visaChecklist && Object.keys(groupByTravellerName(visaChecklist)).length > 0 ? (
+                        Object.entries(groupByTravellerName(visaChecklist)).map(([travellerName, items]) => (
+                            <div key={travellerName}>
+                                <div className="bg-danger p-2 rounded">
+                                    <p className="text-white m-0">
+                                        <strong>{travellerName}</strong>
+                                    </p>
+                                </div>
+
+                                <table className="table table-hover caption-top my-2 align-middle">
+                                    <thead className="table-light">
+                                    <tr>
+                                        <th>Item - Description</th>
+                                        <th>Expiry Date</th>
+                                        <th>Attachment</th>
+                                        <th>Verify</th>
+                                        <th>Action</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {Array.isArray(items) && items.length > 0 ? (
+                                        items.map((row) => (
+                                            <ChecklistRow
+                                                key={row.lineNo + row.checklistItem}
+                                                row={row}
+                                                fetchChecklist={getVisaChecklist}
+                                            />
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td className="text-center text-gray-500 py-4">
+                                                No items found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    </tbody>
+                                </table>
                             </div>
-
-                            <table className="table table-hover caption-top my-2 align-middle">
-                                <thead className="table-light">
-                                <tr>
-                                    <th>Item - Description</th>
-                                    <th>Expiry Date</th>
-                                    <th>Verify</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
-
-                                <tbody>
-                                {Array.isArray(items) && items.map((row) => (
-                                  <ChecklistRow key={row.lineNo + row.checklistItem} row={row} fetchChecklist={getVisaChecklist}/>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <div className="text-center text-gray-500 py-4">No visa checklist found.</div>
+                    )}
                 </div>
             </div>
         </>

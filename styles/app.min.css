@@ -1774,7 +1774,7 @@ html[data-startbar="dark"] .logo-dark {
   display: none;
 }
 .startbar-enable .startbar-overlay {
-  display: block;
+  /*display: block;*/
 }
 @media (max-width: 1199.98px) {
   [data-sidebar-size="default"] .startbar-overlay {
@@ -2284,6 +2284,17 @@ html[data-bs-theme="light"]
     opacity: 0;
   }
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 @media print {
   .page-wrapper .page-content {
     width: 100%;

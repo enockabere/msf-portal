@@ -91,7 +91,7 @@ const handler = NextAuth({
             company: process.env.BC_COMPANY_NAME,
           })) as Record<string, any>;
 
-          const userProfile = response?.value?.[0];
+          const userProfile = response?.value?.at(0);
           token.profile = isValidProfile(userProfile) ? userProfile : null;
 
           if (!token.profile) {
@@ -108,5 +108,4 @@ const handler = NextAuth({
   },
 } satisfies NextAuthOptions);
 
-export const authOptions = handler.authOptions;
 export { handler as GET, handler as POST };

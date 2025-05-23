@@ -8,20 +8,20 @@ import { getResource } from "@/app/lib/api/http";
 import { decodeValue } from "@/app/utils/helpers";
 
 const travelTypes = [
-  { code: "Local", description: "Local" },
-  { code: "International", description: "International" },
+  {code: "Local", description: "Local"},
+  {code: "International", description: "International"},
 ];
 
 const accommodationTypes = [
-  { code: "Self-Arranged", description: "Self Arranged" },
-  { code: "Full Board", description: "Full Board" },
-  { code: "Half Board", description: "Half Board" },
-  { code: "Bed & Breakfast", description: "Bed & Breakfast" },
+  {code: "Self-Arranged", description: "Self Arranged"},
+  {code: "Full Board", description: "Full Board"},
+  {code: "Half Board", description: "Half Board"},
+  {code: "Bed & Breakfast", description: "Bed & Breakfast"},
 ];
 
 const yesNoOptions = [
-  { code: 'true', description: 'Yes' },
-  { code: 'false', description: 'No' },
+  {code: 'true', description: 'Yes'},
+  {code: 'false', description: 'No'},
 ];
 
 interface Props {
@@ -31,7 +31,7 @@ interface Props {
   onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({ formData, requiredFields, isReadOnly, onFormChange }: Props) {
+export default function TravelHeaderForm({formData, requiredFields, isReadOnly, onFormChange}: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
@@ -51,12 +51,12 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
           'perDiemAllotments',
           {
             dimensions: {
-              filters: { dimensionCode: 'OC' }
+              filters: {dimensionCode: 'OC'}
             },
           },
         ]);
-      } finally {
-        //
+      } catch (error: any) {
+        console.log('Error! ', error);
       }
     };
 
@@ -64,15 +64,13 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
   }, [fetchSetups]);
 
   const [originCities, setOriginCities] = useState([])
-  const [destinationCities, setDestinationCities] = useState([])
-  const [canSetRequiresPerDiem, setCanSetRequiresPerDiem] = useState(false)
   const requiresPerDiemChecker = (accommodationType: string) => {
     const allotment = perDiemAllotments.find((item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType)
     if (!allotment) return false
     return allotment.perDiemAllocated > 0
   }
 
-  const fetchCities = async (countryCode, countryField) => {
+  const fetchCities = async (countryCode: string) => {
     try {
       if (countryCode) {
         const res = await getResource('cities', {
@@ -87,29 +85,47 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
           console.log('Error!', res.error)
         }
 
-        if (countryField === 'originCountryCode') {
-          setOriginCities([...res.value])
-        } else if (countryField === 'destinationCountryCode') {
-          setDestinationCities([...res.value])
-        }
+        setOriginCities([...res.value])
       } else {
-        if (countryField === 'originCountryCode') {
-          setOriginCities([])
-        } else if (countryField === 'destinationCountryCode') {
-          setDestinationCities([])
-        }
+        setOriginCities([])
       }
     } catch (error: any) {
       console.log('Error!', error.message)
     }
   }
 
-
+  function CabDetails({travelRequest}: { travelRequest: TravelRequest }) {
+    return (
+      <>
+        <div className={'card bg-light-subtle border mt-2'}>
+          <div className="card-body">
+            <h5 className="card-title fs-14 fw-bold">Cab Details</h5>
+            <div className="row">
+              <div className="col-12">
+                <label className="col-form-label">Pickup Location:</label>
+                <span className="text-dark mx-1">
+                {travelRequest.pickupLocation || 'N/A'}
+              </span>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-12">
+                <label className="col-form-label">Drop-off Location:</label>
+                <span className="text-dark mx-1">
+                {travelRequest.dropOffLocation || 'N/A'}
+              </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <div className="border rounded p-3 bg-light-subtle mt-3">
-        <h6 className="text-dark fw-bold">Travel Details</h6>
+        <h6 className="text-dark fw-bold">General information</h6>
         <div className="row g-3">
           {requiredFields.includes('originCountryCode') && (
             <div className="col-md-4">
@@ -122,7 +138,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 onChange={async (e) => {
                   onFormChange('originCountryCode', e.target.value)
                   onFormChange('originCity', '')
-                  await fetchCities(e.target.value, 'originCountryCode')
+                  await fetchCities(e.target.value)
                 }}
                 required
                 disabled={isReadOnly}
@@ -151,55 +167,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
               >
                 <option value="">-- Select City --</option>
                 {originCities.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.city}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {requiredFields.includes('destinationCountryCode') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Destination Country <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.destinationCountryCode}
-                onChange={async (e) => {
-                  onFormChange('destinationCountryCode', e.target.value)
-                  onFormChange('destinationCity', '')
-                  await fetchCities(e.target.value, 'destinationCountryCode')
-                }}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Country --</option>
-                {countries.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {requiredFields.includes('destinationCity') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Destination City <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.destinationCity}
-                onChange={(e) => onFormChange('destinationCity', e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select City --</option>
-                {destinationCities.map((item) => (
-                  <option key={item.code} value={item.code}>
+                  <option key={item.city} value={item.city}>
                     {item.city}
                   </option>
                 ))}
@@ -391,7 +359,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 value={decodeValue(formData.accommodationType)}
                 onChange={(e) => {
                   onFormChange("accommodationType", e.target.value)
-                  setCanSetRequiresPerDiem(requiresPerDiemChecker(e.target.value))
                 }}
                 required
                 disabled={isReadOnly}
@@ -406,22 +373,24 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
             </div>
           )}
 
-          {requiredFields.includes('requirePerDiem') && canSetRequiresPerDiem && (
-            <div className="col-md-4">
-              <label className="form-label">Require Per Diem</label>
-              <select
-                className="form-select"
-                value={formData.requirePerDiem }
-                onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
-                required
-                disabled={isReadOnly}
-              >
-                {yesNoOptions.map((item) => (
-                  <option key={item.code} value={item.code}>{item.description}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          {requiredFields.includes('requirePerDiem')
+            && requiresPerDiemChecker(decodeValue(formData.accommodationType))
+            && (
+              <div className="col-md-4">
+                <label className="form-label">Require Per Diem</label>
+                <select
+                  className="form-select"
+                  value={formData.requirePerDiem}
+                  onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
+                  required
+                  disabled={isReadOnly}
+                >
+                  {yesNoOptions.map((item) => (
+                    <option key={item.code} value={item.code}>{item.description}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
           {requiredFields.includes('shortcutDimension1Code') && (
             <div className="col-md-4">
@@ -446,6 +415,9 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
           )}
         </div>
       </div>
+
+      {(formData.pickupLocation || formData.dropOffLocation)
+        && <CabDetails travelRequest={formData}/>}
     </>
   );
 }

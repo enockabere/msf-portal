@@ -73,10 +73,10 @@ export default function SidebarUserInfo() {
               <span className="text-muted">{profile.phoneNo}</span>
             </div>
           )}
-          {profile.gender && profile.gender !== "N/A" && (
+          {profile.genderOption && profile.genderOption !== "N/A" && (
             <div className="d-flex align-items-center">
               <i className="iconoir-female me-2 text-danger"></i>
-              <span className="text-muted">{profile.gender}</span>
+              <span className="text-muted">{profile.genderOption}</span>
             </div>
           )}
         </div>
