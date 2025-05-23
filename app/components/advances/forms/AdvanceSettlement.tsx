@@ -5,7 +5,7 @@ import SettlementExpenseForm from "./SettlementExpenseForm";
 import ProgressIndicator from "./Operational/ProgressIndicator";
 import { AlertTriangle, ArrowDown, ArrowUp, Check, XCircle } from "lucide-react";
 import { useAdvance } from "@/app/context/AdvanceContext";
-import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, safeTypechecker } from "@/app/utils/helpers";
+import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps, safeTypechecker } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import Swal from "sweetalert2";
 import { batchRequest, codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
@@ -41,9 +41,7 @@ export default function AdvanceSettlement({
 
 
   const validateDetailedLinePayload = (line: Record<string, any>) => {
-    console.log('passed line: ', line);
     const strippedPayLoad = removeNullAndUndefinedFromObject(line);
-    console.log('stripped line: ', strippedPayLoad)
     const isMissingRequiredProp = checkIfMissingRequiredProperty(
       strippedPayLoad,
       line.entryNo >= 0 ?
@@ -141,9 +139,10 @@ export default function AdvanceSettlement({
       validateDetailedLinePayload(lineAccounted);
       let response: RequestResponse = {};
       if (Number(lineAccounted.entryNo) >= 0) {
+        const updatePayload = removeObjectProps(lineAccounted, ['financeAmount']);
         response = await patchResource('imprestDetailedLine', {
           primaryKey: ['entryNo', 'DetailedLineMgtDocType', 'DetailedLineMgtDocNo', 'DetailedLineMgtLineNo'],
-          data: lineAccounted,
+          data: updatePayload,
         });
       } else {
         response = await createResource('imprestDetailedLine', {
@@ -180,9 +179,10 @@ export default function AdvanceSettlement({
         }
         else if (line.entryNo >= 0) {
           validateDetailedLinePayload(line);
+          const updatePayload = removeObjectProps(line, ['financeAmount']);
           savedAccountingLinesRequestOptions.push(patchResource('imprestDetailedLine', {
             primaryKey: ['entryNo', 'DetailedLineMgtDocType', 'DetailedLineMgtDocNo', 'DetailedLineMgtLineNo'],
-            data: line,
+            data: updatePayload,
           }));
         }
       });
@@ -192,10 +192,9 @@ export default function AdvanceSettlement({
         }),
         Promise.all(savedAccountingLinesRequestOptions)
       ]).then(async (response) => {
-        console.log('response from concurrency: ', response)
         dispatcher({
           type: 'SET_DETAILED_ACCOUNTING_LINES',
-          payload: response,
+          payload: response.flat(Infinity),
         });
         const res = await codeUnit('AdvnaceLiquidation', {
           data: {
@@ -266,10 +265,10 @@ export default function AdvanceSettlement({
       });
       Promise.all(getExpenseLinesAccountingLines)
         .then((response) => {
-          console.log('response from the concurrent query: ', response[0].value);
+          const flatResponse = response.map((line: Record<string, any>) => line.value).flat(Infinity)
           dispatcher({
             type: 'SET_DETAILED_ACCOUNTING_LINES',
-            payload: response[0].value,
+            payload: flatResponse,
           });
         })
         .catch((error: any) => {
