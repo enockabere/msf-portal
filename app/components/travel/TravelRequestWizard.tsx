@@ -478,6 +478,24 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     }
   };
 
+  const downLoadDummyTicket = async () => {
+    try {
+      const res = await  getResource('travelAttachments', {
+        params: {
+          filters: {
+            no: travelRequestHeader?.no,
+          },
+        }
+      })
+
+      downloadFileFromBase64(res.value[0].attachment, "Dummy Ticket");
+    } catch (err) {
+      Swal.fire("Error", err.message || "An unexpected error occurred downloading the document")
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   return (
     <div className="travel-wizard">
@@ -543,6 +561,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               handleSubmitForApproval={handleSubmitForApproval}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
+              downLoadDummyTicket={downLoadDummyTicket}
             />
 
             <StepContent
@@ -582,6 +601,7 @@ interface StepHeaderProps {
   handleSubmitForApproval: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
+  downLoadDummyTicket: () => void;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -591,7 +611,8 @@ const StepHeader: React.FC<StepHeaderProps> = ({
                                                  isSubmitting,
                                                  handleSubmitForApproval,
                                                  downLoadIntroductoryLetter,
-                                                 downLoadBtaCertificate
+                                                 downLoadBtaCertificate,
+                                                 downLoadDummyTicket
                                                }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
@@ -622,7 +643,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
         </button>
         <ul className="dropdown-menu">
           <li>
-            <button className="dropdown-item" type="button">
+            <button onClick={downLoadDummyTicket} className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon"/>
               Dummy ticket
             </button>
@@ -631,12 +652,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
             <button className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon"/>
               Accommodation voucher
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
-              Letter of intent
             </button>
           </li>
           <li>
