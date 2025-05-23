@@ -9,7 +9,7 @@ import ProfileTabs from "@/app/components/profile/ProfileTabs";
 import { getResource } from "@/app/lib/api/http";
 import { toast } from "react-toastify";
 
-interface Dependent {
+interface Dependant {
   name: string;
   relation: string;
   countryOfOrigin: string;
@@ -20,7 +20,7 @@ interface Dependent {
 export default function ProfileClient() {
   const { setBreadcrumb } = useBreadcrumb();
   const { data: session, status } = useSession();
-  const [dependents, setDependents] = useState<Dependent[]>([]);
+  const [dependants, setDependants] = useState<Dependant[]>([]);
   const [travelRequests, setTravelRequests] = useState<any[]>([]);
 
   const profile = session?.user?.profile;
@@ -35,7 +35,7 @@ export default function ProfileClient() {
   }, [setBreadcrumb]);
 
   useEffect(() => {
-    const fetchDependents = async () => {
+    const fetchDependants = async () => {
       if (!profileNo) return;
 
       try {
@@ -44,12 +44,12 @@ export default function ProfileClient() {
         );
         const result = await res.json();
         if (res.ok && Array.isArray(result?.data?.value)) {
-          setDependents(result.data.value);
+          setDependants(result.data.value);
         } else {
-          console.warn("Failed to load dependents:", result?.error);
+          console.warn("Failed to load dependants:", result?.error);
         }
       } catch (error) {
-        console.error("Error fetching dependents:", error);
+        console.error("Error fetching dependants:", error);
       }
     };
 
@@ -77,7 +77,7 @@ export default function ProfileClient() {
     };
 
     if (status === "authenticated") {
-      fetchDependents();
+      fetchDependants();
       fetchVisitorTravelRequests();
     }
   }, [status, profileNo, profileType]);
@@ -86,14 +86,14 @@ export default function ProfileClient() {
     <div className="page-content">
       <div className="container-xxl">
         <ProfileSummaryCard
-          dependents={dependents.length}
+          dependants={dependants.length}
           travelRequests={travelRequests.length}
           leaveBalance={21}
           carbonCredits={350}
         />
         <div className="row mt-4">
           <PersonalInfoCard />
-          <ProfileTabs dependents={dependents} setDependents={setDependents} />
+          <ProfileTabs dependants={dependants} setDependants={setDependants} />
         </div>
       </div>
     </div>

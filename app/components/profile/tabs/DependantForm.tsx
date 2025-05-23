@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Save, XCircle } from "lucide-react";
 
-interface Dependent {
+interface Dependant {
   name: string;
   relation: string;
   countryOfOrigin: string;
@@ -12,21 +12,21 @@ interface Dependent {
   gender?: string;
 }
 
-interface DependentFormProps {
-  form: Dependent;
-  onChange: (field: keyof Dependent, value: string) => void;
+interface DependantFormProps {
+  form: Dependant;
+  onChange: (field: keyof Dependant, value: string) => void;
   onSave: () => void;
   onCancel: () => void;
   loading?: boolean;
 }
 
-export default function DependentForm({
+export default function DependantForm({
   form,
   onChange,
   onSave,
   onCancel,
   loading = false,
-}: DependentFormProps) {
+}: DependantFormProps) {
   const { genders, countries, fetchSetups } = useMySetups();
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function DependentForm({
           disabled={loading}
         >
           <Save size={16} />
-          {loading ? "Saving..." : "Save Dependent"}
+          {loading ? "Saving..." : "Save Dependant"}
         </button>
       </div>
     </div>

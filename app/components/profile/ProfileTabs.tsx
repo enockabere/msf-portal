@@ -3,10 +3,9 @@
 import { useState, useMemo } from "react";
 import classNames from "classnames";
 import ProfileSettings from "./tabs/ProfileSettings";
-import DependentsTab from "./tabs/DependentsTab";
-import { useSession } from "next-auth/react";
+import DependantsTab from "./tabs/DependantsTab";
 
-interface Dependent {
+interface Dependant {
   name: string;
   relation: string;
   countryOfOrigin: string;
@@ -15,18 +14,17 @@ interface Dependent {
 }
 
 export default function ProfileTabs({
-  dependents,
-  setDependents,
+  dependants,
+  setDependants,
 }: {
-  dependents: Dependent[];
-  setDependents: React.Dispatch<React.SetStateAction<Dependent[]>>;
+  dependants: Dependant[];
+  setDependants: React.Dispatch<React.SetStateAction<Dependant[]>>;
 }) {
-  const { data: session } = useSession();
 
   const availableTabs = useMemo(() => {
     return [
       { id: "profile-settings", label: "Profile Settings" },
-      { id: "dependents", label: "Dependants" }, // Always include this tab
+      { id: "dependants", label: "Dependants" }, // Always include this tab
       { id: "gallery", label: "Gallery" },
     ];
   }, []);
@@ -58,11 +56,11 @@ export default function ProfileTabs({
           </div>
         )}
 
-        {activeTab === "dependents" && (
+        {activeTab === "dependants" && (
           <div className="tab-pane fade show active">
-            <DependentsTab
-              dependents={dependents}
-              setDependents={setDependents}
+            <DependantsTab
+              dependants={dependants}
+              setDependants={setDependants}
             />
           </div>
         )}

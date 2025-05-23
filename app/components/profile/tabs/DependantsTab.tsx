@@ -5,10 +5,11 @@ import { useSession } from "next-auth/react";
 import { Trash2, User } from "lucide-react";
 import Swal from "sweetalert2";
 import CustomModal from "../../modals/CustomModal";
-import DependentForm from "./DependentForm";
+import DependantForm from "./DependantForm";
 import SanitizedDataTable from "../../tables/SanitizedDataTable";
+import { formatDate } from "@/app/utils/dateFormats";
 
-interface Dependent {
+interface Dependant {
   name: string;
   relation: string;
   countryOfOrigin: string;
@@ -18,17 +19,17 @@ interface Dependent {
   lineNo?: number;
 }
 
-export default function DependentsTab({
-  dependents,
-  setDependents,
+export default function DependantsTab({
+  dependants,
+  setDependants,
 }: {
-  dependents: Dependent[];
-  setDependents: React.Dispatch<React.SetStateAction<Dependent[]>>;
+  dependants: Dependant[];
+  setDependants: React.Dispatch<React.SetStateAction<Dependant[]>>;
 }) {
   const { data: session } = useSession();
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [newDependent, setNewDependent] = useState<Dependent>({
+  const [newDependant, setNewDependant] = useState<Dependant>({
     name: "",
     relation: "",
     countryOfOrigin: "",
@@ -38,11 +39,11 @@ export default function DependentsTab({
 
   const profileNo = session?.user?.profile?.no;
 
-  const handleNewFieldChange = (field: keyof Dependent, value: string) => {
-    setNewDependent({ ...newDependent, [field]: value });
+  const handleNewFieldChange = (field: keyof Dependant, value: string) => {
+    setNewDependant({ ...newDependant, [field]: value });
   };
 
-  const refreshDependents = async () => {
+  const refreshDependants = async () => {
     if (!profileNo) return;
     try {
       const res = await fetch(
@@ -50,20 +51,20 @@ export default function DependentsTab({
       );
       const result = await res.json();
       if (res.ok && Array.isArray(result?.data?.value)) {
-        setDependents(result.data.value);
+        setDependants(result.data.value);
       } else {
-        console.warn("❗ Failed to reload dependents:", result?.error);
+        console.warn("❗ Failed to reload dependants:", result?.error);
       }
     } catch (error) {
-      console.error("❌ Error fetching updated dependents:", error);
+      console.error("❌ Error fetching updated dependants:", error);
     }
   };
 
-  const handleSaveDependent = async () => {
+  const handleSaveDependant = async () => {
     if (!profileNo) return;
 
     const payload = {
-      ...newDependent,
+      ...newDependant,
       profileNo,
     };
 
@@ -82,21 +83,21 @@ export default function DependentsTab({
           result.rawResponse?.error?.message ||
           result.error?.message ||
           result.message ||
-          "Failed to save dependent.";
+          "Failed to save dependant.";
 
         console.error("❌ API Error:", result);
 
         await Swal.fire({
           icon: "error",
-          title: "Failed to Save Dependent",
+          title: "Failed to Save Dependant",
           text: message,
         });
         return;
       }
 
-      await refreshDependents();
+      await refreshDependants();
       setShowModal(false);
-      setNewDependent({
+      setNewDependant({
         name: "",
         relation: "",
         countryOfOrigin: "",
@@ -107,7 +108,7 @@ export default function DependentsTab({
       Swal.fire({
         icon: "success",
         title: "Success",
-        text: "Dependent saved successfully.",
+        text: "Dependant saved successfully.",
       });
     } catch (error: any) {
       console.error("❌ Unexpected error:", error);
@@ -117,21 +118,21 @@ export default function DependentsTab({
     }
   };
 
-  const removeDependent = useCallback(
+  const removeDependant = useCallback(
     async (index: number) => {
-      const dependent = dependents[index];
+      const dependant = dependants[index];
 
       if (
-        !dependent ||
-        !dependent.profileNo ||
-        dependent.lineNo === undefined
+        !dependant ||
+        !dependant.profileNo ||
+        dependant.lineNo === undefined
       ) {
         return;
       }
 
       const confirmed = await Swal.fire({
         title: "Are you sure?",
-        text: `Do you want to delete ${dependent.name}?`,
+        text: `Do you want to delete ${dependant.name}?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
@@ -145,8 +146,8 @@ export default function DependentsTab({
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              profileNo: dependent.profileNo,
-              lineNo: dependent.lineNo,
+              profileNo: dependant.profileNo,
+              lineNo: dependant.lineNo,
             }),
           });
 
@@ -157,7 +158,7 @@ export default function DependentsTab({
             const errorMessage =
               result.error?.message ||
               result.message ||
-              "Failed to delete dependent";
+              "Failed to delete dependant";
             return Swal.fire(
               "Error",
               errorMessage, // This will show the API's error message
@@ -165,49 +166,49 @@ export default function DependentsTab({
             );
           }
 
-          const updated = dependents.filter((_, i) => i !== index);
-          setDependents(updated);
-          Swal.fire("Deleted!", "The dependent has been removed.", "success");
+          const updated = dependants.filter((_, i) => i !== index);
+          setDependants(updated);
+          Swal.fire("Deleted!", "The dependant has been removed.", "success");
         } catch (err) {
           console.error("Delete error:", err);
           Swal.fire("Error", "Something went wrong while deleting.", "error");
         }
       }
     },
-    [dependents, setDependents]
+    [dependants, setDependants]
   );
 
   const columns = useMemo(
     () => [
       {
         name: "Name",
-        selector: (row: Dependent) => row.name,
+        selector: (row: Dependant) => row.name,
         sortable: true,
       },
       {
         name: "Relationship",
-        selector: (row: Dependent) => row.relation,
+        selector: (row: Dependant) => row.relation,
         sortable: true,
       },
       {
         name: "Nationality",
-        selector: (row: Dependent) => row.countryOfOrigin,
+        selector: (row: Dependant) => row.countryOfOrigin,
         sortable: true,
       },
       {
-        name: "DOB",
-        selector: (row: Dependent) => row.dob ?? "-",
+        name: "Birth Date",
+        selector: (row: Dependant) => formatDate(row.dob) || 'N/A',
       },
       {
         name: "Gender",
-        selector: (row: Dependent) => row.gender ?? "-",
+        selector: (row: Dependant) => row.gender ?? "-",
       },
       {
         name: "Action",
-        cell: (_: Dependent, index: number) => (
+        cell: (_: Dependant, index: number) => (
           <button
             className="btn btn-sm btn-primary"
-            onClick={() => removeDependent(index)}
+            onClick={() => removeDependant(index)}
             title="Delete"
           >
             <Trash2 size={16} />
@@ -217,28 +218,28 @@ export default function DependentsTab({
         width: "100px",
       },
     ],
-    [removeDependent]
+    [removeDependant]
   );
 
   return (
     <>
       <div className="card">
         <div className="card-header d-flex justify-content-between align-items-center">
-          <h4 className="card-title mb-0">Dependents</h4>
+          <h4 className="card-title mb-0">Dependants</h4>
           <button
             className="btn btn-sm btn-danger"
             onClick={() => setShowModal(true)}
           >
-            + Add Dependent
+            + Add Dependant
           </button>
         </div>
         <div className="card-body pt-2">
           <SanitizedDataTable
             title=""
             columns={columns}
-            data={dependents}
+            data={dependants}
             loading={false}
-            searchPlaceholder="Search dependents..."
+            searchPlaceholder="Search dependants..."
           />
         </div>
       </div>
@@ -246,14 +247,14 @@ export default function DependentsTab({
       <CustomModal
         show={showModal}
         onClose={() => setShowModal(false)}
-        title="Add Dependent"
+        title="Add Dependant"
         size="lg"
         titleIcon={<User size={18} className="text-white" />}
       >
-        <DependentForm
-          form={newDependent}
+        <DependantForm
+          form={newDependant}
           onChange={handleNewFieldChange}
-          onSave={handleSaveDependent}
+          onSave={handleSaveDependant}
           onCancel={() => setShowModal(false)}
           loading={isSaving}
         />

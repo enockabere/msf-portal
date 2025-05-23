@@ -35,14 +35,14 @@ export async function DELETE(request: Request) {
         {
           success: false,
           rawResponse: response,
-          message: "Failed to delete dependent",
+          message: "Failed to delete dependant",
         },
         { status: 400 }
       );
     }
     return NextResponse.json({
       success: true,
-      message: "Dependent deleted successfully",
+      message: "Dependant deleted successfully",
       data: response,
     });
   } catch (error) {
@@ -51,7 +51,7 @@ export async function DELETE(request: Request) {
         success: false,
         error: {
           code: "DELETE_ERROR",
-          message: error?.message || "Failed to delete dependent",
+          message: error?.message || "Failed to delete dependant",
         },
       },
       { status: 500 }
