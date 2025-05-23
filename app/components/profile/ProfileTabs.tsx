@@ -26,7 +26,7 @@ export default function ProfileTabs({
   const availableTabs = useMemo(() => {
     return [
       { id: "profile-settings", label: "Profile Settings" },
-      { id: "dependents", label: "Dependents" }, // Always include this tab
+      { id: "dependents", label: "Dependants" }, // Always include this tab
       { id: "gallery", label: "Gallery" },
     ];
   }, []);
