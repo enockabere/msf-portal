@@ -242,7 +242,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   const navigateToNextStepAfterSave = () => {
     if (travelRequestHeader.documentType === 'Visitor') {
-      setActiveTab('checklist');
+      setActiveTab('dependants');
     } else if (travelRequestHeader.documentType === 'Employee') {
       setActiveTab('destinations');
     }
@@ -300,7 +300,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       desc: "Travel destination details",
     },
     {
-      id: "dependencies",
+      id: "dependants",
       icon: <Link size={18}/>,
       title: "Dependants",
       desc: "Related travel requirements",
@@ -357,18 +357,18 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependencies", "checklist", "traveller-checklist", "visa", "advance"]
+        return ["info", "destinations", "dependants", "checklist", "traveller-checklist", "visa", "advance"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
+        return ["info", "dependants", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependencies"]
+        return ["info", "destinations", "dependants"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "documents"]
+        return ["info", "dependants", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     }
@@ -387,11 +387,11 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
           case "destinations":
             if (travelRequestHeader.travelRequestRoutes?.length) newCompletedSteps.add("destinations");
             break;
-          case "dependencies":
+          case "dependants":
             const hasDependencies = travelRequestHeader.travellers?.some(
               (t: Record<string, any>) => t.travellerType !== "Self"
             );
-            if (hasDependencies) newCompletedSteps.add("dependencies");
+            if (hasDependencies) newCompletedSteps.add("dependants");
             break;
         }
       });
@@ -741,7 +741,7 @@ const StepContent: React.FC<StepContentProps> = ({
           onSubmit={fetchTravelRequest}
         />
       );
-    case "dependencies":
+    case "dependants":
       return (
         <TravelDependencies
           travelRequestHeader={travelRequestHeader}
