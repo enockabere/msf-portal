@@ -70,39 +70,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
 
   const [originCities, setOriginCities] = useState([]);
 
-  const loadData = useCallback(async () => {
-    try {
-      await fetchSetups([
-        'purposeOfTravel',
-        'modesOfTransport',
-        'countries',
-        'perDiemAllotments',
-        {
-          dimensions: {
-            filters: { dimensionCode: 'OC' }
-          },
-        },
-      ]);
-
-      if (formData.originCountryCode) {
-        await fetchCities(formData.originCountryCode);
-      }
-    } catch (error: any) {
-      console.error('Error loading data:', error);
-    }
-  }, [fetchSetups]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const requiresPerDiemChecker = useCallback((accommodationType: string) => {
-    const allotment = perDiemAllotments.find(
-      (item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType
-    );
-    return allotment?.perDiemAllocated > 0;
-  }, [perDiemAllotments]);
-
   const fetchCities = useCallback(async (countryCode: string) => {
     try {
       if (!countryCode) {
@@ -128,6 +95,39 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
       console.error('Error fetching cities:', error.message);
     }
   }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      await fetchSetups([
+        'purposeOfTravel',
+        'modesOfTransport',
+        'countries',
+        'perDiemAllotments',
+        {
+          dimensions: {
+            filters: { dimensionCode: 'OC' }
+          },
+        },
+      ]);
+
+      if (formData.originCountryCode) {
+        await fetchCities(formData.originCountryCode);
+      }
+    } catch (error: any) {
+      console.error('Error loading data:', error);
+    }
+  }, [fetchCities, fetchSetups, formData.originCountryCode]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const requiresPerDiemChecker = useCallback((accommodationType: string) => {
+    const allotment = perDiemAllotments.find(
+      (item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType
+    );
+    return allotment?.perDiemAllocated > 0;
+  }, [perDiemAllotments]);
 
   const handleCountryChange = useCallback(async (value: string) => {
     onFormChange('originCountryCode', value);
