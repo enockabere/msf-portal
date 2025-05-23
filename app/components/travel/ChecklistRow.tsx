@@ -7,7 +7,6 @@ import { ChecklistItem } from "@/app/types/ChecklistItem";
 export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistItem, fetchChecklist: () => void }) {
     const [expiryDate, setExpiryDate] = useState(row.expiryDate === '0001-01-01' ? '' : row.expiryDate);
     const [has, setHas] = useState(row.has);
-    const [base64, setBase64] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -15,8 +14,7 @@ export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistIt
         if (!file) return;
 
         const base64String = await toBase64(file);
-        setBase64(base64String as string);
-        await saveBase64File(base64String, file.name);
+        await saveBase64File(base64String);
     };
 
     const toBase64 = (file: File): Promise<string> =>
@@ -27,7 +25,7 @@ export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistIt
             reader.onerror = reject;
         });
 
-    const saveBase64File = async (base64Data: string | null, fileName: string) => {
+    const saveBase64File = async (base64Data: string | null) => {
         if (!base64Data || typeof base64Data !== 'string') {
             Swal.fire("Error", "Invalid base64 data.", "error");
             return;
