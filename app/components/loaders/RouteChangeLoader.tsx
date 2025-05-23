@@ -15,7 +15,7 @@ export default function RouteChangeLoader() {
       raf = window.requestAnimationFrame(() => {
         setTimeout(() => {
           hideLoader();
-        }, 100);
+        }, 1000);
       });
     };
     onFrame();

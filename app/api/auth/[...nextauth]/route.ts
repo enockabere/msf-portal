@@ -86,8 +86,10 @@ const handler = NextAuth({
         token.accessToken = account.access_token;
 
         try {
+          const normalizedEmail = profile?.email?.toLowerCase() || "";
+
           const response = (await transport.get(memoryMap.get("userProfiles"), {
-            $filter: `eMail eq '${profile?.email}' and eMail ne ''`,
+            $filter: `eMail eq '${normalizedEmail}' and eMail ne ''`,
             company: process.env.BC_COMPANY_NAME,
           })) as Record<string, any>;
 
