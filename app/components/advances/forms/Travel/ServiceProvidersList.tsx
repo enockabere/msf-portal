@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
 import { getResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 interface ServiceProvider {
   serviceCode: string;
@@ -16,13 +16,20 @@ interface ServiceProvider {
 
 type GroupedProviders = Record<string, ServiceProvider[]>;
 
-export default function ServiceProvidersList({travelRequest}: { travelRequest: TravelRequest }) {
+export default function ServiceProvidersList({ travelRequest }: { travelRequest: TravelRequest }) {
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const getServiceProviders = useCallback(async () => {
     try {
-      setIsLoading(true);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       const res = await getResource('travelRequestProviders', {
         params: {
           filters: {
@@ -33,14 +40,32 @@ export default function ServiceProvidersList({travelRequest}: { travelRequest: T
       });
 
       if (res.error) {
-        setIsLoading(false);
+        dispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return Swal.fire('Error fetching service providers', res.error.message, 'error');
       }
 
       setProviders(res.value);
-      setIsLoading(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     } catch (error: any) {
-      setIsLoading(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
       return Swal.fire('Error fetching service providers', error.message, 'error');
     }
   }, [travelRequest]);
@@ -58,38 +83,35 @@ export default function ServiceProvidersList({travelRequest}: { travelRequest: T
     return acc;
   }, {});
 
+
+
   return (
     <div className='row g-3'>
-      {isLoading ? (
-        <div className={'col-12 text-center'}>
-          <SectionLoader size={32} />
-        </div>
-      ) : (
-        <div className="col-12">
-          {providers.length === 0 ? (
-            <div className="card mb-4">
-              <div className="card-body">
-                <div className="text-center text-muted py-4">
-                  No available services providers at the moment.
-                </div>
+      <div className="col-12">
+        {providers.length === 0 ? (
+          <div className="card mb-4">
+            <div className="card-body">
+              <div className="text-center text-muted py-4">
+                No available services providers at the moment.
               </div>
             </div>
-          ) : (
-            Object.entries(groupedProviders).map(([group, groupProviders]) => (
-              <div key={group} className="mb-4">
-                <div className="bg-danger p-2 rounded">
-                  <p className="text-white fw-bold m-0">{group}</p>
-                </div>
-                <table className="table table-bordered mb-0 align-middle">
-                  <thead className="table-light">
+          </div>
+        ) : (
+          Object.entries(groupedProviders).map(([group, groupProviders]) => (
+            <div key={group} className="mb-4">
+              <div className="bg-danger p-2 rounded">
+                <p className="text-white fw-bold m-0">{group}</p>
+              </div>
+              <table className="table table-bordered mb-0 align-middle">
+                <thead className="table-light">
                   <tr>
                     <th>#</th>
                     <th>Vendor</th>
                     <th>Phone Number</th>
                     <th>Vehicle Number</th>
                   </tr>
-                  </thead>
-                  <tbody>
+                </thead>
+                <tbody>
                   {groupProviders.map((provider, idx) => (
                     <tr key={`${group}-${idx}`}>
                       <td>{idx + 1}</td>
@@ -98,13 +120,12 @@ export default function ServiceProvidersList({travelRequest}: { travelRequest: T
                       <td>{provider.vehicleRegistrationNo || 'N/A'}</td>
                     </tr>
                   ))}
-                  </tbody>
-                </table>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+                </tbody>
+              </table>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

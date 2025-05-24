@@ -7,6 +7,7 @@ import { TravelRequest } from "@/app/types/travel";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
 import { Trash2 } from "lucide-react";
 import SectionLoader from "@/app/components/loaders/SectionLoader";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 interface TravelDependenciesProps {
   travelRequestHeader: TravelRequest;
   isReadOnly: boolean;
@@ -18,7 +19,9 @@ export default function TravelDependencies({
   isReadOnly,
   onSubmit,
 }: TravelDependenciesProps) {
-  const [dependants, setDependants] = useState([])
+  const [dependants, setDependants] = useState([]);
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   useEffect(() => {
     const fetchDependants = async () => {
@@ -159,7 +162,7 @@ export default function TravelDependencies({
                         onClick={() => handleDelete(dep)}
                       >
                         {dependantNoBeingDeleted === dep.dependantNo
-                          ? <SectionLoader size={16} classes={'button-icon'}/>
+                          ? <SectionLoader size={16} classes={'button-icon'} />
                           : <Trash2 size={16} className="button-icon" />}
                         Drop
                       </button>

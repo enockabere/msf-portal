@@ -6,6 +6,8 @@ import "./globals.css";
 import "../styles/bootstrap.min.css";
 import "../styles/icons.min.css";
 import "../styles/app.min.css";
+import { PageLoaderProvider } from "./context/PageLoaderContext";
+import PageLoader from "./components/loaders/PageLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +44,10 @@ export default function RootLayout({
           {" "}
           <MySetupsProvider>
             <BootstrapClient />
-            {children}
+            <PageLoaderProvider>
+              <PageLoader />
+              {children}
+            </PageLoaderProvider>
           </MySetupsProvider>
         </SessionProvider>
       </body>
