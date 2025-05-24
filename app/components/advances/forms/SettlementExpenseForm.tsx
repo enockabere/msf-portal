@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { UploadCloud, Save, CheckCheck } from "lucide-react";
+import { UploadCloud, Save, CheckCheck, Eye, GitGraph, FileChartColumnIncreasing } from "lucide-react";
 import { ExpenseItem } from "@/app/types/advance";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { useMySetups } from "@/app/context/SetupContext";
@@ -10,11 +10,13 @@ import Swal from "sweetalert2";
 
 interface Props {
   saveAccountingLine?: (index: number, exp: Record<string, any>) => Promise<void>;
+  viewLineAccountingDetails?: (index: number, exp: Record<string, any>) => Promise<void>;
 }
 
 export default function SettlementExpenseForm(
   {
     saveAccountingLine,
+    viewLineAccountingDetails
   }: Props
 ) {
   const { actions, accountedLines, expenses } = useAdvance();
@@ -187,12 +189,19 @@ export default function SettlementExpenseForm(
               />
             </td>
             <td className="text-center">
-              <button
+              {/* <button
                 type="button"
                 className="btn btn-sm btn-outline-success"
                 onClick={async () => await saveAccountingLine(idx, exp)}
               >
                 <Save size={16} /> save
+              </button> */}
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-info mt-2"
+                onClick={async () => await viewLineAccountingDetails(idx, exp)}
+              >
+                <FileChartColumnIncreasing size={16} /> account
               </button>
             </td>
           </tr>

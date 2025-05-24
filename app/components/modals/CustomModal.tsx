@@ -2,6 +2,7 @@
 
 import { JSX } from "react";
 import { Modal } from "react-bootstrap";
+import PageLoader from "../loaders/PageLoader";
 
 type CustomModalProps = {
   show: boolean;
@@ -27,25 +28,28 @@ export default function CustomModal({
   backdrop = true,
 }: CustomModalProps) {
   return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      size={size}
-      centered={centered}
-      backdrop={backdrop}
-    >
-      {title && (
-        <Modal.Header closeButton className="bg-danger" closeVariant="white">
-          <Modal.Title className="d-flex align-items-center gap-2 text-white">
-            {titleIcon}
-            {title}
-          </Modal.Title>
-        </Modal.Header>
-      )}
+    <>
+      <Modal
+        show={show}
+        onHide={onClose}
+        size={size}
+        centered={centered}
+        backdrop={backdrop}
+      >
+        <PageLoader />
+        {title && (
+          <Modal.Header closeButton className="bg-danger" closeVariant="white">
+            <Modal.Title className="d-flex align-items-center gap-2 text-white">
+              {titleIcon}
+              {title}
+            </Modal.Title>
+          </Modal.Header>
+        )}
 
-      <Modal.Body className="card">{children}</Modal.Body>
+        <Modal.Body className="card">{children}</Modal.Body>
 
-      {footer && <Modal.Footer>{footer}</Modal.Footer>}
-    </Modal>
+        {footer && <Modal.Footer>{footer}</Modal.Footer>}
+      </Modal>
+    </>
   );
 }

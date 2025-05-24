@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import { batchRequest, codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import _ from 'lodash';
 import { batchRequestOptions, RequestResponse } from "@/app/types/options";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 interface Props {
   closeSettlementDialog?: () => void;
@@ -28,6 +29,8 @@ export default function AdvanceSettlement({
   const { actions, accountedLines, expenses, formData } = useAdvance();
   const { dispatcher } = actions;
   const { currencies, fetchSetups, userProfiles } = useMySetups();
+  const { actions: loaderActions } = usePageLoader();
+  const { dispatcher: loaderDispatcher } = loaderActions;
 
   const totalSurrendered = expenses.reduce(
     (sum, item) => sum + (item?.accountedAmount || 0),
@@ -116,6 +119,49 @@ export default function AdvanceSettlement({
       });
     } catch (error: any) {
       Swal.fire('Error!', error.message, 'error');
+    }
+  }
+
+  const handleViewLineAccountingDetails = async (index: number, exp: Record<string, any>): Promise<void> => {
+    try {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
+      if (exp) {
+        const selectLineAccountingEntries = accountedLines.filter((line: Record<string, any>) => {
+          return line.DetailedLineMgtLineNo === exp.lineNo;
+        });
+        dispatcher({
+          type: 'SET_SETTLEMENT_MODAL',
+          payload: false,
+        });
+        dispatcher({
+          type: 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+          payload: exp,
+        });
+        dispatcher({
+          type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+          payload: selectLineAccountingEntries
+        })
+        dispatcher({
+          type: 'SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL',
+          payload: true,
+        });
+      }
+    } catch (error: any) {
+      Swal.fire('Error', error.message, 'error');
+    } finally {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
   }
 
@@ -362,6 +408,7 @@ export default function AdvanceSettlement({
                 </div>
                 <SettlementExpenseForm
                   saveAccountingLine={handleSaveAccountedRow}
+                  viewLineAccountingDetails={handleViewLineAccountingDetails}
                 />
                 {overspent && (
                   <div className="row g-3 mt-3">

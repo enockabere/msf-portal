@@ -20,6 +20,7 @@ import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
+import AccountingExpenseDetailsForm from "@/app/components/advances/forms/AccountingExpenseDetailsForm";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -38,7 +39,13 @@ export default function OtherAdvancesClient() {
   const [showModal, setShowModal] = useState(false);
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
-  const { formData, actions, advanceCounts, showAdvannceSettlementForm } = useAdvance();
+  const {
+    formData,
+    actions,
+    advanceCounts,
+    showAdvannceSettlementForm,
+    showAdvanceAccountedLineDetailsModal,
+  } = useAdvance();
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
 
   const fetchAdvances = useCallback(async () => {
@@ -107,6 +114,21 @@ export default function OtherAdvancesClient() {
       payload: { isNew: false, isEditing: false, setForView: false },
     });
 
+  }
+
+  const handleClosingAdvanceAccountedLineDetailsModal = () => {
+    dispatcher({
+      type: 'SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL',
+      payload: false,
+    });
+    dispatcher({
+      type: 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+      payload: {},
+    });
+    dispatcher({
+      type: 'SET_SETTLEMENT_MODAL',
+      payload: true,
+    });
   }
 
   const handleNewRequestClick = async () => {
@@ -402,6 +424,15 @@ export default function OtherAdvancesClient() {
         size="xl"
       >
         <AdvanceSettlement closeSettlementDialog={handleSettlementClosing} />
+      </CustomModal>
+      <CustomModal
+        show={showAdvanceAccountedLineDetailsModal}
+        onClose={handleClosingAdvanceAccountedLineDetailsModal}
+        title="Acoounted Line Details"
+        titleIcon={<i className="las la-wallet fs-18" />}
+        size="lg"
+      >
+        <AccountingExpenseDetailsForm />
       </CustomModal>
     </>
   );
