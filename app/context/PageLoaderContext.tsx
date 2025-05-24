@@ -1,11 +1,14 @@
 "use client";
 
+import { createContext, useContext, ReactNode, useReducer, useMemo, useCallback } from "react";
+
 interface ActionType { type: string; payload: any }
 
 const iniatialLoaderState = {
   loading: false,
   message: 'Please wait a minute...',
   actions: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     dispatcher: (option: ActionType): void => { },
   },
 };
@@ -22,24 +25,23 @@ const loadingStateReducer = (state: Partial<LoaderState>, action: ActionType) =>
   }
 }
 
-import { createContext, useContext, useState, ReactNode, useReducer, useMemo, useCallback } from "react";
 
-type PageLoaderContextType = {
-  loading: boolean;
-  showLoader: () => void;
-  hideLoader: () => void;
-};
+// type PageLoaderContextType = {
+//   loading: boolean;
+//   showLoader: () => void;
+//   hideLoader: () => void;
+// };
 
 const PageLoaderContext = createContext<LoaderState | undefined>(
   undefined
 );
 
 export function PageLoaderProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [loaderState, dispatcher] = useReducer(loadingStateReducer, iniatialLoaderState);
 
-  const showLoader = () => setLoading(true);
-  const hideLoader = () => setTimeout(() => setLoading(false), 500); // Smooth UX
+  // const showLoader = () => setLoading(true);
+  // const hideLoader = () => setTimeout(() => setLoading(false), 500); // Smooth UX
 
   const dispatcherCaller = useCallback((option: ActionType) => {
     dispatcher(option);

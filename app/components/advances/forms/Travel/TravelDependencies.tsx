@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
 import { Trash2 } from "lucide-react";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 interface TravelDependenciesProps {
   travelRequestHeader: TravelRequest;
@@ -66,7 +65,6 @@ export default function TravelDependencies({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dependantNoBeingDeleted, setDependantNoBeingDeleted] = useState(null);
 
   const handleSelect = async (dependant: Record<string, any>) => {
     try {
@@ -96,20 +94,44 @@ export default function TravelDependencies({
 
   const handleDelete = async (traveller: Record<string, any>) => {
     try {
-      setDependantNoBeingDeleted(traveller.dependantNo)
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: 'Deleting...',
+        }
+      });
       const res = await deleteResource('travellers', {
         data: traveller,
         primaryKey: ['documentType', 'documentNo', 'lineNo']
       })
       if (res.error) {
-        setDependantNoBeingDeleted(null)
+        dispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return Swal.fire({ title: 'Error deleting traveller!', text: res.error.message });
       }
 
       onSubmit(travelRequestHeader.no);
-      setDependantNoBeingDeleted(null)
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     } catch (error: any) {
-      setDependantNoBeingDeleted(null)
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
       console.log('Error deleting traveller', error.message)
     }
   };
@@ -161,9 +183,7 @@ export default function TravelDependencies({
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDelete(dep)}
                       >
-                        {dependantNoBeingDeleted === dep.dependantNo
-                          ? <SectionLoader size={16} classes={'button-icon'} />
-                          : <Trash2 size={16} className="button-icon" />}
+                        <Trash2 size={16} className="button-icon" />
                         Drop
                       </button>
                     </td>

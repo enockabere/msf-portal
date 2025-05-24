@@ -68,7 +68,7 @@ export default function ServiceProvidersList({ travelRequest }: { travelRequest:
       });
       return Swal.fire('Error fetching service providers', error.message, 'error');
     }
-  }, [travelRequest]);
+  }, [travelRequest, dispatcher]);
 
   useEffect(() => {
     getServiceProviders();

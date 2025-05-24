@@ -3,11 +3,7 @@
 import Topbar from "../components/dashboard/topbar/Topbar";
 import Sidebar from "../components/dashboard/sidebar/Sidebar";
 import { BreadcrumbProvider } from "../context/BreadcrumbContext";
-import {
-  usePageLoader,
-} from "../context/PageLoaderContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
-import PageLoader from "../components/loaders/PageLoader";
 
 export default function DashboardLayout({
   children,

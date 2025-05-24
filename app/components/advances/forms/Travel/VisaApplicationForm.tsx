@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Save } from "lucide-react";
 import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 interface VisaApplication {
   country: string;
@@ -38,9 +38,9 @@ interface VisaApplicationLineCardProps {
 }
 
 const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
-                                                                           visaApplicationLine,
-                                                                           countries
-                                                                         }) => {
+  visaApplicationLine,
+  countries
+}) => {
   const [formData, setFormData] = useState({
     documentType: visaApplicationLine.documentType,
     requestNo: visaApplicationLine.requestNo,
@@ -53,8 +53,9 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
     expiryDate: visaApplicationLine.expiryDate !== '0001-01-01' ? visaApplicationLine.expiryDate : '',
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const { loading, actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const handleFormChange = useCallback((field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,7 +66,13 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
 
     try {
       const payload = removeNullAndUndefinedFromObject(formData);
-      setIsSubmitting(true);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
 
       const res = await patchResource('visaApplicationLines', {
         data: payload,
@@ -80,7 +87,13 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
     } catch (error: any) {
       Swal.fire('Error saving details', error.message, 'error');
     } finally {
-      setIsSubmitting(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
   };
 
@@ -163,13 +176,9 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
               type="submit"
               className="btn btn-outline-success btn-sm"
               title="Save"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <SectionLoader size={16} classes="button-icon" />
-              ) : (
-                <Save size={16} />
-              )}
+              disabled={loading}
+            >isSubmitting
+              <Save size={16} />
               Save
             </button>
 
@@ -185,12 +194,19 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
 
 const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest }) => {
   const [visaApplications, setVisaApplications] = useState<VisaApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { countries } = useMySetups();
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const fetchVisaApplications = useCallback(async () => {
     try {
-      setIsLoading(true);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       const res = await getResource('visaApplications', {
         params: {
           filters: {
@@ -210,9 +226,15 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
     } catch (error: any) {
       Swal.fire('Error fetching Visa applications', error.message, 'error');
     } finally {
-      setIsLoading(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
-  }, [travelRequest]);
+  }, [travelRequest, dispatcher]);
 
   useEffect(() => {
     fetchVisaApplications();
@@ -221,11 +243,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
   return (
     <div className="row g-3">
       <div className="col-12">
-        {isLoading ? (
-          <div className="col-12 text-center">
-            <SectionLoader size={32} />
-          </div>
-        ) : (
+        {
           visaApplications.map((application, key) => (
             <div key={`${application.country}-${key}`}>
               <div className="bg-danger p-2 rounded">
@@ -243,7 +261,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
               ))}
             </div>
           ))
-        )}
+        }
       </div>
     </div>
   );
