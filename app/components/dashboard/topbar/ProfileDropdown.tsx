@@ -12,23 +12,49 @@ export default function ProfileDropdown() {
   const { data: session } = useSession();
   const currentPath = usePathname();
   const router = useRouter();
-  const { showLoader } = usePageLoader();
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
     if (href !== currentPath) {
-      showLoader();
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       startTransition(() => {
         router.push(href);
+        dispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
       });
     }
   };
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    showLoader();
+    dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: true,
+        message: '',
+      }
+    });
     await signOut({ callbackUrl: "/", redirect: false });
-    router.push("/");
+    startTransition(() => (router.push("/"), dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: false,
+        message: '',
+      }
+    })));
   };
 
   return (

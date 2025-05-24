@@ -5,18 +5,32 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useRouter } from "next/navigation";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { startTransition } from "react";
 
 export default function SidebarUserInfo() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { showLoader } = usePageLoader();
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions
 
   const profile = session?.user?.profile;
   const isEmployee = profile?.type === "Employee";
 
   const handleViewProfile = () => {
-    showLoader();
-    router.push("/dashboard/profile");
+    dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: true,
+        message: '',
+      }
+    });
+    startTransition(() => (router.push("/dashboard/profile"), dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: false,
+        message: '',
+      }
+    })));
   };
 
   if (status === "loading" || !session || !session.user?.profile) {
