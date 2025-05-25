@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from "react";
 import SettlementExpenseForm from "./SettlementExpenseForm";
 import ProgressIndicator from "./Operational/ProgressIndicator";
-import { AlertTriangle, ArrowDown, ArrowUp, Check, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, Check, PlusCircle, XCircle } from "lucide-react";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { checkIfMissingRequiredProperty, findObjectFromArray, removeNullAndUndefinedFromObject, removeObjectProps, safeTypechecker } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import Swal from "sweetalert2";
-import { batchRequest, codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
-import _ from 'lodash';
-import { batchRequestOptions, RequestResponse } from "@/app/types/options";
+import { codeUnit, createResource, deleteResource, getResource, patchResource } from "@/app/lib/api/http";
+import { RequestResponse } from "@/app/types/options";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import AccountingExpenseDetailsForm from "./AccountingExpenseDetailsForm";
 
 interface Props {
   closeSettlementDialog?: () => void;
@@ -26,7 +26,16 @@ export default function AdvanceSettlement({
   const [selectedRecipient, setSelectedRecipient] = useState<string>("");
   const [selectedDeliverer, setSelectedDeliverer] = useState<string>("");
 
-  const { actions, accountedLines, expenses, formData } = useAdvance();
+  const {
+    actions,
+    accountedLines,
+    expenses,
+    formData,
+    showAdvanceAccountedLineDetailsModal,
+    showAdvannceSettlementForm,
+    selectedAdvanceLineForViewAccountingDetails,
+    selectedAdvanceLineForView,
+  } = useAdvance();
   const { dispatcher } = actions;
   const { currencies, fetchSetups, userProfiles } = useMySetups();
   const { actions: loaderActions } = usePageLoader();
@@ -47,7 +56,7 @@ export default function AdvanceSettlement({
     const strippedPayLoad = removeNullAndUndefinedFromObject(line);
     const isMissingRequiredProp = checkIfMissingRequiredProperty(
       strippedPayLoad,
-      line.entryNo >= 0 ?
+      Number(line.entryNo) >= 0 ?
         [
           "DetailedLineMgtDocType",
           "DetailedLineMgtDocNo",
@@ -70,18 +79,25 @@ export default function AdvanceSettlement({
         }`);
     }
   }
-  const postRequest = async (): Promise<void> => {
+  const postRequest = async (index: number | null = null): Promise<void> => {
     try {
       const res = await getResource('imprest', {
         params: {
           filters: {
             no: formData?.no,
           },
-          '$expand': `imprestLinesAPI($expand=detailedImprestLines)`
+          '$expand': `imprestLinesAPI($expand=detailedImprestLines($select=entryNo,DetailedLineMgtDocType,DetailedLineMgtDocNo,DetailedLineMgtLineNo,description,amount,financeAmount,attachmentName))`
         }
       });
       if (res.error) {
         Swal.fire(res.error.code, res.error.message, 'error');
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return;
       }
       if (!res.value?.[0]) {
@@ -104,24 +120,40 @@ export default function AdvanceSettlement({
         type: 'SET_EXISTING_ADVANCE_LINES',
         payload: refetchedLines,
       });
-      const draftAccountedLinesState = [...accountedLines];
-      const uniqueAccountingLines = _.differenceWith(draftAccountedLinesState, updatedAccountingDetails, (draft: Record<string, any>, updated: Record<string, any>) => {
-        return draft.DetailedLineMgtLineNo === updated.DetailedLineMgtLineNo;
-      });
-      console.log('unique lines: ', uniqueAccountingLines);
-      console.log('from fetch lines: ', updatedAccountingDetails);
+      updatedAccountingDetails.splice(0, Infinity, ...updatedAccountingDetails.flat(Infinity));
       dispatcher({
         type: 'SET_DETAILED_ACCOUNTING_LINES',
-        payload: [
-          ...uniqueAccountingLines,
-          ...updatedAccountingDetails,
-        ],
+        payload: updatedAccountingDetails,
+      });
+      const updatedLine = findObjectFromArray(refetchedLines, 'lineNo', selectedAdvanceLineForView.lineNo);
+      dispatcher({
+        type: 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+        payload: updatedLine,
+      });
+      const updatedLineAccountingDetails = updatedAccountingDetails.filter((record: Record<string, any>) => record.DetailedLineMgtLineNo === updatedLine.lineNo);
+      if (index >= 0) {
+        const unsavedLines = selectedAdvanceLineForViewAccountingDetails.filter((l: Record<string, any>, i: number) => {
+          if (safeTypechecker(l.entryNo) === 'Null' || safeTypechecker(l.entryNo) === 'Undefined') {
+            return index !== i;
+          }
+        });
+        updatedLineAccountingDetails.push(...unsavedLines);
+      }
+      dispatcher({
+        type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+        payload: updatedLineAccountingDetails,
       });
     } catch (error: any) {
       Swal.fire('Error!', error.message, 'error');
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
   }
-
   const handleViewLineAccountingDetails = async (index: number, exp: Record<string, any>): Promise<void> => {
     try {
       loaderDispatcher({
@@ -146,7 +178,7 @@ export default function AdvanceSettlement({
         dispatcher({
           type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
           payload: selectLineAccountingEntries
-        })
+        });
         dispatcher({
           type: 'SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL',
           payload: true,
@@ -165,82 +197,196 @@ export default function AdvanceSettlement({
     }
   }
 
+  const addNewEntryToAccount = () => {
+    const newDraftState = [...selectedAdvanceLineForViewAccountingDetails];
+    newDraftState.push(
+      {
+        amount: 0,
+        description: '',
+        DetailedLineMgtDocType: 'Imprest',
+        DetailedLineMgtDocNo: selectedAdvanceLineForView.documentNo,
+        DetailedLineMgtLineNo: selectedAdvanceLineForView.lineNo,
+      }
+    );
+    dispatcher({
+      type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+      payload: newDraftState,
+    });
+  };
+
+  const handleDeleteDetailedExpesneLine = async (index: number, line: Record<string, any>): Promise<void> => {
+    try {
+      Swal.fire({
+        title: "Are you sure you want delete this line?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#22c5ad",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!"
+      }).then(async (result) => {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: true,
+            message: 'Deleting entry, please wait...',
+          }
+        });
+        if (result.isConfirmed) {
+          if (line.entryNo >= 0) {
+            const res = await deleteResource('imprestDetailedLine', {
+              data: line,
+              primaryKey: ['entryNo', 'DetailedLineMgtDocType', 'DetailedLineMgtDocNo', 'DetailedLineMgtLineNo'],
+            });
+            if (res.error) {
+              Swal.fire(res.error.code, res.error.message);
+              loaderDispatcher({
+                type: 'PATCH_LOADING_STATE',
+                payload: {
+                  loading: false,
+                  message: '',
+                }
+              });
+              return;
+            }
+            await postRequest(index);
+          } else {
+            const newDraftState = [...selectedAdvanceLineForViewAccountingDetails];
+            /* eslint-disable @typescript-eslint/no-unused-vars */
+            const filteredLines = newDraftState.filter((_l: Record<string, any>, i: number) => {
+              return i !== index;
+            });
+            dispatcher({
+              type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+              payload: filteredLines,
+            });
+            loaderDispatcher({
+              type: 'PATCH_LOADING_STATE',
+              payload: {
+                loading: false,
+                message: '',
+              }
+            });
+            return;
+          }
+        }
+      }).finally(() => {
+        Swal.fire('Success', 'Accounting Line deleted.', 'success');
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
+      });
+
+    } catch (error: any) {
+      Swal.fire('Error!', error.message, 'error');
+    } finally {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
+    }
+  }
   const handleSaveAccountedRow = async (index: number, exp: Record<string, any>): Promise<void> => {
     try {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: 'Saving...',
+        }
+      });
       if (
         safeTypechecker(index) === 'Null' ||
         safeTypechecker(index) === 'Undefined' ||
         index < 0
-      ) return;
-      if (safeTypechecker(exp) !== 'Object') return;
-      const lineAccounted = findObjectFromArray(accountedLines, 'DetailedLineMgtLineNo', exp.lineNo);
-      if (!lineAccounted) {
-        Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
+      ) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return;
-      }
-      if (!lineAccounted.amount || !lineAccounted.attachment) {
-        Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
-        return;
-      }
-      validateDetailedLinePayload(lineAccounted);
+      };
+      if (safeTypechecker(exp) !== 'Object') {
+        Swal.fire('Invalid request!', 'Invalid request. Please try again later.', 'warning');
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
+        return
+      };
+      validateDetailedLinePayload(exp);
       let response: RequestResponse = {};
-      if (Number(lineAccounted.entryNo) >= 0) {
-        const updatePayload = removeObjectProps(lineAccounted, ['financeAmount']);
+      if (safeTypechecker(exp.entryNo) === 'Undefined' || safeTypechecker(exp.entryNo) === 'Null') {
+        if (!exp.amount || !exp.attachment) {
+          Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: false,
+              message: '',
+            }
+          });
+          return;
+        } else {
+          response = await createResource('imprestDetailedLine', {
+            data: exp,
+          });
+        }
+      } else {
+        const updatePayload = removeObjectProps(exp, ['financeAmount']);
         response = await patchResource('imprestDetailedLine', {
           primaryKey: ['entryNo', 'DetailedLineMgtDocType', 'DetailedLineMgtDocNo', 'DetailedLineMgtLineNo'],
           data: updatePayload,
         });
-      } else {
-        response = await createResource('imprestDetailedLine', {
-          data: lineAccounted,
-        });
       }
       if (response.error) {
         Swal.fire(response.error.code, response.error.message, 'error');
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return;
       }
-      await postRequest();
-      Swal.fire('Success', 'Line successfully accounted!', 'success');
+      await postRequest(index);
+      Swal.fire('Success', 'Accounting entry added successfully!', 'success');
     } catch (error: any) {
       Swal.fire('Error', error.message, 'error');
+    } finally {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
   }
 
   const handleSendSettlementForApproval = async () => {
     try {
-      const accountingLinesNotSavedRequestOptions = [];
-      const savedAccountingLinesRequestOptions = [];
-      accountedLines.forEach((line: Record<string, any>) => {
-        if (safeTypechecker(line.entryNo) === 'Null' || safeTypechecker(line.entryNo) === 'Undefined') {
-          validateDetailedLinePayload(line);
-          if (!line.amount || !line.attachment) {
-            Swal.fire('Invalid request!', 'You must account this line first by adding amount and uploading the receipt', 'warning');
-            return;
+      if (formData?.no) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: true,
+            message: 'Sending for approval...',
           }
-          accountingLinesNotSavedRequestOptions.push({
-            method: 'POST',
-            endpoint: 'imprestDetailedLine',
-            data: line,
-          } satisfies batchRequestOptions)
-        }
-        else if (line.entryNo >= 0) {
-          validateDetailedLinePayload(line);
-          const updatePayload = removeObjectProps(line, ['financeAmount']);
-          savedAccountingLinesRequestOptions.push(patchResource('imprestDetailedLine', {
-            primaryKey: ['entryNo', 'DetailedLineMgtDocType', 'DetailedLineMgtDocNo', 'DetailedLineMgtLineNo'],
-            data: updatePayload,
-          }));
-        }
-      });
-      Promise.all([
-        batchRequest({
-          batch: accountingLinesNotSavedRequestOptions
-        }),
-        Promise.all(savedAccountingLinesRequestOptions)
-      ]).then(async (response) => {
-        dispatcher({
-          type: 'SET_DETAILED_ACCOUNTING_LINES',
-          payload: response.flat(Infinity),
         });
         const res = await codeUnit('AdvnaceLiquidation', {
           data: {
@@ -248,12 +394,35 @@ export default function AdvanceSettlement({
           }
         });
         if (res.error) {
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: false,
+              message: '',
+            }
+          });
           return Swal.fire(res.error.code, res.error.message, 'error');
         }
         await postRequest();
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         Swal.fire('Success', 'Successfully sent settlement for approval.', 'success');
-      });
+      } else {
+        Swal.fire('Alert', 'Nothing happened. Try again later.', 'info');
+      }
     } catch (error: any) {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
       Swal.fire('Error!', error?.message, 'error');
     }
   }
@@ -328,10 +497,21 @@ export default function AdvanceSettlement({
       <div className="row flex-grow-1">
         <div className="col-md-9">
           <div className="card border-0 shadow-sm mb-4">
-            <div className="card-header bg-primary-subtle">
+            <div className="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
               <h5 className="mb-0 fw-semibold text-dark">
                 Advance Settlement
               </h5>
+              {
+                showAdvanceAccountedLineDetailsModal &&
+                <button
+                  type="button"
+                  className="btn btn-success d-flex align-items-center gap-1"
+                  onClick={addNewEntryToAccount}
+                >
+                  <PlusCircle size={16} />
+                  Add New Entry
+                </button>
+              }
             </div>
             <div className="card-body">
               <>
@@ -342,9 +522,20 @@ export default function AdvanceSettlement({
                         <span className="text-muted">Amount Advanced</span>
                         <ArrowUp size={16} className="text-success" />
                       </div>
-                      <h5 className="mt-2 mb-0 text-success fw-bold">
-                        {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {formData?.amountToPayHeader}
-                      </h5>
+                      {
+                        showAdvanceAccountedLineDetailsModal && (
+                          <h5 className="mt-2 mb-0 text-success fw-bold">
+                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {selectedAdvanceLineForView?.amountToPay}
+                          </h5>
+                        )
+                      }
+                      {
+                        showAdvannceSettlementForm && (
+                          <h5 className="mt-2 mb-0 text-success fw-bold">
+                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {formData?.amountToPayHeader}
+                          </h5>
+                        )
+                      }
                     </div>
                   </div>
 
@@ -354,63 +545,132 @@ export default function AdvanceSettlement({
                         <span className="text-muted">Amount Justified</span>
                         <ArrowDown size={16} className="text-primary" />
                       </div>
-                      <h5 className="mt-2 mb-0 text-primary fw-bold">
-                        {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {totalSurrendered.toLocaleString()}
-                      </h5>
+                      {
+                        showAdvanceAccountedLineDetailsModal && (
+                          <h5 className="mt-2 mb-0 text-primary fw-bold">
+                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {selectedAdvanceLineForView.accountedAmount.toLocaleString()}
+                          </h5>
+                        )
+                      }
+                      {
+                        showAdvannceSettlementForm && (
+                          <h5 className="mt-2 mb-0 text-primary fw-bold">
+                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'} {totalSurrendered.toLocaleString()}
+                          </h5>
+                        )
+                      }
                     </div>
                   </div>
                 </div>
-                <div
-                  className={`toast d-flex align-items-center w-100 text-white border-0 show ${overspent
-                    ? "bg-danger"
-                    : fullyAccounted
-                      ? "bg-success"
-                      : "bg-warning"
-                    }`}
-                  role="alert"
-                >
-                  <div className="toast-body d-flex align-items-center gap-2">
-                    {overspent ? (
-                      <>
-                        <AlertTriangle size={20} />
-                        <div>
-                          <strong>Claim:</strong>{" "}
-                          <strong>
-                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
-                            {" "}
-                            {Math.abs(totalBalanceAmount).toLocaleString()}
-                          </strong>{" "}
-                          overspent
-                        </div>
-                      </>
-                    ) : fullyAccounted ? (
-                      <>
-                        <Check size={20} />
-                        <div>
-                          <strong>Perfect!</strong> Advance fully accounted
-                          for.
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle size={20} />
-                        <div>
-                          <strong>Surrender:</strong> Remaining balance of{" "}
-                          <strong>
-                            {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
-                            {" "}
-                            {totalBalanceAmount.toLocaleString()}
-                          </strong>
-                        </div>
-                      </>
-                    )}
+                {
+                  showAdvannceSettlementForm && <div
+                    className={`toast d-flex align-items-center w-100 text-white border-0 show ${overspent
+                      ? "bg-danger"
+                      : fullyAccounted
+                        ? "bg-success"
+                        : "bg-warning"
+                      }`}
+                    role="alert"
+                  >
+                    <div className="toast-body d-flex align-items-center gap-2">
+                      {overspent ? (
+                        <>
+                          <AlertTriangle size={20} />
+                          <div>
+                            <strong>Claim:</strong>{" "}
+                            <strong>
+                              {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
+                              {" "}
+                              {Math.abs(totalBalanceAmount).toLocaleString()}
+                            </strong>{" "}
+                            overspent
+                          </div>
+                        </>
+                      ) : fullyAccounted ? (
+                        <>
+                          <Check size={20} />
+                          <div>
+                            <strong>Perfect!</strong> Advance fully accounted
+                            for.
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle size={20} />
+                          <div>
+                            <strong>Surrender:</strong> Remaining balance of{" "}
+                            <strong>
+                              {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
+                              {" "}
+                              {totalBalanceAmount.toLocaleString()}
+                            </strong>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <SettlementExpenseForm
-                  saveAccountingLine={handleSaveAccountedRow}
-                  viewLineAccountingDetails={handleViewLineAccountingDetails}
-                />
-                {overspent && (
+                }
+                {
+                  showAdvanceAccountedLineDetailsModal &&
+                  <div
+                    className={`toast d-flex align-items-center w-100 text-white border-0 show ${selectedAdvanceLineForView?.accountedAmount > selectedAdvanceLineForView?.amountToPay
+                      ? "bg-danger"
+                      : selectedAdvanceLineForView?.accountedAmount === selectedAdvanceLineForView?.amountToPay
+                        ? "bg-success"
+                        : "bg-warning"
+                      }`}
+                    role="alert"
+                  >
+                    <div className="toast-body d-flex align-items-center gap-2">
+                      {selectedAdvanceLineForView?.accountedAmount > selectedAdvanceLineForView?.amountToPay ? (
+                        <>
+                          <AlertTriangle size={20} />
+                          <div>
+                            <strong>Claim:</strong>{" "}
+                            <strong>
+                              {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
+                              {" "}
+                              {Math.abs(selectedAdvanceLineForView?.balance).toLocaleString()}
+                            </strong>{" "}
+                            overspent
+                          </div>
+                        </>
+                      ) : selectedAdvanceLineForView?.accountedAmount === selectedAdvanceLineForView?.amountToPay ? (
+                        <>
+                          <Check size={20} />
+                          <div>
+                            <strong>Perfect!</strong> Advance fully accounted
+                            for.
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle size={20} />
+                          <div>
+                            <strong>Surrender:</strong> Remaining balance of{" "}
+                            <strong>
+                              {findObjectFromArray(currencies, 'code', formData?.currencyCode)?.description as string || 'KES'}
+                              {" "}
+                              {selectedAdvanceLineForView?.balance.toLocaleString()}
+                            </strong>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                }
+                {
+                  showAdvannceSettlementForm && <SettlementExpenseForm
+                    viewLineAccountingDetails={handleViewLineAccountingDetails}
+                  />
+                }
+                {
+                  showAdvanceAccountedLineDetailsModal && <AccountingExpenseDetailsForm
+                    saveAccountingLine={handleSaveAccountedRow}
+                    deleteDetailedExpesneLine={handleDeleteDetailedExpesneLine}
+                  />
+                }
+                {showAdvannceSettlementForm && overspent && (
                   <div className="row g-3 mt-3">
                     <div className="col-md-6">
                       <label className="form-label fw-medium">
@@ -450,7 +710,7 @@ export default function AdvanceSettlement({
                     )}
                   </div>
                 )}
-                {underspent && (
+                {showAdvannceSettlementForm && underspent && (
                   <div className="row g-3 mt-3">
                     <div className="col-md-6">
                       <label className="form-label fw-medium">
@@ -494,7 +754,7 @@ export default function AdvanceSettlement({
                 )}
               </>
               <div className="d-flex justify-content-between mt-4">
-                <div className="d-flex gap-2">
+                {showAdvannceSettlementForm && <div className="d-flex gap-2">
                   {
                     formData.imprestStatus === 'Issued' ?
                       (
@@ -519,20 +779,30 @@ export default function AdvanceSettlement({
                           </button>
                         ) : ''
                   }
-                </div>
+                </div>}
               </div>
             </div>
           </div>
         </div>
         <div className="col-md-3">
           <ProgressIndicator
-            currentStep={1}
-            isSubmitted={true}
+            currentStep={3}
+            isSubmitted={
+              [
+                'Issued',
+                'Accounted',
+                'Settled',
+                'Posted',
+                'Pending Liquidation',
+                'Rejected',
+                'Liquidation Rejected',
+                'Reversed'
+              ].includes(formData.imprestStatus)}
           />
         </div>
       </div>
       <div className="d-flex justify-content-center gap-2 mb-4">
-        {[1, 2].map((step) => (
+        {[1].map((step) => (
           <div
             key={step}
             className={`rounded-circle  bg-danger"

@@ -20,7 +20,7 @@ import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
-import AccountingExpenseDetailsForm from "@/app/components/advances/forms/AccountingExpenseDetailsForm";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -47,6 +47,8 @@ export default function OtherAdvancesClient() {
     showAdvanceAccountedLineDetailsModal,
   } = useAdvance();
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
+  const { actions: loaderActions } = usePageLoader();
+  const { dispatcher: loaderDispatcher } = loaderActions;
 
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.no;
@@ -124,6 +126,10 @@ export default function OtherAdvancesClient() {
     dispatcher({
       type: 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
       payload: {},
+    });
+    dispatcher({
+      type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+      payload: [],
     });
     dispatcher({
       type: 'SET_SETTLEMENT_MODAL',
@@ -209,6 +215,13 @@ export default function OtherAdvancesClient() {
 
   const handleSetSelectedRow = async (advance: FormData | null = null, ...args: any) => {
     if (advance) {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       await handleFetchingSetup();
       await fetchLineSetup();
       dispatcher({
@@ -225,10 +238,24 @@ export default function OtherAdvancesClient() {
           dispatcher({
             type: 'SET_SETTLEMENT_MODAL',
             payload: true,
-          })
+          });
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: false,
+              message: '',
+            }
+          });
         }
       } else {
         setShowModal(true);
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
       }
     } else {
       setShowModal(false);
@@ -257,6 +284,13 @@ export default function OtherAdvancesClient() {
       dispatcher({
         type: 'ADVANCE_CREATION_STATUSES',
         payload: { isNew: false, isEditing: false, setForView: false },
+      });
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
       });
     }
   }
@@ -430,9 +464,9 @@ export default function OtherAdvancesClient() {
         onClose={handleClosingAdvanceAccountedLineDetailsModal}
         title="Acoounted Line Details"
         titleIcon={<i className="las la-wallet fs-18" />}
-        size="lg"
+        size="xl"
       >
-        <AccountingExpenseDetailsForm />
+        <AdvanceSettlement />
       </CustomModal>
     </>
   );

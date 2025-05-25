@@ -23,6 +23,7 @@ const initialState = {
         },
     ] satisfies AdvanceType[],
     formData: {
+        documentType: "",
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
@@ -56,7 +57,7 @@ const initialState = {
     advanceLineSelectedForAccounting: {} as Record<string, any>,
     accountedLines: [] as Record<string, any>[],
     selectedAdvanceLineForView: {} as Record<string, any>,
-    selectedAdvanceLineForViewAccountingDetails: [] as Record<string, any>,
+    selectedAdvanceLineForViewAccountingDetails: [] as Record<string, any>[],
     actions: {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {

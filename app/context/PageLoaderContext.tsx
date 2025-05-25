@@ -53,7 +53,7 @@ export function PageLoaderProvider({ children }: { children: ReactNode }) {
       ...loaderState.actions,
       dispatcher: dispatcherCaller,
     }
-  }), [loaderState, dispatcher])
+  }), [loaderState, dispatcherCaller])
 
   return (
     <PageLoaderContext.Provider value={loaderContextValue}>

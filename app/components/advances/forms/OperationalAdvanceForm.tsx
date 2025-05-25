@@ -16,12 +16,13 @@ import {
 } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
-import { batchRequest, codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
+import { batchRequest, codeUnit, createResource, getResource, patchResource, putResource } from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { formatDate } from "@/app/utils/dateFormats";
 import { batchRequestOptions, BatchRequestResponse, RequestResponse } from "@/app/types/options";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { ArrowDown, ArrowRightCircle, Check, RefreshCw, Undo2, XCircle } from "lucide-react";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 export default function OperationalAdvanceForm({
   closeModalHandler,
@@ -31,7 +32,6 @@ export default function OperationalAdvanceForm({
   openSettlmentModalFactory?: (data: FormData, ...args: any) => void;
 }) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<string>("");
   const {
     paymentMethods,
@@ -43,6 +43,8 @@ export default function OperationalAdvanceForm({
   } = useMySetups();
   const { formData, expenses, actions, isEditing } = useAdvance();
   const { dispatcher, fetchLineSetup } = actions;
+  const { actions: loaderActions } = usePageLoader();
+  const { dispatcher: loaderDispatcher } = loaderActions;
   const { data } = useSession();
 
   const handleFormChange = (field: keyof FormData, value: string) => {
@@ -156,8 +158,26 @@ export default function OperationalAdvanceForm({
   }
 
   const handleSubmit = async () => {
-    setIsSubmitted(true);
     try {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: 'Saving advance...'
+        }
+      });
+      const pDate = new Date().toISOString();
+      const presets: Record<string, any> = {
+        documentType: "Imprest",
+        postingDate: formatDate(pDate, "yyyy-MM-dd"),
+        employeeNo: data.user?.profile?.no,
+        requestedBy: data.user?.profile?.no,
+        requestedByFor: data.user?.profile?.no,
+        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
+        shortcutDimension2Code: data.user?.profile?.shortcutDimension2Code,
+        shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
+      };
+      let savedLines = [];
       if (!expenses.length && (isEditing || formData?.status === 'Open')) {
         const res = await getResource('imprestLine', {
           params: {
@@ -170,25 +190,28 @@ export default function OperationalAdvanceForm({
           Swal.fire(res.error.code, res.error.message, 'error');
           return;
         }
+        savedLines = res.value;
         dispatcher({
           type: 'SET_EXISTING_ADVANCE_LINES',
           payload: res.value,
         });
       }
-      if (!expenses.length) {
+      if (!expenses.length && !savedLines.length) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: ''
+          }
+        });
         return Swal.fire('Error!', 'You must add at least one advance line to proceed!', 'warning');
       }
-      const pDate = new Date().toISOString();
-      const presets: Record<string, any> = {
-        documentType: "Imprest",
-        postingDate: formatDate(pDate, "yyyy-MM-dd"),
-        employeeNo: data.user?.profile?.no,
-        requestedBy: data.user?.profile?.no,
-        requestedByFor: data.user?.profile?.no,
-        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
-        shortcutDimension2Code: data.user?.profile?.shortcutDimension2Code,
-        shortcutDimension3Code: data.user?.profile?.shortcutDimension2Code,
-      };
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          message: 'Preparing data...'
+        }
+      });
       const strippedPayLoad = removeNullAndUndefinedFromObject({
         ...formData,
         ...presets,
@@ -213,44 +236,99 @@ export default function OperationalAdvanceForm({
           "Purpose",
         ]
       );
-      if (!isMissingRequiredProp)
+      if (!isMissingRequiredProp) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return Swal.fire("Validation Error!", `Not a valid payload`);
+      }
       if (isMissingRequiredProp.missing) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return Swal.fire(
           "Validation Error!",
           `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
           }`
         );
       }
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          message: 'Submitting...',
+        }
+      });
       let res: RequestResponse = {};
       if (isEditing || formData?.status === 'Open') {
-        res = await patchResource("imprest", {
+        const { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod } = knownSchema;
+        res = await putResource("imprest", {
           primaryKey: ['no', 'documentType'],
-          data: knownSchema,
+          data: { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod },
         });
       } else {
+        console.log('Known schema: else branch', knownSchema);
         res = await createResource("imprest", {
           data: knownSchema,
         });
       }
       if (res.error) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
         return Swal.fire(res.error.code, res.error.message, "error");
       }
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          message: 'Submitting advance lines...',
+        }
+      });
       await handleSubmittingAdvanceLine(res as FormData);
       Swal.fire(
         "Success",
-        `${res.imprestType} advance was created successfully!`,
+        `${res.imprestType} advance was ${isEditing ? 'updated' : 'created'} successfully!`,
         "success"
       ).then(async (result) => {
         if (result.isConfirmed) {
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              message: 'Just a second...',
+            }
+          });
           await postResourceAction(res?.no);
         }
       });
 
     } catch (error: any) {
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
       Swal.fire("Error!", error.message, "error");
     } finally {
-      setIsSubmitted(false);
+      loaderDispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
   };
 
@@ -264,11 +342,12 @@ export default function OperationalAdvanceForm({
         documentNo: header.no,
         Quantity: 1,
         shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
-        shortcutDimension3Code: data.user?.profile?.shortcutDimension2Code,
+        shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
       };
+      const res: RequestResponse = {};
       const expenseRequestOption: batchRequestOptions[] = [];
       const patchBatchRequestOptions = [];
-      expenses.forEach((expense: ExpenseItem) => {
+      expenses.forEach((expense: ExpenseItem, index: number) => {
         const costCenterDimension = findObjectFromArray(
           DEPARTMENTS,
           "code",
@@ -284,7 +363,7 @@ export default function OperationalAdvanceForm({
           "code",
           expense.expenseCode
         );
-        if (safeTypechecker(glAccount) !== "Object") return {};
+        if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);;
         expense[constructDimension(costCenterDimension)] = expense.costCenter;
         expense[constructDimension(projectDimension)] = expense.project;
         expense.description = glAccount.description as string;
@@ -302,9 +381,9 @@ export default function OperationalAdvanceForm({
           validSchema,
           ["documentNo", "documentType", "expenseCode", "unitCost", "Quantity"]
         );
-        if (!validateRequiredProps) return {};
+        if (!validateRequiredProps) throw new Error(`Line ${index + 1} could noe be validated`);;
         if (validateRequiredProps.missing) {
-          return {};
+          throw new Error(`Line ${index + 1} is missing ${validateRequiredProps.prop.join(',')} properties`);
         }
         if ((isEditing || formData?.status === 'Open') && validSchema?.lineNo >= 0) {
           patchBatchRequestOptions.push(
@@ -324,12 +403,6 @@ export default function OperationalAdvanceForm({
       const addedLines = expenses.length;
       const lineCaption = addedLines > 1 ? "lines" : "line";
       if (!isEditing || !formData?.status) {
-        expenseRequestOption.forEach((item, index) => {
-          if (!Object.keys(item).length) {
-            expenseRequestOption.splice(index, 1);
-          }
-        });
-
         if (expenseRequestOption.length) {
           if (expenseRequestOption.length !== expenses.length)
             Swal.fire(
@@ -351,12 +424,12 @@ export default function OperationalAdvanceForm({
               }
             }
             if (failedLines) {
-              throw new Error(`${failedLines} advances did not save!`);
+              throw new Error(`${failedLines} ${failedLines > 1 ? 'lines' : 'line'} did not save!`);
             }
           }
         } else {
           throw new Error(
-            `The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} add update lines!`
+            `The advance ${lineCaption} you added had errors and did not submit!. Navigate to your advances list and locate advance with SN #${header.no} and update lines!`
           );
         }
       } else {
@@ -366,8 +439,22 @@ export default function OperationalAdvanceForm({
           }),
           Promise.all(patchBatchRequestOptions)
         ]).then((response) => {
-          console.log('type of response on promisy: ', response);
+          response.flat(Infinity).forEach((result: Record<string, any>) => {
+            if (result?.imprestLine) {
+              if (result['imprestLine']?.error) {
+                res.error = result['imprestLine']?.error;
+              }
+            }
+            if (result.error) {
+              res.error = result.error;
+            }
+          })
+        }).catch((error: any) => {
+          throw error;
         });
+        if (res.error) {
+          throw new Error(`${res.error.code}. ${res.error.message}`);
+        }
       }
     } catch (error) {
       throw new Error(error.message);
@@ -666,7 +753,7 @@ export default function OperationalAdvanceForm({
         <div className="col-md-3">
           <ProgressIndicator
             currentStep={currentStep}
-            isSubmitted={isSubmitted}
+            isSubmitted={['Pending Approval', 'Rejected', 'Approved', 'Released'].includes(formData?.status)}
           />
         </div>
       </div>
