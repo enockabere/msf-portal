@@ -1,31 +1,68 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useReducer, useMemo, useCallback } from "react";
 
-type PageLoaderContextType = {
-  loading: boolean;
-  showLoader: () => void;
-  hideLoader: () => void;
+interface ActionType { type: string; payload: any }
+
+const iniatialLoaderState = {
+  loading: false,
+  message: 'Please wait a minute...',
+  actions: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    dispatcher: (option: ActionType): void => { },
+  },
 };
 
-const PageLoaderContext = createContext<PageLoaderContextType | undefined>(
+export type LoaderState = typeof iniatialLoaderState;
+const loadingStateReducer = (state: Partial<LoaderState>, action: ActionType) => {
+  switch (action.type) {
+    case 'PATCH_LOADING_STATE': {
+      return {
+        ...state,
+        ...(action.payload),
+      }
+    }
+  }
+}
+
+
+// type PageLoaderContextType = {
+//   loading: boolean;
+//   showLoader: () => void;
+//   hideLoader: () => void;
+// };
+
+const PageLoaderContext = createContext<LoaderState | undefined>(
   undefined
 );
 
 export function PageLoaderProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  const [loaderState, dispatcher] = useReducer(loadingStateReducer, iniatialLoaderState);
 
-  const showLoader = () => setLoading(true);
-  const hideLoader = () => setTimeout(() => setLoading(false), 500); // Smooth UX
+  // const showLoader = () => setLoading(true);
+  // const hideLoader = () => setTimeout(() => setLoading(false), 500); // Smooth UX
+
+  const dispatcherCaller = useCallback((option: ActionType) => {
+    dispatcher(option);
+  }, []);
+
+  const loaderContextValue = useMemo(() => ({
+    ...loaderState,
+    actions: {
+      ...loaderState.actions,
+      dispatcher: dispatcherCaller,
+    }
+  }), [loaderState, dispatcherCaller])
 
   return (
-    <PageLoaderContext.Provider value={{ loading, showLoader, hideLoader }}>
+    <PageLoaderContext.Provider value={loaderContextValue}>
       {children}
     </PageLoaderContext.Provider>
   );
 }
 
-export function usePageLoader(): PageLoaderContextType {
+export function usePageLoader() {
   const context = useContext(PageLoaderContext);
   if (!context) {
     throw new Error("usePageLoader must be used within a PageLoaderProvider");

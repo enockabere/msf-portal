@@ -6,13 +6,14 @@ import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useEffect, useState, startTransition } from "react";
 import { getResource } from "@/app/lib/api/http";
 
+
 export default function SidebarMenu() {
   const router = useRouter();
   const currentPath = usePathname();
-  const { showLoader } = usePageLoader();
-  const [isNavigating, setIsNavigating] = useState(false);
   const [approvalCount, setApprovalCount] = useState(0);
   const { data: session, status } = useSession();
+  const { loading, actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const profile = session?.user?.profile;
   const isVisitor = profile?.type === "Visitor";
@@ -20,18 +21,29 @@ export default function SidebarMenu() {
 
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
-    if (href !== currentPath && !isNavigating) {
-      setIsNavigating(true);
-      showLoader();
+    if (href !== currentPath && !loading) {
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       startTransition(() => {
         router.push(href);
-        setIsNavigating(false);
+        dispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
       });
     }
   };
 
   const isGroupActive = (prefix: string) =>
-    !isNavigating &&
+    !loading &&
     currentPath.startsWith(prefix) &&
     currentPath !== "/dashboard";
 
@@ -91,9 +103,8 @@ export default function SidebarMenu() {
           <li className="nav-item">
             <a
               href="/dashboard/make-request/travel"
-              className={`nav-link ${
-                currentPath === "/dashboard/make-request/travel" ? "active" : ""
-              }`}
+              className={`nav-link ${currentPath === "/dashboard/make-request/travel" ? "active" : ""
+                }`}
               onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
             >
               <i className="iconoir-airplane menu-icon"></i>
@@ -109,11 +120,10 @@ export default function SidebarMenu() {
           {/* My Requests */}
           <li className="nav-item">
             <a
-              className={`nav-link ${
-                currentPath.startsWith("/dashboard/make-request")
-                  ? "active"
-                  : ""
-              }`}
+              className={`nav-link ${currentPath.startsWith("/dashboard/make-request")
+                ? "active"
+                : ""
+                }`}
               href="#sidebarMyRequests"
               data-bs-toggle="collapse"
               aria-expanded={currentPath.startsWith("/dashboard/make-request")}
@@ -123,18 +133,16 @@ export default function SidebarMenu() {
               <span>My Requests</span>
             </a>
             <div
-              className={`collapse ${
-                currentPath.startsWith("/dashboard/make-request") ? "show" : ""
-              }`}
+              className={`collapse ${currentPath.startsWith("/dashboard/make-request") ? "show" : ""
+                }`}
               id="sidebarMyRequests"
             >
               <ul className="nav flex-column">
                 <li className="nav-item">
                   <a
                     href="/dashboard/make-request"
-                    className={`nav-link ${
-                      currentPath === "/dashboard/make-request" ? "active" : ""
-                    }`}
+                    className={`nav-link ${currentPath === "/dashboard/make-request" ? "active" : ""
+                      }`}
                     onClick={(e) => handleNav(e, "/dashboard/make-request")}
                   >
                     Request Dashboard
@@ -157,6 +165,7 @@ export default function SidebarMenu() {
               <span>HR Services</span>
             </a>
             <div
+
               className={`collapse ${isGroupActive("/hr") ? "show" : ""}`}
               id="sidebarHRServices"
             >
@@ -179,9 +188,8 @@ export default function SidebarMenu() {
           {/* Procurement & Finance */}
           <li className="nav-item">
             <a
-              className={`nav-link ${
-                isGroupActive("/procurement") ? "active" : ""
-              }`}
+              className={`nav-link ${isGroupActive("/procurement") ? "active" : ""
+                }`}
               href="#sidebarProcFinance"
               data-bs-toggle="collapse"
               role="button"
@@ -192,9 +200,8 @@ export default function SidebarMenu() {
               <span>Procurement & Finance</span>
             </a>
             <div
-              className={`collapse ${
-                isGroupActive("/procurement") ? "show" : ""
-              }`}
+              className={`collapse ${isGroupActive("/procurement") ? "show" : ""
+                }`}
               id="sidebarProcFinance"
             >
               <ul className="nav flex-column">
@@ -293,11 +300,10 @@ export default function SidebarMenu() {
             <li className="nav-item" key={index}>
               <a className="nav-link" href="#">
                 <i
-                  className={`iconoir-${
-                    ["archive", "submit-document", "headset-help", "book"][
-                      index
-                    ]
-                  } menu-icon`}
+                  className={`iconoir-${["archive", "submit-document", "headset-help", "book"][
+                    index
+                  ]
+                    } menu-icon`}
                 ></i>
                 <span>
                   {label} <span className="badge bg-warning ms-2">Soon</span>
@@ -314,7 +320,6 @@ export default function SidebarMenu() {
           href="#"
           onClick={async (e) => {
             e.preventDefault();
-            showLoader();
             await signOut({ callbackUrl: "/" });
           }}
           className="nav-link"

@@ -24,8 +24,9 @@ import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
-import {downloadFileFromBase64} from "@/app/utils/downloadBas64";
+import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 // Type definitions
 interface WizardStep {
@@ -76,12 +77,12 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
 };
 
 const WORK_PERMIT_FIELDS = [
-  {id: "country", label: "Country of Work", type: "text"},
-  {id: "duration", label: "Duration (days)", type: "number"},
-  {id: "documents", label: "Required Documents", type: "file"},
+  { id: "country", label: "Country of Work", type: "text" },
+  { id: "duration", label: "Duration (days)", type: "number" },
+  { id: "documents", label: "Required Documents", type: "file" },
 ];
 
-export default function TravelRequestWizard({requestNo, profile}: Props) {
+export default function TravelRequestWizard({ requestNo, profile }: Props) {
   // State management
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
@@ -90,6 +91,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   // Derived values
   const isReadOnly = useMemo(
@@ -124,7 +127,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
       setTravelRequestHeader(prev => ({
         ...prev,
-        ...(requestNo ? {documentType: profile.type} : baseData)
+        ...(requestNo ? { documentType: profile.type } : baseData)
       }));
     };
 
@@ -184,7 +187,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       setIsLoading(true);
       const res = await getResource('travelRequests', {
         params: {
-          filters: {no: requestNo ?? travelRequestHeader.no},
+          filters: { no: requestNo ?? travelRequestHeader.no },
           '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
         }
       });
@@ -193,7 +196,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         throw new Error(res.error.message);
       }
 
-      setTravelRequestHeader(prev => ({...prev, ...res.value.at(0)}));
+      setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
     } finally {
@@ -222,8 +225,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       } else {
         setIsSaving(true);
         const operation = knownSchema.no
-          ? patchResource('travelRequests', {data: knownSchema, primaryKey: ['no', 'documentType']})
-          : createResource('travelRequests', {data: knownSchema});
+          ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
+          : createResource('travelRequests', { data: knownSchema });
 
         const res = await operation;
         if (res.error) {
@@ -251,8 +254,15 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const handleSubmitForApproval = useCallback(async () => {
     try {
       setIsSubmitting(true);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
       const res = await codeUnit('sendTravelRequestForApproval', {
-        data: {no: travelRequestHeader.no},
+        data: { no: travelRequestHeader.no },
       });
 
       if (res.error) {
@@ -265,13 +275,20 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       Swal.fire("Error submitting for approval", error.message);
     } finally {
       setIsSubmitting(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
     }
-  }, [fetchTravelRequest, travelRequestHeader.no]);
+  }, [fetchTravelRequest, travelRequestHeader.no, dispatcher]);
 
   const handleCreateTravelAdvance = useCallback(async () => {
     try {
       const res = await codeUnit("createTravelAdvanceFromTravel", {
-        data: {no: travelRequestHeader.no},
+        data: { no: travelRequestHeader.no },
       });
 
       if (res.error) {
@@ -289,55 +306,55 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const allSteps = useMemo<WizardStep[]>(() => [
     {
       id: "info",
-      icon: <User size={18}/>,
+      icon: <User size={18} />,
       title: "Travel Details",
       desc: "General travel details",
     },
     {
       id: "destinations",
-      icon: <Globe size={18}/>,
+      icon: <Globe size={18} />,
       title: "Travel Destinations",
       desc: "Travel destination details",
     },
     {
       id: "dependants",
-      icon: <Link size={18}/>,
+      icon: <Link size={18} />,
       title: "Dependants",
       desc: "Related travel requirements",
     },
     {
       id: "providers",
-      icon: <Ticket size={18}/>,
+      icon: <Ticket size={18} />,
       title: "Service Providers",
       desc: "Service providers details",
     },
     {
       id: "checklist",
-      icon: <ListChecks size={18}/>,
+      icon: <ListChecks size={18} />,
       title: "Visa Checklist",
       desc: "Visa Pre-travel requirements",
     },
     {
       id: "traveller-checklist",
-      icon: <ListChecks size={18}/>,
+      icon: <ListChecks size={18} />,
       title: "Traveller Checklist",
       desc: "Pre-travel requirements",
     },
     {
       id: "visa",
-      icon: <Globe size={18}/>,
+      icon: <Globe size={18} />,
       title: "Visa Application",
       desc: "Visa documentation",
     },
     {
       id: "permit",
-      icon: <FilePlus2 size={18}/>,
+      icon: <FilePlus2 size={18} />,
       title: "Work Permit",
       desc: "Work authorization",
     },
     {
       id: "advance",
-      icon: <Briefcase size={18}/>,
+      icon: <Briefcase size={18} />,
       title: "Travel Advance",
       desc: "Advance request",
       actions: [{
@@ -406,7 +423,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
   // Event handlers
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
-    setTravelRequestHeader(prev => ({...prev, [field]: value}));
+    setTravelRequestHeader(prev => ({ ...prev, [field]: value }));
   }, []);
 
   const handleTabChange = (stepId: string) => {
@@ -427,12 +444,12 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       const res = await codeUnit('getIntroductoryLetter', {
         data: {
           docType: travelRequestHeader?.documentType === "Employee"
-              ? "0"
-              : travelRequestHeader.documentType === "Visitor"
-                  ? "1"
-                  : travelRequestHeader.documentType === "Non-Resident"
-                      ? "2"
-                      : "Unknown",
+            ? "0"
+            : travelRequestHeader.documentType === "Visitor"
+              ? "1"
+              : travelRequestHeader.documentType === "Non-Resident"
+                ? "2"
+                : "Unknown",
           docNo: travelRequestHeader.no,
           destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
         }
@@ -468,11 +485,11 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       });
 
       if (res.error) {
-       throw new Error(res.error.message)
+        throw new Error(res.error.message)
       }
       downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
-      Swal.fire( "Error", error.message || "An unexpected error occurred.");
+      Swal.fire("Error", error.message || "An unexpected error occurred.");
     } finally {
       setIsSaving(false);
     }
@@ -488,7 +505,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
         <div className="wizard-progress">
           <div
             className="progress-bar"
-            style={{width: `${progressPercentage}%`}}
+            style={{ width: `${progressPercentage}%` }}
             aria-valuenow={progressPercentage}
             aria-valuemin={0}
             aria-valuemax={100}
@@ -585,14 +602,14 @@ interface StepHeaderProps {
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
-                                                 activeTab,
-                                                 currentSteps,
-                                                 canSubmitForApproval,
-                                                 isSubmitting,
-                                                 handleSubmitForApproval,
-                                                 downLoadIntroductoryLetter,
-                                                 downLoadBtaCertificate
-                                               }) => (
+  activeTab,
+  currentSteps,
+  canSubmitForApproval,
+  isSubmitting,
+  handleSubmitForApproval,
+  downLoadIntroductoryLetter,
+  downLoadBtaCertificate
+}) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
       {currentSteps.find(s => s.id === activeTab)?.title}
@@ -604,7 +621,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
         className="primary-button"
         onClick={action.fn}
       >
-        <Plus size={16}/>
+        <Plus size={16} />
         {action.caption}
       </button>
     ))}
@@ -617,37 +634,37 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          <DownloadIcon size={16} className="button-icon"/>
+          <DownloadIcon size={16} className="button-icon" />
           Download
         </button>
         <ul className="dropdown-menu">
           <li>
             <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
+              <FileDownIcon size={16} className="button-icon" />
               Dummy ticket
             </button>
           </li>
           <li>
             <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
+              <FileDownIcon size={16} className="button-icon" />
               Accommodation voucher
             </button>
           </li>
           <li>
             <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
+              <FileDownIcon size={16} className="button-icon" />
               Letter of intent
             </button>
           </li>
           <li>
             <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
+              <FileDownIcon size={16} className="button-icon" />
               Introductory Letter
             </button>
           </li>
           <li>
             <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon"/>
+              <FileDownIcon size={16} className="button-icon" />
               Bta Certificate
             </button>
           </li>
@@ -661,11 +678,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
         onClick={handleSubmitForApproval}
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <SectionLoader classes={'button-icon'}/>
-        ) : (
-          <Check size={16} className="button-icon"/>
-        )}
+        <Check size={16} className="button-icon" />
         Submit for Approval
       </button>
     )}
@@ -685,53 +698,53 @@ interface StepContentProps {
 }
 
 const StepContent: React.FC<StepContentProps> = ({
-                                                   activeTab,
-                                                   travelRequestHeader,
-                                                   headerRequiredFields,
-                                                   isReadOnly,
-                                                   isSaving,
-                                                   isLoading,
-                                                   saveTravelRequestHeader,
-                                                   fetchTravelRequest,
-                                                   handleFormChange,
-                                                 }) => {
+  activeTab,
+  travelRequestHeader,
+  headerRequiredFields,
+  isReadOnly,
+  isSaving,
+  isLoading,
+  saveTravelRequestHeader,
+  fetchTravelRequest,
+  handleFormChange,
+}) => {
   switch (activeTab) {
     case "info":
       return (
         isLoading ? (
-            <div className={'col-12 text-center'}>
-              <SectionLoader size={32}/>
-            </div>
-          ) : (
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              await saveTravelRequestHeader();
-            }}>
-              <TravelHeaderForm
-                formData={travelRequestHeader}
-                requiredFields={headerRequiredFields}
-                isReadOnly={isReadOnly}
-                onFormChange={handleFormChange}
-              />
+          <div className={'col-12 text-center'}>
+            <SectionLoader size={32} />
+          </div>
+        ) : (
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            await saveTravelRequestHeader();
+          }}>
+            <TravelHeaderForm
+              formData={travelRequestHeader}
+              requiredFields={headerRequiredFields}
+              isReadOnly={isReadOnly}
+              onFormChange={handleFormChange}
+            />
 
-              {travelRequestHeader.approvalStatus === "Open" && (
-                <div className="step-actions">
-                  <button
-                    type="submit"
-                    className="primary-button"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <SectionLoader classes={'button-icon'}/>
-                    ) : (
-                      <Save size={16} className="button-icon"/>
-                    )}
-                    Save & Continue
-                  </button>
-                </div>
-              )}
-            </form>
-          )
+            {travelRequestHeader.approvalStatus === "Open" && (
+              <div className="step-actions">
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <SectionLoader classes={'button-icon'} />
+                  ) : (
+                    <Save size={16} className="button-icon" />
+                  )}
+                  Save & Continue
+                </button>
+              </div>
+            )}
+          </form>
+        )
       );
     case "destinations":
       return (
@@ -750,7 +763,7 @@ const StepContent: React.FC<StepContentProps> = ({
         />
       );
     case "providers":
-      return <ServiceProvidersList travelRequest={travelRequestHeader}/>;
+      return <ServiceProvidersList travelRequest={travelRequestHeader} />;
     case "permit":
       return (
         <div className="permit-form">
@@ -782,18 +795,18 @@ const StepContent: React.FC<StepContentProps> = ({
     case "advance":
       return (
         <div>
-          <TravelAdvanceDetails travelInfo={travelRequestHeader}/>
+          <TravelAdvanceDetails travelInfo={travelRequestHeader} />
           <TravelAdvanceGLTable
             glLines={travelRequestHeader?.travelRequestLines}
           />
         </div>
       );
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader}/>;
+      return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
-      return <VisaChecklist travelInfo={travelRequestHeader}/>;
+      return <VisaChecklist travelInfo={travelRequestHeader} />;
     case "traveller-checklist":
-      return <TravellerChecklist travelInfo={travelRequestHeader}/>;
+      return <TravellerChecklist travelInfo={travelRequestHeader} />;
     case "documents":
       return (
         <TravelDocuments
@@ -822,14 +835,14 @@ interface StepActionsProps {
 }
 
 const StepActions: React.FC<StepActionsProps> = ({
-                                                   activeTab,
-                                                   currentStepIndex,
-                                                   currentSteps,
-                                                   travelRequestHeader,
-                                                   handleTabChange,
-                                                   handleSubmitForApproval,
-                                                   isSubmitting,
-                                                 }) => {
+  activeTab,
+  currentStepIndex,
+  currentSteps,
+  travelRequestHeader,
+  handleTabChange,
+  handleSubmitForApproval,
+  isSubmitting,
+}) => {
   return (
     <div className="step-actions">
       <div className="d-flex flex-wrap gap-2">

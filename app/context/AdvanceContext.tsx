@@ -23,6 +23,7 @@ const initialState = {
         },
     ] satisfies AdvanceType[],
     formData: {
+        documentType: "",
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
@@ -52,8 +53,11 @@ const initialState = {
     isEditing: false satisfies boolean,
     setForView: false satisfies boolean,
     showAdvannceSettlementForm: false satisfies boolean,
+    showAdvanceAccountedLineDetailsModal: false satisfies boolean,
     advanceLineSelectedForAccounting: {} as Record<string, any>,
     accountedLines: [] as Record<string, any>[],
+    selectedAdvanceLineForView: {} as Record<string, any>,
+    selectedAdvanceLineForViewAccountingDetails: [] as Record<string, any>[],
     actions: {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
@@ -162,6 +166,24 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 accountedLines: action.payload,
+            }
+        }
+        case 'SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL': {
+            return {
+                ...state,
+                showAdvanceAccountedLineDetailsModal: action.payload,
+            }
+        }
+        case 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS': {
+            return {
+                ...state,
+                selectedAdvanceLineForView: action.payload,
+            }
+        }
+        case 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS': {
+            return {
+                ...state,
+                selectedAdvanceLineForViewAccountingDetails: action.payload,
             }
         }
     }
