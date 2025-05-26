@@ -3,7 +3,7 @@ import { getResource } from "@/app/lib/api/http";
 import { TravelRequest } from "@/app/types/travel";
 import ChecklistRow from "@/app/components/travel/ChecklistRow";
 
-export default function VisaChecklist({ travelInfo }: { travelInfo: TravelRequest }) {
+export default function TravellerChecklist({ travelInfo }: { travelInfo: TravelRequest }) {
     const [travelChecklist, setTravelChecklist] = useState([]);
 
     const getTravelChecklist = useCallback(async () => {
