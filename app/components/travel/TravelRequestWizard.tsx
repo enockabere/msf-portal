@@ -20,7 +20,7 @@ import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
-import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
+import TravellersForm from "../advances/forms/Travel/TravellersForm";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
@@ -246,7 +246,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   const navigateToNextStepAfterSave = () => {
     if (travelRequestHeader.documentType === 'Visitor') {
-      setActiveTab('dependants');
+      setActiveTab('travellers');
     } else if (travelRequestHeader.documentType === 'Employee') {
       setActiveTab('destinations');
     }
@@ -318,9 +318,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       desc: "Travel destination details",
     },
     {
-      id: "dependants",
+      id: "travellers",
       icon: <Link size={18} />,
-      title: "Dependants",
+      title: "Travellers",
       desc: "Related travel requirements",
     },
     {
@@ -403,18 +403,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependants",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
+        return ["info", "destinations", "travellers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
             .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependants", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
+        return ["info", "travellers", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
             .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependants"]
+        return ["info", "destinations", "travellers"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependants", "documents"]
+        return ["info", "travellers", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     }
@@ -433,11 +433,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           case "destinations":
             if (travelRequestHeader.travelRequestRoutes?.length) newCompletedSteps.add("destinations");
             break;
-          case "dependants":
+          case "travellers":
             const hasDependencies = travelRequestHeader.travellers?.some(
               (t: Record<string, any>) => t.travellerType !== "Self"
             );
-            if (hasDependencies) newCompletedSteps.add("dependants");
+            if (hasDependencies) newCompletedSteps.add("travellers");
             break;
         }
       });
@@ -785,9 +785,9 @@ const StepContent: React.FC<StepContentProps> = ({
           onSubmit={fetchTravelRequest}
         />
       );
-    case "dependants":
+    case "travellers":
       return (
-        <TravelDependencies
+        <TravellersForm
           travelRequestHeader={travelRequestHeader}
           isReadOnly={isReadOnly}
           onSubmit={fetchTravelRequest}
