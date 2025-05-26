@@ -665,7 +665,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           </button>
       ))}
 
-    {activeTab === "visa" && (
+    {activeTab === "checklist" && (
       <div className="btn-group">
         <button
           type="button"
@@ -677,24 +677,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           Download Docs
         </button>
         <ul className="dropdown-menu">
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Dummy ticket
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Accommodation voucher
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Letter of intent
-            </button>
-          </li>
           <li>
             <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon" />
