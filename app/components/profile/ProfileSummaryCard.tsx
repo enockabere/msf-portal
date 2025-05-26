@@ -6,14 +6,14 @@ import { useSession } from "next-auth/react";
 import PageLoader from "@/app/components/loaders/PageLoader";
 
 interface Props {
-  dependents: number;
+  dependants: number;
   travelRequests: number;
   leaveBalance: number;
   carbonCredits: number;
 }
 
 export default function ProfileSummaryCard({
-  dependents,
+  dependants,
   travelRequests,
   leaveBalance,
   carbonCredits,
@@ -81,8 +81,8 @@ export default function ProfileSummaryCard({
                       <div className="col-md-3 mb-3 mb-md-0">
                         <div className="border rounded py-3 bg-light">
                           <Users className="text-danger mb-1" size={18} />
-                          <h6 className="mb-0 fw-semibold">{dependents}</h6>
-                          <p className="mb-0 small text-muted">Dependents</p>
+                          <h6 className="mb-0 fw-semibold">{dependants}</h6>
+                          <p className="mb-0 small text-muted">Dependants</p>
                         </div>
                       </div>
                       <div className="col-md-3 mb-3 mb-md-0">

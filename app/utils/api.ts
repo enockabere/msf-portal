@@ -109,7 +109,7 @@ export async function apiFetch(
         }
         if (response.error) {
             if (response?.error?.message) {
-                response.error.message = response.error.message.slpit('CorrelationId')[0];
+                response.error.message = response.error.message.split('CorrelationId')[0];
             }
         }
         return response;

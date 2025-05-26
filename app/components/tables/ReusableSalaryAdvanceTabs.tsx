@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
@@ -37,7 +37,7 @@ export default function ReusableSalaryAdvanceTabs({
   const isOtherAdvances = path.includes('otherAdvances');
   const advanceSet: AdvanceTypeKey = isOtherAdvances ? 'Other' : 'Salary';
   const searchPlaceHolder = isOtherAdvances ? 'Search advances...' : 'Search salary advances...'
-  const getTypeIcon = (type: string, ...args: any) => {
+  const getTypeIcon = useCallback((type: string, ...args: any) => {
     const icons: Record<AdvanceTypeKey, any> = {
       Salary: "fa-solid fa-money-bill",
       Other: {
@@ -60,7 +60,8 @@ export default function ReusableSalaryAdvanceTabs({
       return icons['Other'][passedImprestType] || "fa-solid fa-file-alt";
     }
     return icons[type] || "fa-solid fa-file-alt";
-  };
+  }, [isOtherAdvances])
+
   const columns = useMemo(() => {
     return GetColumnByType(advanceSet, setSelectedRowHandler, {
       currentTab: activeTab,
@@ -69,7 +70,7 @@ export default function ReusableSalaryAdvanceTabs({
       getTypeIcon,
 
     })
-  }, [advanceSet, setSelectedRowHandler, activeTab]);
+  }, [advanceSet, setSelectedRowHandler, activeTab, getTypeIcon, imprestTypes, currencies]);
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
@@ -100,7 +101,7 @@ export default function ReusableSalaryAdvanceTabs({
       pending,
       released,
     };
-  }, [data]);
+  }, [data, isOtherAdvances]);
 
   useEffect(() => {
     const counts = {
