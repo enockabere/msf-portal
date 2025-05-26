@@ -10,7 +10,6 @@ import "./TravelRequestWizard.css";
 import { TravelRequest } from "@/app/types/travel";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import {
-  checkIfMissingRequiredProperty,
   pickKeys,
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
@@ -70,6 +69,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   requirePerDiem: false,
   shortcutDimension1Code: '',
   shortcutDimension2Code: '',
+  budgetCode: '',
   approvalStatus: 'Open',
   travelRequestRoutes: [],
   travellers: [],
@@ -108,11 +108,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 
   const canSubmitForApproval = useMemo(() => {
-    const canSubmit = travelRequestHeader.no && travelRequestHeader.approvalStatus === 'Open';
-    if (travelRequestHeader.documentType === 'Employee') {
-      return canSubmit && travelRequestHeader.travelRequestRoutes.length > 0;
-    }
-    return canSubmit;
+    return travelRequestHeader.documentType === 'Employee'
+      && travelRequestHeader.no
+      && travelRequestHeader.approvalStatus === 'Open'
+      && travelRequestHeader.travelRequestRoutes.length > 0;
   }, [travelRequestHeader]);
 
   // Effects
@@ -134,17 +133,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
-      const baseFields = ['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'];
+      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem'];
 
       if (profile.type === 'Employee') {
         setHeaderRequiredFields([
           ...baseFields,
-          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType'
+          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType', 'shortcutDimension1Code'
         ]);
       } else if (profile.type === 'Visitor') {
         setHeaderRequiredFields([
           ...baseFields,
-          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival'
+          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival', 'budgetCode'
         ]);
       } else {
         setHeaderRequiredFields(baseFields);
@@ -206,38 +205,38 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [travelRequestHeader.no]);
 
+  const getKeysToRetain = () => {
+    const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
+      'approvalStatus',
+      'travelRequestRoutes',
+      'travellers',
+      'visaApplications'
+    ];
+
+    return (Object.keys(INITIAL_TRAVEL_REQUEST) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]).filter(
+      (key) => !excludedKeys.includes(key)
+    );
+  };
+
   const saveTravelRequestHeader = async () => {
     try {
       const strippedPayload = removeNullAndUndefinedFromObject(travelRequestHeader);
-      const keysToRetain = [
-        'no', 'documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo',
-        'createdbyProfileNo', 'TypeOfTravel', 'purposeOfTravel', 'annualTrip',
-        'requirePerDiem', 'originCity', 'originCountryCode', 'destinationCity',
-        'destinationCountryCode', 'departureDate', 'arrivalDate', 'returnDate',
-        'modeOfTransport', 'accommodationType', 'estimatedTimeOfArrival',
-      ];
+      const keysToRetain = getKeysToRetain() as Array<string>
+
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
 
-      const validation = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
-      if (!validation || validation.missing) {
-        const message = validation?.missing
-          ? `Missing [${validation.prop.join(",")}] ${validation.prop.length > 1 ? 'Properties' : 'Property'}`
-          : "Not a valid payload";
-        Swal.fire("Validation Error!", message);
-      } else {
-        setIsSaving(true);
-        const operation = knownSchema.no
-          ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
-          : createResource('travelRequests', { data: knownSchema });
+      setIsSaving(true);
+      const operation = knownSchema.no
+        ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
+        : createResource('travelRequests', { data: knownSchema });
 
-        const res = await operation;
-        if (res.error) {
-          throw new Error(res.error.message);
-        }
-
-        await fetchTravelRequest(res.no);
-        navigateToNextStepAfterSave();
+      const res = await operation;
+      if (res.error) {
+        throw new Error(res.error.message);
       }
+
+      await fetchTravelRequest(res.no);
+      navigateToNextStepAfterSave();
     } catch (error: any) {
       Swal.fire('Error saving request!', error.message);
     } finally {
@@ -487,16 +486,16 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   };
 
   const downLoadIntroductoryLetter = async () => {
-    setIsSaving(true)
     try {
       const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
+      const docNo = travelRequestHeader?.no;
+      const destination = docType === "Employee"
+        ? travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+        : travelRequestHeader?.destinationCountryCode;
+
       const res = await codeUnit('getIntroductoryLetter', {
-        data: {
-          docType,
-          docNo: travelRequestHeader.no,
-          destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
-        }
-      })
+        data: { docType, docNo, destination }
+      });
 
       if (res.error) {
         throw new Error(res.error.message)
@@ -504,8 +503,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       downloadFileFromBase64(res.value, "Introductory Letter")
     } catch (error) {
       Swal.fire('Download Failed', error.message);
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -525,8 +522,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
       Swal.fire("Error", error.message || "An unexpected error occurred.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -623,13 +618,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
             />
 
             <StepActions
-              activeTab={activeTab}
               currentStepIndex={currentStepIndex}
               currentSteps={currentSteps}
               travelRequestHeader={travelRequestHeader}
               handleTabChange={handleTabChange}
-              handleSubmitForApproval={handleSubmitForApproval}
-              isSubmitting={isSubmitting}
             />
           </div>
         </div>
@@ -676,51 +668,51 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           </button>
       ))}
 
-      {activeTab === "visa" && (
-          <div className="btn-group">
-            <button
-                type="button"
-                className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-            >
-              <DownloadIcon size={16} className="button-icon" />
-              Download
+    {activeTab === "visa" && (
+      <div className="btn-group">
+        <button
+          type="button"
+          className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <DownloadIcon size={16} className="button-icon" />
+          Download Docs
+        </button>
+        <ul className="dropdown-menu">
+          <li>
+            <button className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon" />
+              Dummy ticket
             </button>
-            <ul className="dropdown-menu">
-              <li>
-                <button className="dropdown-item" type="button">
-                  <FileDownIcon size={16} className="button-icon" />
-                  Dummy ticket
-                </button>
-              </li>
-              <li>
-                <button className="dropdown-item" type="button">
-                  <FileDownIcon size={16} className="button-icon" />
-                  Accommodation voucher
-                </button>
-              </li>
-              <li>
-                <button className="dropdown-item" type="button">
-                  <FileDownIcon size={16} className="button-icon" />
-                  Letter of intent
-                </button>
-              </li>
-              <li>
-                <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
-                  <FileDownIcon size={16} className="button-icon" />
-                  Introductory Letter
-                </button>
-              </li>
-              <li>
-                <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
-                  <FileDownIcon size={16} className="button-icon" />
-                  Bta Certificate
-                </button>
-              </li>
-            </ul>
-          </div>
-      )}
+          </li>
+          <li>
+            <button className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon" />
+              Accommodation voucher
+            </button>
+          </li>
+          <li>
+            <button className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon" />
+              Letter of intent
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon" />
+              Introductory Letter
+            </button>
+          </li>
+          <li>
+            <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
+              <FileDownIcon size={16} className="button-icon" />
+              BTA Certificate
+            </button>
+          </li>
+        </ul>
+      </div>
+    )}
 
       {canSubmitForApproval && (
           <button
@@ -882,23 +874,17 @@ const StepContent: React.FC<StepContentProps> = ({
 };
 
 interface StepActionsProps {
-  activeTab: string;
   currentStepIndex: number;
   currentSteps: WizardStep[];
   travelRequestHeader: TravelRequest;
   handleTabChange: (stepId: string) => void;
-  handleSubmitForApproval: () => Promise<void>;
-  isSubmitting: boolean;
 }
 
 const StepActions: React.FC<StepActionsProps> = ({
-  activeTab,
   currentStepIndex,
   currentSteps,
   travelRequestHeader,
   handleTabChange,
-  handleSubmitForApproval,
-  isSubmitting,
 }) => {
   return (
     <div className="step-actions">
@@ -914,7 +900,7 @@ const StepActions: React.FC<StepActionsProps> = ({
           </button>
         )}
 
-        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no ? (
+        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no && (
           <button
             type="button"
             className="primary-button"
@@ -923,22 +909,6 @@ const StepActions: React.FC<StepActionsProps> = ({
             <ArrowRight size={16} className="button-icon" />
             Next
           </button>
-        ) : (
-          activeTab !== "info" && travelRequestHeader.approvalStatus === 'Open' && (
-            <button
-              type="submit"
-              className="submit-button"
-              onClick={handleSubmitForApproval}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <SectionLoader classes={'button-icon'} />
-              ) : (
-                <Check size={16} className="button-icon" />
-              )}
-              Submit for Approval
-            </button>
-          )
         )}
       </div>
     </div>

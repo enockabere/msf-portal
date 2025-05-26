@@ -1,11 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import {User, Mail, Phone, Calendar, TypeIcon} from "lucide-react";
+import {
+  User,
+  Mail,
+  Phone,
+  TypeIcon,
+  NonBinaryIcon, Globe
+} from "lucide-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useSession } from "next-auth/react";
-import { formatDate } from "@/app/utils/dateFormats";
 
 export default function DashboardProfile() {
   const { data: session } = useSession()
@@ -97,20 +102,12 @@ export default function DashboardProfile() {
 
           <div className="text-body mb-2 d-flex align-items-center">
             <User size={20} className="me-2 text-muted" />
-            <span className="fw-semibold me-1">Staff No.:</span>
+            <span className="fw-semibold me-1">Profile No.:</span>
             {isLoading ? (
               <Skeleton width={100} />
             ) : (
               session?.user?.profile?.no || 'N/A'
             )}
-          </div>
-
-          <div className="text-body mb-2 d-flex align-items-center">
-            <Calendar size={20} className="me-2 text-muted" />
-            <span className="fw-semibold me-1">Date of Birth:</span>
-            {isLoading ? (
-              <Skeleton width={140} />
-            ) : (formatDate(session?.user?.profile?.dateOfBirth) || 'N/A')}
           </div>
 
           <div className="text-body mb-2 d-flex align-items-center">
@@ -123,8 +120,18 @@ export default function DashboardProfile() {
             )}
           </div>
 
+          <div className="text-body mb-2 d-flex align-items-center">
+            <Globe size={20} className="me-2 text-muted" />
+            <span className="fw-semibold me-1">Nationality:</span>
+            {isLoading ? (
+              <Skeleton width={100} />
+            ) : (
+              session?.user?.profile?.countryCode || "N/A"
+            )}
+          </div>
+
           <div className="text-body d-flex align-items-center">
-            <User size={20} className="me-2 text-muted" />
+            <NonBinaryIcon size={20} className="me-2 text-muted" />
             <span className="fw-semibold me-1">Gender:</span>
             {isLoading ? <Skeleton width={80} /> : session?.user?.profile?.genderOption || "N/A"}
           </div>
