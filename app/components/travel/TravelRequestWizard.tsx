@@ -70,6 +70,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   requirePerDiem: false,
   shortcutDimension1Code: '',
   shortcutDimension2Code: '',
+  budgetCode: '',
   approvalStatus: 'Open',
   travelRequestRoutes: [],
   travellers: [],
@@ -106,11 +107,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 
   const canSubmitForApproval = useMemo(() => {
-    const canSubmit = travelRequestHeader.no && travelRequestHeader.approvalStatus === 'Open';
-    if (travelRequestHeader.documentType === 'Employee') {
-      return canSubmit && travelRequestHeader.travelRequestRoutes.length > 0;
-    }
-    return canSubmit;
+    return travelRequestHeader.documentType === 'Employee'
+      && travelRequestHeader.no
+      && travelRequestHeader.approvalStatus === 'Open'
+      && travelRequestHeader.travelRequestRoutes.length > 0;
   }, [travelRequestHeader]);
 
   // Effects
@@ -132,17 +132,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
-      const baseFields = ['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'];
+      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem'];
 
       if (profile.type === 'Employee') {
         setHeaderRequiredFields([
           ...baseFields,
-          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType'
+          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType', 'shortcutDimension1Code'
         ]);
       } else if (profile.type === 'Visitor') {
         setHeaderRequiredFields([
           ...baseFields,
-          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival'
+          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival', 'budgetCode'
         ]);
       } else {
         setHeaderRequiredFields(baseFields);
@@ -204,16 +204,24 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [travelRequestHeader.no]);
 
+  const getKeysToRetain = () => {
+    const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
+      'approvalStatus',
+      'travelRequestRoutes',
+      'travellers',
+      'visaApplications'
+    ];
+
+    return (Object.keys(INITIAL_TRAVEL_REQUEST) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]).filter(
+      (key) => !excludedKeys.includes(key)
+    );
+  };
+
   const saveTravelRequestHeader = async () => {
     try {
       const strippedPayload = removeNullAndUndefinedFromObject(travelRequestHeader);
-      const keysToRetain = [
-        'no', 'documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo',
-        'createdbyProfileNo', 'TypeOfTravel', 'purposeOfTravel', 'annualTrip',
-        'requirePerDiem', 'originCity', 'originCountryCode', 'destinationCity',
-        'destinationCountryCode', 'departureDate', 'arrivalDate', 'returnDate',
-        'modeOfTransport', 'accommodationType', 'estimatedTimeOfArrival',
-      ];
+      const keysToRetain = getKeysToRetain() as Array<string>
+
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
 
       const validation = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
@@ -438,34 +446,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
-  const downLoadIntroductoryLetter = async () => {
-    setIsSaving(true)
-    try {
-      const res = await codeUnit('getIntroductoryLetter', {
-        data: {
-          docType: travelRequestHeader?.documentType === "Employee"
-            ? "0"
-            : travelRequestHeader.documentType === "Visitor"
-              ? "1"
-              : travelRequestHeader.documentType === "Non-Resident"
-                ? "2"
-                : "Unknown",
-          docNo: travelRequestHeader.no,
-          destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
-        }
-      })
-
-      if (res.error) {
-        throw new Error(res.error.message)
-      }
-      downloadFileFromBase64(res.value, "Introductory Letter")
-    } catch (error) {
-      Swal.fire('Download Failed', error.message);
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   const getDocumentTypeCode = (type) => {
     const typeMap = {
       Employee: "0",
@@ -474,6 +454,27 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
     return typeMap[type] || "Unknown";
   };
+
+  const downLoadIntroductoryLetter = async () => {
+    try {
+      const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
+      const docNo = travelRequestHeader?.no;
+      const destination = docType === "Employee"
+        ? travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+        : travelRequestHeader?.destinationCountryCode;
+
+      const res = await codeUnit('getIntroductoryLetter', {
+        data: { docType, docNo, destination }
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message)
+      }
+      downloadFileFromBase64(res.value, "Introductory Letter")
+    } catch (error) {
+      Swal.fire('Download Failed', error.message);
+    }
+  }
 
   const downLoadBtaCertificate = async () => {
     try {
@@ -490,8 +491,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
       Swal.fire("Error", error.message || "An unexpected error occurred.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -575,13 +574,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
             />
 
             <StepActions
-              activeTab={activeTab}
               currentStepIndex={currentStepIndex}
               currentSteps={currentSteps}
               travelRequestHeader={travelRequestHeader}
               handleTabChange={handleTabChange}
-              handleSubmitForApproval={handleSubmitForApproval}
-              isSubmitting={isSubmitting}
             />
           </div>
         </div>
@@ -635,7 +631,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           aria-expanded="false"
         >
           <DownloadIcon size={16} className="button-icon" />
-          Download
+          Download Docs
         </button>
         <ul className="dropdown-menu">
           <li>
@@ -665,7 +661,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           <li>
             <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon" />
-              Bta Certificate
+              BTA Certificate
             </button>
           </li>
         </ul>
@@ -825,23 +821,17 @@ const StepContent: React.FC<StepContentProps> = ({
 };
 
 interface StepActionsProps {
-  activeTab: string;
   currentStepIndex: number;
   currentSteps: WizardStep[];
   travelRequestHeader: TravelRequest;
   handleTabChange: (stepId: string) => void;
-  handleSubmitForApproval: () => Promise<void>;
-  isSubmitting: boolean;
 }
 
 const StepActions: React.FC<StepActionsProps> = ({
-  activeTab,
   currentStepIndex,
   currentSteps,
   travelRequestHeader,
   handleTabChange,
-  handleSubmitForApproval,
-  isSubmitting,
 }) => {
   return (
     <div className="step-actions">
@@ -857,7 +847,7 @@ const StepActions: React.FC<StepActionsProps> = ({
           </button>
         )}
 
-        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no ? (
+        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no && (
           <button
             type="button"
             className="primary-button"
@@ -866,22 +856,6 @@ const StepActions: React.FC<StepActionsProps> = ({
             <ArrowRight size={16} className="button-icon" />
             Next
           </button>
-        ) : (
-          activeTab !== "info" && travelRequestHeader.approvalStatus === 'Open' && (
-            <button
-              type="submit"
-              className="submit-button"
-              onClick={handleSubmitForApproval}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <SectionLoader classes={'button-icon'} />
-              ) : (
-                <Check size={16} className="button-icon" />
-              )}
-              Submit for Approval
-            </button>
-          )
         )}
       </div>
     </div>
