@@ -80,6 +80,7 @@ export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistIt
                 checklistType: row.checklistType,
                 documentNo: row.documentNo,
                 documentType: row.documentType,
+                documentCode: row.relatedDocumentCode,
                 has,
                 ...(expiryDate && { expiryDate }),
             };

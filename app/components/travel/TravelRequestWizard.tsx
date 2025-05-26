@@ -92,6 +92,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
+  const [travelChecklistCount, setTravelChecklistCount] = useState<number>(0);
+  const [visaChecklistCount, setVisaChecklistCount] = useState<number>(0);
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
 
@@ -379,14 +381,42 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     },
   ], [handleCreateTravelAdvance]);
 
+  const getChecklistCount = async (travel, type: "Travel" | "Visa") => {
+    try {
+      const res = await getResource("travellerChecklist", {
+        params: {
+          filters: {
+            documentNo: travel?.no,
+            documentType: travel?.documentType,
+            checklistType: type,
+          },
+          $count: true,
+        },
+      });
+
+      const count = res["@odata.count"];
+      console.log(`${type} checklistCount:`, count);
+
+      if (type === "Travel") {
+        setTravelChecklistCount(count);
+        console.log('travelChecklistCount', travelChecklistCount)
+      } else {
+        setVisaChecklistCount(count);
+        console.log('visaChecklistCount', visaChecklistCount)
+      }
+    } catch (error) {
+      console.error(`Error fetching ${type} checklist count:`, error);
+    }
+  };
+
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependants", "checklist", "traveller-checklist", "visa", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "destinations", "dependants",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependants", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "dependants", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
@@ -398,7 +428,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       }
     }
     return [allSteps.find(s => s.id === "info")!];
-  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps]);
+  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps, visaChecklistCount, travelChecklistCount]);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
@@ -428,6 +458,14 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       updateCompletedSteps();
     }
   }, [travelRequestHeader, currentSteps]);
+
+  useEffect(() => {
+    if (travelRequestHeader?.no && travelRequestHeader?.documentType) {
+      getChecklistCount(travelRequestHeader, "Travel");
+      getChecklistCount(travelRequestHeader, "Visa");
+    }
+  }, [travelRequestHeader?.no, travelRequestHeader?.documentType]);
+
 
   // Event handlers
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
@@ -515,26 +553,26 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {currentSteps.map(step => (
-              <li key={step.id} className="step-item">
+            {currentSteps?.map(step => (
+              <li key={step?.id} className="step-item">
                 <button
-                  className={`step-button ${activeTab === step.id ? "active" : ""} ${completedSteps.has(step.id) ? "completed" : ""}`}
-                  onClick={() => handleTabChange(step.id)}
+                  className={`step-button ${activeTab === step?.id ? "active" : ""} ${completedSteps?.has(step?.id) ? "completed" : ""}`}
+                  onClick={() => handleTabChange(step?.id)}
                   role="tab"
-                  aria-selected={activeTab === step.id}
-                  aria-controls={`${step.id}-panel`}
-                  id={`${step.id}-tab`}
-                  tabIndex={activeTab === step.id ? 0 : -1}
+                  aria-selected={activeTab === step?.id}
+                  aria-controls={`${step?.id}-panel`}
+                  id={`${step?.id}-tab`}
+                  tabIndex={activeTab === step?.id ? 0 : -1}
                   disabled={disableTabs}
                 >
                   <span className="step-icon-wrapper">
-                    <span className="step-icon">{step.icon}</span>
+                    <span className="step-icon">{step?.icon}</span>
                   </span>
                   <span className="step-content">
-                    <span className="step-title">{step.title}</span>
+                    <span className="step-title">{step?.title}</span>
                     <span className="step-desc">{step.desc}</span>
                   </span>
-                  {completedSteps.has(step.id) && (
+                  {completedSteps.has(step?.id) && (
                     <span className="step-completed-badge" aria-hidden="true">
                       ✓
                     </span>
@@ -571,6 +609,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               saveTravelRequestHeader={saveTravelRequestHeader}
               fetchTravelRequest={fetchTravelRequest}
               handleFormChange={handleFormChange}
+              travelChecklistCount={travelChecklistCount}
+              visaChecklistCount={visaChecklistCount}
             />
 
             <StepActions
@@ -691,6 +731,8 @@ interface StepContentProps {
   saveTravelRequestHeader: () => Promise<void>;
   fetchTravelRequest: () => Promise<void>;
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
+  travelChecklistCount: number;
+  visaChecklistCount: number;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -703,6 +745,8 @@ const StepContent: React.FC<StepContentProps> = ({
   saveTravelRequestHeader,
   fetchTravelRequest,
   handleFormChange,
+  travelChecklistCount,
+  visaChecklistCount,
 }) => {
   switch (activeTab) {
     case "info":
@@ -800,9 +844,11 @@ const StepContent: React.FC<StepContentProps> = ({
     case "visa":
       return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
-      return <VisaChecklist travelInfo={travelRequestHeader} />;
+      return visaChecklistCount > 0 ? (<VisaChecklist travelInfo={travelRequestHeader} />) : null;
     case "traveller-checklist":
-      return <TravellerChecklist travelInfo={travelRequestHeader} />;
+      return travelChecklistCount > 0 ? (
+          <TravellerChecklist travelInfo={travelRequestHeader} />
+      ) : null;
     case "documents":
       return (
         <TravelDocuments
