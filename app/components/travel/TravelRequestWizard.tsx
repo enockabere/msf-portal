@@ -476,18 +476,23 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
+
+  const getDocumentTypeCode = (type) => {
+    const typeMap = {
+      Employee: "0",
+      Visitor: "1",
+      "Non-Resident": "2",
+    };
+    return typeMap[type] || "Unknown";
+  };
+
   const downLoadIntroductoryLetter = async () => {
     setIsSaving(true)
     try {
+      const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
       const res = await codeUnit('getIntroductoryLetter', {
         data: {
-          docType: travelRequestHeader?.documentType === "Employee"
-            ? "0"
-            : travelRequestHeader.documentType === "Visitor"
-              ? "1"
-              : travelRequestHeader.documentType === "Non-Resident"
-                ? "2"
-                : "Unknown",
+          docType,
           docNo: travelRequestHeader.no,
           destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
         }
@@ -504,14 +509,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }
 
-  const getDocumentTypeCode = (type) => {
-    const typeMap = {
-      Employee: "0",
-      Visitor: "1",
-      "Non-Resident": "2",
-    };
-    return typeMap[type] || "Unknown";
-  };
 
   const downLoadBtaCertificate = async () => {
     try {
@@ -537,8 +534,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
-        <h2 className="wizard-title">Travel Request Application</h2>
-        <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+        <div className="d-flex align-items-start gap-4">
+          <div className="">
+            <h2 className="wizard-title">Travel Request Application</h2>
+            {travelRequestHeader.currentStage && (
+                <div className="d-flex align-items-center mt-1">
+                  <h5 className="m-0">Current Stage:</h5>
+                  <span className="badge bg-primary p-1 ms-2"> { travelRequestHeader.currentStage }</span>
+                </div>
+            )}
+            <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+          </div>
+        </div>
 
         <div className="wizard-progress">
           <div
@@ -598,6 +605,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleSubmitForApproval={handleSubmitForApproval}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
+              currentStage={travelRequestHeader.currentStage	}
             />
 
             <StepContent
@@ -639,6 +647,7 @@ interface StepHeaderProps {
   handleSubmitForApproval: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
+  currentStage: string;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -648,80 +657,82 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   isSubmitting,
   handleSubmitForApproval,
   downLoadIntroductoryLetter,
-  downLoadBtaCertificate
+  downLoadBtaCertificate,
+  currentStage,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
       {currentSteps.find(s => s.id === activeTab)?.title}
     </h4>
+    <div className="d-flex align-items-center ">
+      {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
+          <button
+              key={action.id}
+              className="primary-button"
+              onClick={action.fn}
+          >
+            <Plus size={16} />
+            {action.caption}
+          </button>
+      ))}
 
-    {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
-      <button
-        key={action.id}
-        className="primary-button"
-        onClick={action.fn}
-      >
-        <Plus size={16} />
-        {action.caption}
-      </button>
-    ))}
+      {activeTab === "visa" && (
+          <div className="btn-group">
+            <button
+                type="button"
+                className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+              <DownloadIcon size={16} className="button-icon" />
+              Download
+            </button>
+            <ul className="dropdown-menu">
+              <li>
+                <button className="dropdown-item" type="button">
+                  <FileDownIcon size={16} className="button-icon" />
+                  Dummy ticket
+                </button>
+              </li>
+              <li>
+                <button className="dropdown-item" type="button">
+                  <FileDownIcon size={16} className="button-icon" />
+                  Accommodation voucher
+                </button>
+              </li>
+              <li>
+                <button className="dropdown-item" type="button">
+                  <FileDownIcon size={16} className="button-icon" />
+                  Letter of intent
+                </button>
+              </li>
+              <li>
+                <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
+                  <FileDownIcon size={16} className="button-icon" />
+                  Introductory Letter
+                </button>
+              </li>
+              <li>
+                <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
+                  <FileDownIcon size={16} className="button-icon" />
+                  Bta Certificate
+                </button>
+              </li>
+            </ul>
+          </div>
+      )}
 
-    {activeTab === "visa" && (
-      <div className="btn-group">
-        <button
-          type="button"
-          className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <DownloadIcon size={16} className="button-icon" />
-          Download
-        </button>
-        <ul className="dropdown-menu">
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Dummy ticket
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Accommodation voucher
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Letter of intent
-            </button>
-          </li>
-          <li>
-            <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Introductory Letter
-            </button>
-          </li>
-          <li>
-            <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Bta Certificate
-            </button>
-          </li>
-        </ul>
-      </div>
-    )}
-
-    {canSubmitForApproval && (
-      <button
-        className="primary-button"
-        onClick={handleSubmitForApproval}
-        disabled={isSubmitting}
-      >
-        <Check size={16} className="button-icon" />
-        Submit for Approval
-      </button>
-    )}
+      {canSubmitForApproval && (
+          <button
+              className="primary-button"
+              onClick={handleSubmitForApproval}
+              disabled={isSubmitting}
+          >
+            <Check size={16} className="button-icon" />
+            Submit for Approval
+          </button>
+      )}
+    </div>
   </div>
 );
 
