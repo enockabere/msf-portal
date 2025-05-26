@@ -90,6 +90,8 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
+  const [travelChecklistCount, setTravelChecklistCount] = useState(0);
+  // const [visaChecklistCount, setVisaChecklistCount] = useState(0);
 
   // Derived values
   const isReadOnly = useMemo(
@@ -354,14 +356,30 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
     },
   ], [handleCreateTravelAdvance]);
 
+  const getTravelChecklistCount = async () => {
+    const res = await getResource('travellerChecklist', {
+      params: {
+        filters: {
+          documentNo: travelRequestHeader.no,
+          documentType: travelRequestHeader.documentType,
+          checklistType: "Visa",
+          $count: true,
+        }
+      }
+    });
+
+    setTravelChecklistCount(res["@odata.count"] || 0);
+    console.log('travelChecklistCount', res)
+  }
+
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependencies", "checklist", "traveller-checklist", "visa", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "destinations", "dependencies", "checklist", travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependencies", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "dependencies", "documents", "providers", "checklist", travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
@@ -401,6 +419,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
 
     if (travelRequestHeader) {
       updateCompletedSteps();
+      getTravelChecklistCount()
     }
   }, [travelRequestHeader, currentSteps]);
 
@@ -477,6 +496,22 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
       setIsSaving(false);
     }
   };
+
+  // const getTravelChecklistCount = useCallback(async () => {
+  //   const res = await getResource('travellerChecklist', {
+  //     params: {
+  //       filters: {
+  //         documentNo: travelRequestHeader.no,
+  //         documentType: travelRequestHeader.documentType,
+  //         checklistType: "Travel",
+  //         $count: true,
+  //       }
+  //     }
+  //   });
+  //
+  //   setTravelChecklistCount(res["@odata.count"] || []);
+  //   console.log('travelChecklistCount', travelChecklistCount)
+  // }, [travelRequestHeader.no]);
 
 
   return (
@@ -555,6 +590,7 @@ export default function TravelRequestWizard({requestNo, profile}: Props) {
               saveTravelRequestHeader={saveTravelRequestHeader}
               fetchTravelRequest={fetchTravelRequest}
               handleFormChange={handleFormChange}
+              travelChecklistCount={travelChecklistCount}
             />
 
             <StepActions
@@ -664,6 +700,7 @@ interface StepContentProps {
   saveTravelRequestHeader: () => Promise<void>;
   fetchTravelRequest: () => Promise<void>;
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
+  travelChecklistCount: number;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -676,6 +713,7 @@ const StepContent: React.FC<StepContentProps> = ({
                                                    saveTravelRequestHeader,
                                                    fetchTravelRequest,
                                                    handleFormChange,
+                                                   travelChecklistCount,
                                                  }) => {
   switch (activeTab) {
     case "info":
@@ -775,7 +813,9 @@ const StepContent: React.FC<StepContentProps> = ({
     case "checklist":
       return <VisaChecklist travelInfo={travelRequestHeader}/>;
     case "traveller-checklist":
-      return <TravellerChecklist travelInfo={travelRequestHeader}/>;
+      return travelChecklistCount > 0 ? (
+          <TravellerChecklist travelInfo={travelRequestHeader} />
+      ) : null;
     case "documents":
       return (
         <TravelDocuments
