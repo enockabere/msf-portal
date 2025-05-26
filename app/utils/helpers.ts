@@ -10,18 +10,22 @@ export const safeTypechecker = (input: any): string => {
 
 const validType = (value: any): boolean => {
     const type = safeTypechecker(value);
-    let isValid = true;
+    let isValid: boolean;
+
     switch (type) {
         case 'Undefined':
         case 'Null':
-            {
-                isValid = false;
-                break;
-            }
-        case 'String': {
-            isValid = !!value.length;
-        }
+            isValid = false;
+            break;
+
+        case 'String':
+            isValid = value.trim().length > 0;
+            break;
+
+        default:
+            isValid = true;
     }
+
     return isValid;
 }
 

@@ -10,7 +10,6 @@ import "./TravelRequestWizard.css";
 import { TravelRequest } from "@/app/types/travel";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import {
-  checkIfMissingRequiredProperty,
   pickKeys,
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
@@ -226,26 +225,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
 
-      const validation = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
-      if (!validation || validation.missing) {
-        const message = validation?.missing
-          ? `Missing [${validation.prop.join(",")}] ${validation.prop.length > 1 ? 'Properties' : 'Property'}`
-          : "Not a valid payload";
-        Swal.fire("Validation Error!", message);
-      } else {
-        setIsSaving(true);
-        const operation = knownSchema.no
-          ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
-          : createResource('travelRequests', { data: knownSchema });
+      setIsSaving(true);
+      const operation = knownSchema.no
+        ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
+        : createResource('travelRequests', { data: knownSchema });
 
-        const res = await operation;
-        if (res.error) {
-          throw new Error(res.error.message);
-        }
-
-        await fetchTravelRequest(res.no);
-        navigateToNextStepAfterSave();
+      const res = await operation;
+      if (res.error) {
+        throw new Error(res.error.message);
       }
+
+      await fetchTravelRequest(res.no);
+      navigateToNextStepAfterSave();
     } catch (error: any) {
       Swal.fire('Error saving request!', error.message);
     } finally {
