@@ -600,7 +600,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleSubmitForApproval={handleSubmitForApproval}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
-              currentStage={travelRequestHeader.currentStage	}
             />
 
             <StepContent
@@ -639,7 +638,6 @@ interface StepHeaderProps {
   handleSubmitForApproval: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
-  currentStage: string;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -650,7 +648,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   handleSubmitForApproval,
   downLoadIntroductoryLetter,
   downLoadBtaCertificate,
-  currentStage,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
