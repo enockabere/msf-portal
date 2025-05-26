@@ -475,6 +475,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
+
   const getDocumentTypeCode = (type) => {
     const typeMap = {
       Employee: "0",
@@ -505,6 +506,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }
 
+
   const downLoadBtaCertificate = async () => {
     try {
       const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
@@ -527,8 +529,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
-        <h2 className="wizard-title">Travel Request Application</h2>
-        <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+        <div className="d-flex align-items-start gap-4">
+          <div className="">
+            <h2 className="wizard-title">Travel Request Application</h2>
+            {travelRequestHeader.currentStage && (
+                <div className="d-flex align-items-center mt-1">
+                  <h5 className="m-0">Current Stage:</h5>
+                  <span className="badge bg-primary p-1 ms-2"> { travelRequestHeader.currentStage }</span>
+                </div>
+            )}
+            <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+          </div>
+        </div>
 
         <div className="wizard-progress">
           <div
@@ -635,23 +647,23 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   isSubmitting,
   handleSubmitForApproval,
   downLoadIntroductoryLetter,
-  downLoadBtaCertificate
+  downLoadBtaCertificate,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
       {currentSteps.find(s => s.id === activeTab)?.title}
     </h4>
-
-    {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
-      <button
-        key={action.id}
-        className="primary-button"
-        onClick={action.fn}
-      >
-        <Plus size={16} />
-        {action.caption}
-      </button>
-    ))}
+    <div className="d-flex align-items-center ">
+      {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
+          <button
+              key={action.id}
+              className="primary-button"
+              onClick={action.fn}
+          >
+            <Plus size={16} />
+            {action.caption}
+          </button>
+      ))}
 
     {activeTab === "visa" && (
       <div className="btn-group">
@@ -699,16 +711,17 @@ const StepHeader: React.FC<StepHeaderProps> = ({
       </div>
     )}
 
-    {canSubmitForApproval && (
-      <button
-        className="primary-button"
-        onClick={handleSubmitForApproval}
-        disabled={isSubmitting}
-      >
-        <Check size={16} className="button-icon" />
-        Submit for Approval
-      </button>
-    )}
+      {canSubmitForApproval && (
+          <button
+              className="primary-button"
+              onClick={handleSubmitForApproval}
+              disabled={isSubmitting}
+          >
+            <Check size={16} className="button-icon" />
+            Submit for Approval
+          </button>
+      )}
+    </div>
   </div>
 );
 
