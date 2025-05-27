@@ -124,11 +124,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     [travelRequestHeader.no]
   );
 
-  const canCreateAdvance = useMemo(
-      () => !travelRequestHeader.bookingComplete,
-      [travelRequestHeader.bookingComplete]
-  )
-
   const canSubmitForApproval = useMemo(() => {
     const currentStatus = decodeValue(travelRequestHeader.approvalStatus);
 
@@ -422,12 +417,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       icon: <Briefcase size={18} />,
       title: "Travel Advance",
       desc: "Advance request",
-      // actions: [{
-      //   id: "action-create-advance",
-      //   caption: "Create Advance",
-      //   fn: handleCreateTravelAdvance,
-      //   disabled: canCreateAdvance
-      // }],
     },
     {
       id: "documents",
