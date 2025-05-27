@@ -47,12 +47,13 @@ export default function TravelDestinations({
     };
 
     const addDestination = () => {
+        const isLocal = travelRequestHeader.TypeOfTravel === 'Local';
         setDestinations((prev) => [
             ...prev,
             {
-                originCountryCode: "",
+                originCountryCode: isLocal ? 'KE' : '',
                 originCity: "",
-                destinationCountryCode: "",
+                destinationCountryCode: isLocal ? 'KE' : '',
                 destinationCity: "",
                 travelDate: "",
                 modeOfTransport: "",
@@ -60,6 +61,11 @@ export default function TravelDestinations({
                 documentType: travelRequestHeader.documentType,
             },
         ]);
+
+        if (isLocal) {
+            fetchCities('KE', 'originCountryCode');
+            fetchCities('KE', 'destinationCountryCode');
+        }
     };
 
     const saveDestination = async (index: number) => {
@@ -219,13 +225,26 @@ export default function TravelDestinations({
                             await fetchCities(e.target.value, 'originCountryCode');
                         }}
                     >
-                        <option value="">-- Origin Country --</option>
-                        {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
-                                {country.displayName}
-                            </option>
-                        ))}
+                        {travelRequestHeader.TypeOfTravel === 'Local' ? (
+                            countries
+                                .filter((country) => country.code === 'KE')
+                                .map((country) => (
+                                    <option key={country.code} value={country.code}>
+                                        {country.displayName}
+                                    </option>
+                                ))
+                        ) : (
+                            <>
+                                <option value="">-- Origin Country --</option>
+                                {countries.map((country) => (
+                                    <option key={country.code} value={country.code}>
+                                        {country.displayName}
+                                    </option>
+                                ))}
+                            </>
+                        )}
                     </select>
+
                 </div>
 
                 <div className="col-4">
@@ -258,13 +277,26 @@ export default function TravelDestinations({
                             await fetchCities(e.target.value, 'destinationCountryCode');
                         }}
                     >
-                        <option value="">-- Destination Country --</option>
-                        {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
-                                {country.displayName}
-                            </option>
-                        ))}
+                        {travelRequestHeader.TypeOfTravel === 'Local' ? (
+                            countries
+                                .filter((country) => country.code === 'KE')
+                                .map((country) => (
+                                    <option key={country.code} value={country.code}>
+                                        {country.displayName} - {country.code}
+                                    </option>
+                                ))
+                        ) : (
+                            <>
+                                <option value="">-- Destination Country --</option>
+                                {countries.map((country) => (
+                                    <option key={country.code} value={country.code}>
+                                        {country.displayName} - {country.code}
+                                    </option>
+                                ))}
+                            </>
+                        )}
                     </select>
+
                 </div>
 
                 <div className="col-4">

@@ -177,7 +177,7 @@ const VisaApplicationLineCard: React.FC<VisaApplicationLineCardProps> = ({
               className="btn btn-outline-success btn-sm"
               title="Save"
               disabled={loading}
-            >isSubmitting
+            >
               <Save size={16} />
               Save
             </button>

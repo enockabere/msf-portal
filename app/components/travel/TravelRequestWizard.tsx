@@ -141,7 +141,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   useEffect(() => {
     const initializeProfileData = () => {
       const baseData = {
-        documentType: profile.type,
+        documentType: decodeValue(profile.type),
         travellerNo: profile.no,
         createdbyProfileNo: profile.no,
         passportNo: profile.passportIDNo,
@@ -151,7 +151,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
       setTravelRequestHeader(prev => ({
         ...prev,
-        ...(requestNo ? { documentType: profile.type } : baseData)
+        ...(requestNo ? { documentType: decodeValue(profile.type) } : baseData)
       }));
     };
 
