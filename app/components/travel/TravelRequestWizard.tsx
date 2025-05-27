@@ -55,6 +55,7 @@ interface StepAction {
   id: string;
   fn: () => Promise<void>;
   caption: string;
+  disabled: boolean;
 }
 
 interface Props {
@@ -89,6 +90,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   travelRequestRoutes: [],
   travellers: [],
   visaApplications: [],
+  bookingComplete: false,
 };
 
 const WORK_PERMIT_FIELDS = [
@@ -121,6 +123,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     () => !travelRequestHeader.no,
     [travelRequestHeader.no]
   );
+
+  const canCreateAdvance = useMemo(
+      () => !travelRequestHeader.bookingComplete,
+      [travelRequestHeader.bookingComplete]
+  )
 
   const canSubmitForApproval = useMemo(() => {
     const currentStatus = decodeValue(travelRequestHeader.approvalStatus);
@@ -415,11 +422,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       icon: <Briefcase size={18} />,
       title: "Travel Advance",
       desc: "Advance request",
-      actions: [{
-        id: "action-create-advance",
-        caption: "Create Advance",
-        fn: handleCreateTravelAdvance,
-      }],
+      // actions: [{
+      //   id: "action-create-advance",
+      //   caption: "Create Advance",
+      //   fn: handleCreateTravelAdvance,
+      //   disabled: canCreateAdvance
+      // }],
     },
     {
       id: "documents",
@@ -582,6 +590,28 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   };
 
+  const confirmBooking = async (value) => {
+    try {
+      const res = await patchResource('travelRequests', {
+        data: {
+          bookingComplete: value,
+          no: travelRequestHeader.no,
+          documentType: travelRequestHeader.documentType
+        },
+        primaryKey: ['no', 'documentType']
+      })
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      await fetchTravelRequest(travelRequestHeader.no);
+      Swal.fire("Success", "Travel booking confirmed successfully");
+    } catch (error) {
+      Swal.fire("Error", error.message || "An unexpected error occurred.");
+    }
+  }
+
 
   return (
     <div className="travel-wizard">
@@ -659,6 +689,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleCancelApprovalRequest={handleCancelApprovalRequest}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
+              travelRequestHeader={travelRequestHeader}
+              handleCreateTravelAdvance={handleCreateTravelAdvance}
             />
 
             <StepContent
@@ -673,6 +705,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleFormChange={handleFormChange}
               travelChecklistCount={travelChecklistCount}
               visaChecklistCount={visaChecklistCount}
+              confirmBooking={confirmBooking}
             />
 
             <StepActions
@@ -699,6 +732,8 @@ interface StepHeaderProps {
   handleCancelApprovalRequest: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
+  handleCreateTravelAdvance: () => void;
+  travelRequestHeader: TravelRequest;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -711,6 +746,8 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   handleCancelApprovalRequest,
   downLoadIntroductoryLetter,
   downLoadBtaCertificate,
+  travelRequestHeader,
+  handleCreateTravelAdvance,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
@@ -722,11 +759,14 @@ const StepHeader: React.FC<StepHeaderProps> = ({
               key={action.id}
               className="primary-button"
               onClick={action.fn}
+              disabled={action.disabled}
           >
             <Plus size={16} />
             {action.caption}
           </button>
       ))}
+
+
 
     {activeTab === "checklist" && (
       <div className="btn-group">
@@ -754,6 +794,17 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           </li>
         </ul>
       </div>
+    )}
+
+      {activeTab === "advance" && (
+          <button
+              className="primary-button"
+              onClick={handleCreateTravelAdvance}
+              disabled={!travelRequestHeader.bookingComplete}
+          >
+            <Plus size={16} />
+            Create Advance
+          </button>
     )}
 
       {canSubmitForApproval && (
@@ -793,6 +844,7 @@ interface StepContentProps {
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
   travelChecklistCount: number;
   visaChecklistCount: number;
+  confirmBooking: (value) => void;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -807,6 +859,7 @@ const StepContent: React.FC<StepContentProps> = ({
   handleFormChange,
   travelChecklistCount,
   visaChecklistCount,
+  confirmBooking,
 }) => {
   switch (activeTab) {
     case "info":
@@ -895,6 +948,19 @@ const StepContent: React.FC<StepContentProps> = ({
     case "advance":
       return (
         <div>
+          <div>
+            <p className="fw-bold">Click this link to complete your travel booking <a href="https://fcmtravel.co.ke/msf/" target="_blank" className="">fcmtravel.co.ke/msf</a></p>
+            <div className="d-flex align-items-center mb-2">
+              <span className="me-2">Confirm booking is completed</span>
+
+              <input
+                  type="checkbox"
+                  checked={travelRequestHeader?.bookingComplete}
+                  disabled={travelRequestHeader?.bookingComplete}
+                  onChange={(e) => confirmBooking(e.target.checked)}
+              />
+            </div>
+          </div>
           <TravelAdvanceDetails travelInfo={travelRequestHeader} />
           <TravelAdvanceGLTable
             glLines={travelRequestHeader?.travelRequestLines}
