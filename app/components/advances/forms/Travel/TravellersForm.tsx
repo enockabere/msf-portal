@@ -7,6 +7,14 @@ import { TravelRequest } from "@/app/types/travel";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
 import { Trash2 } from "lucide-react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import {Plus, User} from "lucide-react";
+import CustomModal from "@/app/components/modals/CustomModal";
+import NonDependantForm from "@/app/components/advances/forms/Travel/NonDependantForm";
+  interface NonDependant {
+  name: string;
+  countryOfOrigin: string;
+  dob?: string;
+}
 interface TravelDependenciesProps {
   travelRequestHeader: TravelRequest;
   isReadOnly: boolean;
@@ -92,6 +100,70 @@ export default function TravellersForm({
     }
   };
 
+  const [showModal, setShowModal] = useState(false);
+  const [newNonDependant, setNewNonDependant] = useState<NonDependant>({
+    name: "",
+    countryOfOrigin: "",
+    dob: "",
+  });
+   const [isSaving, setIsSaving] = useState(false);
+
+   const handleSaveNonDependant = async () => {
+      // if (!profileNo) return;
+  
+      const payload = {
+        ...newNonDependant,
+        // profileNo,
+      };
+  
+      try {
+        setIsSaving(true);
+        const res = await fetch("/api/bc/users/dependants/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+  
+        const result = await res.json();
+  
+        if (!res.ok || result.error || result.rawResponse?.error) {
+          const message =
+            result.rawResponse?.error?.message ||
+            result.error?.message ||
+            result.message ||
+            "Failed to save dependant.";
+  
+          console.error("❌ API Error:", result);
+  
+          await Swal.fire({
+            icon: "error",
+            title: "Failed to Save Dependant",
+            text: message,
+          });
+          return;
+        }
+  
+        //await refreshDependants();
+        setShowModal(false);
+        setNewNonDependant({
+          name: "",
+          countryOfOrigin: "",
+          dob: "",
+        });
+  
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Dependant saved successfully.",
+        });
+      } catch (error: any) {
+        console.error("❌ Unexpected error:", error);
+        Swal.fire("Error", error?.message || "Something went wrong", "error");
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
   const handleDelete = async (traveller: Record<string, any>) => {
     try {
       dispatcher({
@@ -136,11 +208,16 @@ export default function TravellersForm({
     }
   };
 
+  const handleNewFieldChange = (field: keyof NonDependant, value: string) => {
+    setNewNonDependant({ ...newNonDependant, [field]: value });
+  };
+
   return (
     <div className="card mb-4">
       <div className="card-body">
         {!isReadOnly && (
-          <div className="mb-4">
+          <div className="mb-4 d-flex justify-content-between align-items-center gap-3">
+            <div className="flex-grow-1">
             <Select
               options={selectableTravellers.map((item) => ({
                 value: item.lineNo,
@@ -151,6 +228,17 @@ export default function TravellersForm({
               onChange={handleSelect}
               placeholder="Select the person you plan to travel with"
             />
+          </div>
+          <button
+            type="button"
+            className="btn bg-danger text-white btn-md"
+            onClick={() => {
+              setShowModal(true)
+            }}
+          >
+            <Plus size={16} />
+            Add Non-dependant Travellers
+          </button>
           </div>
         )}
 
@@ -194,6 +282,22 @@ export default function TravellersForm({
           </tbody>
         </table>
       </div>
+      <CustomModal
+      show={showModal}
+      onClose={() => setShowModal(false)}
+      title="Add Non-Dependant"
+      size="lg"
+      titleIcon={<User size={18} className="text-white" />}
+      >
+        <NonDependantForm
+          form={newNonDependant}
+          onChange={handleNewFieldChange}
+          onSave={handleSaveNonDependant}
+          onCancel={() => setShowModal(false)}
+          loading={isSaving}
+        >
+        </NonDependantForm>
+      </CustomModal>
     </div>
   );
 }
