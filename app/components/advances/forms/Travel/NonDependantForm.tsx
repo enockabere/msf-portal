@@ -5,7 +5,7 @@ import { useMySetups } from "@/app/context/SetupContext";
 import { Save, XCircle } from "lucide-react";
 
 interface NonDependant {
-  name: string;
+  travellerName: string;
   countryOfOrigin: string;
   dob?: string;
 }
@@ -39,8 +39,8 @@ export default function NonDependantForm({
           <input
             type="text"
             className="form-control"
-            value={form.name}
-            onChange={(e) => onChange("name", e.target.value)}
+            value={form.travellerName}
+            onChange={(e) => onChange("travellerName", e.target.value)}
           />
         </div>
       </div>

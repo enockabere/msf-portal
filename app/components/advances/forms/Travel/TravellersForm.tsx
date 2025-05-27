@@ -11,7 +11,7 @@ import {Plus, User} from "lucide-react";
 import CustomModal from "@/app/components/modals/CustomModal";
 import NonDependantForm from "@/app/components/advances/forms/Travel/NonDependantForm";
   interface NonDependant {
-  name: string;
+  travellerName: string;
   countryOfOrigin: string;
   dob?: string;
 }
@@ -31,7 +31,10 @@ export default function TravellersForm({
   const { dispatcher } = actions;
 
   useEffect(() => {
-    const fetchDependants = async () => {
+     fetchDependants();
+  }, [travelRequestHeader.travellerNo]);
+
+  const fetchDependants = async () => {
       try {
         const res = await getResource('profileDependants', {
           params: {
@@ -50,9 +53,6 @@ export default function TravellersForm({
         console.log('Error fetching travellers', error.message)
       }
     }
-
-    fetchDependants()
-  }, [travelRequestHeader.travellerNo]);
 
   const dependantTravellers = useMemo(() =>
     travelRequestHeader.travellers.filter(
@@ -73,6 +73,13 @@ export default function TravellersForm({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [newNonDependant, setNewNonDependant] = useState<NonDependant>({
+    travellerName: "",
+    countryOfOrigin: "",
+    dob: "",
+  });
+   const [isSaving, setIsSaving] = useState(false);
 
   const handleSelect = async (dependant: Record<string, any>) => {
     try {
@@ -100,70 +107,39 @@ export default function TravellersForm({
     }
   };
 
-  const [showModal, setShowModal] = useState(false);
-  const [newNonDependant, setNewNonDependant] = useState<NonDependant>({
-    name: "",
-    countryOfOrigin: "",
-    dob: "",
-  });
-   const [isSaving, setIsSaving] = useState(false);
-
    const handleSaveNonDependant = async () => {
-      // if (!profileNo) return;
-  
-      const payload = {
+    try {
+      setIsSubmitting(true)
+      const res = await createResource('travellers', {
+        data: {
         ...newNonDependant,
-        // profileNo,
-      };
-  
-      try {
-        setIsSaving(true);
-        const res = await fetch("/api/bc/users/dependants/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-  
-        const result = await res.json();
-  
-        if (!res.ok || result.error || result.rawResponse?.error) {
-          const message =
-            result.rawResponse?.error?.message ||
-            result.error?.message ||
-            result.message ||
-            "Failed to save dependant.";
-  
-          console.error("❌ API Error:", result);
-  
-          await Swal.fire({
-            icon: "error",
-            title: "Failed to Save Dependant",
-            text: message,
-          });
-          return;
+        documentType: travelRequestHeader.documentType,
+        documentNo: travelRequestHeader.no,
+        travellerType: 'Other',
+        travellerNo: travelRequestHeader.travellerNo,
+
         }
-  
-        //await refreshDependants();
+      })
+      if(res.error){
+        setIsSubmitting(false);
+        return Swal.fire({title: "Error saving non-dependant traveller!", text: res.error.message})
+      }
         setShowModal(false);
         setNewNonDependant({
-          name: "",
+          travellerName: "",
           countryOfOrigin: "",
           dob: "",
         });
-  
-        Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: "Dependant saved successfully.",
-        });
-      } catch (error: any) {
-        console.error("❌ Unexpected error:", error);
-        Swal.fire("Error", error?.message || "Something went wrong", "error");
-      } finally {
-        setIsSaving(false);
-      }
-    };
+    } catch (error) {
+      console.error("❌ Unexpected error:", error);
+      Swal.fire("Error", error?.message || "Something went wrong", "error");
+    }finally{
+      setIsSaving(false);
+    }
+  };
 
+  
+      
   const handleDelete = async (traveller: Record<string, any>) => {
     try {
       dispatcher({
