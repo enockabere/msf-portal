@@ -17,7 +17,7 @@ export default function OperationalHeaderStep({
   onFormChange,
   buttonsArray,
 }: OperationalHeaderStepProps) {
-  const { imprestTypes, currencies, banks, bankBranches, paymentMethods } =
+  const { imprestTypes, banks, bankBranches, paymentMethods, globalCurrencies } =
     useMySetups();
   const { isNew } = useAdvance();
 
@@ -201,8 +201,8 @@ export default function OperationalHeaderStep({
         {formData?.amountToPayHeader && (
           <div className="badge text-dark fs-6">
             Total Advance:{" "}
-            {(findObjectFromArray(currencies, "code", formData?.currencyCode)
-              ?.description as string) || "KES"}{" "}
+            {(findObjectFromArray(globalCurrencies, "code", formData?.currencyCode)
+              ?.displayName as string) || "KES"}{" "}
             {formData?.amountToPayHeader}
           </div>
         )}
@@ -241,10 +241,10 @@ export default function OperationalHeaderStep({
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
                 <option defaultValue={""}> -- Select Currency -- </option>
-                {currencies.map((currency: Record<string, any>) => {
+                {globalCurrencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>
-                      {currency.description}
+                      {currency.displayName}
                     </option>
                   );
                 })}
