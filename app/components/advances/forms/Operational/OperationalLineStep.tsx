@@ -107,7 +107,7 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
                     >
-                      <option defaultValue={""} disabled>
+                      <option defaultValue={""}>
                         -- Select Category --
                       </option>
                       {expenseCodes.map((expenseCode: Record<string, any>) => {
