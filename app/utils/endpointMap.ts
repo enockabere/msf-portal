@@ -50,8 +50,8 @@ export const endpointMap = {
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
   perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
-  sendTravelRequestForApproval:
-    "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  sendTravelRequestForApproval: "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  cancelTravelRequestApprovalRequest: "/ODataV4/TravelManager_cancelTravelRequestApprovalRequest",
   travellerChecklist: "/api/kinetics/adminTravel/v1.0/travellerChecklist",
   travellers: "/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",

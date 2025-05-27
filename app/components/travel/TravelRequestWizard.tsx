@@ -2,14 +2,29 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
-  User, ListChecks, Globe, Briefcase, FilePlus2, ArrowLeft,
-  ArrowRight, Save, Check, Ticket, Link, DownloadIcon, FileDownIcon, Plus, DownloadCloud,
+  User,
+  ListChecks,
+  Globe,
+  Briefcase,
+  FilePlus2,
+  ArrowLeft,
+  ArrowRight,
+  Save,
+  Ticket,
+  Link,
+  DownloadIcon,
+  FileDownIcon,
+  Plus,
+  DownloadCloud,
+  CircleX,
+  CircleCheckIcon,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "./TravelRequestWizard.css";
 import { TravelRequest } from "@/app/types/travel";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import {
+  decodeValue,
   pickKeys,
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
@@ -108,10 +123,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 
   const canSubmitForApproval = useMemo(() => {
+    const currentStatus = decodeValue(travelRequestHeader.approvalStatus);
+
     return travelRequestHeader.documentType === 'Employee'
       && travelRequestHeader.no
-      && travelRequestHeader.approvalStatus === 'Open'
+      && currentStatus === 'Open'
       && travelRequestHeader.travelRequestRoutes.length > 0;
+  }, [travelRequestHeader]);
+
+  const canCancelApprovalRequest = useMemo(() => {
+    const currentStatus = decodeValue(travelRequestHeader.approvalStatus);
+    return travelRequestHeader.documentType === 'Employee'
+      && currentStatus === 'Pending Approval'
   }, [travelRequestHeader]);
 
   // Effects
@@ -274,6 +297,40 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       Swal.fire("Success", res.value);
     } catch (error: any) {
       Swal.fire("Error submitting for approval", error.message);
+    } finally {
+      setIsSubmitting(false);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
+    }
+  }, [fetchTravelRequest, travelRequestHeader.no, dispatcher]);
+
+  const handleCancelApprovalRequest = useCallback(async () => {
+    try {
+      setIsSubmitting(true);
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
+      const res = await codeUnit('cancelTravelRequestApprovalRequest', {
+        data: { no: travelRequestHeader.no },
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      await fetchTravelRequest(travelRequestHeader.no);
+      Swal.fire("Success", res.value);
+    } catch (error: any) {
+      Swal.fire("Error canceling approval request", error.message);
     } finally {
       setIsSubmitting(false);
       dispatcher({
@@ -596,8 +653,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               activeTab={activeTab}
               currentSteps={currentSteps}
               canSubmitForApproval={canSubmitForApproval}
+              canCancelApprovalRequest={canCancelApprovalRequest}
               isSubmitting={isSubmitting}
               handleSubmitForApproval={handleSubmitForApproval}
+              handleCancelApprovalRequest={handleCancelApprovalRequest}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
             />
@@ -634,8 +693,10 @@ interface StepHeaderProps {
   activeTab: string;
   currentSteps: WizardStep[];
   canSubmitForApproval: boolean;
+  canCancelApprovalRequest: boolean;
   isSubmitting: boolean;
   handleSubmitForApproval: () => Promise<void>;
+  handleCancelApprovalRequest: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
 }
@@ -644,8 +705,10 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   activeTab,
   currentSteps,
   canSubmitForApproval,
+  canCancelApprovalRequest,
   isSubmitting,
   handleSubmitForApproval,
+  handleCancelApprovalRequest,
   downLoadIntroductoryLetter,
   downLoadBtaCertificate,
 }) => (
@@ -699,9 +762,20 @@ const StepHeader: React.FC<StepHeaderProps> = ({
               onClick={handleSubmitForApproval}
               disabled={isSubmitting}
           >
-            <Check size={16} className="button-icon" />
+            <CircleCheckIcon size={16} className="button-icon" />
             Submit for Approval
           </button>
+      )}
+
+      {canCancelApprovalRequest && (
+        <button
+          className="btn btn-outline-danger"
+          onClick={handleCancelApprovalRequest}
+          disabled={isSubmitting}
+        >
+          <CircleX size={16} className="button-icon" />
+          Cancel Approval
+        </button>
       )}
     </div>
   </div>
