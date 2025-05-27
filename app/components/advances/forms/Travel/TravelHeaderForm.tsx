@@ -1,27 +1,30 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
 import { TravelRequest } from "@/app/types/travel";
 import { getResource } from "@/app/lib/api/http";
 import { decodeValue } from "@/app/utils/helpers";
+import FormSelect from "@/app/components/inputs/FormSelect";
+import FormInput from "@/app/components/inputs/FormInput";
 
-const travelTypes = [
-  {code: "Local", description: "Local"},
-  {code: "International", description: "International"},
+// Constants moved outside the component
+const TRAVEL_TYPES = [
+  { code: "Local", description: "Local" },
+  { code: "International", description: "International" },
 ];
 
-const accommodationTypes = [
-  {code: "Self-Arranged", description: "Self Arranged"},
-  {code: "Full Board", description: "Full Board"},
-  {code: "Half Board", description: "Half Board"},
-  {code: "Bed & Breakfast", description: "Bed & Breakfast"},
+const ACCOMMODATION_TYPES = [
+  { code: "Self-Arranged", description: "Self Arranged" },
+  { code: "Full Board", description: "Full Board" },
+  { code: "Half Board", description: "Half Board" },
+  { code: "Bed & Breakfast", description: "Bed & Breakfast" },
 ];
 
-const yesNoOptions = [
-  {code: 'true', description: 'Yes'},
-  {code: 'false', description: 'No'},
+const YES_NO_OPTIONS = [
+  { code: 'true', description: 'Yes' },
+  { code: 'false', description: 'No' },
 ];
 
 interface Props {
@@ -31,7 +34,31 @@ interface Props {
   onFormChange: (field: keyof TravelInfo, value: any) => void;
 }
 
-export default function TravelHeaderForm({formData, requiredFields, isReadOnly, onFormChange}: Props) {
+const CabDetails = ({ travelRequest }: { travelRequest: TravelRequest }) => (
+  <div className="card bg-light-subtle border mt-2">
+    <div className="card-body">
+      <h5 className="card-title fs-14 fw-bold">Cab Details</h5>
+      <div className="row">
+        <div className="col-12">
+          <label className="col-form-label">Pickup Location:</label>
+          <span className="text-dark mx-1">
+            {travelRequest.pickupLocation || 'N/A'}
+          </span>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-12">
+          <label className="col-form-label">Drop-off Location:</label>
+          <span className="text-dark mx-1">
+            {travelRequest.dropOffLocation || 'N/A'}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export default function TravelHeaderForm({ formData, requiredFields, isReadOnly, onFormChange }: Props) {
   const {
     purposeOfTravel,
     modesOfTransport,
@@ -41,86 +68,78 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
     fetchSetups,
   } = useMySetups();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        await fetchSetups([
-          'purposeOfTravel',
-          'modesOfTransport',
-          'countries',
-          'perDiemAllotments',
-          {
-            dimensions: {
-              filters: {dimensionCode: 'OC'}
-            },
-          },
-        ]);
-      } catch (error: any) {
-        console.log('Error! ', error);
-      }
-    };
+  const [originCities, setOriginCities] = useState([]);
 
-    loadData();
-  }, [fetchSetups]);
-
-  const [originCities, setOriginCities] = useState([])
-  const requiresPerDiemChecker = (accommodationType: string) => {
-    const allotment = perDiemAllotments.find((item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType)
-    if (!allotment) return false
-    return allotment.perDiemAllocated > 0
-  }
-
-  const fetchCities = async (countryCode: string) => {
+  const fetchCities = useCallback(async (countryCode: string) => {
     try {
-      if (countryCode) {
-        const res = await getResource('cities', {
-          params: {
-            filters: {
-              countryRegionCode: countryCode,
-            }
+      if (!countryCode) {
+        setOriginCities([]);
+        return;
+      }
+
+      const res = await getResource('cities', {
+        params: {
+          filters: {
+            countryRegionCode: countryCode,
           }
-        })
-
-        if (res.error) {
-          console.log('Error!', res.error)
         }
+      });
 
-        setOriginCities([...res.value])
-      } else {
-        setOriginCities([])
+      if (res.error) {
+        console.error('Error fetching cities:', res.error);
+        return;
+      }
+
+      setOriginCities([...res.value]);
+    } catch (error: any) {
+      console.error('Error fetching cities:', error.message);
+    }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      await fetchSetups([
+        'purposeOfTravel',
+        'modesOfTransport',
+        'countries',
+        'perDiemAllotments',
+        {
+          dimensions: {
+            filters: { dimensionCode: 'OC' }
+          },
+        },
+      ]);
+
+      if (formData.originCountryCode) {
+        await fetchCities(formData.originCountryCode);
       }
     } catch (error: any) {
-      console.log('Error!', error.message)
+      console.error('Error loading data:', error);
     }
-  }
+  }, [fetchCities, fetchSetups, formData.originCountryCode]);
 
-  function CabDetails({travelRequest}: { travelRequest: TravelRequest }) {
-    return (
-      <>
-        <div className={'card bg-light-subtle border mt-2'}>
-          <div className="card-body">
-            <h5 className="card-title fs-14 fw-bold">Cab Details</h5>
-            <div className="row">
-              <div className="col-12">
-                <label className="col-form-label">Pickup Location:</label>
-                <span className="text-dark mx-1">
-                {travelRequest.pickupLocation || 'N/A'}
-              </span>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-12">
-                <label className="col-form-label">Drop-off Location:</label>
-                <span className="text-dark mx-1">
-                {travelRequest.dropOffLocation || 'N/A'}
-              </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const requiresPerDiemChecker = useCallback((accommodationType: string) => {
+    const allotment = perDiemAllotments.find(
+      (item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType
     );
-  }
+    return allotment?.perDiemAllocated > 0;
+  }, [perDiemAllotments]);
+
+  const handleCountryChange = useCallback(async (value: string) => {
+    onFormChange('originCountryCode', value);
+    onFormChange('originCity', '')
+    await fetchCities(value);
+  }, [fetchCities, onFormChange]);
+
+  const handleTimeChange = useCallback((value: string) => {
+    onFormChange('estimatedTimeOfArrival', `${value}:00`);
+  }, [onFormChange]);
+
+  const showCabDetails = formData.pickupLocation || formData.dropOffLocation;
 
   return (
     <>
@@ -128,296 +147,175 @@ export default function TravelHeaderForm({formData, requiredFields, isReadOnly, 
         <h6 className="text-dark fw-bold">General information</h6>
         <div className="row g-3">
           {requiredFields.includes('originCountryCode') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Origin Country <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.originCountryCode}
-                onChange={async (e) => {
-                  onFormChange('originCountryCode', e.target.value)
-                  onFormChange('originCity', '')
-                  await fetchCities(e.target.value)
-                }}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Country --</option>
-                {countries.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Origin Country"
+              value={formData.originCountryCode}
+              onChange={handleCountryChange}
+              options={countries.map(item => ({ code: item.code, description: item.displayName }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('originCity') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Origin City <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.originCity}
-                onChange={(e) => onFormChange('originCity', e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select City --</option>
-                {originCities.map((item) => (
-                  <option key={item.city} value={item.city}>
-                    {item.city}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Origin City"
+              value={formData.originCity}
+              onChange={(value) => onFormChange('originCity', value)}
+              options={originCities.map(city => ({ code: city.city, description: city.city }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('TypeOfTravel') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Type of Travel <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.TypeOfTravel}
-                onChange={(e) => onFormChange("TypeOfTravel", e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Type --</option>
-                {travelTypes.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.description}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Type of Travel"
+              value={formData.TypeOfTravel}
+              onChange={(value) => onFormChange("TypeOfTravel", value)}
+              options={TRAVEL_TYPES}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('modeOfTransport') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Mode of Transport <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.modeOfTransport}
-                onChange={(e) => onFormChange("modeOfTransport", e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Mode --</option>
-                {modesOfTransport.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.description}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Mode of Transport"
+              value={formData.modeOfTransport}
+              onChange={(value) => onFormChange("modeOfTransport", value)}
+              options={modesOfTransport.map(item => ({ code: item.code, description: item.description }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('purposeOfTravel') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Purpose of Travel <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.purposeOfTravel}
-                onChange={(e) => onFormChange('purposeOfTravel', e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Purpose --</option>
-                {purposeOfTravel.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.description}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Purpose of Travel"
+              value={formData.purposeOfTravel}
+              onChange={(value) => onFormChange('purposeOfTravel', value)}
+              options={purposeOfTravel.map(item => ({ code: item.code, description: item.description }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('annualTrip') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Annual Trip <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={String(formData.annualTrip)}
-                onChange={(e) => onFormChange('annualTrip', e.target.value === 'true')}
-                required
-                disabled={isReadOnly}
-              >
-                {yesNoOptions.map((item) => (
-                  <option key={item.code} value={item.code}>{item.description}</option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Annual Trip"
+              value={String(formData.annualTrip)}
+              onChange={(value) => onFormChange('annualTrip', value === 'true')}
+              options={YES_NO_OPTIONS}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('passportNo') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                ID/Passport Number <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.passportNo}
-                onChange={(e) =>
-                  onFormChange("passportNo", e.target.value)
-                }
-                placeholder="Enter ID or Passport number"
-                required
-                disabled={isReadOnly}
-              />
-            </div>
+            <FormInput
+              label="ID/Passport Number"
+              value={formData.passportNo}
+              onChange={(value) => onFormChange("passportNo", value)}
+              placeholder="Enter ID or Passport number"
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('departureDate') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Departure Date <span className="text-danger">*</span>
-              </label>
-              <input
-                type="date"
-                className="form-control"
-                value={formData.departureDate}
-                onChange={(e) =>
-                  onFormChange('departureDate', e.target.value)
-                }
-                required
-                disabled={isReadOnly}
-              />
-            </div>
+            <FormInput
+              label="Departure Date"
+              value={formData.departureDate}
+              onChange={(value) => onFormChange('departureDate', value)}
+              type="date"
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('arrivalDate') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Arrival Date <span className="text-danger">*</span>
-              </label>
-              <input
-                type="date"
-                className="form-control"
-                value={formData.arrivalDate}
-                onChange={(e) =>
-                  onFormChange('arrivalDate', e.target.value)
-                }
-                required
-                disabled={isReadOnly}
-              />
-            </div>
+            <FormInput
+              label="Arrival Date"
+              value={formData.arrivalDate}
+              onChange={(value) => onFormChange('arrivalDate', value)}
+              type="date"
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('estimatedTimeOfArrival') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Expected Time of Arrival <span className="text-danger">*</span>
-              </label>
-              <input
-                type="time"
-                className="form-control"
-                value={formData.estimatedTimeOfArrival}
-                onChange={(e) =>
-                  onFormChange('estimatedTimeOfArrival', `${e.target.value}:00`)
-                }
-                required
-                disabled={isReadOnly}
-              />
-            </div>
+            <FormInput
+              label="Expected Time of Arrival"
+              value={formData.estimatedTimeOfArrival?.split(':').slice(0, 2).join(':')}
+              onChange={handleTimeChange}
+              type="time"
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('returnDate') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Return Date <span className="text-danger">*</span>
-              </label>
-              <input
-                type="date"
-                className="form-control"
-                value={formData.returnDate}
-                onChange={(e) =>
-                  onFormChange('returnDate', e.target.value)
-                }
-                required
-                disabled={isReadOnly}
-              />
-            </div>
+            <FormInput
+              label="Return Date"
+              value={formData.returnDate}
+              onChange={(value) => onFormChange('returnDate', value)}
+              type="date"
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
 
           {requiredFields.includes('accommodationType') && (
-            <div className="col-md-4">
-              <label className="form-label">Accommodation Type</label>
-              <select
-                className="form-select"
-                value={decodeValue(formData.accommodationType)}
-                onChange={(e) => {
-                  onFormChange("accommodationType", e.target.value)
-                }}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Accommodation --</option>
-                {accommodationTypes.map((type) => (
-                  <option key={type.code} value={type.code}>
-                    {type.description}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Accommodation Type"
+              value={decodeValue(formData.accommodationType)}
+              onChange={(value) => onFormChange("accommodationType", value)}
+              options={ACCOMMODATION_TYPES}
+              required
+              disabled={isReadOnly}
+            />
           )}
 
-          {requiredFields.includes('requirePerDiem')
-            && requiresPerDiemChecker(decodeValue(formData.accommodationType))
-            && (
-              <div className="col-md-4">
-                <label className="form-label">Require Per Diem</label>
-                <select
-                  className="form-select"
-                  value={formData.requirePerDiem}
-                  onChange={(e) => onFormChange('requirePerDiem', e.target.value === 'true')}
-                  required
-                  disabled={isReadOnly}
-                >
-                  {yesNoOptions.map((item) => (
-                    <option key={item.code} value={item.code}>{item.description}</option>
-                  ))}
-                </select>
-              </div>
+          {requiredFields.includes('requirePerDiem') &&
+            requiresPerDiemChecker(decodeValue(formData.accommodationType)) && (
+              <FormSelect
+                label="Require Per Diem"
+                value={formData.requirePerDiem}
+                onChange={(value) => onFormChange('requirePerDiem', value === 'true')}
+                options={YES_NO_OPTIONS}
+                required
+                disabled={isReadOnly}
+              />
             )}
 
           {requiredFields.includes('shortcutDimension1Code') && (
-            <div className="col-md-4">
-              <label className="form-label">
-                Cost Center <span className="text-danger">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={formData.shortcutDimension1Code}
-                onChange={(e) => onFormChange('shortcutDimension1Code', e.target.value)}
-                required
-                disabled={isReadOnly}
-              >
-                <option value="">-- Select Cost Center --</option>
-                {dimensions.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelect
+              label="Cost Center"
+              value={formData.shortcutDimension1Code}
+              onChange={(value) => onFormChange('shortcutDimension1Code', value)}
+              options={dimensions.map(d => ({ code: d.code, description: d.name }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
           )}
         </div>
       </div>
 
-      {(formData.pickupLocation || formData.dropOffLocation)
-        && <CabDetails travelRequest={formData}/>}
+      {showCabDetails && <CabDetails travelRequest={formData} />}
     </>
   );
 }

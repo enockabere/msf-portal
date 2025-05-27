@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { startTransition } from "react";
 
 interface ClientNavLinkProps {
   href: string;
@@ -14,12 +15,25 @@ export default function ClientNavLink({
   className = "",
 }: ClientNavLinkProps) {
   const router = useRouter();
-  const { showLoader } = usePageLoader();
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    showLoader();
-    router.push(href);
+    dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: true,
+        message: '',
+      }
+    });
+    startTransition(() => (router.push(href), dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: false,
+        message: '',
+      }
+    })));
   };
 
   return (

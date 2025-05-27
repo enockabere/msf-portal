@@ -40,15 +40,28 @@ export default function RequestCards() {
   const [advanceType, setAdvanceType] = useState<AdvanceTypeKey>(null);
   const [requestType, setRequestType] = useState<RequestType>(null);
   const { data: session } = useSession();
-  const { showLoader } = usePageLoader();
+  const { actions: loaderActions } = usePageLoader();
+  const { dispatcher: dispatchLoader } = loaderActions;
   const { advanceTypes, actions } = useAdvance();
   const { dispatcher, handleFetchingSetup } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
-    showLoader();
+    dispatchLoader({
+      type: 'PATCH_LOADING_STATE',
+      payload: {
+        loading: true,
+        message: '',
+      }
+    })
     requestAnimationFrame(() => {
-      startTransition(() => router.push(href));
+      startTransition(() => (router.push(href), dispatchLoader({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      })));
     });
   };
 
@@ -67,7 +80,7 @@ export default function RequestCards() {
         break;
       }
       case 'Other': {
-        //setloader
+
         await handleFetchingSetup();
         dispatcher({
           type: 'ADVANCE_CREATION_STATUSES',
@@ -369,7 +382,7 @@ export default function RequestCards() {
       <CustomModal
         show={showModal}
         onClose={handleCloseModal}
-        title={ requestType === "Expense" ? "Record Expense" : requestType === "Requisition" ? "New Requisition"  : `Request ${captions[advanceType]} Advance`}
+        title={requestType === "Expense" ? "Record Expense" : requestType === "Requisition" ? "New Requisition" : `Request ${captions[advanceType]} Advance`}
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
       >
@@ -400,9 +413,9 @@ export default function RequestCards() {
             </div>
           )}
           {requestType === "Requisition" && (
-              <div className="col-md-12">
-                <RequisitionForm />
-              </div>
+            <div className="col-md-12">
+              <RequisitionForm />
+            </div>
           )}
         </div>
       </CustomModal>
