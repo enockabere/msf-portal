@@ -236,6 +236,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
         await fetchSetups([
             'imprestTypes',
             'currencies',
+            'globalCurrencies',
             {
                 paymentMethods: {
                     filters: {
