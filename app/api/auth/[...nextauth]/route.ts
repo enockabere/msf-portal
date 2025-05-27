@@ -85,8 +85,13 @@ const handler = NextAuth({
       if (account) {
         token.accessToken = account.access_token;
 
+        const azureProfile = profile as {
+          email?: string;
+          preferred_username?: string;
+        }
+
         try {
-          const normalizedEmail = profile?.email?.toLowerCase() || "";
+          const normalizedEmail = azureProfile?.email?.toLowerCase() || azureProfile?.preferred_username.toLowerCase() || "";
 
           const response = (await transport.get(memoryMap.get("userProfiles"), {
             $filter: `eMail eq '${normalizedEmail}' and eMail ne ''`,

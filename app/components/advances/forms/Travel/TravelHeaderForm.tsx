@@ -286,6 +286,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
               options={ACCOMMODATION_TYPES}
               required
               disabled={isReadOnly}
+              showAsterisk
             />
           )}
 
@@ -298,6 +299,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={YES_NO_OPTIONS}
                 required
                 disabled={isReadOnly}
+                showAsterisk
               />
             )}
 
@@ -310,6 +312,16 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
               required
               disabled={isReadOnly}
               showAsterisk
+            />
+          )}
+
+          {requiredFields.includes('budgetCode') && (
+            <FormInput
+              label="Budget Code"
+              value={formData.budgetCode}
+              onChange={(value) => onFormChange("budgetCode", value)}
+              placeholder="Enter Budget Code"
+              disabled={isReadOnly}
             />
           )}
         </div>

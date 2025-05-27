@@ -10,7 +10,6 @@ import "./TravelRequestWizard.css";
 import { TravelRequest } from "@/app/types/travel";
 import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
 import {
-  checkIfMissingRequiredProperty,
   pickKeys,
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
@@ -21,7 +20,7 @@ import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
 import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
-import TravelDependencies from "../advances/forms/Travel/TravelDependencies";
+import TravellersForm from "../advances/forms/Travel/TravellersForm";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
 import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
@@ -70,6 +69,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   requirePerDiem: false,
   shortcutDimension1Code: '',
   shortcutDimension2Code: '',
+  budgetCode: '',
   approvalStatus: 'Open',
   travelRequestRoutes: [],
   travellers: [],
@@ -91,6 +91,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
+  const [travelChecklistCount, setTravelChecklistCount] = useState<number>(0);
+  const [visaChecklistCount, setVisaChecklistCount] = useState<number>(0);
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
 
@@ -106,11 +108,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 
   const canSubmitForApproval = useMemo(() => {
-    const canSubmit = travelRequestHeader.no && travelRequestHeader.approvalStatus === 'Open';
-    if (travelRequestHeader.documentType === 'Employee') {
-      return canSubmit && travelRequestHeader.travelRequestRoutes.length > 0;
-    }
-    return canSubmit;
+    return travelRequestHeader.documentType === 'Employee'
+      && travelRequestHeader.no
+      && travelRequestHeader.approvalStatus === 'Open'
+      && travelRequestHeader.travelRequestRoutes.length > 0;
   }, [travelRequestHeader]);
 
   // Effects
@@ -132,17 +133,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
-      const baseFields = ['documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo', 'requirePerDiem'];
+      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem'];
 
       if (profile.type === 'Employee') {
         setHeaderRequiredFields([
           ...baseFields,
-          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType'
+          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType', 'shortcutDimension1Code'
         ]);
       } else if (profile.type === 'Visitor') {
         setHeaderRequiredFields([
           ...baseFields,
-          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival'
+          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival', 'budgetCode'
         ]);
       } else {
         setHeaderRequiredFields(baseFields);
@@ -204,38 +205,38 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [travelRequestHeader.no]);
 
+  const getKeysToRetain = () => {
+    const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
+      'approvalStatus',
+      'travelRequestRoutes',
+      'travellers',
+      'visaApplications'
+    ];
+
+    return (Object.keys(INITIAL_TRAVEL_REQUEST) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]).filter(
+      (key) => !excludedKeys.includes(key)
+    );
+  };
+
   const saveTravelRequestHeader = async () => {
     try {
       const strippedPayload = removeNullAndUndefinedFromObject(travelRequestHeader);
-      const keysToRetain = [
-        'no', 'documentType', 'passportNo', 'shortcutDimension1Code', 'travellerNo',
-        'createdbyProfileNo', 'TypeOfTravel', 'purposeOfTravel', 'annualTrip',
-        'requirePerDiem', 'originCity', 'originCountryCode', 'destinationCity',
-        'destinationCountryCode', 'departureDate', 'arrivalDate', 'returnDate',
-        'modeOfTransport', 'accommodationType', 'estimatedTimeOfArrival',
-      ];
+      const keysToRetain = getKeysToRetain() as Array<string>
+
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
 
-      const validation = checkIfMissingRequiredProperty(knownSchema, headerRequiredFields);
-      if (!validation || validation.missing) {
-        const message = validation?.missing
-          ? `Missing [${validation.prop.join(",")}] ${validation.prop.length > 1 ? 'Properties' : 'Property'}`
-          : "Not a valid payload";
-        Swal.fire("Validation Error!", message);
-      } else {
-        setIsSaving(true);
-        const operation = knownSchema.no
-          ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
-          : createResource('travelRequests', { data: knownSchema });
+      setIsSaving(true);
+      const operation = knownSchema.no
+        ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
+        : createResource('travelRequests', { data: knownSchema });
 
-        const res = await operation;
-        if (res.error) {
-          throw new Error(res.error.message);
-        }
-
-        await fetchTravelRequest(res.no);
-        navigateToNextStepAfterSave();
+      const res = await operation;
+      if (res.error) {
+        throw new Error(res.error.message);
       }
+
+      await fetchTravelRequest(res.no);
+      navigateToNextStepAfterSave();
     } catch (error: any) {
       Swal.fire('Error saving request!', error.message);
     } finally {
@@ -245,7 +246,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   const navigateToNextStepAfterSave = () => {
     if (travelRequestHeader.documentType === 'Visitor') {
-      setActiveTab('dependants');
+      setActiveTab('travellers');
     } else if (travelRequestHeader.documentType === 'Employee') {
       setActiveTab('destinations');
     }
@@ -317,9 +318,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       desc: "Travel destination details",
     },
     {
-      id: "dependants",
+      id: "travellers",
       icon: <Link size={18} />,
-      title: "Dependants",
+      title: "Travellers",
       desc: "Related travel requirements",
     },
     {
@@ -371,26 +372,54 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     },
   ], [handleCreateTravelAdvance]);
 
+  const getChecklistCount = async (travel, type: "Travel" | "Visa") => {
+    try {
+      const res = await getResource("travellerChecklist", {
+        params: {
+          filters: {
+            documentNo: travel?.no,
+            documentType: travel?.documentType,
+            checklistType: type,
+          },
+          $count: true,
+        },
+      });
+
+      const count = res["@odata.count"];
+      console.log(`${type} checklistCount:`, count);
+
+      if (type === "Travel") {
+        setTravelChecklistCount(count);
+        console.log('travelChecklistCount', travelChecklistCount)
+      } else {
+        setVisaChecklistCount(count);
+        console.log('visaChecklistCount', visaChecklistCount)
+      }
+    } catch (error) {
+      console.error(`Error fetching ${type} checklist count:`, error);
+    }
+  };
+
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependants", "checklist", "traveller-checklist", "visa", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "destinations", "travellers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependants", "documents", "providers", "checklist", "traveller-checklist", "permit", "advance"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "travellers", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
+            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "dependants"]
+        return ["info", "destinations", "travellers"]
           .map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "dependants", "documents"]
+        return ["info", "travellers", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     }
     return [allSteps.find(s => s.id === "info")!];
-  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps]);
+  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps, visaChecklistCount, travelChecklistCount]);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
@@ -404,11 +433,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           case "destinations":
             if (travelRequestHeader.travelRequestRoutes?.length) newCompletedSteps.add("destinations");
             break;
-          case "dependants":
+          case "travellers":
             const hasDependencies = travelRequestHeader.travellers?.some(
               (t: Record<string, any>) => t.travellerType !== "Self"
             );
-            if (hasDependencies) newCompletedSteps.add("dependants");
+            if (hasDependencies) newCompletedSteps.add("travellers");
             break;
         }
       });
@@ -420,6 +449,14 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       updateCompletedSteps();
     }
   }, [travelRequestHeader, currentSteps]);
+
+  useEffect(() => {
+    if (travelRequestHeader?.no && travelRequestHeader?.documentType) {
+      getChecklistCount(travelRequestHeader, "Travel");
+      getChecklistCount(travelRequestHeader, "Visa");
+    }
+  }, [travelRequestHeader?.no, travelRequestHeader?.documentType]);
+
 
   // Event handlers
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
@@ -438,33 +475,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
 
-  const downLoadIntroductoryLetter = async () => {
-    setIsSaving(true)
-    try {
-      const res = await codeUnit('getIntroductoryLetter', {
-        data: {
-          docType: travelRequestHeader?.documentType === "Employee"
-            ? "0"
-            : travelRequestHeader.documentType === "Visitor"
-              ? "1"
-              : travelRequestHeader.documentType === "Non-Resident"
-                ? "2"
-                : "Unknown",
-          docNo: travelRequestHeader.no,
-          destination: travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
-        }
-      })
-
-      if (res.error) {
-        throw new Error(res.error.message)
-      }
-      downloadFileFromBase64(res.value, "Introductory Letter")
-    } catch (error) {
-      Swal.fire('Download Failed', error.message);
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   const getDocumentTypeCode = (type) => {
     const typeMap = {
@@ -474,6 +484,28 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
     return typeMap[type] || "Unknown";
   };
+
+  const downLoadIntroductoryLetter = async () => {
+    try {
+      const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
+      const docNo = travelRequestHeader?.no;
+      const destination = docType === "Employee"
+        ? travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+        : travelRequestHeader?.destinationCountryCode;
+
+      const res = await codeUnit('getIntroductoryLetter', {
+        data: { docType, docNo, destination }
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message)
+      }
+      downloadFileFromBase64(res.value, "Introductory Letter")
+    } catch (error) {
+      Swal.fire('Download Failed', error.message);
+    }
+  }
+
 
   const downLoadBtaCertificate = async () => {
     try {
@@ -490,8 +522,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
       Swal.fire("Error", error.message || "An unexpected error occurred.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -499,8 +529,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   return (
     <div className="travel-wizard">
       <div className="wizard-header">
-        <h2 className="wizard-title">Travel Request Application</h2>
-        <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+        <div className="d-flex align-items-start gap-4">
+          <div className="">
+            <h2 className="wizard-title">Travel Request Application</h2>
+            {travelRequestHeader.currentStage && (
+                <div className="d-flex align-items-center mt-1">
+                  <h5 className="m-0">Current Stage:</h5>
+                  <span className="badge bg-primary p-1 ms-2"> { travelRequestHeader.currentStage }</span>
+                </div>
+            )}
+            <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+          </div>
+        </div>
 
         <div className="wizard-progress">
           <div
@@ -516,26 +556,26 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {currentSteps.map(step => (
-              <li key={step.id} className="step-item">
+            {currentSteps?.map(step => (
+              <li key={step?.id} className="step-item">
                 <button
-                  className={`step-button ${activeTab === step.id ? "active" : ""} ${completedSteps.has(step.id) ? "completed" : ""}`}
-                  onClick={() => handleTabChange(step.id)}
+                  className={`step-button ${activeTab === step?.id ? "active" : ""} ${completedSteps?.has(step?.id) ? "completed" : ""}`}
+                  onClick={() => handleTabChange(step?.id)}
                   role="tab"
-                  aria-selected={activeTab === step.id}
-                  aria-controls={`${step.id}-panel`}
-                  id={`${step.id}-tab`}
-                  tabIndex={activeTab === step.id ? 0 : -1}
+                  aria-selected={activeTab === step?.id}
+                  aria-controls={`${step?.id}-panel`}
+                  id={`${step?.id}-tab`}
+                  tabIndex={activeTab === step?.id ? 0 : -1}
                   disabled={disableTabs}
                 >
                   <span className="step-icon-wrapper">
-                    <span className="step-icon">{step.icon}</span>
+                    <span className="step-icon">{step?.icon}</span>
                   </span>
                   <span className="step-content">
-                    <span className="step-title">{step.title}</span>
+                    <span className="step-title">{step?.title}</span>
                     <span className="step-desc">{step.desc}</span>
                   </span>
-                  {completedSteps.has(step.id) && (
+                  {completedSteps.has(step?.id) && (
                     <span className="step-completed-badge" aria-hidden="true">
                       ✓
                     </span>
@@ -572,16 +612,15 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               saveTravelRequestHeader={saveTravelRequestHeader}
               fetchTravelRequest={fetchTravelRequest}
               handleFormChange={handleFormChange}
+              travelChecklistCount={travelChecklistCount}
+              visaChecklistCount={visaChecklistCount}
             />
 
             <StepActions
-              activeTab={activeTab}
               currentStepIndex={currentStepIndex}
               currentSteps={currentSteps}
               travelRequestHeader={travelRequestHeader}
               handleTabChange={handleTabChange}
-              handleSubmitForApproval={handleSubmitForApproval}
-              isSubmitting={isSubmitting}
             />
           </div>
         </div>
@@ -608,25 +647,25 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   isSubmitting,
   handleSubmitForApproval,
   downLoadIntroductoryLetter,
-  downLoadBtaCertificate
+  downLoadBtaCertificate,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
       {currentSteps.find(s => s.id === activeTab)?.title}
     </h4>
+    <div className="d-flex align-items-center ">
+      {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
+          <button
+              key={action.id}
+              className="primary-button"
+              onClick={action.fn}
+          >
+            <Plus size={16} />
+            {action.caption}
+          </button>
+      ))}
 
-    {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
-      <button
-        key={action.id}
-        className="primary-button"
-        onClick={action.fn}
-      >
-        <Plus size={16} />
-        {action.caption}
-      </button>
-    ))}
-
-    {activeTab === "visa" && (
+    {activeTab === "checklist" && (
       <div className="btn-group">
         <button
           type="button"
@@ -635,27 +674,9 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           aria-expanded="false"
         >
           <DownloadIcon size={16} className="button-icon" />
-          Download
+          Download Docs
         </button>
         <ul className="dropdown-menu">
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Dummy ticket
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Accommodation voucher
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Letter of intent
-            </button>
-          </li>
           <li>
             <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon" />
@@ -665,23 +686,24 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           <li>
             <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
               <FileDownIcon size={16} className="button-icon" />
-              Bta Certificate
+              BTA Certificate
             </button>
           </li>
         </ul>
       </div>
     )}
 
-    {canSubmitForApproval && (
-      <button
-        className="primary-button"
-        onClick={handleSubmitForApproval}
-        disabled={isSubmitting}
-      >
-        <Check size={16} className="button-icon" />
-        Submit for Approval
-      </button>
-    )}
+      {canSubmitForApproval && (
+          <button
+              className="primary-button"
+              onClick={handleSubmitForApproval}
+              disabled={isSubmitting}
+          >
+            <Check size={16} className="button-icon" />
+            Submit for Approval
+          </button>
+      )}
+    </div>
   </div>
 );
 
@@ -695,6 +717,8 @@ interface StepContentProps {
   saveTravelRequestHeader: () => Promise<void>;
   fetchTravelRequest: () => Promise<void>;
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
+  travelChecklistCount: number;
+  visaChecklistCount: number;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -707,6 +731,8 @@ const StepContent: React.FC<StepContentProps> = ({
   saveTravelRequestHeader,
   fetchTravelRequest,
   handleFormChange,
+  travelChecklistCount,
+  visaChecklistCount,
 }) => {
   switch (activeTab) {
     case "info":
@@ -754,9 +780,9 @@ const StepContent: React.FC<StepContentProps> = ({
           onSubmit={fetchTravelRequest}
         />
       );
-    case "dependants":
+    case "travellers":
       return (
-        <TravelDependencies
+        <TravellersForm
           travelRequestHeader={travelRequestHeader}
           isReadOnly={isReadOnly}
           onSubmit={fetchTravelRequest}
@@ -804,9 +830,11 @@ const StepContent: React.FC<StepContentProps> = ({
     case "visa":
       return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
-      return <VisaChecklist travelInfo={travelRequestHeader} />;
+      return visaChecklistCount > 0 ? (<VisaChecklist travelInfo={travelRequestHeader} />) : null;
     case "traveller-checklist":
-      return <TravellerChecklist travelInfo={travelRequestHeader} />;
+      return travelChecklistCount > 0 ? (
+          <TravellerChecklist travelInfo={travelRequestHeader} />
+      ) : null;
     case "documents":
       return (
         <TravelDocuments
@@ -825,23 +853,17 @@ const StepContent: React.FC<StepContentProps> = ({
 };
 
 interface StepActionsProps {
-  activeTab: string;
   currentStepIndex: number;
   currentSteps: WizardStep[];
   travelRequestHeader: TravelRequest;
   handleTabChange: (stepId: string) => void;
-  handleSubmitForApproval: () => Promise<void>;
-  isSubmitting: boolean;
 }
 
 const StepActions: React.FC<StepActionsProps> = ({
-  activeTab,
   currentStepIndex,
   currentSteps,
   travelRequestHeader,
   handleTabChange,
-  handleSubmitForApproval,
-  isSubmitting,
 }) => {
   return (
     <div className="step-actions">
@@ -857,7 +879,7 @@ const StepActions: React.FC<StepActionsProps> = ({
           </button>
         )}
 
-        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no ? (
+        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no && (
           <button
             type="button"
             className="primary-button"
@@ -866,22 +888,6 @@ const StepActions: React.FC<StepActionsProps> = ({
             <ArrowRight size={16} className="button-icon" />
             Next
           </button>
-        ) : (
-          activeTab !== "info" && travelRequestHeader.approvalStatus === 'Open' && (
-            <button
-              type="submit"
-              className="submit-button"
-              onClick={handleSubmitForApproval}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <SectionLoader classes={'button-icon'} />
-              ) : (
-                <Check size={16} className="button-icon" />
-              )}
-              Submit for Approval
-            </button>
-          )
         )}
       </div>
     </div>

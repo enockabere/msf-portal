@@ -13,12 +13,12 @@ interface TravelDependenciesProps {
   onSubmit: (requestNo: string) => void;
 }
 
-export default function TravelDependencies({
+export default function TravellersForm({
   travelRequestHeader,
   isReadOnly,
   onSubmit,
 }: TravelDependenciesProps) {
-  const [dependants, setDependants] = useState([]);
+  const [travellers, setTravellers] = useState([]);
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
 
@@ -34,34 +34,34 @@ export default function TravelDependencies({
         });
 
         if (res.error) {
-          return Swal.fire({ title: 'Error fetching profile dependants!', text: res.error.message });
+          return Swal.fire({ title: 'Error fetching profile travellers!', text: res.error.message });
         }
 
-        setDependants(res.value)
+        setTravellers(res.value)
       } catch (error: any) {
-        console.log('Error fetching dependants', error.message)
+        console.log('Error fetching travellers', error.message)
       }
     }
 
     fetchDependants()
   }, [travelRequestHeader.travellerNo]);
 
-  const travellers = useMemo(() =>
+  const dependantTravellers = useMemo(() =>
     travelRequestHeader.travellers.filter(
       (traveller: Record<string, any>) => traveller.travellerType !== 'Self'
     ), [travelRequestHeader.travellers]
   );
 
   const travellerDependantNos = useMemo(
-    () => travellers.map((traveller: Record<string, any>) => traveller.dependantNo),
-    [travellers]
+    () => dependantTravellers.map((traveller: Record<string, any>) => traveller.dependantNo),
+    [dependantTravellers]
   );
 
-  const selectableDependants = useMemo(
-    () => dependants.filter(dependant =>
-      !travellerDependantNos.includes(dependant.lineNo)
+  const selectableTravellers = useMemo(
+    () => travellers.filter(traveller =>
+      !travellerDependantNos.includes(traveller.lineNo)
     ),
-    [dependants, travellerDependantNos]
+    [travellers, travellerDependantNos]
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,14 +142,14 @@ export default function TravelDependencies({
         {!isReadOnly && (
           <div className="mb-4">
             <Select
-              options={selectableDependants.map((item) => ({
+              options={selectableTravellers.map((item) => ({
                 value: item.lineNo,
                 label: item.name,
               }))}
               value={null}
               isLoading={isSubmitting}
               onChange={handleSelect}
-              placeholder="Select the dependant you plan to travel with"
+              placeholder="Select the person you plan to travel with"
             />
           </div>
         )}
@@ -165,14 +165,14 @@ export default function TravelDependencies({
             </tr>
           </thead>
           <tbody>
-            {travellers.length === 0 ? (
+            {dependantTravellers.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-muted">
-                  No dependants added yet as travellers. Use the dropdown above to add.
+                  Do you have someone you want to travel with? Use the dropdown above to add them.
                 </td>
               </tr>
             ) : (
-              travellers.map((dep, idx) => (
+              dependantTravellers.map((dep, idx) => (
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
                   <td>{dep.travellerName}</td>
