@@ -4,11 +4,23 @@ import React, { useEffect, useState } from "react";
 import { Save, Trash2 } from "lucide-react";
 import { useMySetups } from "@/app/context/SetupContext";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
-import { Destination } from "@/app/types/Destination";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { formatDate } from "@/app/utils/dateFormats";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+
+interface Destination {
+    documentType: string;
+    documentNo: string;
+    originCountryCode: string;
+    originCity: string;
+    destinationCountryCode: string;
+    destinationCity: string;
+    travelDate: string;
+    modeOfTransport: string;
+    visaRequired?: string;
+    [key: string]: any;
+}
 
 interface TravelDestinationsProps {
     travelRequestHeader: TravelRequest;
@@ -126,25 +138,17 @@ export default function TravelDestinations({
             });
 
             if (res.error) {
-                dispatcher({
-                    type: 'PATCH_LOADING_STATE',
-                    payload: {
-                        loading: false,
-                        message: '',
-                    }
-                });
-                return Swal.fire('Error!', res.error.message)
+                throw new Error(res.error.message)
             }
 
-            dispatcher({
-                type: 'PATCH_LOADING_STATE',
-                payload: {
-                    loading: false,
-                    message: '',
-                }
-            });
+            if (row.visaRequired) {
+                await deleteVisaApplication(row);
+            }
+
             onSubmit(travelRequestHeader.no);
-        } catch (e) {
+        } catch (error: any) {
+            Swal.fire('Error!', error.message);
+        } finally {
             dispatcher({
                 type: 'PATCH_LOADING_STATE',
                 payload: {
@@ -152,7 +156,26 @@ export default function TravelDestinations({
                     message: '',
                 }
             });
-            Swal.fire('Error!', e.message);
+        }
+    }
+
+    const deleteVisaApplication = async (route: Destination) => {
+        try {
+            const res = await deleteResource('visaApplications', {
+                data: {
+                    documentType: route.documentType,
+                    requestNo: route.documentNo,
+                    profileNo: travelRequestHeader.travellerNo,
+                    visaType: route.visaRequired,
+                },
+                primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType'],
+            });
+
+            if (res.error) {
+                throw new Error(res.error.message)
+            }
+        } catch (error: any) {
+            console.info('Error! ', error.message);
         }
     }
 

@@ -11,13 +11,12 @@ import {
   ArrowRight,
   Save,
   Ticket,
-  Link,
   DownloadIcon,
   FileDownIcon,
   Plus,
   DownloadCloud,
   CircleX,
-  CircleCheckIcon,
+  CircleCheckIcon, RouteIcon, BaggageClaimIcon,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "./TravelRequestWizard.css";
@@ -136,6 +135,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     return travelRequestHeader.documentType === 'Employee'
       && currentStatus === 'Pending Approval'
   }, [travelRequestHeader]);
+
+  const requireVisa = useMemo(() => {
+    return travelRequestHeader.travelRequestRoutes.some((route: Record<string, any>) => !!route.visaRequired)
+  }, [travelRequestHeader.travelRequestRoutes]);
 
   // Effects
   useEffect(() => {
@@ -370,15 +373,15 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     },
     {
       id: "destinations",
-      icon: <Globe size={18} />,
+      icon: <RouteIcon size={18} />,
       title: "Travel Destinations",
       desc: "Travel destination details",
     },
     {
       id: "travellers",
-      icon: <Link size={18} />,
+      icon: <BaggageClaimIcon size={18} />,
       title: "Travellers",
-      desc: "Related travel requirements",
+      desc: "Related travellers' details",
     },
     {
       id: "providers",
@@ -401,8 +404,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     {
       id: "visa",
       icon: <Globe size={18} />,
-      title: "Visa Application",
-      desc: "Visa documentation",
+      title: "Required Visa",
+      desc: "Visa details",
     },
     {
       id: "permit",
@@ -429,7 +432,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     },
   ], [handleCreateTravelAdvance]);
 
-  const getChecklistCount = async (travel, type: "Travel" | "Visa") => {
+  const getChecklistCount = useCallback(async (travel, type: "Travel" | "Visa") => {
     try {
       const res = await getResource("travellerChecklist", {
         params: {
@@ -455,28 +458,51 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error) {
       console.error(`Error fetching ${type} checklist count:`, error);
     }
-  };
+  }, [travelChecklistCount, visaChecklistCount]);
 
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "travellers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
-            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
+        const steps = ["info", "destinations", "travellers", "visa", "advance"];
+
+        if (visaChecklistCount) {
+          steps.push('checklist');
+        }
+
+        if (travelChecklistCount) {
+          steps.push('traveller-checklist');
+        }
+
+        return steps.map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "travellers", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
-            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
+        const steps = ["info", "travellers", "documents", "providers", "permit", "advance"];
+
+        if (visaChecklistCount) {
+          steps.push('checklist');
+        }
+
+        if (travelChecklistCount) {
+          steps.push('traveller-checklist');
+        }
+
+        return steps.map(id => allSteps.find(s => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "travellers"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        const steps = ["info", "destinations", "travellers"];
+
+        if (requireVisa) {
+          steps.push('visa');
+        }
+
+        return steps.map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
         return ["info", "travellers", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
       }
     }
     return [allSteps.find(s => s.id === "info")!];
-  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps, visaChecklistCount, travelChecklistCount]);
+  }, [travelRequestHeader.approvalStatus, travelRequestHeader.documentType, allSteps, visaChecklistCount, travelChecklistCount, requireVisa]);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
@@ -512,7 +538,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       getChecklistCount(travelRequestHeader, "Travel");
       getChecklistCount(travelRequestHeader, "Visa");
     }
-  }, [travelRequestHeader?.no, travelRequestHeader?.documentType]);
+  }, [travelRequestHeader?.no, travelRequestHeader?.documentType, travelRequestHeader, getChecklistCount]);
 
 
   // Event handlers
