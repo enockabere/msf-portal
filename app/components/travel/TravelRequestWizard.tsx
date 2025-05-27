@@ -2,13 +2,31 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
-  User, ListChecks, Globe, Briefcase, FilePlus2, ArrowLeft,
-  ArrowRight, Save, Check, Ticket, Link, DownloadIcon, FileDownIcon, Plus, DownloadCloud,
+  User,
+  ListChecks,
+  Globe,
+  Briefcase,
+  FilePlus2,
+  ArrowLeft,
+  ArrowRight,
+  Save,
+  Check,
+  Ticket,
+  Link,
+  DownloadIcon,
+  FileDownIcon,
+  Plus,
+  DownloadCloud,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "./TravelRequestWizard.css";
 import { TravelRequest } from "@/app/types/travel";
-import { codeUnit, createResource, getResource, patchResource } from "@/app/lib/api/http";
+import {
+  codeUnit,
+  createResource,
+  getResource,
+  patchResource,
+} from "@/app/lib/api/http";
 import {
   pickKeys,
   removeNullAndUndefinedFromObject,
@@ -26,6 +44,7 @@ import TravellerChecklist from "@/app/components/advances/forms/Travel/Traveller
 import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { useSession } from "next-auth/react";
 
 // Type definitions
 interface WizardStep {
@@ -48,29 +67,30 @@ interface Props {
 }
 
 const INITIAL_TRAVEL_REQUEST: TravelRequest = {
-  documentType: '',
-  no: '',
-  travellerNo: '',
-  createdbyProfileNo: '',
-  originCountryCode: '',
-  originCity: '',
-  TypeOfTravel: '',
-  purposeOfTravel: '',
-  accommodationType: '',
-  departureDate: '',
-  returnDate: '',
+  documentType: "",
+  no: "",
+  travellerNo: "",
+  createdbyProfileNo: "",
+  originCountryCode: "",
+  originCity: "",
+  TypeOfTravel: "",
+  purposeOfTravel: "",
+  accommodationType: "",
+  departureDate: "",
+  returnDate: "",
   annualTrip: false,
-  modeOfTransport: 'AIR',
-  arrivalDate: '',
-  estimatedTimeOfArrival: '',
-  pickupLocation: '',
-  dropOffLocation: '',
-  passportNo: '',
+  modeOfTransport: "AIR",
+  arrivalDate: "",
+  estimatedTimeOfArrival: "",
+  pickupLocation: "",
+  dropOffLocation: "",
+  passportNo: "",
   requirePerDiem: false,
-  shortcutDimension1Code: '',
-  shortcutDimension2Code: '',
-  budgetCode: '',
-  approvalStatus: 'Open',
+  requireETA: false,
+  shortcutDimension1Code: "",
+  shortcutDimension2Code: "",
+  budgetCode: "",
+  approvalStatus: "Open",
   travelRequestRoutes: [],
   travellers: [],
   visaApplications: [],
@@ -86,19 +106,25 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   // State management
   const [activeTab, setActiveTab] = useState("info");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [travelRequestHeader, setTravelRequestHeader] = useState<TravelRequest>(INITIAL_TRAVEL_REQUEST);
+  const [travelRequestHeader, setTravelRequestHeader] = useState<TravelRequest>(
+    INITIAL_TRAVEL_REQUEST
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
+  const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>(
+    []
+  );
   const [travelChecklistCount, setTravelChecklistCount] = useState<number>(0);
   const [visaChecklistCount, setVisaChecklistCount] = useState<number>(0);
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
+  const { data: session } = useSession();
+  const citizenNonCitizen = session?.user?.profile?.citizenNonCitizen;
 
   // Derived values
   const isReadOnly = useMemo(
-    () => travelRequestHeader.approvalStatus !== 'Open',
+    () => travelRequestHeader.approvalStatus !== "Open",
     [travelRequestHeader.approvalStatus]
   );
 
@@ -108,10 +134,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 
   const canSubmitForApproval = useMemo(() => {
-    return travelRequestHeader.documentType === 'Employee'
-      && travelRequestHeader.no
-      && travelRequestHeader.approvalStatus === 'Open'
-      && travelRequestHeader.travelRequestRoutes.length > 0;
+    return (
+      travelRequestHeader.documentType === "Employee" &&
+      travelRequestHeader.no &&
+      travelRequestHeader.approvalStatus === "Open" &&
+      travelRequestHeader.travelRequestRoutes.length > 0
+    );
   }, [travelRequestHeader]);
 
   // Effects
@@ -126,24 +154,42 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         shortcutDimension2Code: profile.shortcutDimension2Code,
       };
 
-      setTravelRequestHeader(prev => ({
+      setTravelRequestHeader((prev) => ({
         ...prev,
-        ...(requestNo ? { documentType: profile.type } : baseData)
+        ...(requestNo ? { documentType: profile.type } : baseData),
       }));
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
-      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem'];
+      const baseFields = [
+        "documentType",
+        "passportNo",
+        "travellerNo",
+        "requirePerDiem",
+      ];
 
-      if (profile.type === 'Employee') {
+      if (profile.type === "Employee") {
         setHeaderRequiredFields([
           ...baseFields,
-          'TypeOfTravel', 'purposeOfTravel', 'departureDate', 'returnDate', 'annualTrip', 'accommodationType', 'shortcutDimension1Code'
+          "TypeOfTravel",
+          "purposeOfTravel",
+          "departureDate",
+          "returnDate",
+          "annualTrip",
+          "accommodationType",
+          "shortcutDimension1Code",
         ]);
-      } else if (profile.type === 'Visitor') {
+      } else if (profile.type === "Visitor") {
         setHeaderRequiredFields([
           ...baseFields,
-          'originCity', 'originCountryCode', 'purposeOfTravel', 'departureDate', 'arrivalDate', 'returnDate', 'estimatedTimeOfArrival', 'budgetCode'
+          "originCity",
+          "originCountryCode",
+          "purposeOfTravel",
+          "departureDate",
+          "arrivalDate",
+          "returnDate",
+          "estimatedTimeOfArrival",
+          "budgetCode",
         ]);
       } else {
         setHeaderRequiredFields(baseFields);
@@ -158,20 +204,19 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     const fetchTravelRequest = async (requestNo: string) => {
       try {
         setIsLoading(true);
-        const res = await getResource('travelRequests', {
+        const res = await getResource("travelRequests", {
           params: {
             filters: { no: requestNo },
-            '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
-          }
+            $expand: "travelRequestRoutes,travelRequestLines,travellers",
+          },
         });
 
         if (res.error) {
           throw new Error(res.error.message);
         }
-
-        setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
+        setTravelRequestHeader((prev) => ({ ...prev, ...res.value.at(0) }));
       } catch (error: any) {
-        console.error('Error fetching travel request:', error.message);
+        console.error("Error fetching travel request:", error.message);
       } finally {
         setIsLoading(false);
       }
@@ -182,53 +227,61 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [requestNo]);
 
-  // API operations
-  const fetchTravelRequest = useCallback(async (requestNo?: string) => {
-    try {
-      setIsLoading(true);
-      const res = await getResource('travelRequests', {
-        params: {
-          filters: { no: requestNo ?? travelRequestHeader.no },
-          '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
+  const fetchTravelRequest = useCallback(
+    async (requestNo?: string) => {
+      try {
+        setIsLoading(true);
+        const res = await getResource("travelRequests", {
+          params: {
+            filters: { no: requestNo ?? travelRequestHeader.no },
+            $expand: "travelRequestRoutes,travelRequestLines,travellers",
+          },
+        });
+
+        if (res.error) {
+          throw new Error(res.error.message);
         }
-      });
 
-      if (res.error) {
-        throw new Error(res.error.message);
+        setTravelRequestHeader((prev) => ({ ...prev, ...res.value.at(0) }));
+      } catch (error: any) {
+        console.error("Error fetching travel request:", error.message);
+      } finally {
+        setIsLoading(false);
       }
-
-      setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
-    } catch (error: any) {
-      console.error('Error fetching travel request:', error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [travelRequestHeader.no]);
+    },
+    [travelRequestHeader.no]
+  );
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
-      'approvalStatus',
-      'travelRequestRoutes',
-      'travellers',
-      'visaApplications'
+      "approvalStatus",
+      "travelRequestRoutes",
+      "travellers",
+      "visaApplications",
     ];
 
-    return (Object.keys(INITIAL_TRAVEL_REQUEST) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]).filter(
-      (key) => !excludedKeys.includes(key)
-    );
+    return (
+      Object.keys(
+        INITIAL_TRAVEL_REQUEST
+      ) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]
+    ).filter((key) => !excludedKeys.includes(key));
   };
 
   const saveTravelRequestHeader = async () => {
     try {
-      const strippedPayload = removeNullAndUndefinedFromObject(travelRequestHeader);
-      const keysToRetain = getKeysToRetain() as Array<string>
+      const strippedPayload =
+        removeNullAndUndefinedFromObject(travelRequestHeader);
+      const keysToRetain = getKeysToRetain() as Array<string>;
 
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
 
       setIsSaving(true);
       const operation = knownSchema.no
-        ? patchResource('travelRequests', { data: knownSchema, primaryKey: ['no', 'documentType'] })
-        : createResource('travelRequests', { data: knownSchema });
+        ? patchResource("travelRequests", {
+            data: knownSchema,
+            primaryKey: ["no", "documentType"],
+          })
+        : createResource("travelRequests", { data: knownSchema });
 
       const res = await operation;
       if (res.error) {
@@ -238,17 +291,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       await fetchTravelRequest(res.no);
       navigateToNextStepAfterSave();
     } catch (error: any) {
-      Swal.fire('Error saving request!', error.message);
+      Swal.fire("Error saving request!", error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const navigateToNextStepAfterSave = () => {
-    if (travelRequestHeader.documentType === 'Visitor') {
-      setActiveTab('travellers');
-    } else if (travelRequestHeader.documentType === 'Employee') {
-      setActiveTab('destinations');
+    if (travelRequestHeader.documentType === "Visitor") {
+      setActiveTab("travellers");
+    } else if (travelRequestHeader.documentType === "Employee") {
+      setActiveTab("destinations");
     }
   };
 
@@ -256,13 +309,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     try {
       setIsSubmitting(true);
       dispatcher({
-        type: 'PATCH_LOADING_STATE',
+        type: "PATCH_LOADING_STATE",
         payload: {
           loading: true,
-          message: '',
-        }
+          message: "",
+        },
       });
-      const res = await codeUnit('sendTravelRequestForApproval', {
+      const res = await codeUnit("sendTravelRequestForApproval", {
         data: { no: travelRequestHeader.no },
       });
 
@@ -277,11 +330,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } finally {
       setIsSubmitting(false);
       dispatcher({
-        type: 'PATCH_LOADING_STATE',
+        type: "PATCH_LOADING_STATE",
         payload: {
           loading: false,
-          message: '',
-        }
+          message: "",
+        },
       });
     }
   }, [fetchTravelRequest, travelRequestHeader.no, dispatcher]);
@@ -304,73 +357,78 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [fetchTravelRequest, travelRequestHeader.no]);
 
   // Step configuration
-  const allSteps = useMemo<WizardStep[]>(() => [
-    {
-      id: "info",
-      icon: <User size={18} />,
-      title: "Travel Details",
-      desc: "General travel details",
-    },
-    {
-      id: "destinations",
-      icon: <Globe size={18} />,
-      title: "Travel Destinations",
-      desc: "Travel destination details",
-    },
-    {
-      id: "travellers",
-      icon: <Link size={18} />,
-      title: "Travellers",
-      desc: "Related travel requirements",
-    },
-    {
-      id: "providers",
-      icon: <Ticket size={18} />,
-      title: "Service Providers",
-      desc: "Service providers details",
-    },
-    {
-      id: "checklist",
-      icon: <ListChecks size={18} />,
-      title: "Visa Checklist",
-      desc: "Visa Pre-travel requirements",
-    },
-    {
-      id: "traveller-checklist",
-      icon: <ListChecks size={18} />,
-      title: "Traveller Checklist",
-      desc: "Pre-travel requirements",
-    },
-    {
-      id: "visa",
-      icon: <Globe size={18} />,
-      title: "Visa Application",
-      desc: "Visa documentation",
-    },
-    {
-      id: "permit",
-      icon: <FilePlus2 size={18} />,
-      title: "Work Permit",
-      desc: "Work authorization",
-    },
-    {
-      id: "advance",
-      icon: <Briefcase size={18} />,
-      title: "Travel Advance",
-      desc: "Advance request",
-      actions: [{
-        id: "action-create-advance",
-        caption: "Create Advance",
-        fn: handleCreateTravelAdvance,
-      }],
-    },
-    {
-      id: "documents",
-      icon: <DownloadCloud size={18} />,
-      title: "Travel Documentation",
-      desc: "Supporting travel files",
-    },
-  ], [handleCreateTravelAdvance]);
+  const allSteps = useMemo<WizardStep[]>(
+    () => [
+      {
+        id: "info",
+        icon: <User size={18} />,
+        title: "Travel Details",
+        desc: "General travel details",
+      },
+      {
+        id: "destinations",
+        icon: <Globe size={18} />,
+        title: "Travel Destinations",
+        desc: "Travel destination details",
+      },
+      {
+        id: "travellers",
+        icon: <Link size={18} />,
+        title: "Travellers",
+        desc: "Related travel requirements",
+      },
+      {
+        id: "providers",
+        icon: <Ticket size={18} />,
+        title: "Service Providers",
+        desc: "Service providers details",
+      },
+      {
+        id: "checklist",
+        icon: <ListChecks size={18} />,
+        title: "Visa Checklist",
+        desc: "Visa Pre-travel requirements",
+      },
+      {
+        id: "traveller-checklist",
+        icon: <ListChecks size={18} />,
+        title: "Traveller Checklist",
+        desc: "Pre-travel requirements",
+      },
+      {
+        id: "visa",
+        icon: <Globe size={18} />,
+        title: "Visa Application",
+        desc: "Visa documentation",
+      },
+      {
+        id: "permit",
+        icon: <FilePlus2 size={18} />,
+        title: "Work Permit",
+        desc: "Work authorization",
+      },
+      {
+        id: "advance",
+        icon: <Briefcase size={18} />,
+        title: "Travel Advance",
+        desc: "Advance request",
+        actions: [
+          {
+            id: "action-create-advance",
+            caption: "Create Advance",
+            fn: handleCreateTravelAdvance,
+          },
+        ],
+      },
+      {
+        id: "documents",
+        icon: <DownloadCloud size={18} />,
+        title: "Travel Documentation",
+        desc: "Supporting travel files",
+      },
+    ],
+    [handleCreateTravelAdvance]
+  );
 
   const getChecklistCount = async (travel, type: "Travel" | "Visa") => {
     try {
@@ -386,14 +444,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       });
 
       const count = res["@odata.count"];
-      console.log(`${type} checklistCount:`, count);
 
       if (type === "Travel") {
         setTravelChecklistCount(count);
-        console.log('travelChecklistCount', travelChecklistCount)
       } else {
         setVisaChecklistCount(count);
-        console.log('visaChecklistCount', visaChecklistCount)
       }
     } catch (error) {
       console.error(`Error fetching ${type} checklist count:`, error);
@@ -401,37 +456,71 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   };
 
   const currentSteps = useMemo(() => {
-    if (travelRequestHeader.approvalStatus !== 'Open') {
+    const baseEmployeeSteps = ["info", "destinations", "travellers"];
+    const baseVisitorSteps = ["info", "travellers"];
+    if (
+      travelRequestHeader.documentType === "Visitor" ||
+      (travelRequestHeader.documentType === "Employee" &&
+        citizenNonCitizen === "Non-Citizen")
+    ) {
+      baseVisitorSteps.push("documents");
+      baseEmployeeSteps.push("documents");
+    }
+
+    if (travelRequestHeader.approvalStatus !== "Open") {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "travellers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "visa", "advance"]
-            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
+        return [
+          ...baseEmployeeSteps,
+          visaChecklistCount > 0 ? "checklist" : null,
+          travelChecklistCount > 0 ? "traveller-checklist" : null,
+          "visa",
+          "advance",
+        ]
+          .filter((id): id is string => id !== null)
+          .map((id) => allSteps.find((s) => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "travellers", "documents", "providers",  visaChecklistCount > 0 ? "checklist" : null, travelChecklistCount > 0 ? "traveller-checklist" : null , "permit", "advance"]
-            .filter((id): id is string => id !== null).map(id => allSteps.find(s => s.id === id)!);
+        return [
+          ...baseVisitorSteps,
+          "providers",
+          visaChecklistCount > 0 ? "checklist" : null,
+          travelChecklistCount > 0 ? "traveller-checklist" : null,
+          "permit",
+          "advance",
+        ]
+          .filter((id): id is string => id !== null)
+          .map((id) => allSteps.find((s) => s.id === id)!);
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        return ["info", "destinations", "travellers"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return baseEmployeeSteps.map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
       } else if (travelRequestHeader.documentType === "Visitor") {
-        return ["info", "travellers", "documents"]
-          .map(id => allSteps.find(s => s.id === id)!);
+        return baseVisitorSteps.map((id) => allSteps.find((s) => s.id === id)!);
       }
     }
-    return [allSteps.find(s => s.id === "info")!];
-  }, [travelRequestHeader.documentType, travelRequestHeader.approvalStatus, allSteps, visaChecklistCount, travelChecklistCount]);
+    return [allSteps.find((s) => s.id === "info")!];
+  }, [
+    travelRequestHeader.documentType,
+    travelRequestHeader.approvalStatus,
+    citizenNonCitizen,
+    allSteps,
+    visaChecklistCount,
+    travelChecklistCount,
+  ]);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
       const newCompletedSteps = new Set<string>();
 
-      currentSteps.forEach(step => {
+      currentSteps.forEach((step) => {
         switch (step.id) {
           case "info":
             if (travelRequestHeader.no) newCompletedSteps.add("info");
             break;
           case "destinations":
-            if (travelRequestHeader.travelRequestRoutes?.length) newCompletedSteps.add("destinations");
+            if (travelRequestHeader.travelRequestRoutes?.length)
+              newCompletedSteps.add("destinations");
             break;
           case "travellers":
             const hasDependencies = travelRequestHeader.travellers?.some(
@@ -457,11 +546,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [travelRequestHeader?.no, travelRequestHeader?.documentType]);
 
-
   // Event handlers
-  const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
-    setTravelRequestHeader(prev => ({ ...prev, [field]: value }));
-  }, []);
+  const handleFormChange = useCallback(
+    (field: keyof TravelRequest, value: any) => {
+      setTravelRequestHeader((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const handleTabChange = (stepId: string) => {
     if (validateCurrentStep()) {
@@ -472,9 +563,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const validateCurrentStep = (): boolean => true;
 
   // UI calculations
-  const currentStepIndex = currentSteps.findIndex(s => s.id === activeTab);
+  const currentStepIndex = currentSteps.findIndex((s) => s.id === activeTab);
   const progressPercentage = (completedSteps.size / currentSteps.length) * 100;
-
 
   const getDocumentTypeCode = (type) => {
     const typeMap = {
@@ -489,42 +579,41 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     try {
       const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
       const docNo = travelRequestHeader?.no;
-      const destination = docType === "Employee"
-        ? travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
-        : travelRequestHeader?.destinationCountryCode;
+      const destination =
+        docType === "Employee"
+          ? travelRequestHeader?.travelRequestRoutes[0]?.destinationCountryCode
+          : travelRequestHeader?.destinationCountryCode;
 
-      const res = await codeUnit('getIntroductoryLetter', {
-        data: { docType, docNo, destination }
+      const res = await codeUnit("getIntroductoryLetter", {
+        data: { docType, docNo, destination },
       });
 
       if (res.error) {
-        throw new Error(res.error.message)
+        throw new Error(res.error.message);
       }
-      downloadFileFromBase64(res.value, "Introductory Letter")
+      downloadFileFromBase64(res.value, "Introductory Letter");
     } catch (error) {
-      Swal.fire('Download Failed', error.message);
+      Swal.fire("Download Failed", error.message);
     }
-  }
-
+  };
 
   const downLoadBtaCertificate = async () => {
     try {
       const docType = getDocumentTypeCode(travelRequestHeader?.documentType);
       const docNo = travelRequestHeader?.no;
 
-      const res = await codeUnit('getBTACertificate', {
-        data: { docType, docNo }
+      const res = await codeUnit("getBTACertificate", {
+        data: { docType, docNo },
       });
 
       if (res.error) {
-        throw new Error(res.error.message)
+        throw new Error(res.error.message);
       }
       downloadFileFromBase64(res.value, "BtaCertificate");
     } catch (error) {
       Swal.fire("Error", error.message || "An unexpected error occurred.");
     }
   };
-
 
   return (
     <div className="travel-wizard">
@@ -533,12 +622,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           <div className="">
             <h2 className="wizard-title">Travel Request Application</h2>
             {travelRequestHeader.currentStage && (
-                <div className="d-flex align-items-center mt-1">
-                  <h5 className="m-0">Current Stage:</h5>
-                  <span className="badge bg-primary p-1 ms-2"> { travelRequestHeader.currentStage }</span>
-                </div>
+              <div className="d-flex align-items-center mt-1">
+                <h5 className="m-0">Current Stage:</h5>
+                <span className="badge bg-primary p-1 ms-2">
+                  {" "}
+                  {travelRequestHeader.currentStage}
+                </span>
+              </div>
             )}
-            <p className="wizard-subtitle">Fill out your travel request in steps.</p>
+            <p className="wizard-subtitle">
+              Fill out your travel request in steps.
+            </p>
           </div>
         </div>
 
@@ -556,10 +650,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       <div className="wizard-body">
         <nav className="wizard-sidebar" aria-label="Travel request steps">
           <ul className="step-list" role="tablist">
-            {currentSteps?.map(step => (
+            {currentSteps?.map((step) => (
               <li key={step?.id} className="step-item">
                 <button
-                  className={`step-button ${activeTab === step?.id ? "active" : ""} ${completedSteps?.has(step?.id) ? "completed" : ""}`}
+                  className={`step-button ${
+                    activeTab === step?.id ? "active" : ""
+                  } ${completedSteps?.has(step?.id) ? "completed" : ""}`}
                   onClick={() => handleTabChange(step?.id)}
                   role="tab"
                   aria-selected={activeTab === step?.id}
@@ -651,57 +747,67 @@ const StepHeader: React.FC<StepHeaderProps> = ({
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
-      {currentSteps.find(s => s.id === activeTab)?.title}
+      {currentSteps.find((s) => s.id === activeTab)?.title}
     </h4>
     <div className="d-flex align-items-center ">
-      {currentSteps.find(s => s.id === activeTab)?.actions?.map(action => (
+      {currentSteps
+        .find((s) => s.id === activeTab)
+        ?.actions?.map((action) => (
           <button
-              key={action.id}
-              className="primary-button"
-              onClick={action.fn}
+            key={action.id}
+            className="primary-button"
+            onClick={action.fn}
           >
             <Plus size={16} />
             {action.caption}
           </button>
-      ))}
+        ))}
 
-    {activeTab === "checklist" && (
-      <div className="btn-group">
-        <button
-          type="button"
-          className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <DownloadIcon size={16} className="button-icon" />
-          Download Docs
-        </button>
-        <ul className="dropdown-menu">
-          <li>
-            <button onClick={downLoadIntroductoryLetter} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              Introductory Letter
-            </button>
-          </li>
-          <li>
-            <button onClick={downLoadBtaCertificate} className="dropdown-item" type="button">
-              <FileDownIcon size={16} className="button-icon" />
-              BTA Certificate
-            </button>
-          </li>
-        </ul>
-      </div>
-    )}
+      {activeTab === "checklist" && (
+        <div className="btn-group">
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm mx-2 dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <DownloadIcon size={16} className="button-icon" />
+            Download Docs
+          </button>
+          <ul className="dropdown-menu">
+            <li>
+              <button
+                onClick={downLoadIntroductoryLetter}
+                className="dropdown-item"
+                type="button"
+              >
+                <FileDownIcon size={16} className="button-icon" />
+                Introductory Letter
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={downLoadBtaCertificate}
+                className="dropdown-item"
+                type="button"
+              >
+                <FileDownIcon size={16} className="button-icon" />
+                BTA Certificate
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
 
       {canSubmitForApproval && (
-          <button
-              className="primary-button"
-              onClick={handleSubmitForApproval}
-              disabled={isSubmitting}
-          >
-            <Check size={16} className="button-icon" />
-            Submit for Approval
-          </button>
+        <button
+          className="primary-button"
+          onClick={handleSubmitForApproval}
+          disabled={isSubmitting}
+        >
+          <Check size={16} className="button-icon" />
+          Submit for Approval
+        </button>
       )}
     </div>
   </div>
@@ -736,41 +842,41 @@ const StepContent: React.FC<StepContentProps> = ({
 }) => {
   switch (activeTab) {
     case "info":
-      return (
-        isLoading ? (
-          <div className={'col-12 text-center'}>
-            <SectionLoader size={32} />
-          </div>
-        ) : (
-          <form onSubmit={async (e) => {
+      return isLoading ? (
+        <div className={"col-12 text-center"}>
+          <SectionLoader size={32} />
+        </div>
+      ) : (
+        <form
+          onSubmit={async (e) => {
             e.preventDefault();
             await saveTravelRequestHeader();
-          }}>
-            <TravelHeaderForm
-              formData={travelRequestHeader}
-              requiredFields={headerRequiredFields}
-              isReadOnly={isReadOnly}
-              onFormChange={handleFormChange}
-            />
+          }}
+        >
+          <TravelHeaderForm
+            formData={travelRequestHeader}
+            requiredFields={headerRequiredFields}
+            isReadOnly={isReadOnly}
+            onFormChange={handleFormChange}
+          />
 
-            {travelRequestHeader.approvalStatus === "Open" && (
-              <div className="step-actions">
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <SectionLoader classes={'button-icon'} />
-                  ) : (
-                    <Save size={16} className="button-icon" />
-                  )}
-                  Save & Continue
-                </button>
-              </div>
-            )}
-          </form>
-        )
+          {travelRequestHeader.approvalStatus === "Open" && (
+            <div className="step-actions">
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <SectionLoader classes={"button-icon"} />
+                ) : (
+                  <Save size={16} className="button-icon" />
+                )}
+                Save & Continue
+              </button>
+            </div>
+          )}
+        </form>
       );
     case "destinations":
       return (
@@ -795,23 +901,25 @@ const StepContent: React.FC<StepContentProps> = ({
         <div className="permit-form">
           <div className="permit-notice mb-4">
             <p className="notice-text">
-              <strong>Note:</strong> Work permit applications typically
-              take 3-4 weeks to process. Please ensure all documents are
-              uploaded completely and accurately.
+              <strong>Note:</strong> Work permit applications typically take 3-4
+              weeks to process. Please ensure all documents are uploaded
+              completely and accurately.
             </p>
           </div>
           <div className="form-grid">
-            {WORK_PERMIT_FIELDS.map(field => (
+            {WORK_PERMIT_FIELDS.map((field) => (
               <div key={field.id} className="form-group">
                 <label htmlFor={field.id}>{field.label}</label>
                 <input
                   type={field.type}
                   id={field.id}
                   className="form-control"
-                  onChange={e => handleFormChange(
-                    field.id as keyof TravelRequest,
-                    field.type === "file" ? e.target.files : e.target.value
-                  )}
+                  onChange={(e) =>
+                    handleFormChange(
+                      field.id as keyof TravelRequest,
+                      field.type === "file" ? e.target.files : e.target.value
+                    )
+                  }
                 />
               </div>
             ))}
@@ -830,10 +938,12 @@ const StepContent: React.FC<StepContentProps> = ({
     case "visa":
       return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
-      return visaChecklistCount > 0 ? (<VisaChecklist travelInfo={travelRequestHeader} />) : null;
+      return visaChecklistCount > 0 ? (
+        <VisaChecklist travelInfo={travelRequestHeader} />
+      ) : null;
     case "traveller-checklist":
       return travelChecklistCount > 0 ? (
-          <TravellerChecklist travelInfo={travelRequestHeader} />
+        <TravellerChecklist travelInfo={travelRequestHeader} />
       ) : null;
     case "documents":
       return (
@@ -865,6 +975,32 @@ const StepActions: React.FC<StepActionsProps> = ({
   travelRequestHeader,
   handleTabChange,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleVisitorSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      const res = await codeUnit("submitVisitorTravelRequest", {
+        data: { no: travelRequestHeader.no },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+
+      Swal.fire("Success", "Travel request submitted successfully!", "success");
+      handleTabChange(currentSteps[currentStepIndex + 1].id);
+    } catch (err: any) {
+      Swal.fire("Submission Failed", err.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isVisitor = travelRequestHeader.documentType === "Visitor";
+  const isLastVisitorStepBeforeDocuments =
+    isVisitor &&
+    currentSteps[currentStepIndex + 1]?.id === "documents" &&
+    !travelRequestHeader.currentStage;
+
   return (
     <div className="step-actions">
       <div className="d-flex flex-wrap gap-2">
@@ -872,23 +1008,40 @@ const StepActions: React.FC<StepActionsProps> = ({
           <button
             type="button"
             className="secondary-button"
-            onClick={() => handleTabChange(currentSteps[currentStepIndex - 1].id)}
+            onClick={() =>
+              handleTabChange(currentSteps[currentStepIndex - 1].id)
+            }
           >
             <ArrowLeft size={16} className="button-icon" />
             Previous
           </button>
         )}
 
-        {currentStepIndex < currentSteps.length - 1 && travelRequestHeader.no && (
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => handleTabChange(currentSteps[currentStepIndex + 1].id)}
-          >
-            <ArrowRight size={16} className="button-icon" />
-            Next
-          </button>
-        )}
+        {currentStepIndex < currentSteps.length - 1 &&
+          travelRequestHeader.no && (
+            <button
+              type="button"
+              className="primary-button"
+              onClick={
+                isLastVisitorStepBeforeDocuments
+                  ? handleVisitorSubmit
+                  : () => handleTabChange(currentSteps[currentStepIndex + 1].id)
+              }
+              disabled={isSubmitting}
+            >
+              {isLastVisitorStepBeforeDocuments ? (
+                <>
+                  <Check size={16} className="button-icon" />
+                  Submit Travel Request
+                </>
+              ) : (
+                <>
+                  <ArrowRight size={16} className="button-icon" />
+                  Next
+                </>
+              )}
+            </button>
+          )}
       </div>
     </div>
   );

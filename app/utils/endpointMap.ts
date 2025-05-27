@@ -66,6 +66,7 @@ export const endpointMap = {
   getLetterOfInvitation: "/ODataV4/TravelManager_getLetterOfInvitation",
   stageDocumentChecklist:
     "/api/kinetics/adminTravel/v1.0/stageDocumentChecklist",
+  submitVisitorTravelRequest: "/ODataV4/TravelManager_submitTravelRequest",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

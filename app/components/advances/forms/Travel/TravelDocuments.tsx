@@ -109,10 +109,13 @@ const TravelDocuments: React.FC<TravelDocumentsProps> = ({
     },
     {
       name: "Has ETA",
-      center: true,
       width: "30%",
-      cell: (row) => (
-        <div className="d-flex justify-content-center align-items-center gap-2">
+      center: true,
+      cell: (row: Traveller) => (
+        <div
+          key={row.lineNo}
+          className="d-flex justify-content-center align-items-center gap-2"
+        >
           <input
             type="checkbox"
             checked={row.hasETA}
