@@ -31,10 +31,10 @@ export default function TravellersForm({
   const { dispatcher } = actions;
 
   useEffect(() => {
-     fetchDependants();
+     fetchTravellers();
   }, [travelRequestHeader.travellerNo]);
 
-  const fetchDependants = async () => {
+  const fetchTravellers = async () => {
       try {
         const res = await getResource('profileDependants', {
           params: {
@@ -130,6 +130,7 @@ export default function TravellersForm({
           countryOfOrigin: "",
           dob: "",
         });
+        onSubmit(travelRequestHeader.no);
     } catch (error) {
       console.error("❌ Unexpected error:", error);
       Swal.fire("Error", error?.message || "Something went wrong", "error");
