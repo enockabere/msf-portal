@@ -148,6 +148,7 @@ export default function TravelDestinations({
             }
 
             if (row.visaRequired) {
+                // Delete visa application if any
                 await deleteVisaApplication(row);
             }
 
@@ -181,7 +182,7 @@ export default function TravelDestinations({
                 throw new Error(res.error.message)
             }
         } catch (error: any) {
-            console.info('Error! ', error.message);
+            console.info('Visa application deletion error! ', error.message);
         }
     }
 
