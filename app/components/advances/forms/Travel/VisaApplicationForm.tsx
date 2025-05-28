@@ -169,9 +169,9 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
   return (
     <div className="visa-application-container">
       <div className="bg-danger p-2 rounded">
-        <p className="text-white fw-bold m-0">
+        <h5 className="text-white fw-bold m-0">
           {`Country: ${visaApplication.country}, Visa: ${visaApplication.visaType}`}
-        </p>
+        </h5>
       </div>
 
       <div className="card bg-light border mt-2">

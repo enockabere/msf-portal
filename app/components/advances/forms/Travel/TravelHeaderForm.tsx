@@ -65,6 +65,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
     dimensions,
     countries,
     perDiemAllotments,
+    missionTypes,
     fetchSetups,
   } = useMySetups();
 
@@ -108,6 +109,11 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
             filters: { dimensionCode: 'OC' }
           },
         },
+        {
+          missionTypes: {
+            filters: { inActive: false }
+          }
+        }
       ]);
 
       if (formData.originCountryCode) {
@@ -302,6 +308,18 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 showAsterisk
               />
             )}
+
+          {requiredFields.includes('missionType') && formData.requirePerDiem && (
+            <FormSelect
+              label="Type of Mission"
+              value={formData.missionType}
+              onChange={(value) => onFormChange("missionType", value)}
+              options={missionTypes.map(item => ({ code: item.code, description: item.description }))}
+              required
+              disabled={isReadOnly}
+              showAsterisk
+            />
+          )}
 
           {requiredFields.includes('shortcutDimension1Code') && (
             <FormSelect

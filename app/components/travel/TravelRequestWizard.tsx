@@ -86,6 +86,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   passportNo: "",
   requirePerDiem: false,
   requireETA: false,
+  hasValidVisa: false,
   shortcutDimension1Code: "",
   shortcutDimension2Code: "",
   budgetCode: "",
@@ -94,6 +95,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   travellers: [],
   visaApplications: [],
   bookingComplete: false,
+  missionType: false,
 };
 
 const WORK_PERMIT_FIELDS = [
@@ -146,8 +148,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader]);
 
   const requireVisa = useMemo(() => {
-    return travelRequestHeader.visaApplications.length > 0
-  }, [travelRequestHeader.visaApplications]);
+    return travelRequestHeader.approvalStatus === "Released" && !travelRequestHeader.hasValidVisa
+  }, [travelRequestHeader.approvalStatus, travelRequestHeader.hasValidVisa]);
 
   // Effects
   useEffect(() => {
@@ -183,7 +185,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
-      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem'];
+      const baseFields = ['documentType', 'passportNo', 'travellerNo', 'requirePerDiem', 'missionType'];
 
       if (profile.type === "Employee") {
         setHeaderRequiredFields([
@@ -211,7 +213,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         const res = await getResource("travelRequests", {
           params: {
             filters: { no: requestNo },
-            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage,visaApplications",
+            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage",
           },
         });
 
@@ -261,6 +263,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       "travelRequestRoutes",
       "travellers",
       "visaApplications",
+      "requireETA",
+      "hasValidVisa",
     ];
 
     return (Object.keys(INITIAL_TRAVEL_REQUEST) as (keyof typeof INITIAL_TRAVEL_REQUEST)[]).filter(
@@ -428,7 +432,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     {
       id: "visa",
       icon: <Globe size={18} />,
-      title: "Required Visa",
+      title: "Required Visas",
       desc: "Visa details",
     },
     {
@@ -449,9 +453,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       title: "Travel Documentation",
       desc: "Supporting travel files",
     },
-  ], [handleCreateTravelAdvance]);
+  ], []);
 
-  const getChecklistCount = useCallback(async (travel, type: "Travel" | "Visa") => {
+  const getChecklistCount = useCallback(async (travel: Record<string, any>, type: "Travel" | "Visa") => {
     try {
       const res = await getResource("travellerChecklist", {
         params: {
@@ -474,7 +478,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error) {
       console.error(`Error fetching ${type} checklist count:`, error);
     }
-  }, [travelChecklistCount, visaChecklistCount]);
+  }, []);
 
   const currentSteps = useMemo(() => {
     const baseEmployeeSteps = ["info", "destinations", "travellers"];
@@ -490,31 +494,31 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
     if (travelRequestHeader.approvalStatus !== "Open") {
       if (travelRequestHeader.documentType === "Employee") {
-        const steps = [...baseEmployeeSteps, "advance"];
-
         if (requireVisa) {
-          steps.push('visa');
+          baseEmployeeSteps.push('visa');
         }
 
         if (visaChecklistCount) {
-          steps.push('checklist');
+          baseEmployeeSteps.push('checklist');
         }
 
         if (travelChecklistCount) {
-          steps.push('traveller-checklist');
+          baseEmployeeSteps.push('traveller-checklist');
         }
 
-        return steps.map(id => allSteps.find(s => s.id === id)!);
+        baseEmployeeSteps.push('advance');
+
+        return baseEmployeeSteps.map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        const steps = [...baseVisitorSteps, "providers", "permit", "advance"];
-
         if (visaChecklistCount) {
-          steps.push('checklist');
+          baseVisitorSteps.push('checklist');
         }
 
         if (travelChecklistCount) {
-          steps.push('traveller-checklist');
+          baseVisitorSteps.push('traveller-checklist');
         }
+
+        const steps = [...baseVisitorSteps, "providers", "permit", "advance"];
 
         return steps.map(id => allSteps.find(s => s.id === id)!);
       }

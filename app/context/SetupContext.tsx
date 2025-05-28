@@ -44,6 +44,7 @@ const state = {
   genders: [] as Array<Record<string, any>>,
   profileTitles: [] as Array<Record<string, any>>,
   userProfiles: [] as Array<Record<string, any>>,
+  missionTypes: [] as Array<Record<string, any>>,
 };
 
 type MySetupsState = typeof state;

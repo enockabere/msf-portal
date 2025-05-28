@@ -1,10 +1,10 @@
 export interface ChecklistItem {
     id: string;
     documentNo: string;
-    lineNo: string;
+    lineNo: number;
     checklistItem: string;
     travellerName: string;
-    expiryDate: string;
+    expiryDate?: string;
     checklistType: string;
     checklistItemDescription: string;
     documentType: string;
