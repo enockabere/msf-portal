@@ -194,7 +194,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         const res = await getResource("travelRequests", {
           params: {
             filters: { no: requestNo },
-            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage,visaApplications($filter=validVisa eq 'No')",
+            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage,visaApplications",
           },
         });
 
