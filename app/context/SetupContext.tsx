@@ -19,6 +19,7 @@ const state = {
   DEPARTMENTS: [] as Array<Record<string, any>>,
   PROJECT: [] as Array<Record<string, any>>,
   currencies: [] as Array<Record<string, any>>,
+  globalCurrencies: [] as Array<Record<string, any>>,
   dimensions: [] as Array<Record<string, any>>,
   expenseCodes: [] as Array<Record<string, any>>,
   projects: [] as Array<Record<string, any>>,
