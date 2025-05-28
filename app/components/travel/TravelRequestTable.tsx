@@ -65,13 +65,6 @@ export default function TravelRequestTable({
       selector: (row: Record<string, any>) => formatDate(row.returnDate),
     },
     {
-      name: "Amount",
-      selector: (row: Record<string, any>) =>
-        `${
-          row.currencyCode || "KES"
-        } ${row.totalAmount.toLocaleString()}`,
-    },
-    {
       name: "Status",
       cell: (row: Record<string, any>) => {
         const badgeMap = {
