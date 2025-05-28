@@ -212,6 +212,7 @@ export default function TravellersForm({
             <tr>
               <th>#</th>
               <th>Name</th>
+              <th>Status Of Travel</th>
               {!isReadOnly && (
                 <th className="text-center">Action</th>
               )}
@@ -229,6 +230,7 @@ export default function TravellersForm({
                 <tr key={`${dep.profileNo}-${dep.lineNo}`}>
                   <td>{idx + 1}</td>
                   <td>{dep.travellerName}</td>
+                  <td>{dep.exemptFromTravelling? 'Exempted from Travelling' : 'Allowed to Travel'}</td>
                   {!isReadOnly && (
                     <td className="text-center">
                       <button
