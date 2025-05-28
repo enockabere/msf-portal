@@ -506,7 +506,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           baseEmployeeSteps.push('traveller-checklist');
         }
 
-        baseEmployeeSteps.push('advance');
+        if(travelRequestHeader.hasValidVisa) {
+          baseEmployeeSteps.push('advance');
+        }
 
         return baseEmployeeSteps.map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
@@ -518,7 +520,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           baseVisitorSteps.push('traveller-checklist');
         }
 
-        const steps = [...baseVisitorSteps, "providers", "permit", "advance"];
+        if (travelRequestHeader.hasValidVisa) {
+          baseVisitorSteps.push('advance');
+        }
+
+        const steps = [...baseVisitorSteps, "providers", "permit"];
 
         return steps.map(id => allSteps.find(s => s.id === id)!);
       }
@@ -1018,7 +1024,7 @@ const StepContent: React.FC<StepContentProps> = ({
         </div>
       );
     case "advance":
-      return (
+      return travelRequestHeader.hasValidVisa ? (
         <div>
           <div>
             <p className="fw-bold">Click this link to complete your travel booking <a href="https://fcmtravel.co.ke/msf/" target="_blank" className="">fcmtravel.co.ke/msf</a></p>
@@ -1038,7 +1044,7 @@ const StepContent: React.FC<StepContentProps> = ({
             glLines={travelRequestHeader?.travelRequestLines}
           />
         </div>
-      );
+      ) : null;
     case "visa":
       return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
