@@ -687,7 +687,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                   <h5 className="m-0">Current Stage:</h5>
                   <span className="badge bg-primary p-1 ms-2">
                     {" "}
-                    {travelRequestHeader.currentStage}
+                    {travelRequestHeader.travelTypeStage.description}
                   </span>
                 </div>
               )}
