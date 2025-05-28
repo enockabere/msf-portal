@@ -24,6 +24,12 @@ import { useAdvance } from "@/app/context/AdvanceContext";
 import { ArrowDown, ArrowRightCircle, Check, RefreshCw, Undo2, XCircle } from "lucide-react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 
+
+interface ValidateLine {
+  expenseRequestOption?: Array<Record<string, any>>;
+  patchBatchRequestOptions?: Array<Record<string, any>>;
+};
+
 export default function OperationalAdvanceForm({
   closeModalHandler,
   openSettlmentModalFactory,
@@ -260,6 +266,8 @@ export default function OperationalAdvanceForm({
           }`
         );
       }
+      const lineValidation = handleLineValidation();
+      if (!lineValidation) return Swal.fire('Error.', 'Lines could not be validated');
       loaderDispatcher({
         type: 'PATCH_LOADING_STATE',
         payload: {
@@ -274,7 +282,6 @@ export default function OperationalAdvanceForm({
           data: { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod },
         });
       } else {
-        console.log('Known schema: else branch', knownSchema);
         res = await createResource("imprest", {
           data: knownSchema,
         });
@@ -295,7 +302,7 @@ export default function OperationalAdvanceForm({
           message: 'Submitting advance lines...',
         }
       });
-      await handleSubmittingAdvanceLine(res as FormData);
+      await handleSubmittingAdvanceLine(lineValidation, res as FormData);
       Swal.fire(
         "Success",
         `${res.imprestType} advance was ${isEditing ? 'updated' : 'created'} successfully!`,
@@ -332,19 +339,8 @@ export default function OperationalAdvanceForm({
     }
   };
 
-  async function handleSubmittingAdvanceLine(header: FormData) {
+  function handleLineValidation(): ValidateLine | undefined {
     try {
-      if (safeTypechecker(header) !== "Object" || !Object.keys(header).length) {
-        throw new Error("We ran into an error!, Try again later!");
-      }
-      const defaults = {
-        documentType: "Imprest",
-        documentNo: header.no,
-        Quantity: 1,
-        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
-        shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
-      };
-      const res: RequestResponse = {};
       const expenseRequestOption: batchRequestOptions[] = [];
       const patchBatchRequestOptions = [];
       expenses.forEach((expense: ExpenseItem, index: number) => {
@@ -363,13 +359,16 @@ export default function OperationalAdvanceForm({
           "code",
           expense.expenseCode
         );
-        if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);;
+        if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);
         expense[constructDimension(costCenterDimension)] = expense.costCenter;
         expense[constructDimension(projectDimension)] = expense.project;
         expense.description = glAccount.description as string;
         const linePayload = {
           ...expense,
-          ...defaults,
+          Quantity: 1,
+          documentType: "Imprest",
+          shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
+          shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
         };
         const strippedLinePayload =
           removeNullAndUndefinedFromObject(linePayload);
@@ -379,7 +378,7 @@ export default function OperationalAdvanceForm({
         ]);
         const validateRequiredProps = checkIfMissingRequiredProperty(
           validSchema,
-          ["documentNo", "documentType", "expenseCode", "unitCost", "Quantity"]
+          ["documentType", "expenseCode", "unitCost", "Quantity"]
         );
         if (!validateRequiredProps) throw new Error(`Line ${index + 1} could noe be validated`);;
         if (validateRequiredProps.missing) {
@@ -400,11 +399,98 @@ export default function OperationalAdvanceForm({
           } satisfies batchRequestOptions);
         }
       });
+      return { expenseRequestOption, patchBatchRequestOptions };
+    } catch (error: any) {
+      throw new Error(`Error when validating advance lines. ${error.message}`);
+    }
+  }
+  async function handleSubmittingAdvanceLine(validatedLine: ValidateLine, header: FormData) {
+    try {
+      if (safeTypechecker(header) !== "Object" || !Object.keys(header).length) {
+        throw new Error("We ran into an error!, Try again later!");
+      }
+      const defaults = {
+        documentNo: header.no,
+      };
+      const res: RequestResponse = {};
+      const { expenseRequestOption, patchBatchRequestOptions } = validatedLine;
+      const batchRequestOption: batchRequestOptions[] = [];
+      if (expenseRequestOption.length) {
+        expenseRequestOption.forEach((option: batchRequestOptions, index: number) => {
+          option.data = {
+            ...option.data,
+            ...defaults,
+          };
+          const validateRequiredProps = checkIfMissingRequiredProperty(
+            option.data,
+            ["documentNo", "documentType", "expenseCode", "unitCost", "Quantity"]
+          );
+          if (!validateRequiredProps) throw new Error(`Line ${index + 1} could noe be validated`);;
+          if (validateRequiredProps.missing) {
+            throw new Error(`Line ${index + 1} is missing ${validateRequiredProps.prop.join(',')} properties`);
+          }
+          batchRequestOption.push(option);
+        });
+      }
+
+      // expenses.forEach((expense: ExpenseItem, index: number) => {
+      //   const costCenterDimension = findObjectFromArray(
+      //     DEPARTMENTS,
+      //     "code",
+      //     expense.costCenter
+      //   );
+      //   const projectDimension = findObjectFromArray(
+      //     PROJECT,
+      //     "code",
+      //     expense.project
+      //   );
+      //   const glAccount = findObjectFromArray(
+      //     expenseCodes,
+      //     "code",
+      //     expense.expenseCode
+      //   );
+      //   if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);
+      //   expense[constructDimension(costCenterDimension)] = expense.costCenter;
+      //   expense[constructDimension(projectDimension)] = expense.project;
+      //   expense.description = glAccount.description as string;
+      //   const linePayload = {
+      //     ...expense,
+      //     ...defaults,
+      //   };
+      //   const strippedLinePayload =
+      //     removeNullAndUndefinedFromObject(linePayload);
+      //   const validSchema = removeObjectProps(strippedLinePayload, [
+      //     "costCenter",
+      //     "project",
+      //   ]);
+      //   const validateRequiredProps = checkIfMissingRequiredProperty(
+      //     validSchema,
+      //     ["documentNo", "documentType", "expenseCode", "unitCost", "Quantity"]
+      //   );
+      //   if (!validateRequiredProps) throw new Error(`Line ${index + 1} could noe be validated`);;
+      //   if (validateRequiredProps.missing) {
+      //     throw new Error(`Line ${index + 1} is missing ${validateRequiredProps.prop.join(',')} properties`);
+      //   }
+      //   if ((isEditing || formData?.status === 'Open') && validSchema?.lineNo >= 0) {
+      //     patchBatchRequestOptions.push(
+      //       patchResource('imprestLine', {
+      //         primaryKey: ['documentNo', 'documentType', 'lineNo'],
+      //         data: validSchema
+      //       })
+      //     );
+      //   } else {
+      //     expenseRequestOption.push({
+      //       method: "POST",
+      //       endpoint: "imprestLine",
+      //       data: validSchema,
+      //     } satisfies batchRequestOptions);
+      //   }
+      // });
       const addedLines = expenses.length;
       const lineCaption = addedLines > 1 ? "lines" : "line";
       if (!isEditing || !formData?.status) {
-        if (expenseRequestOption.length) {
-          if (expenseRequestOption.length !== expenses.length)
+        if (batchRequestOption.length) {
+          if (batchRequestOption.length !== expenses.length)
             Swal.fire(
               "Alert!",
               `${addedLines > 1 ? "Some" : "The"
@@ -412,7 +498,7 @@ export default function OperationalAdvanceForm({
               "info"
             );
           const res: BatchRequestResponse = await batchRequest({
-            batch: expenseRequestOption,
+            batch: batchRequestOption,
           });
           if (res.error) {
             throw new Error(res.error.message);
@@ -435,7 +521,7 @@ export default function OperationalAdvanceForm({
       } else {
         Promise.all([
           batchRequest({
-            batch: expenseRequestOption,
+            batch: batchRequestOption,
           }),
           Promise.all(patchBatchRequestOptions)
         ]).then((response) => {

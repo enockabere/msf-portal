@@ -2,6 +2,7 @@ export const endpointMap = {
   batch: "",
   imprestTypes: "/api/KineticTechnology/CashMgt/v2.0/imprestTypeApi",
   currencies: "/api/KineticTechnology/Payroll/v2.0/currencies",
+  globalCurrencies: "api/v2.0/currencies",
   dimensions: "/api/KineticTechnology/CashMgt/v2.0/dimensionValuesApi",
   expenseCodes: "/api/KineticTechnology/CashMgt/v2.0/expenseCodes",
   projectActivities: "/api/kinetics/timeSheet/v1.0/projects",
@@ -50,8 +51,8 @@ export const endpointMap = {
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
   perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
-  sendTravelRequestForApproval:
-    "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  sendTravelRequestForApproval: "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  cancelTravelRequestApprovalRequest: "/ODataV4/TravelManager_cancelTravelRequestApprovalRequest",
   travellerChecklist: "/api/kinetics/adminTravel/v1.0/travellerChecklist",
   travellers: "/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",

@@ -41,6 +41,9 @@ export default function VisaChecklist ({travelInfo}: {travelInfo: TravelRequest}
         <>
             <div className='row g-3'>
                 <div className="col-12">
+                    <div className="">
+                        <p className="">Click this lick to request for your travel voucher <a href="https://fcmtravel.co.ke/msf/" target="_blank" className="">fcmtravel.co.ke/msf</a></p>
+                    </div>
                     {visaChecklist && Object.keys(groupByTravellerName(visaChecklist)).length > 0 ? (
                         Object.entries(groupByTravellerName(visaChecklist)).map(([travellerName, items]) => (
                             <div key={travellerName}>
