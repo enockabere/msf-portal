@@ -138,8 +138,6 @@ export default function TravellersForm({
       setIsSaving(false);
     }
   };
-
-  
       
   const handleDelete = async (traveller: Record<string, any>) => {
     try {

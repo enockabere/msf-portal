@@ -252,24 +252,6 @@ export default function TravelDestinations({
           }
       }, [fetchCities]);
 
-    const deleteVisaApplication = useCallback(async (route: Destination) => {
-        try {
-            const res = await deleteResource('visaApplications', {
-                data: {
-                    documentType: route.documentType,
-                    requestNo: route.documentNo,
-                    profileNo: travelRequestHeader.travellerNo,
-                    visaType: route.visaRequired,
-                },
-                primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType'],
-            });
-
-            if (res.error) throw new Error(res.error.message);
-        } catch (error: any) {
-            console.info('Visa application deletion error! ', error.message);
-        }
-    }, [travelRequestHeader.travellerNo]);
-
     const removeDestination = useCallback((index: number) => {
         setDestinations(prev => prev.filter((_, i) => i !== index));
     }, []);
@@ -338,10 +320,6 @@ export default function TravelDestinations({
 
             if (res.error) throw new Error(res.error.message);
 
-            if (row.visaRequired) {
-                await deleteVisaApplication(row);
-            }
-
             onSubmit(travelRequestHeader.no);
         } catch (error: any) {
             Swal.fire('Error!', error.message);
@@ -351,7 +329,7 @@ export default function TravelDestinations({
                 payload: { loading: false, message: '' }
             });
         }
-    }, [dispatcher, onSubmit, travelRequestHeader.no, deleteVisaApplication]);
+    }, [dispatcher, onSubmit, travelRequestHeader.no]);
 
     useEffect(() => {
         const loadData = async () => {

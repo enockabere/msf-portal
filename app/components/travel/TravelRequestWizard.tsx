@@ -139,8 +139,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader]);
 
   const requireVisa = useMemo(() => {
-    return travelRequestHeader.travelRequestRoutes.some((route: Record<string, any>) => !!route.visaRequired)
-  }, [travelRequestHeader.travelRequestRoutes]);
+    return travelRequestHeader.visaApplications.length > 0
+  }, [travelRequestHeader.visaApplications]);
 
   // Effects
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         const res = await getResource('travelRequests', {
           params: {
             filters: { no: requestNo },
-            '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
+            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage,visaApplications($filter=validVisa eq 'No')",
           }
         });
 
@@ -460,7 +460,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const currentSteps = useMemo(() => {
     if (travelRequestHeader.approvalStatus !== 'Open') {
       if (travelRequestHeader.documentType === "Employee") {
-        const steps = ["info", "destinations", "travellers", "visa", "advance"];
+        const steps = ["info", "destinations", "travellers", "advance"];
+
+        if (requireVisa) {
+          steps.push('visa');
+        }
 
         if (visaChecklistCount) {
           steps.push('checklist');
@@ -486,13 +490,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       }
     } else {
       if (travelRequestHeader.documentType === "Employee") {
-        const steps = ["info", "destinations", "travellers"];
-
-        if (requireVisa) {
-          steps.push('visa');
-        }
-
-        return steps.map(id => allSteps.find(s => s.id === id)!);
+        return ["info", "destinations", "travellers"].map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
         return ["info", "travellers", "documents"]
           .map(id => allSteps.find(s => s.id === id)!);
