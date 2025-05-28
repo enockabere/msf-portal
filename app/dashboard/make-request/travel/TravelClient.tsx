@@ -14,51 +14,51 @@ import { toast } from "react-toastify";
 export default function TravelClient() {
   const { setBreadcrumb } = useBreadcrumb();
 
-  const { data:session } = useSession()
-  const profileNo = session?.user?.profile?.no
-  const [travelRequests, setTravelRequests] = useState([])
-  const [profile, setProfile] = useState<Record<string, any>>({})
+  const { data: session } = useSession();
+  const profileNo = session?.user?.profile?.no;
+  const [travelRequests, setTravelRequests] = useState([]);
+  const [profile, setProfile] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await getResource('travelRequests', {
+        const res = await getResource("travelRequests", {
           params: {
             filters: {
-              travellerNo: profileNo
+              travellerNo: profileNo,
             },
-          }
+          },
         });
 
         if (res.error) {
-          console.log('Travel request error: ', res.error);
-          toast.error(res.error.message)
+          console.log("Travel request error: ", res.error);
+          toast.error(res.error.message);
         } else {
-          setTravelRequests([...res.value])
+          setTravelRequests([...res.value]);
         }
       } catch (error: any) {
-        console.log('Error fetching travel request!', error.message)
+        console.log("Error fetching travel request!", error.message);
       }
-    }
+    };
 
     const fetchProfile = async () => {
       try {
-        const res = await getResource('travelProfile', {
+        const res = await getResource("travelProfile", {
           params: {
             filters: {
-              no: profileNo
-            }
-          }
+              no: profileNo,
+            },
+          },
         });
 
         if (res.error) {
           console.log("Response Error: ", res.error);
-          toast.error(res.error.message)
+          toast.error(res.error.message);
         } else {
-          setProfile(res.value.at(0))
+          setProfile(res.value.at(0));
         }
       } catch (error: any) {
-        console.log('Error fetching profile!', error.message)
+        console.log("Error fetching profile!", error.message);
       }
     };
 
@@ -110,7 +110,7 @@ export default function TravelClient() {
       icon: <Wallet size={28} />,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
-      onClick: () => { }, // You can add modal trigger logic later
+      onClick: () => {}, // You can add modal trigger logic later
     },
     {
       title: "Open Travel Requests",
@@ -184,7 +184,10 @@ export default function TravelClient() {
             </div>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests records={travelRequests} profile={profile} />
+                <TabbedTravelRequests
+                  records={travelRequests}
+                  profile={profile}
+                />
               </div>
             </div>
           </>
@@ -194,7 +197,10 @@ export default function TravelClient() {
           <>
             <div className="col-lg-9">
               <div className="card h-100 p-2">
-                <TabbedTravelRequests records={travelRequests} profile={profile} />
+                <TabbedTravelRequests
+                  records={travelRequests}
+                  profile={profile}
+                />
               </div>
             </div>
             <div className="col-lg-3">
@@ -220,7 +226,10 @@ export default function TravelClient() {
         {(placement === "top" || placement === "bottom") && (
           <div className="col-12">
             <div className="card h-100 p-2">
-              <TabbedTravelRequests records={travelRequests} profile={profile} />
+              <TabbedTravelRequests
+                records={travelRequests}
+                profile={profile}
+              />
             </div>
           </div>
         )}

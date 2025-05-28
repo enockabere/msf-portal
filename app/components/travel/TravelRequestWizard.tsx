@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import {
   User,
   ListChecks,
@@ -45,6 +51,7 @@ import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useSession } from "next-auth/react";
+import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
 
 // Type definitions
 interface WizardStep {
@@ -121,6 +128,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const { dispatcher } = actions;
   const { data: session } = useSession();
   const citizenNonCitizen = session?.user?.profile?.citizenNonCitizen;
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Derived values
   const isReadOnly = useMemo(
@@ -141,6 +149,21 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       travelRequestHeader.travelRequestRoutes.length > 0
     );
   }, [travelRequestHeader]);
+
+  useEffect(() => {
+    if (
+      travelRequestHeader?.no &&
+      travelRequestHeader?.currentStage === "WELCOME PACKAGE"
+    ) {
+      const timeout = setTimeout(() => {
+        setShowWelcomeModal(true);
+      }, 800);
+
+      return () => clearTimeout(timeout);
+    } else {
+      setShowWelcomeModal(false);
+    }
+  }, [travelRequestHeader?.no, travelRequestHeader?.currentStage]);
 
   // Effects
   useEffect(() => {
@@ -616,108 +639,120 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   };
 
   return (
-    <div className="travel-wizard">
-      <div className="wizard-header">
-        <div className="d-flex align-items-start gap-4">
-          <div className="">
-            <h2 className="wizard-title">Travel Request Application</h2>
-            {travelRequestHeader.currentStage && (
-              <div className="d-flex align-items-center mt-1">
-                <h5 className="m-0">Current Stage:</h5>
-                <span className="badge bg-primary p-1 ms-2">
-                  {" "}
-                  {travelRequestHeader.currentStage}
-                </span>
-              </div>
-            )}
-            <p className="wizard-subtitle">
-              Fill out your travel request in steps.
-            </p>
+    <div>
+      {showWelcomeModal && (
+        <WelcomePackageModal
+          no={travelRequestHeader?.no}
+          show={showWelcomeModal}
+          onHide={() => setShowWelcomeModal(false)}
+        />
+      )}
+      <div
+        className="travel-wizard"
+        style={{ filter: showWelcomeModal ? "blur(3px)" : "none" }}
+      >
+        <div className="wizard-header">
+          <div className="d-flex align-items-start gap-4">
+            <div className="">
+              <h2 className="wizard-title">Travel Request Application</h2>
+              {travelRequestHeader.currentStage && (
+                <div className="d-flex align-items-center mt-1">
+                  <h5 className="m-0">Current Stage:</h5>
+                  <span className="badge bg-primary p-1 ms-2">
+                    {" "}
+                    {travelRequestHeader.currentStage}
+                  </span>
+                </div>
+              )}
+              <p className="wizard-subtitle">
+                Fill out your travel request in steps.
+              </p>
+            </div>
+          </div>
+
+          <div className="wizard-progress">
+            <div
+              className="progress-bar"
+              style={{ width: `${progressPercentage}%` }}
+              aria-valuenow={progressPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            ></div>
           </div>
         </div>
 
-        <div className="wizard-progress">
-          <div
-            className="progress-bar"
-            style={{ width: `${progressPercentage}%` }}
-            aria-valuenow={progressPercentage}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          ></div>
-        </div>
-      </div>
-
-      <div className="wizard-body">
-        <nav className="wizard-sidebar" aria-label="Travel request steps">
-          <ul className="step-list" role="tablist">
-            {currentSteps?.map((step) => (
-              <li key={step?.id} className="step-item">
-                <button
-                  className={`step-button ${
-                    activeTab === step?.id ? "active" : ""
-                  } ${completedSteps?.has(step?.id) ? "completed" : ""}`}
-                  onClick={() => handleTabChange(step?.id)}
-                  role="tab"
-                  aria-selected={activeTab === step?.id}
-                  aria-controls={`${step?.id}-panel`}
-                  id={`${step?.id}-tab`}
-                  tabIndex={activeTab === step?.id ? 0 : -1}
-                  disabled={disableTabs}
-                >
-                  <span className="step-icon-wrapper">
-                    <span className="step-icon">{step?.icon}</span>
-                  </span>
-                  <span className="step-content">
-                    <span className="step-title">{step?.title}</span>
-                    <span className="step-desc">{step.desc}</span>
-                  </span>
-                  {completedSteps.has(step?.id) && (
-                    <span className="step-completed-badge" aria-hidden="true">
-                      ✓
+        <div className="wizard-body">
+          <nav className="wizard-sidebar" aria-label="Travel request steps">
+            <ul className="step-list" role="tablist">
+              {currentSteps?.map((step) => (
+                <li key={step?.id} className="step-item">
+                  <button
+                    className={`step-button ${
+                      activeTab === step?.id ? "active" : ""
+                    } ${completedSteps?.has(step?.id) ? "completed" : ""}`}
+                    onClick={() => handleTabChange(step?.id)}
+                    role="tab"
+                    aria-selected={activeTab === step?.id}
+                    aria-controls={`${step?.id}-panel`}
+                    id={`${step?.id}-tab`}
+                    tabIndex={activeTab === step?.id ? 0 : -1}
+                    disabled={disableTabs}
+                  >
+                    <span className="step-icon-wrapper">
+                      <span className="step-icon">{step?.icon}</span>
                     </span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                    <span className="step-content">
+                      <span className="step-title">{step?.title}</span>
+                      <span className="step-desc">{step.desc}</span>
+                    </span>
+                    {completedSteps.has(step?.id) && (
+                      <span className="step-completed-badge" aria-hidden="true">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        <div className="wizard-content">
-          <div
-            className="step-panel"
-            role="tabpanel"
-            aria-labelledby={`${activeTab}-tab`}
-          >
-            <StepHeader
-              activeTab={activeTab}
-              currentSteps={currentSteps}
-              canSubmitForApproval={canSubmitForApproval}
-              isSubmitting={isSubmitting}
-              handleSubmitForApproval={handleSubmitForApproval}
-              downLoadBtaCertificate={downLoadBtaCertificate}
-              downLoadIntroductoryLetter={downLoadIntroductoryLetter}
-            />
+          <div className="wizard-content">
+            <div
+              className="step-panel"
+              role="tabpanel"
+              aria-labelledby={`${activeTab}-tab`}
+            >
+              <StepHeader
+                activeTab={activeTab}
+                currentSteps={currentSteps}
+                canSubmitForApproval={canSubmitForApproval}
+                isSubmitting={isSubmitting}
+                handleSubmitForApproval={handleSubmitForApproval}
+                downLoadBtaCertificate={downLoadBtaCertificate}
+                downLoadIntroductoryLetter={downLoadIntroductoryLetter}
+              />
 
-            <StepContent
-              activeTab={activeTab}
-              travelRequestHeader={travelRequestHeader}
-              headerRequiredFields={headerRequiredFields}
-              isReadOnly={isReadOnly}
-              isLoading={isLoading}
-              isSaving={isSaving}
-              saveTravelRequestHeader={saveTravelRequestHeader}
-              fetchTravelRequest={fetchTravelRequest}
-              handleFormChange={handleFormChange}
-              travelChecklistCount={travelChecklistCount}
-              visaChecklistCount={visaChecklistCount}
-            />
+              <StepContent
+                activeTab={activeTab}
+                travelRequestHeader={travelRequestHeader}
+                headerRequiredFields={headerRequiredFields}
+                isReadOnly={isReadOnly}
+                isLoading={isLoading}
+                isSaving={isSaving}
+                saveTravelRequestHeader={saveTravelRequestHeader}
+                fetchTravelRequest={fetchTravelRequest}
+                handleFormChange={handleFormChange}
+                travelChecklistCount={travelChecklistCount}
+                visaChecklistCount={visaChecklistCount}
+              />
 
-            <StepActions
-              currentStepIndex={currentStepIndex}
-              currentSteps={currentSteps}
-              travelRequestHeader={travelRequestHeader}
-              handleTabChange={handleTabChange}
-            />
+              <StepActions
+                currentStepIndex={currentStepIndex}
+                currentSteps={currentSteps}
+                travelRequestHeader={travelRequestHeader}
+                handleTabChange={handleTabChange}
+              />
+            </div>
           </div>
         </div>
       </div>
