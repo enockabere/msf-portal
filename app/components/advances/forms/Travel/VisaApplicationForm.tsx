@@ -291,6 +291,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
           message: '',
         }
       });
+
       const res = await getResource('visaApplications', {
         params: {
           filters: {
@@ -306,7 +307,62 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         throw new Error(res.error.message);
       }
 
-      setVisaApplications(res.value);
+      const savedApplications = res.value;
+      const applications: VisaApplication[] = [];
+
+      const prepareVisaApplicationLines = (application: VisaApplication) => {
+        const lines: Array<VisaApplicationLine> = [];
+        travelRequest.travellers.forEach((traveller: Record<string, any>) => {
+          const savedLine = application.visaApplicationLines?.find((
+            line: VisaApplicationLine) => line.name === traveller.travellerName
+          );
+
+          lines.push(savedLine || {
+            documentType: traveller.documentType,
+            requestNo: traveller.documentNo,
+            profileNo: traveller.travellerNo,
+            visaType: application.visaType,
+            countryOfOrigin: traveller.countryOfOrigin,
+            validVisa: 'No',
+            dateIssued: '',
+            expiryDate: '',
+            name: traveller.travellerName,
+            exemptFromTravelling: false,
+          });
+        });
+        return lines;
+      };
+
+      travelRequest.travelRequestRoutes.forEach((route: Record<string, any>) => {
+        const savedApplication = savedApplications.find((app: VisaApplication) =>
+          app.documentType === route.documentType
+          && app.requestNo === route.documentNo
+          && app.profileNo === travelRequest.travellerNo
+          && app.visaType === route.visaRequired);
+
+        if (savedApplication) {
+          savedApplication.visaApplicationLines = prepareVisaApplicationLines(savedApplication);
+          applications.push(savedApplication);
+        } else if (route.visaRequired) {
+          applications.push({
+            documentType: route.documentType,
+            requestNo: route.documentNo,
+            profileNo: travelRequest.travellerNo,
+            visaType: route.visaRequired,
+            country: route.destinationCountryCode,
+            visaApplicationLines: prepareVisaApplicationLines({
+              documentType: route.documentType,
+              requestNo: route.documentNo,
+              profileNo: travelRequest.travellerNo,
+              visaType: route.visaRequired,
+              country: route.destinationCountryCode,
+              visaApplicationLines: [],
+            }),
+          });
+        }
+      });
+
+      setVisaApplications(applications);
     } catch (error: any) {
       Swal.fire('Error fetching Visa applications', error.message, 'error');
     } finally {
@@ -318,65 +374,29 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         }
       });
     }
-  }, [travelRequest, dispatcher]);
-
-
-
-  const prepareVisaApplications = useCallback(async () => {
-    const applications: VisaApplication[] = []
-    travelRequest.travelRequestRoutes.forEach((route: Record<string, any>) => {
-      if (route.visaRequired) {
-        const application = {
-          documentType: route.documentType,
-          requestNo:  route.documentNo,
-          profileNo: travelRequest.travellerNo,
-          visaType: route.visaRequired,
-          country: route.destinationCountryCode,
-          visaApplicationLines: [],
-        };
-
-        travelRequest.travellers.forEach((traveller: Record<string, any>) => {
-          application.visaApplicationLines.push({
-            documentType: traveller.documentType,
-            requestNo: traveller.documentNo,
-            profileNo: traveller.travellerNo,
-            visaType: route.visaRequired,
-            countryOfOrigin: traveller.countryOfOrigin,
-            validVisa: 'No',
-            dateIssued: '',
-            expiryDate: '',
-            name: traveller.travellerName,
-            exemptFromTravelling: false,
-          });
-        });
-
-        applications.push(application)
-      }
-    })
-
-    setVisaApplications(applications);
-  }, [travelRequest.travelRequestRoutes, travelRequest.travellerNo, travelRequest.travellers]);
+  }, [
+    dispatcher,
+    travelRequest.no,
+    travelRequest.documentType,
+    travelRequest.travellerNo,
+    travelRequest.travellers,
+    travelRequest.travelRequestRoutes
+  ]);
 
   useEffect(() => {
-    if (travelRequest.approvalStatus === 'Open') {
-      prepareVisaApplications();
-    } else {
-      fetchVisaApplications();
-    }
-  }, [fetchVisaApplications, prepareVisaApplications, travelRequest.approvalStatus]);
+    fetchVisaApplications();
+  }, [fetchVisaApplications]);
 
   return (
     <div className="row g-3">
       <div className="col-12">
-        {
-          visaApplications.map((application, key) => (
-            <VisaApplicationCard
-              key={`${application.country}-${key}`}
-              visaApplication={application}
-              countries={countries}
-            />
-          ))
-        }
+        {visaApplications.map((application, key) => (
+          <VisaApplicationCard
+            key={`${application.country}-${key}`}
+            visaApplication={application}
+            countries={countries}
+          />
+        ))}
       </div>
     </div>
   );
