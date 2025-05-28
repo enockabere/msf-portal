@@ -725,7 +725,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
 }
 
-// Extracted components for better organization
 interface StepHeaderProps {
   activeTab: string;
   currentSteps: WizardStep[];

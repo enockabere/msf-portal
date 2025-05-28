@@ -107,6 +107,7 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
         params: {
           filters: {
             no: primaryKey.no,
+            documentCode: "AV",
           },
         },
       });
