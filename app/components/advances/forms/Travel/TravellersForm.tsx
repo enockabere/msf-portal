@@ -150,30 +150,19 @@ export default function TravellersForm({
           message: 'Deleting...',
         }
       });
+
       const res = await deleteResource('travellers', {
         data: traveller,
         primaryKey: ['documentType', 'documentNo', 'lineNo']
       })
       if (res.error) {
-        dispatcher({
-          type: 'PATCH_LOADING_STATE',
-          payload: {
-            loading: false,
-            message: '',
-          }
-        });
-        return Swal.fire({ title: 'Error deleting traveller!', text: res.error.message });
+        throw new Error(res.error.message);
       }
 
       onSubmit(travelRequestHeader.no);
-      dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
-      });
     } catch (error: any) {
+      console.log('Error deleting traveller', error.message)
+    } finally {
       dispatcher({
         type: 'PATCH_LOADING_STATE',
         payload: {
@@ -181,7 +170,6 @@ export default function TravellersForm({
           message: '',
         }
       });
-      console.log('Error deleting traveller', error.message)
     }
   };
 
