@@ -73,7 +73,7 @@ export default function TravelClient() {
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
-  >("bottom");
+  >("top");
   useEffect(() => {
     const saved = localStorage.getItem("advancePlacement") as
       | "right"

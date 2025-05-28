@@ -67,7 +67,7 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
       }
 
       const link = document.createElement("a");
-      link.href = `data:application/pdf;base64,${data.downloadUrl}`;
+      link.href = `data:application/pdf;base64,${data.downloadUrl.value}`;
       link.download = `LetterOfInvitation_${primaryKey.no}.pdf`;
       link.target = "_self";
       link.rel = "noopener";
@@ -107,6 +107,7 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
         params: {
           filters: {
             no: primaryKey.no,
+            documentCode: "AV",
           },
         },
       });

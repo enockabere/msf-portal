@@ -73,7 +73,7 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
       setDocumentCode(docID || "UNKNOWN DOCUMENT");
     } catch (err: any) {
       console.error("❌ Stage fetch error:", err.message);
-      setDocumentCode("PLANE TICKET"); // fallback
+      setDocumentCode("SHARE TICKET"); // fallback
     }
   }, [travelNo]);
 
@@ -141,7 +141,7 @@ const ConfirmedEtaUpload: React.FC<ConfirmedEtaUploadProps> = ({
         const payload = {
           relatedRecordId: travelId,
           no: travelNo,
-          documentCode: documentCode || "PLANE TICKET",
+          documentCode: documentCode || "SHARE TICKET",
           attachment: base64,
         };
 
