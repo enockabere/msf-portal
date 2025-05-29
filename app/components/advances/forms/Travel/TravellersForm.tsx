@@ -1,278 +1,404 @@
 "use client";
 
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
 import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
-import { Trash2 } from "lucide-react";
+import { Save, Trash2, XCircle, Plus } from "lucide-react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
-import {Plus, User} from "lucide-react";
-import CustomModal from "@/app/components/modals/CustomModal";
-import NonDependantForm from "@/app/components/advances/forms/Travel/NonDependantForm";
-  interface NonDependant {
+import { useMySetups } from "@/app/context/SetupContext";
+import FormInput from "@/app/components/inputs/FormInput";
+import FormSelect from "@/app/components/inputs/FormSelect";
+import SectionLoader from "@/app/components/loaders/SectionLoader";
+
+interface Traveller {
   travellerName: string;
   countryOfOrigin: string;
-  dob?: string;
+  dob: string;
+  documentType: string;
+  documentNo: string;
+  travellerType: string;
+  travellerNo: string;
+  passportNo: string;
+  lineNo?: number;
+  dependantNo?: number;
+  exemptFromTravelling?: boolean;
 }
+
+interface ProfileDependant {
+  profileNo: string,
+  lineNo: number;
+  dob: string;
+  name: string;
+  gender: string;
+  countryOfOrigin: string;
+}
+
+interface SelectOption {
+  value: number;
+  label: string;
+}
+
+interface AddTravellerFormProps {
+  travelRequestHeader: TravelRequest;
+  countries: Array<Record<string, any>>;
+  onSubmit: (requestNo: string) => void;
+  onClose: () => void;
+}
+
 interface TravelDependenciesProps {
   travelRequestHeader: TravelRequest;
   isReadOnly: boolean;
   onSubmit: (requestNo: string) => void;
 }
 
-export default function TravellersForm({
-  travelRequestHeader,
-  isReadOnly,
-  onSubmit,
-}: TravelDependenciesProps) {
-  const [travellers, setTravellers] = useState([]);
-  const { actions } = usePageLoader();
-  const { dispatcher } = actions;
-  const [traveller, setTraveller] = useState<NonDependant[]>([]);
+const AddTravellerForm: React.FC<AddTravellerFormProps> = ({
+                                                             travelRequestHeader,
+                                                             countries,
+                                                             onSubmit,
+                                                             onClose,
+                                                           }) => {
+  const { dispatcher } = usePageLoader().actions;
+  const { loading } = usePageLoader();
 
-  useEffect(() => {
-     fetchTravellers();
-  }, [travelRequestHeader.travellerNo]);
-
-  const fetchTravellers = async () => {
-      try {
-        const res = await getResource('profileDependants', {
-          params: {
-            filters: {
-              profileNo: travelRequestHeader.travellerNo
-            }
-          }
-        });
-
-        if (res.error) {
-          return Swal.fire({ title: 'Error fetching profile travellers!', text: res.error.message });
-        }
-
-        setTravellers(res.value)
-      } catch (error: any) {
-        console.log('Error fetching travellers', error.message)
-      }
-    }
-
-  const dependantTravellers = useMemo(() =>
-    travelRequestHeader.travellers.filter(
-      (traveller: Record<string, any>) => traveller.travellerType !== 'Self'
-    ), [travelRequestHeader.travellers]
-  );
-
-  const travellerDependantNos = useMemo(
-    () => dependantTravellers.map((traveller: Record<string, any>) => traveller.dependantNo),
-    [dependantTravellers]
-  );
-
-  const selectableTravellers = useMemo(
-    () => travellers.filter(traveller =>
-      !travellerDependantNos.includes(traveller.lineNo)
-    ),
-    [travellers, travellerDependantNos]
-  );
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [newNonDependant, setNewNonDependant] = useState<NonDependant>({
+  const initialFormData: Traveller = {
+    documentType: travelRequestHeader.documentType,
+    documentNo: travelRequestHeader.no,
+    travellerType: "Other",
+    travellerNo: travelRequestHeader.travellerNo,
     travellerName: "",
     countryOfOrigin: "",
     dob: "",
-  });
-   const [isSaving, setIsSaving] = useState(false);
+    passportNo: "",
+  };
 
-  const handleSelect = async (dependant: Record<string, any>) => {
+  const [formData, setFormData] = useState<Traveller>(initialFormData);
+
+  const handleFormChange = useCallback(
+    (field: keyof Traveller, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     try {
-      setIsSubmitting(true)
-      const res = await createResource('travellers', {
-        data: {
-          documentType: travelRequestHeader.documentType,
-          documentNo: travelRequestHeader.no,
-          travellerType: 'Dependant',
-          travellerNo: travelRequestHeader.travellerNo,
-          dependantNo: dependant.value,
-          travellerName: dependant.label,
-        }
-      })
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: true, message: "" },
+      });
+
+      const res = await createResource("travellers", { data: formData });
+
       if (res.error) {
-        setIsSubmitting(false)
-        return Swal.fire({ title: 'Error saving traveller!', text: res.error.message });
+        throw new Error(res.error.message);
       }
 
       onSubmit(travelRequestHeader.no);
-      setIsSubmitting(false)
+      onClose();
     } catch (error: any) {
-      console.log('Error saving traveller', error.message)
-      setIsSubmitting(false)
-    }
-  };
-
-   const handleSaveNonDependant = async () => {
-    try {
-      setIsSubmitting(true)
-      const res = await createResource('travellers', {
-        data: {
-        ...newNonDependant,
-        documentType: travelRequestHeader.documentType,
-        documentNo: travelRequestHeader.no,
-        travellerType: 'Other',
-        travellerNo: travelRequestHeader.travellerNo,
-
-        }
-      })
-      if(res.error){
-        setIsSubmitting(false);
-        return Swal.fire({title: "Error saving non-dependant traveller!", text: res.error.message})
-      }
-        setShowModal(false);
-        setNewNonDependant({
-          travellerName: "",
-          countryOfOrigin: "",
-          dob: "",
-        });
-        onSubmit(travelRequestHeader.no);
-    } catch (error) {
-      console.error("❌ Unexpected error:", error);
-      Swal.fire("Error", error?.message || "Something went wrong", "error");
-    }finally{
-      setIsSaving(false);
-    }
-  };
-      
-  const handleDelete = async (traveller: Record<string, any>) => {
-    try {
+      Swal.fire("Error saving traveller", error.message, "error");
+    } finally {
       dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: true,
-          message: 'Deleting...',
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: false, message: "" },
+      });
+    }
+  };
+
+  const countryOptions = useMemo(
+    () =>
+      countries.map((item) => ({
+        code: item.code,
+        description: item.displayName,
+      })),
+    [countries]
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="row mb-2">
+      <div className="col-12">
+        <h5 className="text-dark bg-light p-2">Add Traveller Details</h5>
+      </div>
+
+      <div className="col-12">
+        <div className="row g-2 mb-2 pb-2 border-bottom m-1">
+          <div className="col-md-6">
+            <FormInput
+              label="Traveller Name"
+              value={formData.travellerName}
+              onChange={(value) => handleFormChange("travellerName", value)}
+              placeholder="Enter Traveller Name"
+              required
+              showAsterisk
+            />
+          </div>
+          <div className="col-md-6">
+            <FormInput
+              label="Date of Birth"
+              type="date"
+              value={formData.dob}
+              onChange={(value) => handleFormChange("dob", value)}
+              required
+              showAsterisk
+            />
+          </div>
+          <div className="col-md-6">
+            <FormSelect
+              label="Country of Origin"
+              value={formData.countryOfOrigin}
+              onChange={(value) => handleFormChange("countryOfOrigin", value)}
+              options={countryOptions}
+              required
+              showAsterisk
+            />
+          </div>
+          <div className="col-md-6">
+            <FormInput
+              label="Passport Number"
+              value={formData.passportNo}
+              onChange={(value) => handleFormChange("passportNo", value)}
+              placeholder="Enter Passport No"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="col-12 d-flex gap-2">
+        <button
+          type="submit"
+          className="btn btn-outline-success btn-sm"
+          title="Save"
+          disabled={loading}
+        >
+          {loading ? (
+            <SectionLoader size={16} classes="button-icon" />
+          ) : (
+            <>
+              <Save size={16} className="button-icon" />
+              Save
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline-danger btn-sm"
+          onClick={onClose}
+          title="Cancel"
+        >
+          <XCircle size={16} className="button-icon" />
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+};
+
+const TravellersForm: React.FC<TravelDependenciesProps> = ({
+                                                             travelRequestHeader,
+                                                             isReadOnly,
+                                                             onSubmit,
+                                                           }) => {
+  const [dependants, setDependants] = useState<ProfileDependant[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTravellerForm, setShowTravellerForm] = useState(false);
+  const { dispatcher } = usePageLoader().actions;
+  const { countries, fetchSetups } = useMySetups();
+
+  const dependantTravellers = useMemo(
+    () =>
+      travelRequestHeader.travellers.filter(
+        (traveller) => traveller.travellerType !== "Self"
+      ),
+    [travelRequestHeader.travellers]
+  );
+
+  const travellerDependantNos = useMemo(
+    () => dependantTravellers.map((traveller) => traveller.dependantNo),
+    [dependantTravellers]
+  );
+
+  const selectableDependants = useMemo(
+    () =>
+      dependants.filter(
+        (dependant) => !travellerDependantNos.includes(dependant.lineNo)
+      ),
+    [dependants, travellerDependantNos]
+  );
+
+  const selectOptions = useMemo(
+    () =>
+      selectableDependants.map((item) => ({
+        value: item.lineNo!,
+        label: item.name,
+      })),
+    [selectableDependants]
+  );
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await fetchSetups(["countries"]);
+
+        const res = await getResource("profileDependants", {
+          params: {
+            filters: {
+              profileNo: travelRequestHeader.travellerNo,
+            },
+          },
+        });
+
+        if (res.error) {
+          throw new Error(res.error.message);
         }
+
+        setDependants(res.value);
+      } catch (error: any) {
+        console.error("Error loading data:", error.message);
+      }
+    };
+
+    loadData();
+  }, [fetchSetups, travelRequestHeader.travellerNo]);
+
+  const handleSelect = async (option: SelectOption | null) => {
+    if (!option) return;
+
+    try {
+      setIsSubmitting(true);
+      const res = await createResource("travellers", {
+        data: {
+          documentType: travelRequestHeader.documentType,
+          documentNo: travelRequestHeader.no,
+          travellerType: "Dependant",
+          travellerNo: travelRequestHeader.travellerNo,
+          dependantNo: option.value,
+          travellerName: option.label,
+        },
       });
 
-      const res = await deleteResource('travellers', {
-        data: traveller,
-        primaryKey: ['documentType', 'documentNo', 'lineNo']
-      })
       if (res.error) {
         throw new Error(res.error.message);
       }
 
       onSubmit(travelRequestHeader.no);
     } catch (error: any) {
-      console.log('Error deleting traveller', error.message)
+      Swal.fire({
+        title: "Error saving traveller!",
+        text: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (traveller: Traveller) => {
+    try {
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: true, message: "Deleting..." },
+      });
+
+      const res = await deleteResource("travellers", {
+        data: traveller,
+        primaryKey: ["documentType", "documentNo", "lineNo"],
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      onSubmit(travelRequestHeader.no);
+    } catch (error: any) {
+      console.error("Error deleting traveller:", error.message);
     } finally {
       dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: false, message: "" },
       });
     }
   };
 
-  const handleNewFieldChange = (field: keyof NonDependant, value: string) => {
-    setNewNonDependant({ ...newNonDependant, [field]: value });
-  };
-
-  const removeTraveller = useCallback((index: number) => {
-    setTraveller(prev => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const addTraveller = useCallback(() => {
-    setTraveller(prev => [
-      ...prev,
-      {
-        travellerName: '',
-        countryOfOrigin: "",
-        dob: '',
-      },
-    ]);
-  }, []);
+  const toggleTravellerForm = () => setShowTravellerForm((prev) => !prev);
 
   return (
-    <div className="card mb-4">
-      <div className="card-body">
-        {!isReadOnly && (
+    <div className="row">
+      {!isReadOnly && (
+        <div className="col-12">
           <div className="mb-4 d-flex justify-content-between align-items-center gap-3">
             <div className="flex-grow-1">
-            <Select
-              options={selectableTravellers.map((item) => ({
-                value: item.lineNo,
-                label: item.name,
-              }))}
-              value={null}
-              isLoading={isSubmitting}
-              onChange={handleSelect}
-              placeholder="Select the person you plan to travel with"
-            />
+              <Select
+                options={selectOptions}
+                value={null}
+                isLoading={isSubmitting}
+                onChange={handleSelect}
+                placeholder="Select the person you plan to travel with"
+                isClearable
+              />
+            </div>
+            <button
+              type="button"
+              className="btn bg-danger text-white btn-md"
+              onClick={toggleTravellerForm}
+            >
+              <Plus size={16} />
+              Add Traveller
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn bg-danger text-white btn-md"
-            onClick={addTraveller}
-          >
-            <Plus size={16} />
-            Add Non-dependant Travellers
-          </button>
-          </div>
-        )}
+        </div>
+      )}
 
+      {showTravellerForm && (
+        <div className="col-12">
+          <AddTravellerForm
+            travelRequestHeader={travelRequestHeader}
+            countries={countries}
+            onSubmit={onSubmit}
+            onClose={toggleTravellerForm}
+          />
+        </div>
+      )}
+
+      <div className="col-12">
         <table className="table table-bordered align-middle">
           <thead className="table-light">
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Status Of Travel</th>
-              {!isReadOnly && (
-                <th className="text-center">Action</th>
-              )}
-            </tr>
+          <tr>
+            <th>Name</th>
+            <th>Travel Status</th>
+            {!isReadOnly && <th className="text-center">Action</th>}
+          </tr>
           </thead>
           <tbody>
-            {dependantTravellers.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-muted">
-                  Do you have someone you want to travel with? Use the dropdown above to add them.
+          {travelRequestHeader.travellers.map((traveller) => (
+            <tr key={`${traveller.dependantNo}-${traveller.lineNo}`}>
+              <td>{traveller.travellerName}</td>
+              <td>
+                {traveller.exemptFromTravelling
+                  ? "Exempted from travelling"
+                  : "Allowed to travel"}
+              </td>
+              {!isReadOnly && traveller.travellerType !== "Self" && (
+                <td className="text-center">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => handleDelete(traveller)}
+                  >
+                    <Trash2 size={16} className="button-icon" />
+                    Drop
+                  </button>
                 </td>
-              </tr>
-            ) : (
-              dependantTravellers.map((dep, idx) => (
-                <tr key={`${dep.profileNo}-${dep.lineNo}`}>
-                  <td>{idx + 1}</td>
-                  <td>{dep.travellerName}</td>
-                  <td>{dep.exemptFromTravelling? 'Exempted from Travelling' : 'Allowed to Travel'}</td>
-                  {!isReadOnly && (
-                    <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => handleDelete(dep)}
-                      >
-                        <Trash2 size={16} className="button-icon" />
-                        Drop
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
+              )}
+            </tr>
+          ))}
           </tbody>
         </table>
       </div>
-
-
-      {traveller.map((nonDependent, key) => (
-      <NonDependantForm
-          index={key}
-          form={newNonDependant}
-          onChange={handleNewFieldChange}
-          onSave={handleSaveNonDependant}
-          loading={isSaving}
-          onRemove={removeTraveller}
-      />
-      ))}
     </div>
   );
-}
+};
+
+export default TravellersForm;

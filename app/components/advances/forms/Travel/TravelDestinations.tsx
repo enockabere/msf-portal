@@ -54,7 +54,7 @@ const TravelDestinationForm = ({
     onRemove: (index: number) => void;
 }) => (
   <div className="row g-2 mb-2 pb-2 border-bottom m-1">
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Origin Country <span className="text-danger">*</span>
           </label>
@@ -84,7 +84,7 @@ const TravelDestinationForm = ({
           </select>
       </div>
 
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Origin City <span className="text-danger">*</span>
           </label>
@@ -102,7 +102,7 @@ const TravelDestinationForm = ({
           </select>
       </div>
 
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Destination Country <span className="text-danger">*</span>
           </label>
@@ -132,7 +132,7 @@ const TravelDestinationForm = ({
           </select>
       </div>
 
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Destination City <span className="text-danger">*</span>
           </label>
@@ -150,7 +150,7 @@ const TravelDestinationForm = ({
           </select>
       </div>
 
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Travel Date <span className="text-danger">*</span>
           </label>
@@ -162,7 +162,7 @@ const TravelDestinationForm = ({
           />
       </div>
 
-      <div className="col-4">
+      <div className="col-md-6 col-lg-4">
           <label className="form-label">
               Mode of Transport <span className="text-danger">*</span>
           </label>
@@ -180,7 +180,7 @@ const TravelDestinationForm = ({
           </select>
       </div>
 
-      <div className="col-4 d-flex gap-2">
+      <div className="col-12 d-flex gap-2">
           <button
             type="button"
             className="btn btn-outline-success btn-sm"
@@ -344,79 +344,86 @@ export default function TravelDestinations({
     }, [fetchSetups]);
 
     return (
-      <div className="card">
+      <div className="row">
           {!isReadOnly && (
-            <div className="d-flex justify-content-end align-items-center">
-                <button
-                  type="button"
-                  className="btn btn-danger mb-2"
-                  onClick={addDestination}
-                >
-                    <i className="fa fa-plus me-1"></i>
-                    Add Destination
-                </button>
+            <div className="col-12">
+                <div className="d-flex justify-content-end align-items-center">
+                    <button
+                      type="button"
+                      className="btn btn-danger mb-2"
+                      onClick={addDestination}
+                    >
+                        <i className="fa fa-plus me-1"></i>
+                        Add Destination
+                    </button>
+                </div>
             </div>
           )}
 
           {destinations.length > 0 && (
-            <h5 className="text-dark bg-light p-2">Add Route Details</h5>
+            <div className="col-12">
+                <h5 className="text-dark bg-light p-2">Add Route Details</h5>
+            </div>
           )}
 
           {destinations.map((destination, key) => (
-            <TravelDestinationForm
-              key={key}
-              destination={destination}
-              index={key}
-              originCities={originCities}
-              destinationCities={destinationCities}
-              modeOfTransport={modeOfTransport}
-              countries={countries}
-              isLocal={isLocal}
-              onFieldChange={handleDestinationChange}
-              onSave={saveDestination}
-              onRemove={removeDestination}
-            />
+            <div key={key} className="col-12">
+                <TravelDestinationForm
+                  destination={destination}
+                  index={key}
+                  originCities={originCities}
+                  destinationCities={destinationCities}
+                  modeOfTransport={modeOfTransport}
+                  countries={countries}
+                  isLocal={isLocal}
+                  onFieldChange={handleDestinationChange}
+                  onSave={saveDestination}
+                  onRemove={removeDestination}
+                />
+            </div>
           ))}
 
-          <table className="table table-bordered align-middle">
-              <thead className="table-light">
-              <tr>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Travel Date</th>
-                  {!isReadOnly && <th className="text-center">Action</th>}
-              </tr>
-              </thead>
-              <tbody>
-              {travelRequestHeader.travelRequestRoutes.length === 0 ? (
-                <tr>
-                    <td colSpan={4} className="text-center text-muted">
-                        No destinations added so far.
-                    </td>
-                </tr>
-              ) : (
-                travelRequestHeader.travelRequestRoutes.map((route, key) => (
-                  <tr key={`${route.originCountryCode}-${key}`}>
-                      <td>{`${route.originCountryName} - ${route.originCity}`}</td>
-                      <td>{`${route.destinationCountryName} - ${route.destinationCity}`}</td>
-                      <td>{formatDate(route.travelDate)}</td>
-                      {!isReadOnly && (
-                        <td className="text-center">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => deleteDestination(route)}
-                            >
-                                <Trash2 size={16} className="button-icon" />
-                                Delete
-                            </button>
-                        </td>
-                      )}
+          <div className="col-12">
+              <table className="table table-bordered align-middle">
+                  <thead className="table-light">
+                  <tr>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Travel Date</th>
+                      {!isReadOnly && <th className="text-center">Action</th>}
                   </tr>
-                ))
-              )}
-              </tbody>
-          </table>
+                  </thead>
+                  <tbody>
+                  {travelRequestHeader.travelRequestRoutes.length === 0 ? (
+                    <tr>
+                        <td colSpan={4} className="text-center text-muted">
+                            No destinations added so far.
+                        </td>
+                    </tr>
+                  ) : (
+                    travelRequestHeader.travelRequestRoutes.map((route, key) => (
+                      <tr key={`${route.originCountryCode}-${key}`}>
+                          <td>{`${route.originCountryName} - ${route.originCity}`}</td>
+                          <td>{`${route.destinationCountryName} - ${route.destinationCity}`}</td>
+                          <td>{formatDate(route.travelDate)}</td>
+                          {!isReadOnly && (
+                            <td className="text-center">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => deleteDestination(route)}
+                                >
+                                    <Trash2 size={16} className="button-icon" />
+                                    Delete
+                                </button>
+                            </td>
+                          )}
+                      </tr>
+                    ))
+                  )}
+                  </tbody>
+              </table>
+          </div>
       </div>
     );
 }
