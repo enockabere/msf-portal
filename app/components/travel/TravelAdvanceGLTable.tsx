@@ -1,38 +1,38 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 
 interface GLLine {
-    account: string;
-    description: string;
-    amount: number;
-    currency: string;
-    department: string;
+    documentNo	: string;
+    billingCode: string;
+    billingDescription	: string;
+    quantity: number;
+    unitAmount: string;
+    lineAmount: string;
     project: string;
 }
 
 interface TravelAdvanceGLTableProps {
     glLines: GLLine[];
     loading?: boolean;
+    type?: string
 }
 
 const columns = [
-    { name: "Account", selector: (row: GLLine) => row.account, sortable: true },
-    { name: "Description", selector: (row: GLLine) => row.description, sortable: true },
-    { name: "Amount", selector: (row: GLLine) => row.amount, sortable: true, right: true },
-    { name: "Currency", selector: (row: GLLine) => row.currency, sortable: true },
-    { name: "Department", selector: (row: GLLine) => row.department, sortable: true },
-    { name: "Project", selector: (row: GLLine) => row.project, sortable: true },
+    { name: "Document No", selector: (row: GLLine) => row.documentNo, sortable: true },
+    { name: "Billing Code", selector: (row: GLLine) => row.billingCode, sortable: true },
+    { name: "Description", selector: (row: GLLine) => row.billingDescription, sortable: true },
+    { name: "quantity", selector: (row: GLLine) => row.quantity, sortable: true, right: true },
+    { name: "unit Amount", selector: (row: GLLine) => row.unitAmount, sortable: true },
+    { name: "Amount", selector: (row: GLLine) => row.lineAmount, sortable: true },
 ];
 
-const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading }) => {
+const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading, type }) => {
     return (
         <SkeletonDataTable
-            title="Travel Advance Lines"
+            title={type === 'visa' ? "Visa Advance Lines" : "Travel Advance Lines"}
             columns={columns}
             data={glLines}
             loading={loading}
-            filters={'f' as ReactNode}
-            actions={'f' as ReactNode}
             searchPlaceholder="Search GL lines..."
         />
     );

@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
-import { createResource, getResource, patchResource } from "@/app/lib/api/http";
+import {codeUnit, createResource, getResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
-import { Save } from "lucide-react";
+import { Save, Wallet } from "lucide-react";
 import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import FormSelect from "@/app/components/inputs/FormSelect";
 import FormInput from "@/app/components/inputs/FormInput";
+import TravelAdvanceGLTable from "@/app/components/travel/TravelAdvanceGLTable";
 
 const VALID_VISA_OPTIONS = [
   { code: 'Yes', description: 'Yes' },
@@ -43,6 +44,7 @@ interface VisaApplicationLine {
 
 interface VisaApplicationFormProps {
   travelRequest: TravelRequest;
+  onSubmit: () => void;
 }
 
 interface VisaApplicationCardProps {
@@ -254,10 +256,11 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
   );
 };
 
-const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest }) => {
+const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest, onSubmit }) => {
   const [visaApplications, setVisaApplications] = useState<VisaApplication[]>([]);
-  const { countries } = useMySetups();
-  const { actions } = usePageLoader();
+  const [visaAmount, setVisaAmount] = useState<number>(0);
+  const { countries, expenseCodes, fetchSetups } = useMySetups();
+  const { actions, loading } = usePageLoader();
   const { dispatcher } = actions;
 
   const fetchVisaApplications = useCallback(async () => {
@@ -304,13 +307,111 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
     travelRequest.travellerNo,
   ]);
 
+
+  const createVisaAdvance = useCallback(async () => {
+    try {
+      const res = await codeUnit("createTravelAdvanceFromTravel", {
+        data: { no: travelRequest.no },
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      Swal.fire("Success", "Visa advance created successfully!");
+    } catch (error: any) {
+      Swal.fire("Error creating visa advance", error.message);
+    }
+  }, [travelRequest.no]);
+
+  const createVisaRequestLine = async () => {
+    try {
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: '',
+        }
+      });
+
+      const res = await createResource('travelRequestLine', {
+        data: {
+          documentType: travelRequest.documentType,
+          documentNo: travelRequest.no,
+          billingCode: expenseCodes[0].code,
+          unitAmount: visaAmount
+        },
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      await createVisaAdvance()
+      onSubmit()
+    } catch (error) {
+      Swal.fire("Error creating visa advance", error.message);
+    } finally {
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
+    }
+
+  }
+
+
+
   useEffect(() => {
+    fetchSetups([
+       "countries",
+      {
+        expenseCodes: {
+          $filter: `isVisaFee eq true`
+        }
+      }
+    ]);
     fetchVisaApplications();
-  }, [fetchVisaApplications]);
+    console.log('travelRequest', travelRequest)
+  }, [fetchVisaApplications, travelRequest.no]);
 
   return (
     <div className="row g-3">
       <div className="col-12">
+        {!travelRequest.hasValidVisa && (
+            <div className="d-flex align-items-center justify-content-end mb-3">
+              <div className="">
+                <label className="form-label">
+                  Create Visa advance
+                </label>
+                <input
+                    type="number"
+                    className="form-control"
+                    id="abcd"
+                    placeholder="Enter Amount needed"
+                    onChange={(e) => setVisaAmount(Number(e.target.value))}
+                />
+              </div>
+              <div className="mt-3">
+                <button
+                    className="primary-button ms-2"
+                    onClick={createVisaRequestLine}
+                    disabled={!visaAmount ||  loading }
+                >
+                  <Wallet className="me-1" size={16} />
+                  Create Visa Advance
+                </button>
+              </div>
+            </div>
+        )}
+
+        <TravelAdvanceGLTable
+            type="visa"
+            glLines={travelRequest?.travelRequestLines.filter(advance => advance.billingCode	=== 'VISA')}
+        />
         {visaApplications.map((application, key) => (
           <VisaApplicationCard
             key={`${application.country}-${key}`}
