@@ -282,7 +282,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     if (requestNo) {
       fetchTravelRequest(requestNo);
     }
-  }, [requestNo]);
+  }, [fetchTravelRequest, requestNo]);
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [

@@ -43,8 +43,8 @@ export default function SidebarMenu() {
     }
   };
 
-  const isGroupActive = (prefix: string) =>
-    !loading && currentPath.startsWith(prefix) && currentPath !== "/dashboard";
+  // const isGroupActive = (prefix: string) =>
+  //   !loading && currentPath.startsWith(prefix) && currentPath !== "/dashboard";
 
   useEffect(() => {
     if (!profile?.no || isExternalUser) return;
@@ -98,20 +98,18 @@ export default function SidebarMenu() {
 
       {/* Visitor view only */}
       {isExternalUser && (
-        <>
-          <li className="nav-item">
-            <a
-              href="/dashboard/make-request/travel"
-              className={`nav-link ${
-                currentPath === "/dashboard/make-request/travel" ? "active" : ""
-              }`}
-              onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
-            >
-              <i className="iconoir-airplane menu-icon"></i>
-              <span>Travel Request</span>
-            </a>
-          </li>
-        </>
+        <li className="nav-item">
+          <a
+            href="/dashboard/make-request/travel"
+            className={`nav-link ${
+              currentPath === "/dashboard/make-request/travel" ? "active" : ""
+            }`}
+            onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
+          >
+            <i className="iconoir-airplane menu-icon"></i>
+            <span>Travel Request</span>
+          </a>
+        </li>
       )}
 
       {/* Employee view only */}
@@ -155,135 +153,146 @@ export default function SidebarMenu() {
             </div>
           </li>
 
-          {/* HR Services */}
-          <li className="nav-item">
-            <a
-              className={`nav-link ${isGroupActive("/hr") ? "active" : ""}`}
-              href="#sidebarHRServices"
-              data-bs-toggle="collapse"
-              aria-expanded={isGroupActive("/hr")}
-              aria-controls="sidebarHRServices"
-            >
-              <i className="iconoir-user menu-icon"></i>
-              <span>HR Services</span>
-            </a>
-            <div
-              className={`collapse ${isGroupActive("/hr") ? "show" : ""}`}
-              id="sidebarHRServices"
-            >
-              <ul className="nav flex-column">
-                {[
-                  "Recruitment",
-                  "Employee Services",
-                  "Performance Management",
-                ].map((item) => (
-                  <li className="nav-item" key={item}>
-                    <span className="nav-link">
-                      {item} <span className="badge bg-warning ms-2">Soon</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </li>
-
-          {/* Procurement & Finance */}
+          {/* Admin & Travel */}
           <li className="nav-item">
             <a
               className={`nav-link ${
-                isGroupActive("/procurement") ? "active" : ""
+                currentPath.startsWith("/dashboard/make-request")
+                  ? "active"
+                  : ""
               }`}
-              href="#sidebarProcFinance"
+              href="#sidebarAdminTravel"
               data-bs-toggle="collapse"
-              role="button"
-              aria-expanded={isGroupActive("/procurement")}
-              aria-controls="sidebarProcFinance"
+              aria-expanded={currentPath.startsWith("/dashboard/make-request/travel")}
+              aria-controls="sidebarAdminTravel"
             >
-              <i className="iconoir-wallet menu-icon"></i>
-              <span>Procurement & Finance</span>
+              <i className="iconoir-airplane menu-icon"></i>
+              <span>Admin & Travel</span>
             </a>
             <div
               className={`collapse ${
-                isGroupActive("/procurement") ? "show" : ""
+                currentPath.startsWith("/dashboard/make-request/travel") ? "show" : ""
               }`}
-              id="sidebarProcFinance"
+              id="sidebarAdminTravel"
             >
               <ul className="nav flex-column">
-                {[
-                  "Requisitions",
-                  "Procurement Plan",
-                  "RFQs and Quotes",
-                  "Contracts",
-                  "Tendering",
-                  "Vendor Evaluation",
-                ].map((text, index) => (
-                  <li className="nav-item" key={index}>
-                    <a className="nav-link" href="#">
-                      {text}
-                    </a>
-                  </li>
-                ))}
+                <li className="nav-item">
+                  <a
+                    href="/dashboard/make-request/travel"
+                    className={`nav-link ${
+                      currentPath === "/dashboard/make-request/travel" ? "active" : ""
+                    }`}
+                    onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
+                  >
+                    Travel requests
+                  </a>
+                </li>
               </ul>
             </div>
           </li>
 
-          {/* Static Links */}
-          {[
-            { label: "Planning & Budgeting", icon: "page", link: "#" },
-            {
-              label: "Admin & Travel",
-              icon: "airplane",
-              soon: true,
-              link: "#",
-            },
-            {
-              label: "IT & Facilities",
-              icon: "server-connection",
-              soon: true,
-              link: "#",
-            },
-            {
-              label: "Learning & Development",
-              icon: "graduation-cap",
-              link: "#",
-            },
-            {
-              label: "Approvals & Reviews",
-              icon: "check-circle",
-              link: "/dashboard/approvals",
-              badge: approvalCount,
-              badgeClass: "bg-danger",
-            },
-            {
-              label: "Reports & Insights",
-              icon: "doc-star",
-              soon: true,
-              link: "#",
-            },
-            {
-              label: "Social Center",
-              icon: "chat-bubble",
-              soon: true,
-              link: "#",
-            },
-          ].map(({ label, icon, soon, link, badge, badgeClass }) => (
-            <li className="nav-item" key={label}>
-              <a className="nav-link" href={link}>
-                <i className={`iconoir-${icon} menu-icon`}></i>
-                <span>
-                  {label}
-                  {soon && <span className="badge bg-warning ms-2">Soon</span>}
-                  {badge >= 0 && (
-                    <span
-                      className={`badge ${badgeClass} text-white rounded-pill ms-2`}
-                    >
-                      {badge}
-                    </span>
-                  )}
-                </span>
-              </a>
-            </li>
-          ))}
+          {/* Finance Services */}
+          <li className="nav-item">
+            <a
+              className={`nav-link ${
+                currentPath.startsWith("/dashboard/make-request/advances") || currentPath.startsWith("/dashboard/make-request/otherAdvances")
+                  ? "active"
+                  : ""
+              }`}
+              href="#sidebarFinance"
+              data-bs-toggle="collapse"
+              aria-expanded={currentPath.startsWith("/dashboard/make-request/advances")}
+              aria-controls="sidebarFinance"
+            >
+              <i className="iconoir-wallet menu-icon"></i>
+              <span>Finance Services</span>
+            </a>
+            <div
+              className={`collapse ${
+                currentPath.startsWith("/dashboard/make-request/travel") ? "show" : ""
+              }`}
+              id="sidebarFinance"
+            >
+              <ul className="nav flex-column">
+                <li className="nav-item">
+                  <a
+                    href="/dashboard/make-request/advances"
+                    className={`nav-link ${
+                      currentPath === "/dashboard/make-request/advances" ? "active" : ""
+                    }`}
+                    onClick={(e) => handleNav(e, "/dashboard/make-request/advances")}
+                  >
+                    Salary Advances
+                  </a>
+                </li>
+
+                <li className="nav-item">
+                  <a
+                    href="/dashboard/make-request/otherAdvances"
+                    className={`nav-link ${
+                      currentPath === "/dashboard/make-request/otherAdvances" ? "active" : ""
+                    }`}
+                    onClick={(e) => handleNav(e, "/dashboard/make-request/otherAdvances")}
+                  >
+                    Other Advances
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          {/* Procurement Services */}
+          <li className="nav-item">
+            <a
+              className={`nav-link ${
+                currentPath.startsWith("/dashboard/make-request/requisitions")
+                  ? "active"
+                  : ""
+              }`}
+              href="#sidebarProcurement"
+              data-bs-toggle="collapse"
+              aria-expanded={currentPath.startsWith("/dashboard/make-request/requisitions")}
+              aria-controls="sidebarProcurement"
+            >
+              <i className="iconoir-page menu-icon"></i>
+              <span>Procurement Services</span>
+            </a>
+            <div
+              className={`collapse ${
+                currentPath.startsWith("/dashboard/make-request/requisitions") ? "show" : ""
+              }`}
+              id="sidebarProcurement"
+            >
+              <ul className="nav flex-column">
+                <li className="nav-item">
+                  <a
+                    href="/dashboard/make-request/requisitions"
+                    className={`nav-link ${
+                      currentPath === "/dashboard/make-request/requisitions" ? "active" : ""
+                    }`}
+                    onClick={(e) => handleNav(e, "/dashboard/make-request/requisitions")}
+                  >
+                    Requisitions
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <li className="nav-item">
+            <a
+              href="/dashboard/approvals"
+              className={`nav-link ${
+                currentPath === "/dashboard/approvals" ? "active" : ""
+              }`}
+              onClick={(e) => handleNav(e, "/dashboard/approvals")}
+            >
+              <i className="iconoir-check-circle menu-icon"></i>
+              <span>
+                Approvals & Reviews <span className="badge bg-danger text-white rounded-pill ms-2">{approvalCount}</span>
+              </span>
+            </a>
+          </li>
 
           {/* Help & Support */}
           <li className="menu-label mt-2">

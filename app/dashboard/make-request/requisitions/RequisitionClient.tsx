@@ -38,7 +38,7 @@ export default function RequisitionClient() {
         }
 
         fetchRequisitions();
-    })
+    }, [])
 
     const cards = [
         {

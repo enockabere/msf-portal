@@ -285,7 +285,18 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         throw new Error(res.error.message);
       }
 
-      setVisaApplications(res.value);
+      const applications = res.value;
+
+      const formattedApplications = applications.map((application: VisaApplication) => ({
+        ...application,
+        visaApplicationLines: application.visaApplicationLines?.map((line: VisaApplicationLine) => ({
+          ...line,
+          dateIssued: line.dateIssued === "0001-01-01" ? "" : line.dateIssued,
+          expiryDate: line.expiryDate === "0001-01-01" ? "" : line.expiryDate,
+        })) || []
+      }));
+
+      setVisaApplications(formattedApplications);
     } catch (error: any) {
       Swal.fire('Error fetching Visa applications', error.message, 'error');
     } finally {

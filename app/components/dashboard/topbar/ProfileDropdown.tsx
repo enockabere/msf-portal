@@ -40,21 +40,7 @@ export default function ProfileDropdown() {
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatcher({
-      type: 'PATCH_LOADING_STATE',
-      payload: {
-        loading: true,
-        message: '',
-      }
-    });
-    await signOut({ callbackUrl: "/", redirect: false });
-    startTransition(() => (router.push("/"), dispatcher({
-      type: 'PATCH_LOADING_STATE',
-      payload: {
-        loading: false,
-        message: '',
-      }
-    })));
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
