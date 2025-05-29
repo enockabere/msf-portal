@@ -2,6 +2,7 @@ import React from "react";
 
 const FormSelect = ({
                       label,
+                      id,
                       value,
                       onChange,
                       options,
@@ -11,6 +12,7 @@ const FormSelect = ({
                       showAsterisk = false
                     }: {
   label: string;
+  id?: string;
   value: any;
   onChange: (value: any) => void;
   options: Array<{ code: string; description: string }>;
@@ -19,12 +21,13 @@ const FormSelect = ({
   placeholder?: string;
   showAsterisk?: boolean;
 }) => (
-  <div className="col-md-4">
+  <>
     <label className="form-label">
       {label} {showAsterisk && <span className="text-danger">*</span>}
     </label>
     <select
       className="form-select"
+      id={id || label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       required={required}
@@ -37,7 +40,7 @@ const FormSelect = ({
         </option>
       ))}
     </select>
-  </div>
+  </>
 );
 
 export default FormSelect;

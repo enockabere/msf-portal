@@ -95,7 +95,7 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   travellers: [],
   visaApplications: [],
   bookingComplete: false,
-  missionType: false,
+  missionType: '',
 };
 
 const WORK_PERMIT_FIELDS = [
@@ -123,8 +123,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   // Derived values
   const isReadOnly = useMemo(
-    () => travelRequestHeader.approvalStatus !== "Open",
-    [travelRequestHeader.approvalStatus]
+    () => travelRequestHeader.approvalStatus !== "Open" || decodeValue(travelRequestHeader.documentType) === 'Non-Resident',
+    [travelRequestHeader.approvalStatus, travelRequestHeader.documentType]
   );
 
   const disableTabs = useMemo(
@@ -148,8 +148,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader]);
 
   const requireVisa = useMemo(() => {
-    return travelRequestHeader.approvalStatus === "Released" && !travelRequestHeader.hasValidVisa
-  }, [travelRequestHeader.approvalStatus, travelRequestHeader.hasValidVisa]);
+    return travelRequestHeader.approvalStatus === "Released"
+  }, [travelRequestHeader.approvalStatus]);
 
   // Effects
   useEffect(() => {
@@ -173,15 +173,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         documentType: decodeValue(profile.type),
         travellerNo: profile.no,
         createdbyProfileNo: profile.no,
-        passportNo: profile.passportIDNo,
-        shortcutDimension1Code: profile.shortcutDimension1Code,
-        shortcutDimension2Code: profile.shortcutDimension2Code,
+        passportNo: profile.passportIDNo || '',
+        shortcutDimension1Code: profile.shortcutDimension1Code || '',
+        shortcutDimension2Code: profile.shortcutDimension2Code || '',
       };
 
-      setTravelRequestHeader((prev) => ({
-        ...prev,
-        ...(requestNo ? { documentType: decodeValue(profile.type) } : baseData),
-      }));
+      setTravelRequestHeader((prev) => ({...prev, ...baseData}));
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
@@ -249,7 +246,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         throw new Error(res.error.message);
       }
 
-      setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
+      setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0)}));
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
     } finally {
@@ -278,6 +275,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       const keysToRetain = getKeysToRetain() as Array<string>
 
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
+      knownSchema.documentType = decodeValue(knownSchema.documentType);
 
       setIsSaving(true);
       const operation = knownSchema.no
@@ -565,6 +563,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
             );
             if (hasDependencies) newCompletedSteps.add("travellers");
             break;
+          case "visa":
+            if (travelRequestHeader.hasValidVisa) newCompletedSteps.add("visa");
+            break;
+          case "checklist":
+            if (travelRequestHeader.hasValidVisa) newCompletedSteps.add("checklist");
+            break;
         }
       });
 
@@ -693,7 +697,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                   <h5 className="m-0">Current Stage:</h5>
                   <span className="badge bg-primary p-1 ms-2">
                     {" "}
-                    {travelRequestHeader.travelTypeStage.description}
+                    {travelRequestHeader.travelTypeStage?.description || travelRequestHeader.currentStage}
                   </span>
                 </div>
               )}
@@ -957,7 +961,7 @@ const StepContent: React.FC<StepContentProps> = ({
             onFormChange={handleFormChange}
           />
 
-          {travelRequestHeader.approvalStatus === "Open" && (
+          {!isReadOnly && (
             <div className="step-actions">
               <button
                 type="submit"
