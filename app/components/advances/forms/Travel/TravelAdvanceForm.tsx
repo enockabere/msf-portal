@@ -98,7 +98,7 @@ export default function TravelAdvanceForm({ travelInfo, onSubmit }: { travelInfo
                     <button
                         className="primary-button ms-2 w-100"
                         onClick={createVisaRequestLine}
-                        disabled={loading}
+                        disabled={!travelInfo.bookingComplete ||  loading}
                     >
                         {loading ? (
                             <SectionLoader size={16} />
