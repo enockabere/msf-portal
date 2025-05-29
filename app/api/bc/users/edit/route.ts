@@ -34,7 +34,7 @@ export async function PATCH(request: Request) {
       dateOfBirth: body.dateOfBirth,
       gender: body.gender,
       countryRegionCode: body.countryRegionCode || body.countryCode,
-      passportIDNo: body.passportIDNo || body.identificationDocumentNo || "",
+      passportNo: body.passportNo || body.identificationDocumentNo || "",
     };
 
     const options: any = {
