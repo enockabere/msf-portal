@@ -113,8 +113,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
-  const [travelChecklistCount, setTravelChecklistCount] = useState<number>(0);
-  const [visaChecklistCount, setVisaChecklistCount] = useState<number>(0);
+  const [checklistCount, setChecklistCount] = useState<Record<string, number>>({totalVisaCount: 0, totalTravelCount: 0})
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
   const { data: session } = useSession();
@@ -151,6 +150,26 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     return travelRequestHeader.approvalStatus === "Released"
   }, [travelRequestHeader.approvalStatus]);
 
+  const checklistCounter = (travellers: Array<Record<string, any>>) => {
+    return travellers.reduce(
+      (acc, traveller) => {
+        const visaItems = traveller.travellerChecklist?.filter(
+          item => item.checklistType === 'Visa'
+        ).length || 0;
+
+        const travelItems = traveller.travellerChecklist?.filter(
+          item => item.checklistType === 'Travel'
+        ).length || 0;
+
+        return {
+          totalVisaCount: acc.totalVisaCount + visaItems,
+          totalTravelCount: acc.totalTravelCount + travelItems,
+        };
+      },
+      { totalVisaCount: 0, totalTravelCount: 0 }
+    );
+  };
+
   // Effects
   useEffect(() => {
     if (
@@ -173,7 +192,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         documentType: decodeValue(profile.type),
         travellerNo: profile.no,
         createdbyProfileNo: profile.no,
-        passportNo: profile.passportIDNo || '',
+        passportNo: profile.passportNo || '',
         shortcutDimension1Code: profile.shortcutDimension1Code || '',
         shortcutDimension2Code: profile.shortcutDimension2Code || '',
       };
@@ -203,42 +222,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     setRequiredFieldsBasedOnProfile();
   }, [profile, requestNo]);
 
-  useEffect(() => {
-    const fetchTravelRequest = async (requestNo: string) => {
-      try {
-        setIsLoading(true);
-        const res = await getResource("travelRequests", {
-          params: {
-            filters: { no: requestNo },
-            '$expand': "travelRequestRoutes,travelRequestLines,travellers,travelTypeStage",
-          },
-        });
-
-        if (res.error) {
-          throw new Error(res.error.message);
-        }
-
-        setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0) }));
-      } catch (error: any) {
-        console.error("Error fetching travel request:", error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (requestNo) {
-      fetchTravelRequest(requestNo);
-    }
-  }, [requestNo]);
-
-  // API operations
   const fetchTravelRequest = useCallback(async (requestNo?: string) => {
     try {
       setIsLoading(true);
       const res = await getResource('travelRequests', {
         params: {
           filters: { no: requestNo ?? travelRequestHeader.no },
-          '$expand': 'travelRequestRoutes,travelRequestLines,travellers',
+          '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),travelTypeStage",
         }
       });
 
@@ -246,13 +236,23 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         throw new Error(res.error.message);
       }
 
-      setTravelRequestHeader(prev => ({ ...prev, ...res.value.at(0)}));
+      const header = res.value.at(0)
+
+      setTravelRequestHeader(prev => ({ ...prev, ...header}));
+
+      setChecklistCount(checklistCounter(header.travellers));
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
     } finally {
       setIsLoading(false);
     }
   }, [travelRequestHeader.no]);
+
+  useEffect(() => {
+    if (requestNo) {
+      fetchTravelRequest(requestNo);
+    }
+  }, [requestNo]);
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
@@ -453,31 +453,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     },
   ], []);
 
-  const getChecklistCount = useCallback(async (travel: Record<string, any>, type: "Travel" | "Visa") => {
-    try {
-      const res = await getResource("travellerChecklist", {
-        params: {
-          filters: {
-            documentNo: travel?.no,
-            documentType: travel?.documentType,
-            checklistType: type,
-          },
-          $count: true,
-        },
-      });
-
-      const count = res["@odata.count"];
-
-      if (type === "Travel") {
-        setTravelChecklistCount(count);
-      } else {
-        setVisaChecklistCount(count);
-      }
-    } catch (error) {
-      console.error(`Error fetching ${type} checklist count:`, error);
-    }
-  }, []);
-
   const currentSteps = useMemo(() => {
     const baseEmployeeSteps = ["info", "destinations", "travellers"];
     const baseVisitorSteps = ["info", "travellers"];
@@ -496,11 +471,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           baseEmployeeSteps.push('visa');
         }
 
-        if (visaChecklistCount) {
+        if (checklistCount.totalVisaCount) {
           baseEmployeeSteps.push('checklist');
         }
 
-        if (travelChecklistCount) {
+        if (checklistCount.totalTravelCount) {
           baseEmployeeSteps.push('traveller-checklist');
         }
 
@@ -510,11 +485,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
         return baseEmployeeSteps.map(id => allSteps.find(s => s.id === id)!);
       } else if (travelRequestHeader.documentType === "Visitor") {
-        if (visaChecklistCount) {
+        if (checklistCount.totalVisaCount) {
           baseVisitorSteps.push('checklist');
         }
 
-        if (travelChecklistCount) {
+        if (checklistCount.totalTravelCount) {
           baseVisitorSteps.push('traveller-checklist');
         }
 
@@ -535,13 +510,14 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
     return [allSteps.find((s) => s.id === "info")!];
   }, [
-    travelRequestHeader.approvalStatus,
     travelRequestHeader.documentType,
-    allSteps,
-    visaChecklistCount,
-    travelChecklistCount,
-    requireVisa,
+    travelRequestHeader.approvalStatus,
+    travelRequestHeader.hasValidVisa,
     citizenNonCitizen,
+    allSteps,
+    requireVisa,
+    checklistCount.totalVisaCount,
+    checklistCount.totalTravelCount
   ]);
 
   useEffect(() => {
@@ -558,10 +534,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               newCompletedSteps.add("destinations");
             break;
           case "travellers":
-            const hasDependencies = travelRequestHeader.travellers?.some(
-              (t: Record<string, any>) => t.travellerType !== "Self"
-            );
-            if (hasDependencies) newCompletedSteps.add("travellers");
+            if (travelRequestHeader.travellers.length) newCompletedSteps.add("travellers");
             break;
           case "visa":
             if (travelRequestHeader.hasValidVisa) newCompletedSteps.add("visa");
@@ -579,13 +552,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       updateCompletedSteps();
     }
   }, [travelRequestHeader, currentSteps]);
-
-  useEffect(() => {
-    if (travelRequestHeader?.no && travelRequestHeader?.documentType) {
-      getChecklistCount(travelRequestHeader, "Travel");
-      getChecklistCount(travelRequestHeader, "Visa");
-    }
-  }, [travelRequestHeader?.no, travelRequestHeader?.documentType, travelRequestHeader, getChecklistCount]);
 
   // Event handlers
   const handleFormChange = useCallback((field: keyof TravelRequest, value: any) => {
@@ -783,8 +749,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               saveTravelRequestHeader={saveTravelRequestHeader}
               fetchTravelRequest={fetchTravelRequest}
               handleFormChange={handleFormChange}
-              travelChecklistCount={travelChecklistCount}
-              visaChecklistCount={visaChecklistCount}
+              checklistCount={checklistCount}
               confirmBooking={confirmBooking}
             />
 
@@ -922,8 +887,7 @@ interface StepContentProps {
   saveTravelRequestHeader: () => Promise<void>;
   fetchTravelRequest: () => Promise<void>;
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
-  travelChecklistCount: number;
-  visaChecklistCount: number;
+  checklistCount: Record<string, number>;
   confirmBooking: (value) => void;
 }
 
@@ -937,8 +901,7 @@ const StepContent: React.FC<StepContentProps> = ({
   saveTravelRequestHeader,
   fetchTravelRequest,
   handleFormChange,
-  travelChecklistCount,
-  visaChecklistCount,
+  checklistCount,
   confirmBooking,
 }) => {
   switch (activeTab) {
@@ -1052,11 +1015,11 @@ const StepContent: React.FC<StepContentProps> = ({
     case "visa":
       return <VisaApplicationForm travelRequest={travelRequestHeader} />;
     case "checklist":
-      return visaChecklistCount > 0 ? (
+      return checklistCount.totalVisaCount > 0 ? (
         <VisaChecklist travelInfo={travelRequestHeader} />
       ) : null;
     case "traveller-checklist":
-      return travelChecklistCount > 0 ? (
+      return checklistCount.totalTravelCount > 0 ? (
         <TravellerChecklist travelInfo={travelRequestHeader} />
       ) : null;
     case "documents":
