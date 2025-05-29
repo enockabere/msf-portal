@@ -14,21 +14,22 @@ interface GLLine {
 interface TravelAdvanceGLTableProps {
     glLines: GLLine[];
     loading?: boolean;
+    type?: string
 }
 
 const columns = [
-    { name: "documentNo", selector: (row: GLLine) => row.documentNo, sortable: true },
-    { name: "billingCode", selector: (row: GLLine) => row.billingCode, sortable: true },
+    { name: "Document No", selector: (row: GLLine) => row.documentNo, sortable: true },
+    { name: "Billing Code", selector: (row: GLLine) => row.billingCode, sortable: true },
     { name: "Description", selector: (row: GLLine) => row.billingDescription, sortable: true },
     { name: "quantity", selector: (row: GLLine) => row.quantity, sortable: true, right: true },
     { name: "unit Amount", selector: (row: GLLine) => row.unitAmount, sortable: true },
     { name: "Amount", selector: (row: GLLine) => row.lineAmount, sortable: true },
 ];
 
-const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading }) => {
+const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading, type }) => {
     return (
         <SkeletonDataTable
-            title="Travel Advance Lines"
+            title={type === 'visa' ? "Visa Advance Lines" : "Travel Advance Lines"}
             columns={columns}
             data={glLines}
             loading={loading}

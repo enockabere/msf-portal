@@ -50,6 +50,7 @@ import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
 import TravelAdvanceForm from "../advances/forms/Travel/TravelAdvanceForm"
+import {useMySetups} from "@/app/context/SetupContext";
 
 // Type definitions
 interface WizardStep {
@@ -126,6 +127,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const { expenseCodes, fetchSetups } = useMySetups();
 
   // Derived values
   const isReadOnly = useMemo(
@@ -280,6 +282,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader.no]);
 
   useEffect(() => {
+    fetchSetups(['expenseCodes'])
+
     if (requestNo) {
       fetchTravelRequest(requestNo);
     }
@@ -800,6 +804,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleFormChange={handleFormChange}
               checklistCount={checklistCount}
               confirmBooking={confirmBooking}
+              expenseCodes={expenseCodes}
             />
 
               <StepActions
@@ -935,6 +940,7 @@ interface StepContentProps {
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
   checklistCount: Record<string, number>;
   confirmBooking: (value) => void;
+  expenseCodes: Record<string, any>;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -949,6 +955,7 @@ const StepContent: React.FC<StepContentProps> = ({
   handleFormChange,
   checklistCount,
   confirmBooking,
+  expenseCodes,
 }) => {
   switch (activeTab) {
     case "info":
@@ -1062,14 +1069,17 @@ const StepContent: React.FC<StepContentProps> = ({
             </div>
           </div>
           <TravelAdvanceDetails travelInfo={travelRequestHeader} />
-          <TravelAdvanceForm travelInfo={travelRequestHeader} onSubmit={fetchTravelRequest}/>
+          <TravelAdvanceForm
+              expenseCodes={expenseCodes}
+              travelInfo={travelRequestHeader}
+              onSubmit={fetchTravelRequest} />
           <TravelAdvanceGLTable
             glLines={travelRequestHeader?.travelRequestLines}
           />
         </div>
       ) : null;
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader} />;
+      return <VisaApplicationForm travelRequest={travelRequestHeader} onSubmit={fetchTravelRequest} />;
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
         <VisaChecklist travelInfo={travelRequestHeader} />

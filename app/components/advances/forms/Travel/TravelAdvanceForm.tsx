@@ -6,8 +6,8 @@ import Swal from "sweetalert2";
 import {useMySetups} from "@/app/context/SetupContext";
 import SectionLoader from "@/app/components/loaders/SectionLoader";
 
-export default function TravelAdvanceForm({ travelInfo, onSubmit }: { travelInfo: TravelRequest, onSubmit: () => void}) {
-    const { expenseCodes, fetchSetups } = useMySetups();
+export default function TravelAdvanceForm({ travelInfo, onSubmit, expenseCodes  }: { travelInfo: TravelRequest, onSubmit: () => void, expenseCodes: Record<string, any>}) {
+    // const { expenseCodes, fetchSetups } = useMySetups();
     const [advanceAmount, setAdvanceAmount] = useState<number>(0);
     const [billingCode, setBillingCode] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -57,7 +57,8 @@ export default function TravelAdvanceForm({ travelInfo, onSubmit }: { travelInfo
     }
 
     useEffect(() => {
-        fetchSetups(['expenseCodes'])
+        // fetchSetups(['expenseCodes'])
+        console.log('expenseCodes', expenseCodes)
     }, [travelInfo.no]);
 
     return (
@@ -98,7 +99,7 @@ export default function TravelAdvanceForm({ travelInfo, onSubmit }: { travelInfo
                     <button
                         className="primary-button ms-2 w-100"
                         onClick={createVisaRequestLine}
-                        disabled={!travelInfo.bookingComplete ||  loading}
+                        disabled={!travelInfo.bookingComplete || !advanceAmount || !billingCode ||  loading}
                     >
                         {loading ? (
                             <SectionLoader size={16} />
