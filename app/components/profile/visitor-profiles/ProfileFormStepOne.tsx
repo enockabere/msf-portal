@@ -70,8 +70,8 @@ export default function ProfileFormStepOne({
       />
       <VisitorProfileFormField
         label="Passport/ID No"
-        name="passportIDNo"
-        value={formData.passportIDNo}
+        name="passportNo"
+        value={formData.passportNo}
         onChange={onChange}
         disabled={false}
         icon={IdCard}

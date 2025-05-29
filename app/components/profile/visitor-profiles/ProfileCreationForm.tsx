@@ -29,7 +29,7 @@ export default function ProfileCreationForm({
     gender: "",
     countryRegionCode: "",
     title: "",
-    passportIDNo: "",
+    passportNo: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,7 +89,7 @@ export default function ProfileCreationForm({
           dateOfBirth: formData.dateOfBirth,
           gender: formData.gender,
           countryRegionCode: formData.countryRegionCode,
-          passportIDNo: formData.passportIDNo.trim(),
+          passportNo: formData.passportNo.trim(),
         };
 
         const saveRes = await fetch("/api/bc/users", {
