@@ -43,6 +43,7 @@ import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useSession } from "next-auth/react";
 import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
+import TravelAdvanceForm from "../advances/forms/Travel/TravelAdvanceForm"
 
 // Type definitions
 interface WizardStep {
@@ -893,22 +894,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           Cancel Approval
         </button>
       )}
-
-      {activeTab === "advance" && (
-          travelRequestHeader.bookingComplete ? (
-              <button
-                  className="primary-button ms-2"
-                  onClick={handleCreateTravelAdvance}
-              >
-                <Plus size={16} />
-                Create Advance
-              </button>
-          ) : (
-              <button className="primary-button ms-2" disabled>
-                Complete booking to create Advance
-              </button>
-          )
-      )}
     </div>
   </div>
 );
@@ -1045,6 +1030,7 @@ const StepContent: React.FC<StepContentProps> = ({
             </div>
           </div>
           <TravelAdvanceDetails travelInfo={travelRequestHeader} />
+          <TravelAdvanceForm travelInfo={travelRequestHeader} onSubmit={fetchTravelRequest}/>
           <TravelAdvanceGLTable
             glLines={travelRequestHeader?.travelRequestLines}
           />

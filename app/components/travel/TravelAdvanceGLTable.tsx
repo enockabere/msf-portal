@@ -2,11 +2,12 @@ import React, { ReactNode } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 
 interface GLLine {
-    account: string;
-    description: string;
-    amount: number;
-    currency: string;
-    department: string;
+    documentNo	: string;
+    billingCode: string;
+    billingDescription	: string;
+    quantity: number;
+    unitAmount: string;
+    lineAmount: string;
     project: string;
 }
 
@@ -16,12 +17,12 @@ interface TravelAdvanceGLTableProps {
 }
 
 const columns = [
-    { name: "Account", selector: (row: GLLine) => row.account, sortable: true },
-    { name: "Description", selector: (row: GLLine) => row.description, sortable: true },
-    { name: "Amount", selector: (row: GLLine) => row.amount, sortable: true, right: true },
-    { name: "Currency", selector: (row: GLLine) => row.currency, sortable: true },
-    { name: "Department", selector: (row: GLLine) => row.department, sortable: true },
-    { name: "Project", selector: (row: GLLine) => row.project, sortable: true },
+    { name: "documentNo", selector: (row: GLLine) => row.documentNo, sortable: true },
+    { name: "billingCode", selector: (row: GLLine) => row.billingCode, sortable: true },
+    { name: "Description", selector: (row: GLLine) => row.billingDescription, sortable: true },
+    { name: "quantity", selector: (row: GLLine) => row.quantity, sortable: true, right: true },
+    { name: "unit Amount", selector: (row: GLLine) => row.unitAmount, sortable: true },
+    { name: "Amount", selector: (row: GLLine) => row.lineAmount, sortable: true },
 ];
 
 const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, loading }) => {
