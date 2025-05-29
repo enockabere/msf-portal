@@ -12,7 +12,7 @@ const FormInput = ({
                      showAsterisk = false
                    }: {
   label: string;
-  id: string;
+  id?: string;
   value: any;
   onChange: (value: any) => void;
   type?: string;

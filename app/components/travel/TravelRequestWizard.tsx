@@ -148,7 +148,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   const requireVisa = useMemo(() => {
     return travelRequestHeader.approvalStatus === "Released"
-  }, [travelRequestHeader.approvalStatus]);
+      && travelRequestHeader.visaApplications.length > 0
+  }, [travelRequestHeader.approvalStatus, travelRequestHeader.visaApplications]);
 
   const checklistCounter = (travellers: Array<Record<string, any>>) => {
     return travellers.reduce(
@@ -228,7 +229,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       const res = await getResource('travelRequests', {
         params: {
           filters: { no: requestNo ?? travelRequestHeader.no },
-          '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),travelTypeStage",
+          '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications,travelTypeStage",
         }
       });
 
