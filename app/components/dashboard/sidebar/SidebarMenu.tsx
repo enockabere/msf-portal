@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useEffect, useState, startTransition } from "react";
 import { getResource } from "@/app/lib/api/http";
+import { normalizeDocType } from "@/app/utils/normalizeDocType";
 
 export default function SidebarMenu() {
   const router = useRouter();
@@ -16,10 +17,8 @@ export default function SidebarMenu() {
 
   const profile = session?.user?.profile;
   const isEmployee = profile?.type === "Employee";
-  const isExternalUser =
-    profile?.type === "Visitor" ||
-    profile?.type === "Non_x002D_Resident" ||
-    profile?.type === "Non Resident";
+  const normalizedType = normalizeDocType(profile?.type);
+  const isExternalUser = ["visitor", "non resident"].includes(normalizedType);
 
   const handleNav = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
