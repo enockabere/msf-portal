@@ -15,7 +15,7 @@ interface BankDetails {
   type: string;
   eMail: string;
   gender: string;
-  passportIDNo: string;
+  passportNo: string;
 }
 
 export default function BankDetailsTab() {
@@ -32,7 +32,7 @@ export default function BankDetailsTab() {
     type: "",
     eMail: "",
     gender: "",
-    passportIDNo: "",
+    passportNo: "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -64,7 +64,7 @@ export default function BankDetailsTab() {
             type: d.type || "",
             eMail: d.eMail || "",
             gender: d.gender || "",
-            passportIDNo: d.passportIDNo || "",
+            passportNo: d.passportNo || "",
           });
         } else {
           console.warn("⚠️ No bank data found:", result?.error);

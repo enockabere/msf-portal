@@ -6,6 +6,14 @@ import { useMySetups } from "@/app/context/SetupContext";
 import { Save, Wallet } from "lucide-react";
 import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import FormSelect from "@/app/components/inputs/FormSelect";
+import FormInput from "@/app/components/inputs/FormInput";
+
+const VALID_VISA_OPTIONS = [
+  { code: 'Yes', description: 'Yes' },
+  { code: 'No', description: 'No' },
+  { code: 'Not Need', description: 'No Needed' },
+];
 
 interface VisaApplication {
   documentType: string,
@@ -29,6 +37,7 @@ interface VisaApplicationLine {
   expiryDate: string;
   name?: string;
   exemptFromTravelling: boolean;
+  passportNo: string;
   [key: string]: any;
 }
 
@@ -39,11 +48,13 @@ interface VisaApplicationFormProps {
 interface VisaApplicationCardProps {
   visaApplication: VisaApplication;
   countries: Array<Record<string, any>>;
+  isReadOnly: boolean;
 }
 
 const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
   visaApplication,
-  countries
+  countries,
+  isReadOnly,
 }) => {
   const [formData, setFormData] = useState({
     documentType: visaApplication.documentType,
@@ -84,39 +95,6 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
           message: '',
         }
       });
-
-      // First check if visa application header exists
-      const header = await getResource('visaApplications', {
-        params: {
-          filters: {
-            documentType: formData.documentType,
-            requestNo: formData.requestNo,
-            profileNo: formData.profileNo,
-            visaType: formData.visaType
-          }
-        }
-      })
-
-      if (header.error) {
-        throw new Error(header.error.message)
-      }
-
-      if (!header.value.length) {
-        // If no header, create one first
-        const newHeader = await createResource('visaApplications', {
-          data: {
-            documentType: formData.documentType,
-            requestNo: formData.requestNo,
-            profileNo: formData.profileNo,
-            visaType: formData.visaType,
-            country: formData.country,
-          }
-        })
-
-        if (newHeader.error) {
-          throw new Error(newHeader.error.message)
-        }
-      }
 
       // Process each line individually
       const operations = await Promise.all(
@@ -184,67 +162,67 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
 
               <div className="row g-3 border-bottom pb-2 mb-2">
                 <div className="col-md-6">
-                  <label htmlFor={`countryOfOrigin-${lineIndex}`} className="form-label">
-                    Country of Origin
-                  </label>
-                  <select
-                    className="form-select"
+                  <FormSelect
+                    label="Country of Origin"
                     id={`countryOfOrigin-${lineIndex}`}
-                    value={decodeValue(line.countryOfOrigin)}
-                    onChange={(e) => handleFormChange(lineIndex, 'countryOfOrigin', e.target.value)}
+                    value={line.countryOfOrigin}
+                    onChange={(value) => handleFormChange(lineIndex, 'countryOfOrigin', value)}
+                    options={countries.map(item => ({ code: item.code, description: item.displayName }))}
                     required
-                  >
-                    <option value="">-- Select Country --</option>
-                    {countries.map((item) => (
-                      <option key={item.code} value={item.code}>
-                        {item.displayName}
-                      </option>
-                    ))}
-                  </select>
+                    disabled={isReadOnly}
+                    showAsterisk
+                  />
                 </div>
 
                 <div className="col-md-6">
-                  <label htmlFor={`validVisa-${lineIndex}`} className="form-label">
-                    Valid visa?
-                  </label>
-                  <select
-                    className="form-select"
+                  <FormSelect
+                    label="Valid visa?"
                     id={`validVisa-${lineIndex}`}
                     value={decodeValue(line.validVisa)}
-                    onChange={(e) => handleFormChange(lineIndex, 'validVisa', e.target.value)}
+                    onChange={(value) => handleFormChange(lineIndex, 'validVisa', value)}
+                    options={VALID_VISA_OPTIONS}
                     required
-                  >
-                    <option value="">-- Select Option --</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                    <option value="Not Need">Not Needed</option>
-                  </select>
+                    disabled={isReadOnly}
+                    showAsterisk
+                  />
                 </div>
 
                 {line.validVisa === 'Yes' && (
                   <>
-                    <div className="col-md-6">
-                      <label htmlFor={`dateIssued-${lineIndex}`} className="form-label">
-                        Date issued
-                      </label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        id={`dateIssued-${lineIndex}`}
-                        value={decodeValue(line.dateIssued)}
-                        onChange={(e) => handleFormChange(lineIndex, 'dateIssued', e.target.value)}
+                    <div className="col-md-4">
+                      <FormInput
+                        label="ID/Passport Number"
+                        id={`passportNo-${lineIndex}`}
+                        value={line.passportNo}
+                        onChange={(value) => handleFormChange(lineIndex, 'passportNo', value)}
+                        placeholder="Enter Passport number"
+                        required
+                        disabled={isReadOnly}
+                        showAsterisk
                       />
                     </div>
-                    <div className="col-md-6">
-                      <label htmlFor={`expiryDate-${lineIndex}`} className="form-label">
-                        Expiry Date
-                      </label>
-                      <input
+                    <div className="col-md-4">
+                      <FormInput
+                        label="Date issued"
+                        id={`dateIssued-${lineIndex}`}
+                        value={line.dateIssued}
+                        onChange={(value) => handleFormChange(lineIndex, 'dateIssued', value)}
                         type="date"
-                        className="form-control"
+                        required
+                        disabled={isReadOnly}
+                        showAsterisk
+                      />
+                    </div>
+                    <div className="col-md-4">
+                      <FormInput
+                        label="Expiry Date"
                         id={`expiryDate-${lineIndex}`}
-                        value={decodeValue(line.expiryDate)}
-                        onChange={(e) => handleFormChange(lineIndex, 'expiryDate', e.target.value)}
+                        value={line.expiryDate}
+                        onChange={(value) => handleFormChange(lineIndex, 'expiryDate', value)}
+                        type="date"
+                        required
+                        disabled={isReadOnly}
+                        showAsterisk
                       />
                     </div>
                   </>
@@ -308,62 +286,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         throw new Error(res.error.message);
       }
 
-      const savedApplications = res.value;
-      const applications: VisaApplication[] = [];
-
-      const prepareVisaApplicationLines = (application: VisaApplication) => {
-        const lines: Array<VisaApplicationLine> = [];
-        travelRequest.travellers.forEach((traveller: Record<string, any>) => {
-          const savedLine = application.visaApplicationLines?.find((
-            line: VisaApplicationLine) => line.name === traveller.travellerName
-          );
-
-          lines.push(savedLine || {
-            documentType: traveller.documentType,
-            requestNo: traveller.documentNo,
-            profileNo: traveller.travellerNo,
-            visaType: application.visaType,
-            countryOfOrigin: traveller.countryOfOrigin,
-            validVisa: 'No',
-            dateIssued: '',
-            expiryDate: '',
-            name: traveller.travellerName,
-            exemptFromTravelling: false,
-          });
-        });
-        return lines;
-      };
-
-      travelRequest.travelRequestRoutes.forEach((route: Record<string, any>) => {
-        const savedApplication = savedApplications.find((app: VisaApplication) =>
-          app.documentType === route.documentType
-          && app.requestNo === route.documentNo
-          && app.profileNo === travelRequest.travellerNo
-          && app.visaType === route.visaRequired);
-
-        if (savedApplication) {
-          savedApplication.visaApplicationLines = prepareVisaApplicationLines(savedApplication);
-          applications.push(savedApplication);
-        } else if (route.visaRequired) {
-          applications.push({
-            documentType: route.documentType,
-            requestNo: route.documentNo,
-            profileNo: travelRequest.travellerNo,
-            visaType: route.visaRequired,
-            country: route.destinationCountryCode,
-            visaApplicationLines: prepareVisaApplicationLines({
-              documentType: route.documentType,
-              requestNo: route.documentNo,
-              profileNo: travelRequest.travellerNo,
-              visaType: route.visaRequired,
-              country: route.destinationCountryCode,
-              visaApplicationLines: [],
-            }),
-          });
-        }
-      });
-
-      setVisaApplications(applications);
+      setVisaApplications(res.value);
     } catch (error: any) {
       Swal.fire('Error fetching Visa applications', error.message, 'error');
     } finally {
@@ -380,8 +303,6 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
     travelRequest.no,
     travelRequest.documentType,
     travelRequest.travellerNo,
-    travelRequest.travellers,
-    travelRequest.travelRequestRoutes
   ]);
 
 
@@ -469,6 +390,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
             key={`${application.country}-${key}`}
             visaApplication={application}
             countries={countries}
+            isReadOnly={travelRequest.hasValidVisa}
           />
         ))}
       </div>

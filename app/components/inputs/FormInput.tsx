@@ -2,6 +2,7 @@ import React from "react";
 
 const FormInput = ({
                      label,
+                     id,
                      value,
                      onChange,
                      type = "text",
@@ -11,6 +12,7 @@ const FormInput = ({
                      showAsterisk = false
                    }: {
   label: string;
+  id?: string;
   value: any;
   onChange: (value: any) => void;
   type?: string;
@@ -19,20 +21,21 @@ const FormInput = ({
   disabled?: boolean;
   showAsterisk?: boolean;
 }) => (
-  <div className="col-md-4">
+  <>
     <label className="form-label">
       {label} {showAsterisk && <span className="text-danger">*</span>}
     </label>
     <input
       type={type}
       className="form-control"
+      id={id || label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
       disabled={disabled}
     />
-  </div>
+  </>
 );
 
 export default FormInput;

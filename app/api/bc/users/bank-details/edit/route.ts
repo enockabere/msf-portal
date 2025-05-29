@@ -8,7 +8,7 @@ export async function PATCH(request: Request) {
 
     console.log("Received PATCH body:", body);
 
-    const { no, type, eMail, gender, passportIDNo } = body;
+    const { no, type, eMail, gender, passportNo } = body;
 
     if (!no || !type) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function PATCH(request: Request) {
       type,
       eMail,
       gender,
-      passportIDNo,
+      passportNo,
       currencyCode: body.currency || "",
       bankName: body.bankCode || "",
       bankBranchNo: body.branchNo || "",

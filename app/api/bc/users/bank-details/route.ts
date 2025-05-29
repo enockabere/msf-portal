@@ -12,7 +12,7 @@ interface UserProfile {
   type?: string;
   eMail?: string;
   gender?: string;
-  passportIDNo?: string;
+  passportNo?: string;
 }
 
 interface TransportResponse {
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
           "type",
           "eMail",
           "gender",
-          "passportIDNo",
+          "passportNo",
         ].join(","),
       }
     )) as TransportResponse;
@@ -67,7 +67,7 @@ export async function GET(req: Request) {
         type: profile.type || "",
         eMail: profile.eMail || "",
         gender: profile.gender || "",
-        passportIDNo: profile.passportIDNo || "",
+        passportNo: profile.passportNo || "",
       },
     });
   } catch (error) {

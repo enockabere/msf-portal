@@ -67,7 +67,7 @@ export default function ProfileSettings() {
     const payload = {
       no: profile?.no ?? "",
       type: profile?.type,
-      passportIDNo: profile?.identificationDocumentNo,
+      passportNo: profile?.identificationDocumentNo,
       ...fieldsToSubmit,
     };
 

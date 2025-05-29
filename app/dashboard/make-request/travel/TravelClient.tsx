@@ -19,6 +19,9 @@ export default function TravelClient() {
   const [travelRequests, setTravelRequests] = useState([]);
   const [profile, setProfile] = useState<Record<string, any>>({});
 
+  const user_profile = session?.user?.profile;
+  const isEmployee = user_profile?.type === "Employee";
+
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -138,6 +141,16 @@ export default function TravelClient() {
     },
   ];
 
+  const newTravelButton = isEmployee ? (
+    <button
+      className="btn bg-danger text-white btn-md"
+      onClick={handleNewRequestClick}
+    >
+      <i className="fa fa-plus me-1" />
+      New Travel Request
+    </button>
+  ) : null;
+
   return (
     <div className="page-content dashboard-container p-3">
       {placement === "top" && (
@@ -171,15 +184,7 @@ export default function TravelClient() {
                 layout="horizontal"
                 currentPlacement="top"
                 onPlacementChange={handleChangePlacement}
-                actionButton={
-                  <button
-                    className="btn bg-danger text-white btn-md"
-                    onClick={handleNewRequestClick}
-                  >
-                    <i className="fa fa-plus me-1" />
-                    New Travel Request
-                  </button>
-                }
+                actionButton={newTravelButton}
               />
             </div>
             <div className="col-lg-9">

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       dateOfBirth: body.dateOfBirth,
       gender: body.gender,
       countryRegionCode: body.countryRegionCode,
-      passportIDNo: body.passportIDNo || "",
+      passportNo: body.passportNo || "",
     };
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
