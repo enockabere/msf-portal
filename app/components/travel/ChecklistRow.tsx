@@ -81,6 +81,8 @@ export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistIt
             if (res.error) {
                 throw new Error(res.error.message);
             }
+        } catch (error: any) {
+            Swal.fire('Error saving attachment', error.message, 'error')
         } finally {
             setLoading(false);
         }
@@ -145,7 +147,7 @@ export default function ChecklistRow({ row, fetchChecklist }: { row: ChecklistIt
               <input
                 type="checkbox"
                 checked={has}
-                disabled={row.has === true || loading}
+                disabled={row.verified || loading}
                 onChange={(e) => setHas(e.target.checked)}
                 className="form-check-input"
               />

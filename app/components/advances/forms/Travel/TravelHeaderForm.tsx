@@ -153,194 +153,226 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
         <h6 className="text-dark fw-bold">General information</h6>
         <div className="row g-3">
           {requiredFields.includes('originCountryCode') && (
-            <FormSelect
-              label="Origin Country"
-              value={formData.originCountryCode}
-              onChange={handleCountryChange}
-              options={countries.map(item => ({ code: item.code, description: item.displayName }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Origin Country"
+                value={formData.originCountryCode}
+                onChange={handleCountryChange}
+                options={countries.map(item => ({ code: item.code, description: item.displayName }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('originCity') && (
-            <FormSelect
-              label="Origin City"
-              value={formData.originCity}
-              onChange={(value) => onFormChange('originCity', value)}
-              options={originCities.map(city => ({ code: city.city, description: city.city }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Origin City"
+                value={formData.originCity}
+                onChange={(value) => onFormChange('originCity', value)}
+                options={originCities.map(city => ({ code: city.city, description: city.city }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('TypeOfTravel') && (
-            <FormSelect
-              label="Type of Travel"
-              value={formData.TypeOfTravel}
-              onChange={(value) => onFormChange("TypeOfTravel", value)}
-              options={TRAVEL_TYPES}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Type of Travel"
+                value={formData.TypeOfTravel}
+                onChange={(value) => onFormChange("TypeOfTravel", value)}
+                options={TRAVEL_TYPES}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('modeOfTransport') && (
-            <FormSelect
-              label="Mode of Transport"
-              value={formData.modeOfTransport}
-              onChange={(value) => onFormChange("modeOfTransport", value)}
-              options={modesOfTransport.map(item => ({ code: item.code, description: item.description }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Mode of Transport"
+                value={formData.modeOfTransport}
+                onChange={(value) => onFormChange("modeOfTransport", value)}
+                options={modesOfTransport.map(item => ({ code: item.code, description: item.description }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('purposeOfTravel') && (
-            <FormSelect
-              label="Purpose of Travel"
-              value={formData.purposeOfTravel}
-              onChange={(value) => onFormChange('purposeOfTravel', value)}
-              options={purposeOfTravel.map(item => ({ code: item.code, description: item.description }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Purpose of Travel"
+                value={formData.purposeOfTravel}
+                onChange={(value) => onFormChange('purposeOfTravel', value)}
+                options={purposeOfTravel.map(item => ({ code: item.code, description: item.description }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('annualTrip') && (
-            <FormSelect
-              label="Annual Trip"
-              value={String(formData.annualTrip)}
-              onChange={(value) => onFormChange('annualTrip', value === 'true')}
-              options={YES_NO_OPTIONS}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('passportNo') && (
-            <FormInput
-              label="ID/Passport Number"
-              value={formData.passportNo}
-              onChange={(value) => onFormChange("passportNo", value)}
-              placeholder="Enter ID or Passport number"
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('departureDate') && (
-            <FormInput
-              label="Departure Date"
-              value={formData.departureDate}
-              onChange={(value) => onFormChange('departureDate', value)}
-              type="date"
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('arrivalDate') && (
-            <FormInput
-              label="Arrival Date"
-              value={formData.arrivalDate}
-              onChange={(value) => onFormChange('arrivalDate', value)}
-              type="date"
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('estimatedTimeOfArrival') && (
-            <FormInput
-              label="Expected Time of Arrival"
-              value={formData.estimatedTimeOfArrival?.split(':').slice(0, 2).join(':')}
-              onChange={handleTimeChange}
-              type="time"
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('returnDate') && (
-            <FormInput
-              label="Return Date"
-              value={formData.returnDate}
-              onChange={(value) => onFormChange('returnDate', value)}
-              type="date"
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('accommodationType') && (
-            <FormSelect
-              label="Accommodation Type"
-              value={decodeValue(formData.accommodationType)}
-              onChange={(value) => onFormChange("accommodationType", value)}
-              options={ACCOMMODATION_TYPES}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
-          )}
-
-          {requiredFields.includes('requirePerDiem') &&
-            requiresPerDiemChecker(decodeValue(formData.accommodationType)) && (
+            <div className="col-md-4">
               <FormSelect
-                label="Require Per Diem"
-                value={formData.requirePerDiem}
-                onChange={(value) => onFormChange('requirePerDiem', value === 'true')}
+                label="Annual Trip"
+                value={String(formData.annualTrip)}
+                onChange={(value) => onFormChange('annualTrip', value === 'true')}
                 options={YES_NO_OPTIONS}
                 required
                 disabled={isReadOnly}
                 showAsterisk
               />
+            </div>
+          )}
+
+          {requiredFields.includes('passportNo') && (
+            <div className="col-md-4">
+              <FormInput
+                label="ID/Passport Number"
+                value={formData.passportNo}
+                onChange={(value) => onFormChange("passportNo", value)}
+                placeholder="Enter ID or Passport number"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('departureDate') && (
+            <div className="col-md-4">
+              <FormInput
+                label="Departure Date"
+                value={formData.departureDate}
+                onChange={(value) => onFormChange('departureDate', value)}
+                type="date"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('arrivalDate') && (
+            <div className="col-md-4">
+              <FormInput
+                label="Arrival Date"
+                value={formData.arrivalDate}
+                onChange={(value) => onFormChange('arrivalDate', value)}
+                type="date"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('estimatedTimeOfArrival') && (
+            <div className="col-md-4">
+              <FormInput
+                label="Expected Time of Arrival"
+                value={formData.estimatedTimeOfArrival?.split(':').slice(0, 2).join(':')}
+                onChange={handleTimeChange}
+                type="time"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('returnDate') && (
+            <div className="col-md-4">
+              <FormInput
+                label="Return Date"
+                value={formData.returnDate}
+                onChange={(value) => onFormChange('returnDate', value)}
+                type="date"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('accommodationType') && (
+            <div className="col-md-4">
+              <FormSelect
+                label="Accommodation Type"
+                value={decodeValue(formData.accommodationType)}
+                onChange={(value) => onFormChange("accommodationType", value)}
+                options={ACCOMMODATION_TYPES}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('requirePerDiem') &&
+            requiresPerDiemChecker(decodeValue(formData.accommodationType)) && (
+              <div className="col-md-4">
+                <FormSelect
+                  label="Require Per Diem"
+                  value={formData.requirePerDiem}
+                  onChange={(value) => onFormChange('requirePerDiem', value === 'true')}
+                  options={YES_NO_OPTIONS}
+                  required
+                  disabled={isReadOnly}
+                  showAsterisk
+                />
+              </div>
             )}
 
           {requiredFields.includes('missionType') && formData.requirePerDiem && (
-            <FormSelect
-              label="Type of Mission"
-              value={formData.missionType}
-              onChange={(value) => onFormChange("missionType", value)}
-              options={missionTypes.map(item => ({ code: item.code, description: item.description }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Type of Mission"
+                value={formData.missionType}
+                onChange={(value) => onFormChange("missionType", value)}
+                options={missionTypes.map(item => ({ code: item.code, description: item.description }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('shortcutDimension1Code') && (
-            <FormSelect
-              label="Cost Center"
-              value={formData.shortcutDimension1Code}
-              onChange={(value) => onFormChange('shortcutDimension1Code', value)}
-              options={dimensions.map(d => ({ code: d.code, description: d.name }))}
-              required
-              disabled={isReadOnly}
-              showAsterisk
-            />
+            <div className="col-md-4">
+              <FormSelect
+                label="Cost Center"
+                value={formData.shortcutDimension1Code}
+                onChange={(value) => onFormChange('shortcutDimension1Code', value)}
+                options={dimensions.map(d => ({ code: d.code, description: d.name }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
           )}
 
           {requiredFields.includes('budgetCode') && (
-            <FormInput
-              label="Budget Code"
-              value={formData.budgetCode}
-              onChange={(value) => onFormChange("budgetCode", value)}
-              placeholder="Enter Budget Code"
-              disabled={isReadOnly}
-            />
+            <div className="col-md-4">
+              <FormInput
+                label="Budget Code"
+                value={formData.budgetCode}
+                onChange={(value) => onFormChange("budgetCode", value)}
+                placeholder="Enter Budget Code"
+                disabled={isReadOnly}
+              />
+            </div>
           )}
         </div>
       </div>
