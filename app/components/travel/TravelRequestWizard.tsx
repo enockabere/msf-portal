@@ -872,17 +872,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
       </div>
     )}
 
-      {activeTab === "advance" && (
-          <button
-              className="primary-button"
-              onClick={handleCreateTravelAdvance}
-              disabled={!travelRequestHeader.bookingComplete}
-          >
-            <Plus size={16} />
-            Create Advance
-          </button>
-    )}
-
       {canSubmitForApproval && (
           <button
               className="primary-button"
@@ -903,6 +892,22 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           <CircleX size={16} className="button-icon" />
           Cancel Approval
         </button>
+      )}
+
+      {activeTab === "advance" && (
+          travelRequestHeader.bookingComplete ? (
+              <button
+                  className="primary-button ms-2"
+                  onClick={handleCreateTravelAdvance}
+              >
+                <Plus size={16} />
+                Create Advance
+              </button>
+          ) : (
+              <button className="primary-button ms-2" disabled>
+                Complete booking to create Advance
+              </button>
+          )
       )}
     </div>
   </div>

@@ -31,8 +31,6 @@ const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ glLines, lo
             columns={columns}
             data={glLines}
             loading={loading}
-            filters={'f' as ReactNode}
-            actions={'f' as ReactNode}
             searchPlaceholder="Search GL lines..."
         />
     );

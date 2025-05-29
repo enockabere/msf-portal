@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
-import { createResource, getResource, patchResource } from "@/app/lib/api/http";
+import {codeUnit, createResource, getResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
-import { Save } from "lucide-react";
+import { Save, Wallet } from "lucide-react";
 import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 
@@ -278,7 +278,8 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
 
 const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest }) => {
   const [visaApplications, setVisaApplications] = useState<VisaApplication[]>([]);
-  const { countries } = useMySetups();
+  const [visaAmount, setVisaAmount] = useState<number>(0);
+  const { countries, expenseCodes, fetchSetups } = useMySetups();
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
 
@@ -383,13 +384,86 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
     travelRequest.travelRequestRoutes
   ]);
 
+
+  const createVisaAdvance = useCallback(async () => {
+    try {
+      const res = await codeUnit("createTravelAdvanceFromTravel", {
+        data: { no: travelRequest.no },
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      Swal.fire("Success", "Visa advance created successfully!");
+    } catch (error: any) {
+      Swal.fire("Error creating visa advance", error.message);
+    }
+  }, [travelRequest.no]);
+
+  const createVisaRequestLine = async () => {
+    try {
+      const res = await createResource('travelRequestLine', {
+        data: {
+          documentType: travelRequest.documentType,
+          documentNo: travelRequest.no,
+          billingCode: expenseCodes[0].code,
+          unitAmount: visaAmount
+        },
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      await createVisaAdvance()
+    } catch (error) {
+      Swal.fire("Error creating visa advance", error.message);
+    }
+
+  }
+
+
+
   useEffect(() => {
+    fetchSetups([
+       "countries",
+      {
+        expenseCodes: {
+          $filter: `isVisaFee eq true`
+        }
+      }
+    ]);
     fetchVisaApplications();
   }, [fetchVisaApplications]);
 
   return (
     <div className="row g-3">
       <div className="col-12">
+        <div className="d-flex align-items-center justify-content-end mb-3">
+          <div className="">
+            <label className="form-label">
+              Create Visa advance
+            </label>
+            <input
+                type="number"
+                className="form-control"
+                id="abcd"
+                placeholder="Enter Amount needed"
+                onChange={(e) => setVisaAmount(Number(e.target.value))}
+            />
+          </div>
+          <div className="mt-3">
+            <button
+                className="primary-button ms-2"
+                onClick={createVisaRequestLine}
+                disabled={travelRequest.hasValidVisa}
+            >
+              <Wallet className="me-1" size={16} />
+              Create Visa Advance
+            </button>
+          </div>
+        </div>
         {visaApplications.map((application, key) => (
           <VisaApplicationCard
             key={`${application.country}-${key}`}
