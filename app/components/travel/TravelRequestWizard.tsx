@@ -49,6 +49,8 @@ import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
+import TravelAdvanceForm from "../advances/forms/Travel/TravelAdvanceForm"
+import {useMySetups} from "@/app/context/SetupContext";
 
 // Type definitions
 interface WizardStep {
@@ -125,6 +127,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const { expenseCodes, fetchSetups } = useMySetups();
 
   // Derived values
   const isReadOnly = useMemo(
@@ -279,6 +282,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader.no]);
 
   useEffect(() => {
+    fetchSetups(['expenseCodes'])
+
     if (requestNo) {
       fetchTravelRequest(requestNo);
     }
@@ -407,23 +412,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       });
     }
   }, [fetchTravelRequest, travelRequestHeader.no, dispatcher]);
-
-  const handleCreateTravelAdvance = useCallback(async () => {
-    try {
-      const res = await codeUnit("createTravelAdvanceFromTravel", {
-        data: { no: travelRequestHeader.no },
-      });
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      await fetchTravelRequest(travelRequestHeader.no);
-      Swal.fire("Success", "Travel advance created successfully!");
-    } catch (error: any) {
-      Swal.fire("Error creating advance", error.message);
-    }
-  }, [fetchTravelRequest, travelRequestHeader.no]);
 
   // Step configuration
   const allSteps = useMemo<WizardStep[]>(
@@ -783,8 +771,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleCancelApprovalRequest={handleCancelApprovalRequest}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
-              travelRequestHeader={travelRequestHeader}
-              handleCreateTravelAdvance={handleCreateTravelAdvance}
             />
 
             <StepContent
@@ -799,6 +785,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleFormChange={handleFormChange}
               checklistCount={checklistCount}
               confirmBooking={confirmBooking}
+              expenseCodes={expenseCodes}
             />
 
               <StepActions
@@ -825,8 +812,6 @@ interface StepHeaderProps {
   handleCancelApprovalRequest: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
-  handleCreateTravelAdvance: () => void;
-  travelRequestHeader: TravelRequest;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -839,8 +824,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   handleCancelApprovalRequest,
   downLoadIntroductoryLetter,
   downLoadBtaCertificate,
-  travelRequestHeader,
-  handleCreateTravelAdvance,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">
@@ -897,17 +880,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
         </div>
       )}
 
-      {activeTab === "advance" && (
-        <button
-          className="primary-button"
-          onClick={handleCreateTravelAdvance}
-          disabled={!travelRequestHeader.bookingComplete}
-        >
-          <Plus size={16} />
-          Create Advance
-        </button>
-      )}
-
       {canSubmitForApproval && (
         <button
           className="primary-button"
@@ -945,6 +917,7 @@ interface StepContentProps {
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
   checklistCount: Record<string, number>;
   confirmBooking: (value) => void;
+  expenseCodes: Record<string, any>;
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -959,6 +932,7 @@ const StepContent: React.FC<StepContentProps> = ({
   handleFormChange,
   checklistCount,
   confirmBooking,
+  expenseCodes,
 }) => {
   switch (activeTab) {
     case "info":
@@ -1072,13 +1046,17 @@ const StepContent: React.FC<StepContentProps> = ({
             </div>
           </div>
           <TravelAdvanceDetails travelInfo={travelRequestHeader} />
+          <TravelAdvanceForm
+              expenseCodes={expenseCodes}
+              travelInfo={travelRequestHeader}
+              onSubmit={fetchTravelRequest} />
           <TravelAdvanceGLTable
             glLines={travelRequestHeader?.travelRequestLines}
           />
         </div>
       ) : null;
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader} />;
+      return <VisaApplicationForm travelRequest={travelRequestHeader} onSubmit={fetchTravelRequest} />;
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
         <VisaChecklist travelInfo={travelRequestHeader} />
