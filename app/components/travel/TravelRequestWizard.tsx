@@ -48,7 +48,6 @@ import TravellerChecklist from "@/app/components/advances/forms/Travel/Traveller
 import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
-import { useSession } from "next-auth/react";
 import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
 
 // Type definitions
