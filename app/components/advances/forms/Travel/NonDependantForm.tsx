@@ -3,27 +3,25 @@
 import { useEffect } from "react";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Save, XCircle } from "lucide-react";
+import {NonDependant} from "@/app/types/NonDependant";
 
-interface NonDependant {
-  travellerName: string;
-  countryOfOrigin: string;
-  dob?: string;
-}
 
 interface NonDependantFormProps {
+  index: number;
   form: NonDependant;
   onChange: (field: keyof NonDependant, value: string) => void;
   onSave: () => void;
-  onCancel: () => void;
   loading?: boolean;
+  onRemove: (index: number) => void;
 }
 
 export default function NonDependantForm({
   form,
   onChange,
   onSave,
-  onCancel,
+  onRemove,
   loading = false,
+  index,
 }: NonDependantFormProps) {
   const { countries, fetchSetups } = useMySetups();
 
@@ -78,7 +76,7 @@ export default function NonDependantForm({
       <div className="d-flex justify-content-end mt-3">
         <button
           className="btn btn-secondary me-2 d-flex align-items-center gap-1"
-          onClick={onCancel}
+          onClick={() => onRemove(index)}
         >
           <XCircle size={16} /> Cancel
         </button>

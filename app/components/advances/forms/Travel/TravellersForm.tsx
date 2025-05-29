@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import { TravelRequest } from "@/app/types/travel";
@@ -29,6 +29,7 @@ export default function TravellersForm({
   const [travellers, setTravellers] = useState([]);
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
+  const [traveller, setTraveller] = useState<NonDependant[]>([]);
 
   useEffect(() => {
      fetchTravellers();
@@ -175,6 +176,21 @@ export default function TravellersForm({
     setNewNonDependant({ ...newNonDependant, [field]: value });
   };
 
+  const removeTraveller = useCallback((index: number) => {
+    setTraveller(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const addTraveller = useCallback(() => {
+    setTraveller(prev => [
+      ...prev,
+      {
+        travellerName: '',
+        countryOfOrigin: "",
+        dob: '',
+      },
+    ]);
+  }, []);
+
   return (
     <div className="card mb-4">
       <div className="card-body">
@@ -195,9 +211,7 @@ export default function TravellersForm({
           <button
             type="button"
             className="btn bg-danger text-white btn-md"
-            onClick={() => {
-              setShowModal(true)
-            }}
+            onClick={addTraveller}
           >
             <Plus size={16} />
             Add Non-dependant Travellers
@@ -247,22 +261,18 @@ export default function TravellersForm({
           </tbody>
         </table>
       </div>
-      <CustomModal
-      show={showModal}
-      onClose={() => setShowModal(false)}
-      title="Add Non-Dependant"
-      size="lg"
-      titleIcon={<User size={18} className="text-white" />}
-      >
-        <NonDependantForm
+
+
+      {traveller.map((nonDependent, key) => (
+      <NonDependantForm
+          index={key}
           form={newNonDependant}
           onChange={handleNewFieldChange}
           onSave={handleSaveNonDependant}
-          onCancel={() => setShowModal(false)}
           loading={isSaving}
-        >
-        </NonDependantForm>
-      </CustomModal>
+          onRemove={removeTraveller}
+      />
+      ))}
     </div>
   );
 }
