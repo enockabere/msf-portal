@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 
 interface GLLine {

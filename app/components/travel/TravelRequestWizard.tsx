@@ -413,23 +413,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     }
   }, [fetchTravelRequest, travelRequestHeader.no, dispatcher]);
 
-  const handleCreateTravelAdvance = useCallback(async () => {
-    try {
-      const res = await codeUnit("createTravelAdvanceFromTravel", {
-        data: { no: travelRequestHeader.no },
-      });
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      await fetchTravelRequest(travelRequestHeader.no);
-      Swal.fire("Success", "Travel advance created successfully!");
-    } catch (error: any) {
-      Swal.fire("Error creating advance", error.message);
-    }
-  }, [fetchTravelRequest, travelRequestHeader.no]);
-
   // Step configuration
   const allSteps = useMemo<WizardStep[]>(
     () => [
@@ -788,8 +771,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               handleCancelApprovalRequest={handleCancelApprovalRequest}
               downLoadBtaCertificate={downLoadBtaCertificate}
               downLoadIntroductoryLetter={downLoadIntroductoryLetter}
-              travelRequestHeader={travelRequestHeader}
-              handleCreateTravelAdvance={handleCreateTravelAdvance}
             />
 
             <StepContent
@@ -831,8 +812,6 @@ interface StepHeaderProps {
   handleCancelApprovalRequest: () => Promise<void>;
   downLoadIntroductoryLetter: () => void;
   downLoadBtaCertificate: () => void;
-  handleCreateTravelAdvance: () => void;
-  travelRequestHeader: TravelRequest;
 }
 
 const StepHeader: React.FC<StepHeaderProps> = ({
@@ -845,8 +824,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   handleCancelApprovalRequest,
   downLoadIntroductoryLetter,
   downLoadBtaCertificate,
-  travelRequestHeader,
-  handleCreateTravelAdvance,
 }) => (
   <div className="d-flex align-items-center justify-content-between mb-3 p-2 wizard-bg-gray">
     <h4 className="step-panel-title">

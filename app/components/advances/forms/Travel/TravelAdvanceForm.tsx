@@ -1,13 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {codeUnit, createResource} from "@/app/lib/api/http";
 import { TravelRequest } from "@/app/types/travel";
 import {Wallet} from "lucide-react";
 import Swal from "sweetalert2";
-import {useMySetups} from "@/app/context/SetupContext";
 import SectionLoader from "@/app/components/loaders/SectionLoader";
 
 export default function TravelAdvanceForm({ travelInfo, onSubmit, expenseCodes  }: { travelInfo: TravelRequest, onSubmit: () => void, expenseCodes: Record<string, any>}) {
-    // const { expenseCodes, fetchSetups } = useMySetups();
     const [advanceAmount, setAdvanceAmount] = useState<number>(0);
     const [billingCode, setBillingCode] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -55,11 +53,6 @@ export default function TravelAdvanceForm({ travelInfo, onSubmit, expenseCodes  
         }
 
     }
-
-    useEffect(() => {
-        // fetchSetups(['expenseCodes'])
-        console.log('expenseCodes', expenseCodes)
-    }, [travelInfo.no]);
 
     return (
         <div className="">
