@@ -307,7 +307,6 @@ export default function SidebarMenu() {
           {[
             "FAQs",
             "Submit a Ticket",
-            "Contact IT/Admin/HR",
             "Documentation",
           ].map((label, index) => (
             <li className="nav-item" key={index}>

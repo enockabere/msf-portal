@@ -35,7 +35,7 @@ export default function SidebarUserInfo() {
 
   if (status === "loading" || !session || !session.user?.profile) {
     return (
-      <div className="update-msg text-center">
+      <div className="update-msg text-center w-100">
         <div className="d-flex justify-content-center align-items-center thumb-lg update-icon-box rounded-circle mx-auto">
           <Skeleton circle width={48} height={48} />
         </div>
@@ -65,7 +65,7 @@ export default function SidebarUserInfo() {
   }
 
   return (
-    <div className="update-msg text-center">
+    <div className="update-msg text-center w-100">
       <div className="d-flex justify-content-center align-items-center thumb-lg update-icon-box rounded-circle mx-auto">
         <i className="iconoir-user h3 align-self-center mb-0 text-danger"></i>
       </div>

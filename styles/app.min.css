@@ -1747,7 +1747,7 @@ html[data-startbar="dark"] .logo-dark {
 .update-msg {
   border-radius: 5px;
   padding: 1.5rem 12px;
-  margin: 50px 16px 16px;
+  margin: 50px 0px;
   position: relative;
   background-color: rgba(236, 35, 43, 0.08);
 }
