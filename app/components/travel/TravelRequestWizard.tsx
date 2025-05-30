@@ -6,7 +6,6 @@ import {
   ListChecks,
   Globe,
   Briefcase,
-  FilePlus2,
   ArrowLeft,
   ArrowRight,
   Save,
@@ -106,12 +105,6 @@ const INITIAL_TRAVEL_REQUEST: TravelRequest = {
   missionType: "",
 };
 
-const WORK_PERMIT_FIELDS = [
-  { id: "country", label: "Country of Work", type: "text" },
-  { id: "duration", label: "Duration (days)", type: "number" },
-  { id: "documents", label: "Required Documents", type: "file" },
-];
-
 export default function TravelRequestWizard({ requestNo, profile }: Props) {
   // State management
   const [activeTab, setActiveTab] = useState("info");
@@ -121,7 +114,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
   const [checklistCount, setChecklistCount] = useState<Record<string, number>>({totalVisaCount: 0, totalTravelCount: 0})
   const { actions } = usePageLoader();
@@ -255,15 +247,18 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     setRequiredFieldsBasedOnProfile();
   }, [profile, requestNo]);
 
+  const fetchTravelRequestResource = useCallback(async (requestNo: string) => {
+    return await getResource('travelRequests', {
+      params: {
+        filters: { no: requestNo },
+        '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications,travelTypeStage",
+      }
+    })
+  }, [])
+
   const fetchTravelRequest = useCallback(async (requestNo?: string) => {
     try {
-      setIsLoading(true);
-      const res = await getResource('travelRequests', {
-        params: {
-          filters: { no: requestNo ?? travelRequestHeader.no },
-          '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications,travelTypeStage",
-        }
-      });
+      const res = await fetchTravelRequestResource(requestNo ?? travelRequestHeader.no);
 
       if (res.error) {
         throw new Error(res.error.message);
@@ -276,18 +271,50 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       setChecklistCount(checklistCounter(header.travellers));
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
-    } finally {
-      setIsLoading(false);
     }
-  }, [travelRequestHeader.no]);
+  }, [fetchTravelRequestResource, travelRequestHeader.no]);
 
   useEffect(() => {
-    fetchSetups(['expenseCodes'])
+    const loadHeaderRequest = async (requestNo: string) => {
+      try {
+        dispatcher({
+          type: "PATCH_LOADING_STATE",
+          payload: {
+            loading: true,
+            message: "Fetching Request",
+          },
+        });
+
+        const res = await fetchTravelRequestResource(requestNo);
+
+        if (res.error) {
+          throw new Error(res.error.message);
+        }
+
+        const header = res.value.at(0)
+
+        setTravelRequestHeader(prev => ({ ...prev, ...header}));
+
+        setChecklistCount(checklistCounter(header.travellers));
+      } catch (error: any) {
+        console.error('Error fetching travel request:', error.message);
+      } finally {
+        dispatcher({
+          type: "PATCH_LOADING_STATE",
+          payload: {
+            loading: false,
+            message: "",
+          },
+        });
+      }
+    };
 
     if (requestNo) {
-      fetchTravelRequest(requestNo);
+      loadHeaderRequest(requestNo);
     }
-  }, [fetchTravelRequest, requestNo]);
+
+    fetchSetups(['expenseCodes']);
+  }, [dispatcher, fetchSetups, fetchTravelRequestResource, requestNo]);
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
@@ -315,7 +342,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       const knownSchema = pickKeys(strippedPayload, keysToRetain);
       knownSchema.documentType = decodeValue(knownSchema.documentType);
 
-      setIsSaving(true);
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: {
+          loading: true,
+          message: "Saving Request",
+        },
+      });
       const operation = knownSchema.no
         ? patchResource("travelRequests", {
             data: knownSchema,
@@ -333,7 +366,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error: any) {
       Swal.fire("Error saving request!", error.message);
     } finally {
-      setIsSaving(false);
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: {
+          loading: false,
+          message: "",
+        },
+      });
     }
   };
 
@@ -459,12 +498,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         desc: "Visa details",
       },
       {
-        id: "permit",
-        icon: <FilePlus2 size={18} />,
-        title: "Work Permit",
-        desc: "Work authorization",
-      },
-      {
         id: "advance",
         icon: <Briefcase size={18} />,
         title: "Travel Advance",
@@ -529,7 +562,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           baseVisitorSteps.push("advance");
         }
 
-        const steps = [...baseVisitorSteps, "providers", "permit"];
+        const steps = [...baseVisitorSteps, "providers"];
         return steps.map((id) => allSteps.find((s) => s.id === id)!);
       }
     } else {
@@ -778,8 +811,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               travelRequestHeader={travelRequestHeader}
               headerRequiredFields={headerRequiredFields}
               isReadOnly={isReadOnly}
-              isLoading={isLoading}
-              isSaving={isSaving}
               saveTravelRequestHeader={saveTravelRequestHeader}
               fetchTravelRequest={fetchTravelRequest}
               handleFormChange={handleFormChange}
@@ -910,8 +941,6 @@ interface StepContentProps {
   travelRequestHeader: TravelRequest;
   headerRequiredFields: string[];
   isReadOnly: boolean;
-  isLoading: boolean;
-  isSaving: boolean;
   saveTravelRequestHeader: () => Promise<void>;
   fetchTravelRequest: () => Promise<void>;
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
@@ -925,8 +954,6 @@ const StepContent: React.FC<StepContentProps> = ({
   travelRequestHeader,
   headerRequiredFields,
   isReadOnly,
-  isSaving,
-  isLoading,
   saveTravelRequestHeader,
   fetchTravelRequest,
   handleFormChange,
@@ -936,11 +963,7 @@ const StepContent: React.FC<StepContentProps> = ({
 }) => {
   switch (activeTab) {
     case "info":
-      return isLoading ? (
-        <div className={"col-12 text-center"}>
-          <SectionLoader size={32} />
-        </div>
-      ) : (
+      return (
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -959,13 +982,8 @@ const StepContent: React.FC<StepContentProps> = ({
               <button
                 type="submit"
                 className="primary-button"
-                disabled={isSaving}
               >
-                {isSaving ? (
-                  <SectionLoader classes={"button-icon"} />
-                ) : (
-                  <Save size={16} className="button-icon" />
-                )}
+                <Save size={16} className="button-icon" />
                 Save & Continue
               </button>
             </div>
@@ -990,36 +1008,6 @@ const StepContent: React.FC<StepContentProps> = ({
       );
     case "providers":
       return <ServiceProvidersList travelRequest={travelRequestHeader} />;
-    case "permit":
-      return (
-        <div className="permit-form">
-          <div className="permit-notice mb-4">
-            <p className="notice-text">
-              <strong>Note:</strong> Work permit applications typically take 3-4
-              weeks to process. Please ensure all documents are uploaded
-              completely and accurately.
-            </p>
-          </div>
-          <div className="form-grid">
-            {WORK_PERMIT_FIELDS.map((field) => (
-              <div key={field.id} className="form-group">
-                <label htmlFor={field.id}>{field.label}</label>
-                <input
-                  type={field.type}
-                  id={field.id}
-                  className="form-control"
-                  onChange={(e) =>
-                    handleFormChange(
-                      field.id as keyof TravelRequest,
-                      field.type === "file" ? e.target.files : e.target.value
-                    )
-                  }
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
     case "advance":
       return travelRequestHeader.hasValidVisa ? (
         <div>
