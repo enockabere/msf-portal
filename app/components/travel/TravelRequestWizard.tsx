@@ -1039,7 +1039,7 @@ const StepContent: React.FC<StepContentProps> = ({
               travelInfo={travelRequestHeader}
               onSubmit={fetchTravelRequest} />
           <TravelAdvanceGLTable
-            glLines={travelRequestHeader?.travelRequestLines}
+              travelInfo={travelRequestHeader}
           />
         </div>
       ) : null;
