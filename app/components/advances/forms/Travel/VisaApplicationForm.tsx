@@ -421,7 +421,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
 
         <TravelAdvanceGLTable
             type="visa"
-            glLines={travelRequest?.travelRequestLines.filter(advance => advance.billingCode	=== 'VISA')}
+            travelInfo={travelRequest}
         />
         {visaApplications.map((application, key) => (
           <VisaApplicationCard

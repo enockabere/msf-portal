@@ -34,7 +34,6 @@ import {
   pickKeys,
   removeNullAndUndefinedFromObject,
 } from "@/app/utils/helpers";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
@@ -113,7 +112,6 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     INITIAL_TRAVEL_REQUEST
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
   const [checklistCount, setChecklistCount] = useState<Record<string, number>>({totalVisaCount: 0, totalTravelCount: 0})
   const { actions } = usePageLoader();
@@ -1039,7 +1037,7 @@ const StepContent: React.FC<StepContentProps> = ({
               travelInfo={travelRequestHeader}
               onSubmit={fetchTravelRequest} />
           <TravelAdvanceGLTable
-            glLines={travelRequestHeader?.travelRequestLines}
+              travelInfo={travelRequestHeader}
           />
         </div>
       ) : null;
