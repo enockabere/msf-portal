@@ -86,6 +86,9 @@ export default function TravelAdvanceForm({
     return (
         <div>
             <h4>Create Travel Advance Lines</h4>
+            <div className="alert alert-primary" role="alert">
+                <strong>Note:</strong> Create advance items before creating the <strong>Travel Advance</strong>
+            </div>
 
             {lines.map((line, index) => (
                 <div key={index} className="d-flex align-items-center mb-3 row">
@@ -136,11 +139,11 @@ export default function TravelAdvanceForm({
                             }
                         >
                             {loading ? (
-                                <SectionLoader size={16} />
+                                <SectionLoader size={16}/>
                             ) : (
                                 <span>
-                  <Wallet className="me-1" size={16} />
-                  Add Travel line
+                  <Wallet className="me-1" size={16}/>
+                  create advance item
                 </span>
                             )}
                         </button>
@@ -153,7 +156,7 @@ export default function TravelAdvanceForm({
                     className="btn btn-sm btn-outline-primary"
                     onClick={addNewLine}
                 >
-                    + Add another line
+                    + Add another advance item
                 </button>
             </div>
 
@@ -168,10 +171,10 @@ export default function TravelAdvanceForm({
                     }
                 >
                     {loading ? (
-                        <SectionLoader size={16} />
+                        <SectionLoader size={16}/>
                     ) : (
                         <span>
-              <Wallet className="me-1" size={16} />
+              <Wallet className="me-1" size={16}/>
               Create Travel Advance
             </span>
                     )}
