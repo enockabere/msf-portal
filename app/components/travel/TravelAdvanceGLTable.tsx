@@ -26,10 +26,14 @@ const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ travelInfo,
 
     const columns = [
         { name: "Number", selector: (row: Advance) => row.no, sortable: true },
-        { name: "currency", selector: (row: Advance) => row.currencyCode, sortable: true },
         { name: "Description", selector: (row: Advance) => row.description, sortable: true },
         { name: "status", selector: (row: Advance) => row.status, sortable: true },
-        { name: "Amount", selector: (row: Advance) => row.amount, sortable: true },
+        {
+            name: "Amount",
+            selector: (row: Advance) =>
+                `${row.currencyCode || "KES"
+                } ${row.amount.toLocaleString()}`,
+            sortable: true, },
         { name: "Actions",
             cell: (row: Advance) => (
                 <button
