@@ -21,6 +21,7 @@ import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { useSearchParams } from 'next/navigation';
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -49,6 +50,18 @@ export default function OtherAdvancesClient() {
   const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
   const { actions: loaderActions } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
+  const searchParams = useSearchParams();
+  const advanceNo = searchParams?.get('advanceNo');
+
+
+  useEffect(() => {
+    if (advanceNo && advanceData.length) {
+      const advance = advanceData.find(a => a.no === advanceNo);
+      if (advance) {
+        handleSetSelectedRow(advance as FormData);
+      }
+    }
+  }, [advanceNo, advanceData]);
 
   const fetchAdvances = useCallback(async () => {
     const employeeNo = session?.user?.profile?.no;
