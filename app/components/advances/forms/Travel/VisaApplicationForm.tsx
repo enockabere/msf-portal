@@ -45,6 +45,7 @@ interface VisaApplicationLine {
 interface VisaApplicationFormProps {
   travelRequest: TravelRequest;
   onSubmit: () => void;
+  expenseCodes: Record<string, any>
 }
 
 interface VisaApplicationCardProps {
@@ -329,10 +330,10 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
   );
 };
 
-const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest, onSubmit }) => {
+const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest, onSubmit, expenseCodes }) => {
   const [visaApplications, setVisaApplications] = useState<VisaApplication[]>([]);
   const [visaAmount, setVisaAmount] = useState<number>(0);
-  const { countries, expenseCodes, fetchSetups } = useMySetups();
+  const { countries, fetchSetups } = useMySetups();
   const { actions, loading } = usePageLoader();
   const { dispatcher } = actions;
 
@@ -418,11 +419,13 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         }
       });
 
+      const visaCode = expenseCodes.find(item => item.isVisaFee ).code
+
       const res = await createResource('travelRequestLine', {
         data: {
           documentType: travelRequest.documentType,
           documentNo: travelRequest.no,
-          billingCode: expenseCodes[0].code,
+          billingCode: visaCode,
           unitAmount: visaAmount
         },
       });
@@ -459,7 +462,6 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
       }
     ]);
     fetchVisaApplications();
-    console.log('travelRequest', travelRequest)
   }, [fetchVisaApplications, travelRequest.no]);
 
   return (
