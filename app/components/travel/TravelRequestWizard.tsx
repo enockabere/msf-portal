@@ -1042,7 +1042,7 @@ const StepContent: React.FC<StepContentProps> = ({
         </div>
       ) : null;
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader} onSubmit={fetchTravelRequest} />;
+      return <VisaApplicationForm travelRequest={travelRequestHeader} expenseCodes={expenseCodes} onSubmit={fetchTravelRequest} />;
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
         <VisaChecklist travelInfo={travelRequestHeader} />
