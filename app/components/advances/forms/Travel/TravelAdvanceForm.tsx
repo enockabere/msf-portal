@@ -36,6 +36,7 @@ export default function TravelAdvanceForm({
         setLines(updated);
     };
 
+    const travelExpenseCoded = expenseCodes.filter((code) => code.imprestType === 'TRAVEL')
 
 
     const handleAddLine = async (index: number) => {
@@ -106,7 +107,7 @@ export default function TravelAdvanceForm({
                             required
                         >
                             <option value="">-- Select Expense Code --</option>
-                            {expenseCodes.map((item: any) => (
+                            {travelExpenseCoded.map((item: any) => (
                                 <option key={item.code} value={item.code}>
                                     {item.description}
                                 </option>
