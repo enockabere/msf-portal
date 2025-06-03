@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
 import {codeUnit, createResource, getResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
@@ -53,6 +53,140 @@ interface VisaApplicationCardProps {
   isReadOnly: boolean;
 }
 
+interface VisaApplicationLineProps {
+  line: VisaApplicationLine;
+  lineIndex: number;
+  isReadOnly: boolean;
+  countries: Array<Record<string, any>>;
+  onFormChange: (index: number, field: string, value: string) => void;
+}
+
+const VisaApplicationCardLine: React.FC<VisaApplicationLineProps> = ({line, lineIndex, isReadOnly, countries, onFormChange}) => {
+  const [formData, setFormData] = useState({
+    documentType: line.documentType,
+    requestNo: line.requestNo,
+    profileNo: line.profileNo,
+    visaType: line.visaType,
+    lineNo: line.lineNo,
+    exemptFromTravelling: line.exemptFromTravelling
+  });
+
+  const canExemptFromTravelling = useMemo(() => line.validVisa === 'No', [line.validVisa])
+
+  const handleInputChange = async (value: boolean) => {
+    setFormData((prev) => ({...prev, exemptFromTravelling: value}));
+
+    try {
+      const res = await patchResource("visaApplicationLines", {
+        data: formData,
+        primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType', 'lineNo']
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+    } catch (error: any) {
+      Swal.fire("Error updating Visa application line", error.message, "error");
+    }
+  }
+
+  return (
+    <div className="traveller-section">
+      <div className="d-flex justify-content-between">
+        <h5 className="card-title fs-14 fw-bold">
+          Traveller: {line.name || 'N/A'}
+        </h5>
+        {canExemptFromTravelling && (
+          <div className="form-check form-switch">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id={`exempt-switch-${line.lineNo}`}
+              checked={formData.exemptFromTravelling}
+              onChange={(e) => handleInputChange(e.target.checked)}
+            />
+            <label
+              className="form-check-label"
+              htmlFor={`exempt-switch-${line.lineNo}`}>
+              Exempt from travelling
+            </label>
+          </div>
+        )}
+      </div>
+
+      <div className="row g-3 border-bottom pb-2 mb-2">
+        <div className="col-md-6">
+          <FormSelect
+            label="Country of Origin"
+            id='countryOfOrigin'
+            value={line.countryOfOrigin}
+            onChange={(value) => onFormChange(lineIndex, 'countryOfOrigin', value)}
+            options={countries.map(item => ({ code: item.code, description: item.displayName }))}
+            required
+            disabled={isReadOnly}
+            showAsterisk
+          />
+        </div>
+
+        <div className="col-md-6">
+          <FormSelect
+            label="Valid visa?"
+            id={`validVisa-${lineIndex}`}
+            value={decodeValue(line.validVisa)}
+            onChange={(value) => onFormChange(lineIndex, 'validVisa', value)}
+            options={VALID_VISA_OPTIONS}
+            required
+            disabled={isReadOnly}
+            showAsterisk
+          />
+        </div>
+
+        {line.validVisa === 'Yes' && (
+          <>
+            <div className="col-md-4">
+              <FormInput
+                label="ID/Passport Number"
+                id={`passportNo-${lineIndex}`}
+                value={line.passportNo}
+                onChange={(value) => onFormChange(lineIndex, 'passportNo', value)}
+                placeholder="Enter Passport number"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+            <div className="col-md-4">
+              <FormInput
+                label="Date issued"
+                id={`dateIssued-${lineIndex}`}
+                value={line.dateIssued}
+                onChange={(value) => onFormChange(lineIndex, 'dateIssued', value)}
+                type="date"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+            <div className="col-md-4">
+              <FormInput
+                label="Expiry Date"
+                id={`expiryDate-${lineIndex}`}
+                value={line.expiryDate}
+                onChange={(value) => onFormChange(lineIndex, 'expiryDate', value)}
+                type="date"
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
   visaApplication,
   countries,
@@ -101,11 +235,22 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
       // Process each line individually
       const operations = await Promise.all(
         formData.visaApplicationLines.map(async (line: VisaApplicationLine, key: number) => {
-          const payload = removeNullAndUndefinedFromObject(line);
+          const payload = {
+            documentType: line.documentType,
+            requestNo: line.requestNo,
+            profileNo: line.profileNo,
+            visaType: line.visaType,
+            lineNo: line.lineNo,
+            countryOfOrigin: line.countryOfOrigin,
+            validVisa: line.validVisa,
+            dateIssued: line.dateIssued,
+            expiryDate: line.expiryDate,
+            passportNo: line.passportNo,
+          };
 
           return line.lineNo
             ? await patchResource('visaApplicationLines', {
-              data: payload,
+              data: removeNullAndUndefinedFromObject(payload),
               primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType', 'lineNo']
             })
             : await createResource('visaApplicationLines', { data: { ...payload, lineNo: (key + 1)} });
@@ -122,6 +267,7 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
       });
 
       if (hasError) {
+        console.log("Responses", operations);
         throw new Error('Some operations failed');
       }
 
@@ -157,80 +303,7 @@ const VisaApplicationCard: React.FC<VisaApplicationCardProps> = ({
       <div className="card bg-light border mt-2">
         <form onSubmit={handleSubmit} className="card-body">
           {formData.visaApplicationLines.map((line, lineIndex) => (
-            <div key={lineIndex} className="traveller-section">
-              <h5 className="card-title fs-14 fw-bold">
-                Traveller: {line.name || 'N/A'}
-              </h5>
-
-              <div className="row g-3 border-bottom pb-2 mb-2">
-                <div className="col-md-6">
-                  <FormSelect
-                    label="Country of Origin"
-                    id={`countryOfOrigin-${lineIndex}`}
-                    value={line.countryOfOrigin}
-                    onChange={(value) => handleFormChange(lineIndex, 'countryOfOrigin', value)}
-                    options={countries.map(item => ({ code: item.code, description: item.displayName }))}
-                    required
-                    disabled={isReadOnly}
-                    showAsterisk
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <FormSelect
-                    label="Valid visa?"
-                    id={`validVisa-${lineIndex}`}
-                    value={decodeValue(line.validVisa)}
-                    onChange={(value) => handleFormChange(lineIndex, 'validVisa', value)}
-                    options={VALID_VISA_OPTIONS}
-                    required
-                    disabled={isReadOnly}
-                    showAsterisk
-                  />
-                </div>
-
-                {line.validVisa === 'Yes' && (
-                  <>
-                    <div className="col-md-4">
-                      <FormInput
-                        label="ID/Passport Number"
-                        id={`passportNo-${lineIndex}`}
-                        value={line.passportNo}
-                        onChange={(value) => handleFormChange(lineIndex, 'passportNo', value)}
-                        placeholder="Enter Passport number"
-                        required
-                        disabled={isReadOnly}
-                        showAsterisk
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <FormInput
-                        label="Date issued"
-                        id={`dateIssued-${lineIndex}`}
-                        value={line.dateIssued}
-                        onChange={(value) => handleFormChange(lineIndex, 'dateIssued', value)}
-                        type="date"
-                        required
-                        disabled={isReadOnly}
-                        showAsterisk
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <FormInput
-                        label="Expiry Date"
-                        id={`expiryDate-${lineIndex}`}
-                        value={line.expiryDate}
-                        onChange={(value) => handleFormChange(lineIndex, 'expiryDate', value)}
-                        type="date"
-                        required
-                        disabled={isReadOnly}
-                        showAsterisk
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            <VisaApplicationCardLine key={lineIndex} line={line} lineIndex={lineIndex} isReadOnly={isReadOnly} countries={countries} onFormChange={handleFormChange}/>
           ))}
 
           <div className="row g-3">
