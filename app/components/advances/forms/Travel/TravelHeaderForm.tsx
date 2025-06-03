@@ -222,19 +222,28 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
             </div>
           )}
 
-          {requiredFields.includes('annualTrip') && (
+          {requiredFields.includes('annualTrip') && formData.citizenNonCitizen === 'Non-Citizen' && (
             <div className="col-md-4">
-              <FormSelect
-                label="Annual Trip"
-                value={String(formData.annualTrip)}
-                onChange={(value) => onFormChange('annualTrip', value === 'true')}
-                options={YES_NO_OPTIONS}
-                required
-                disabled={isReadOnly}
-                showAsterisk
-              />
+              <label className="form-label d-block">
+                Annual Trip <span className="text-danger">*</span>
+              </label>
+              <div className="form-check form-switch">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="annualTripSwitch"
+                  checked={formData.annualTrip}
+                  onChange={(e) => onFormChange('annualTrip', e.target.checked)}
+                  disabled={isReadOnly}
+                  required
+                />
+                <label className="form-check-label" htmlFor="annualTripSwitch">
+                  {formData.annualTrip ? 'Yes' : 'No'}
+                </label>
+              </div>
             </div>
           )}
+
 
           {requiredFields.includes('passportNo') && (
             <div className="col-md-4">
