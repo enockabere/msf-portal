@@ -194,6 +194,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     const initializeProfileData = () => {
       const baseData = {
         documentType: decodeValue(profile.type),
+        citizenNonCitizen: profile.citizenNonCitizen,
         travellerNo: profile.no,
         createdbyProfileNo: profile.no,
         passportNo: profile.passportNo || '',
