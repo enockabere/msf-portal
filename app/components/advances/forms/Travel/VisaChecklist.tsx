@@ -3,132 +3,123 @@ import { getResource } from "@/app/lib/api/http";
 import { TravelRequest } from "@/app/types/travel";
 import ChecklistRow from "@/app/components/travel/ChecklistRow";
 import { ChecklistItem } from "@/app/types/ChecklistItem";
+import { usePageLoader } from "@/app/context/PageLoaderContext";
+import Swal from "sweetalert2";
 
 interface GroupedChecklist {
-    [travellerName: string]: ChecklistItem[];
+  [travellerName: string]: ChecklistItem[];
 }
 
 export default function VisaChecklist({ travelInfo }: { travelInfo: TravelRequest }) {
-    const [visaChecklist, setVisaChecklist] = useState<ChecklistItem[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [visaChecklist, setVisaChecklist] = useState<GroupedChecklist>({});
+  const { actions } = usePageLoader();
+  const { dispatcher } = actions;
 
-    const fetchVisaChecklist = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const res = await getResource('travellerChecklist', {
-                params: {
-                    filters: {
-                        documentNo: travelInfo.no,
-                        documentType: travelInfo.documentType,
-                        checklistType: "Visa",
-                        verified: false,
-                    }
-                }
-            });
-
-            if (res.error) {
-                throw new Error(res.error.message || 'Failed to fetch visa checklist');
-            }
-
-            setVisaChecklist(res.value || []);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
-            console.error('Error fetching visa checklist:', err);
-        } finally {
-            setLoading(false);
+  const fetchVisaChecklist = useCallback(async () => {
+    try {
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: true,
+          message: 'Fetching visa checklist...',
         }
-    }, [travelInfo.no, travelInfo.documentType]);
+      });
 
-    const groupByTravellerName = useCallback((items: ChecklistItem[]): GroupedChecklist => {
-        return items.reduce((acc: GroupedChecklist, item) => {
-            const name = item.travellerName || 'Unknown Traveller';
-            if (!acc[name]) {
-                acc[name] = [];
-            }
-            acc[name].push(item);
-            return acc;
-        }, {});
-    }, []);
+      const res = await getResource('travellerChecklist', {
+        params: {
+          filters: {
+            documentNo: travelInfo.no,
+            documentType: travelInfo.documentType,
+            checklistType: "Visa",
+            verified: false,
+          },
+          "$expand": `attachments($select=keyID,documentCode)`
+        }
+      });
 
-    useEffect(() => {
-        fetchVisaChecklist();
-    }, [fetchVisaChecklist]);
+      if (res.error) {
+        throw new Error(res.error.message || 'Failed to fetch visa checklist');
+      }
 
-    const groupedChecklist = groupByTravellerName(visaChecklist);
-    const hasChecklistItems = Object.keys(groupedChecklist).length > 0;
+      const groupedCheckList = res.value.reduce((acc: GroupedChecklist, item: ChecklistItem) => {
+        const name = item.travellerName || 'Unknown Traveller';
+        if (!acc[name]) {
+          acc[name] = [];
+        }
+        acc[name].push(item);
+        return acc;
+      }, {});
 
-    return (
-      <div className="row g-3">
-          <div className="col-12">
-              <div className="alert alert-info">
-                  <p className="mb-0">
-                      Click this link to request for your travel voucher: {' '}
-                      <a
-                        href="https://fcmtravel.co.ke/msf/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary"
-                      >
-                          fcmtravel.co.ke/msf
-                      </a>
-                  </p>
-              </div>
+      setVisaChecklist(groupedCheckList);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      await Swal.fire("Error fetching checklist", errorMessage, "error");
+    } finally {
+      dispatcher({
+        type: 'PATCH_LOADING_STATE',
+        payload: {
+          loading: false,
+          message: '',
+        }
+      });
+    }
+  }, [dispatcher, travelInfo.no, travelInfo.documentType]);
 
-              {loading ? (
-                <div className="text-center py-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-              ) : error ? (
-                <div className="alert alert-danger">
-                    {error} {' '}
-                    <button
-                      onClick={fetchVisaChecklist}
-                      className="btn btn-sm btn-outline-danger"
-                    >
-                        Retry
-                    </button>
-                </div>
-              ) : hasChecklistItems ? (
-                Object.entries(groupedChecklist).map(([travellerName, items]) => (
-                  <div key={travellerName} className="mb-4">
-                      <div className="bg-danger p-2 rounded">
-                          <h5 className="text-white fw-bold m-0">{travellerName}</h5>
-                      </div>
+  useEffect(() => {
+    fetchVisaChecklist();
+  }, [fetchVisaChecklist]);
 
-                      <div className="table-responsive">
-                          <table className="table table-hover align-middle mt-2">
-                              <thead className="table-light">
-                              <tr>
-                                  <th>Item - Description</th>
-                                  <th>Attachment</th>
-                                  <th>Verify</th>
-                                  <th>Action</th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {items.map((row) => (
-                                <ChecklistRow
-                                  key={`${row.lineNo}-${row.checklistItem}`}
-                                  row={row}
-                                  fetchChecklist={fetchVisaChecklist}
-                                />
-                              ))}
-                              </tbody>
-                          </table>
-                      </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-muted py-4">
-                    No visa checklist items found.
-                </div>
-              )}
+  return (
+    <div className="row g-3">
+      <div className="col-12">
+        <div className="alert alert-info">
+          <p className="mb-0">
+            Click this link to request for your travel voucher: {' '}
+            <a
+              href="https://fcmtravel.co.ke/msf/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary fw-bold"
+            >
+              fcmtravel.co.ke/msf
+            </a>
+          </p>
+        </div>
+
+        {Object.entries(visaChecklist).map(([travellerName, items]) => (
+          <div key={travellerName} className="mb-4">
+            <div className="bg-danger p-2 rounded">
+              <h5 className="text-white fw-bold m-0">{travellerName}</h5>
+            </div>
+
+            <div className="table-responsive">
+              <table className="table table-hover align-middle mt-2">
+                <thead className="table-light">
+                <tr>
+                  <th>Item Description</th>
+                  <th>Attachment</th>
+                  <th className="text-end">Has Item</th>
+                </tr>
+                </thead>
+                <tbody>
+                {items.map((row) => (
+                  <ChecklistRow
+                    key={`${row.lineNo}-${row.checklistItem}-${row.travellerName}`}
+                    row={row}
+                  />
+                ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+        ))}
+
+        {Object.keys(visaChecklist).length === 0 && (
+          <div className="alert alert-warning mt-3">
+            No visa checklist items found for this travel request.
+          </div>
+        )}
       </div>
-    );
+    </div>
+  );
 }

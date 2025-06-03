@@ -343,7 +343,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         type: 'PATCH_LOADING_STATE',
         payload: {
           loading: true,
-          message: '',
+          message: 'Fetching required visas...',
         }
       });
 

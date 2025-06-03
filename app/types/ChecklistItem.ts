@@ -13,4 +13,5 @@ export interface ChecklistItem {
     renewable: boolean;
     verified: boolean;
     relatedDocumentCode: string;
+    [key: string]: any;
 }
