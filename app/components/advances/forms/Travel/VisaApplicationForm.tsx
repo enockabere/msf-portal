@@ -450,8 +450,6 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
 
   }
 
-
-
   useEffect(() => {
     fetchSetups([
        "countries",
@@ -462,7 +460,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
       }
     ]);
     fetchVisaApplications();
-  }, [fetchVisaApplications, travelRequest.no]);
+  }, [fetchSetups, fetchVisaApplications, travelRequest.no]);
 
   return (
     <div className="row g-3">
