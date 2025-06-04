@@ -48,7 +48,14 @@ export default function SalaryAdvanceFields({
     if (currency === "KES") {
       return paymentMethods;
     }
-    return paymentMethods.filter((pm) => pm.code !== "MPESA");
+    const allowCash =
+      currency === "KES" || currency === "EUR" || currency === "";
+
+    return paymentMethods.filter((pm) => {
+      if (pm.code === "MPESA" && currency !== "KES") return false;
+      if (pm.code === "CASH" && !allowCash) return false;
+      return true;
+    });
   }, [currency, currencyChosen, paymentMethods]);
 
   return (

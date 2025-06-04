@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const documentNo = searchParams.get("documentNo");
 
-    console.log(documentNo);
-
     if (!documentNo) {
       return NextResponse.json(
         { error: "Missing document number in query" },
@@ -33,7 +31,7 @@ export async function GET(request: NextRequest) {
       {
         $filter: `documentNo eq '${documentNo}'`,
         $select:
-          "documentNo,approverID,approveForName,status,sendByName,dateTimeSentForApproval,lastDateTimeModified,ageing,approvalComments",
+          "documentNo,approverName,approveForName,status,sendByName,dateTimeSentForApproval,lastDateTimeModified,ageing,approvalComments",
         $expand: "*",
       }
     );
