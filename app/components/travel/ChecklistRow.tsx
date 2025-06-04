@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { createResource, deleteResource, getResource, patchResource } from "@/app/lib/api/http";
+import React, { useEffect, useState } from "react";
+import {
+  createResource,
+  deleteResource,
+  getResource,
+  patchResource,
+} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
-import { Save } from "lucide-react";
 import { ChecklistItem } from "@/app/types/ChecklistItem";
 import SectionLoader from "@/app/components/loaders/SectionLoader";
 
@@ -13,9 +17,9 @@ interface FileAttachment {
   attachedDate: string;
 }
 
-export default function ChecklistRow({row}: { row: ChecklistItem }) {
+export default function ChecklistRow({ row }: { row: ChecklistItem }) {
   const [has, setHas] = useState(row.has);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   // File conversion utility
@@ -32,7 +36,7 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
   const handleFileUpload = async (file: File) => {
     try {
       const base64String = await fileToBase64(file);
-      const base64Data = base64String.split(',')[1];
+      const base64Data = base64String.split(",")[1];
 
       if (!base64Data) {
         throw new Error("Invalid file data");
@@ -44,46 +48,49 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
         documentCode: row.relatedDocumentCode,
         attachment: base64Data,
         attachedDate: new Date().toISOString(),
-        relatedRecordId: row.id
+        relatedRecordId: row.id,
       });
 
       setSuccessMessage("Saved!");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "File upload failed";
+      const message =
+        error instanceof Error ? error.message : "File upload failed";
       Swal.fire("Error uploading attachment", message, "error");
     }
   };
 
   // Manage attachment lifecycle (delete old, create new)
-  const manageAttachment = async (attachmentData: FileAttachment & { relatedRecordId: string }) => {
+  const manageAttachment = async (
+    attachmentData: FileAttachment & { relatedRecordId: string }
+  ) => {
     setLoading(true);
     try {
       // Check for existing attachment
-      const {value = []} = await getResource('travelAttachments', {
+      const { value = [] } = await getResource("travelAttachments", {
         params: {
-          filters: {no: row.documentNo, lineNo: 0},
-          "$select": "keyID"
-        }
+          filters: { no: row.documentNo, lineNo: 0 },
+          $select: "keyID",
+        },
       });
 
       // Delete existing if found
       if (value.length) {
-        await deleteResource('travelAttachments', {
-          data: {keyID: value[0].keyID},
-          primaryKey: ['keyID']
+        await deleteResource("travelAttachments", {
+          data: { keyID: value[0].keyID },
+          primaryKey: ["keyID"],
         });
       }
 
       // Create new attachment
-      const res = await createResource('travelAttachments', {
-        data: attachmentData
+      const res = await createResource("travelAttachments", {
+        data: attachmentData,
       });
 
       if (res.error) {
         throw new Error(res.error.message);
       }
     } catch (error: any) {
-      Swal.fire('Error saving attachment', error.message, 'error')
+      Swal.fire("Error saving attachment", error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -110,9 +117,15 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
         has: has,
       };
 
-      const res = await patchResource('travellerChecklist', {
+      const res = await patchResource("travellerChecklist", {
         data: payload,
-        primaryKey: ['documentType', 'documentNo', 'lineNo', 'checklistType', 'checklistItem'],
+        primaryKey: [
+          "documentType",
+          "documentNo",
+          "lineNo",
+          "checklistType",
+          "checklistItem",
+        ],
       });
 
       if (res.error) {
@@ -123,7 +136,7 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
     } catch (error) {
       setHas(!has);
       const message = error instanceof Error ? error.message : "Update failed";
-      Swal.fire('Error updating checklist!', message, 'error');
+      Swal.fire("Error updating checklist!", message, "error");
     } finally {
       setLoading(false);
     }
@@ -131,7 +144,7 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
 
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 2000);
+      const timer = setTimeout(() => setSuccessMessage(""), 2000);
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
@@ -149,17 +162,21 @@ export default function ChecklistRow({row}: { row: ChecklistItem }) {
               accept=".pdf,.jpg,.jpeg,.png"
               className="form-control form-control-sm"
             />
-          ) : ((`${row.attachments.length} attachments`))) : (
+          ) : (
+            `${row.attachments.length} attachments`
+          )
+        ) : (
           <span className="text-muted">N/A</span>
         )}
       </td>
       <td className="text-end">
-        {loading
-          ? (<SectionLoader size={16} classes={'button-icon'}/>)
-          : (successMessage && (
+        {loading ? (
+          <SectionLoader size={16} classes={"button-icon"} />
+        ) : (
+          successMessage && (
             <span className="text-success fs-6 mx-1">{successMessage}</span>
-          ))
-        }
+          )
+        )}
 
         <input
           type="checkbox"
