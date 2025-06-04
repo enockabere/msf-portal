@@ -94,6 +94,14 @@ export default function VerticalProgressCard({
       </div>
 
       <div className="card-body bg-primary-subtle pt-0">
+        <div className="p-3 border rounded bg-light mb-3">
+          <h6 className="text-primary mb-1">Current Approver</h6>
+          <div className="d-flex justify-content-between align-items-center">
+            <span>Enock Abere</span>
+            <span className="badge bg-warning text-dark">Open</span>
+          </div>
+        </div>
+
         <SimpleBar
           style={{ maxHeight: 360, paddingRight: "8px" }}
           autoHide={false}
