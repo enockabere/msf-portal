@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { transport } from "@brainspore/hypernexus";
 import { NextResponse } from "next/server";
 
@@ -19,15 +18,29 @@ interface Payload {
   employeeBankName?: string;
   chequeName?: string;
   swiftCode?: string;
+  collectionDate: string;
+  cashHours: string;
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    const formatTime = (time: string | undefined): string => {
+      if (!time || time.trim() === "") return "00:00:00";
+      return time.length === 5 ? `${time}:00` : time;
+    };
+
+    const formatDate = (date: string | undefined): string => {
+      if (!date || date.trim() === "") return "0001-01-01";
+      return new Date(date).toISOString().split("T")[0];
+    };
+
     const payload: Payload = {
       ...body,
       applicationDate: new Date().toISOString().split("T")[0],
+      collectionDate: formatDate(body.collectionDate),
+      cashHours: formatTime(body.cashHours),
     };
 
     const options: any = {};
@@ -35,11 +48,12 @@ export async function POST(request: Request) {
       options.params = { company: process.env.BC_COMPANY_NAME };
     }
 
-    const response = (await transport.post(
+    const response = await transport.post(
       "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
       payload,
       options
-    )) as { no?: string; status?: string; value?: { no?: string } };
+    );
+
     if ((response as any)?.error) {
       return NextResponse.json(
         {

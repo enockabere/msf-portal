@@ -3,7 +3,6 @@
 import { useState } from "react";
 import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "./forms/SalaryAdvanceForm";
-import VerticalProgressCard from "./forms/VerticalProgressCard";
 import { Wallet } from "lucide-react";
 import { Advance } from "@/app/types/advance";
 
@@ -18,7 +17,7 @@ export default function AdvanceRequestAction({
   advance,
   refetch,
   onCloseView,
-  setSelectedRowHandlerCallback
+  setSelectedRowHandlerCallback,
 }: AdvanceRequestActionProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -40,18 +39,13 @@ export default function AdvanceRequestAction({
       size="xl"
       titleIcon={<Wallet size={18} className="text-white" />}
     >
-      <div className="row">
-        <div className="col-md-9">
-          <SalaryAdvanceForm
-            advance={advance}
-            onSuccess={refetch}
-            setSelectedRowHandler={setSelectedRowHandlerCallback}
-          />
-        </div>
-        <div className="col-md-3">
-          <VerticalProgressCard advance={advance} />
-        </div>
-      </div>
+      {advance && (
+        <SalaryAdvanceForm
+          advance={advance}
+          onSuccess={refetch}
+          setSelectedRowHandler={setSelectedRowHandlerCallback}
+        />
+      )}
     </CustomModal>
   );
 }

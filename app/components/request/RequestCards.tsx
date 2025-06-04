@@ -10,7 +10,6 @@ import { useSession } from "next-auth/react";
 import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
-import VerticalProgressCard from "../advances/forms/VerticalProgressCard";
 import RequisitionForm from "../requisitions/forms/RequisitionForm";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlement";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
@@ -23,8 +22,7 @@ type RequestType = "Advance" | "Expense" | "Requisition" | null;
 
 const captions = {
   Other: "",
-}
-
+};
 
 export default function RequestCards() {
   const router = useRouter();
@@ -48,20 +46,25 @@ export default function RequestCards() {
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
     dispatchLoader({
-      type: 'PATCH_LOADING_STATE',
+      type: "PATCH_LOADING_STATE",
       payload: {
         loading: true,
-        message: '',
-      }
-    })
+        message: "",
+      },
+    });
     requestAnimationFrame(() => {
-      startTransition(() => (router.push(href), dispatchLoader({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
-      })));
+      startTransition(
+        () => (
+          router.push(href),
+          dispatchLoader({
+            type: "PATCH_LOADING_STATE",
+            payload: {
+              loading: false,
+              message: "",
+            },
+          })
+        )
+      );
     });
   };
 
@@ -71,19 +74,20 @@ export default function RequestCards() {
   };
   const handleSetAdvanceType = async (event: React.MouseEvent) => {
     event.stopPropagation();
-    const dataType = event.currentTarget.getAttribute('datatype') as AdvanceTypeKey
+    const dataType = event.currentTarget.getAttribute(
+      "datatype"
+    ) as AdvanceTypeKey;
     switch (dataType) {
-      case 'Salary': {
+      case "Salary": {
         setAdvanceType(dataType);
         setShowNewDropdown(false);
         handleOpenModal("Advance");
         break;
       }
-      case 'Other': {
-
+      case "Other": {
         await handleFetchingSetup();
         dispatcher({
-          type: 'ADVANCE_CREATION_STATUSES',
+          type: "ADVANCE_CREATION_STATUSES",
           payload: { isNew: true, isEditing: false, setForView: false },
         });
         setAdvanceType(dataType);
@@ -92,33 +96,37 @@ export default function RequestCards() {
         break;
       }
     }
-  }
+  };
 
-  const handleCloseModal = () => (setShowModal(false), dispatcher({
-    type: 'ADVANCE_CREATION_STATUSES',
-    payload: { isNew: false, isEditing: false, setForView: false },
-  }), dispatcher({
-    type: 'OPEN_EXISTING_ADVANCE',
-    payload: {
-      imprestType: "",
-      Purpose: "",
-      amountToPayHeader: null,
-      currencyCode: "",
-      paymentMethod: "",
-      cashCollectionDate: "",
-      cashHours: "",
-      idPassportNumber: "",
-      accountNo: "",
-      bankNo: "",
-      branch: "",
-      swiftCode: "",
-      phoneNo: "",
-      accountName: "",
-      no: "",
-      imprestStatus: "",
-      status: "",
-    },
-  }));
+  const handleCloseModal = () => (
+    setShowModal(false),
+    dispatcher({
+      type: "ADVANCE_CREATION_STATUSES",
+      payload: { isNew: false, isEditing: false, setForView: false },
+    }),
+    dispatcher({
+      type: "OPEN_EXISTING_ADVANCE",
+      payload: {
+        imprestType: "",
+        Purpose: "",
+        amountToPayHeader: null,
+        currencyCode: "",
+        paymentMethod: "",
+        cashCollectionDate: "",
+        cashHours: "",
+        idPassportNumber: "",
+        accountNo: "",
+        bankNo: "",
+        branch: "",
+        swiftCode: "",
+        phoneNo: "",
+        accountName: "",
+        no: "",
+        imprestStatus: "",
+        status: "",
+      },
+    })
+  );
 
   const fetchAdvances = useCallback(async () => {
     if (!session?.user?.profile?.no) return;
@@ -156,8 +164,9 @@ export default function RequestCards() {
       <div className="row row-cols-1 row-cols-md-4 g-3">
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 0 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -232,23 +241,24 @@ export default function RequestCards() {
                       zIndex: 1000,
                     }}
                   >
-                    {
-                      advanceTypes.map((type) => {
-                        return (
-                          <button
-                            key={type.key}
-                            className="dropdown-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowViewDropdown(false);
-                              handleNavigate(e, `/dashboard/make-request/${type.route}`);
-                            }}
-                          >
-                            {type.title}
-                          </button>
-                        )
-                      })
-                    }
+                    {advanceTypes.map((type) => {
+                      return (
+                        <button
+                          key={type.key}
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowViewDropdown(false);
+                            handleNavigate(
+                              e,
+                              `/dashboard/make-request/${type.route}`
+                            );
+                          }}
+                        >
+                          {type.title}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -272,20 +282,18 @@ export default function RequestCards() {
                       zIndex: 1000,
                     }}
                   >
-                    {
-                      advanceTypes.map((advance: AdvanceType) => {
-                        return (
-                          <button
-                            className="dropdown-item"
-                            key={advance.key}
-                            datatype={advance.key}
-                            onClick={handleSetAdvanceType}
-                          >
-                            {advance.title}
-                          </button>
-                        )
-                      })
-                    }
+                    {advanceTypes.map((advance: AdvanceType) => {
+                      return (
+                        <button
+                          className="dropdown-item"
+                          key={advance.key}
+                          datatype={advance.key}
+                          onClick={handleSetAdvanceType}
+                        >
+                          {advance.title}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -294,8 +302,9 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 1 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 1 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -347,10 +356,18 @@ export default function RequestCards() {
               </h6>
             </div>
             <div className="card-footer border-0 bg-transparent text-muted d-flex align-items-center justify-content-center gap-3">
-              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={() => handleOpenModal("Requisition")}>
+              <button
+                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
+                onClick={() => handleOpenModal("Requisition")}
+              >
                 <PlusCircle size={16} /> New
               </button>
-              <button className="btn btn-sm btn-outline-info d-flex align-items-center gap-1" onClick={(e) => handleNavigate(e, "/dashboard/make-request/requisitions")}>
+              <button
+                className="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
+                onClick={(e) =>
+                  handleNavigate(e, "/dashboard/make-request/requisitions")
+                }
+              >
                 <Eye size={16} /> View
               </button>
             </div>
@@ -382,24 +399,25 @@ export default function RequestCards() {
       <CustomModal
         show={showModal}
         onClose={handleCloseModal}
-        title={requestType === "Expense" ? "Record Expense" : requestType === "Requisition" ? "New Requisition" : `Request ${captions[advanceType]} Advance`}
+        title={
+          requestType === "Expense"
+            ? "Record Expense"
+            : requestType === "Requisition"
+            ? "New Requisition"
+            : `Request ${captions[advanceType]} Advance`
+        }
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
       >
         <div className="row">
           {requestType === "Advance" && advanceType === "Salary" && (
             <>
-              <div className="col-md-8">
-                <SalaryAdvanceForm
-                  onSuccess={() => {
-                    setShowModal(false);
-                    fetchAdvances();
-                  }}
-                />
-              </div>
-              <div className="col-md-4">
-                <VerticalProgressCard />
-              </div>
+              <SalaryAdvanceForm
+                onSuccess={() => {
+                  setShowModal(false);
+                  fetchAdvances();
+                }}
+              />
             </>
           )}
           {requestType === "Advance" && advanceType === "Other" && (

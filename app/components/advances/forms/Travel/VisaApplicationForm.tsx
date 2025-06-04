@@ -45,7 +45,8 @@ interface VisaApplicationLine {
 interface VisaApplicationFormProps {
   travelRequest: TravelRequest;
   onSubmit: () => void;
-  expenseCodes: Record<string, any>
+  expenseCodes: Record<string, any>,
+  advances: Record<string, any>[]
 }
 
 interface VisaApplicationLineProps {
@@ -270,7 +271,7 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
   );
 }
 
-const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest, onSubmit, expenseCodes }) => {
+const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest, onSubmit, expenseCodes, advances }) => {
   const [visaApplications, setVisaApplications] = useState<VisaApplication[]>([]);
   const [visaAmount, setVisaAmount] = useState<number>(0);
   const { countries, fetchSetups } = useMySetups();
@@ -392,7 +393,7 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
 
         <TravelAdvanceGLTable
             type="visa"
-            travelInfo={travelRequest}
+            advances={advances}
         />
         {visaApplications.map((application, key) => (
           <div key={`${application.country}-${key}`} className="visa-application-container">

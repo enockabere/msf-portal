@@ -25,14 +25,13 @@ export async function GET(request: NextRequest) {
     if (cached && cached.expiry > now) {
       return NextResponse.json({ data: cached.data });
     }
-    // const start = performance.now(); // Start timer
 
     const response = await transport.get(
       "/api/Kinetics/VOYAGER/v1.0/approvalEntries",
       {
         $filter: `documentNo eq '${documentNo}'`,
         $select:
-          "documentNo,approverID,approveForName,status,sendByName,dateTimeSentForApproval,lastDateTimeModified,ageing,approvalComments",
+          "documentNo,approverName,approveForName,status,sendByName,dateTimeSentForApproval,lastDateTimeModified,ageing,approvalComments",
         $expand: "*",
       }
     );
@@ -40,6 +39,8 @@ export async function GET(request: NextRequest) {
       data: response,
       expiry: now + CACHE_TTL_SECONDS * 1000,
     };
+
+    console.log({ data: response });
 
     return NextResponse.json({ data: response });
   } catch (error) {

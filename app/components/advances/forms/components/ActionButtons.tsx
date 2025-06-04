@@ -108,7 +108,7 @@ export default function ActionButtons({
               <>
                 <CheckCircle size={16} />
                 {advanceNo
-                  ? "Edit & Submit for Approval"
+                  ? "Save & Submit for Approval"
                   : "Save & Submit for Approval"}
               </>
             )}

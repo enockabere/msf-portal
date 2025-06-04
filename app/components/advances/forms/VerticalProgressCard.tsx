@@ -10,7 +10,7 @@ import "simplebar-react/dist/simplebar.min.css";
 
 interface ApprovalEntry {
   sendByName: string;
-  approverID: string;
+  approverName: string;
   approveForName: string;
   dateTimeSentForApproval: string;
   lastDateTimeModified: string;
@@ -83,6 +83,8 @@ export default function VerticalProgressCard({
     }`.trim();
   };
 
+  const currentApprover = approvalEntries.find((e) => e.status === "Open");
+
   return (
     <div className="card h-100 border-0 shadow-sm">
       <div className="card-header bg-primary-subtle">
@@ -94,6 +96,18 @@ export default function VerticalProgressCard({
       </div>
 
       <div className="card-body bg-primary-subtle pt-0">
+        {/* Current Approver Section */}
+        {approvalEntries.length > 0 && currentApprover && (
+          <div className="p-3 border rounded bg-light mb-3">
+            <h6 className="text-primary mb-1">Current Approver</h6>
+            <div className="d-flex justify-content-between align-items-center">
+              <span>{currentApprover.approverName}</span>
+              <span className="badge bg-warning text-dark">Open</span>
+            </div>
+          </div>
+        )}
+
+        {/* Stepper */}
         <SimpleBar
           style={{ maxHeight: 360, paddingRight: "8px" }}
           autoHide={false}
@@ -111,13 +125,7 @@ export default function VerticalProgressCard({
                   <div key={i} className="step">
                     <div
                       className={`step-line ${
-                        isApproved
-                          ? "completed"
-                          : isOpen
-                          ? "active"
-                          : isCanceled
-                          ? "muted"
-                          : "muted"
+                        isApproved ? "completed" : isOpen ? "active" : "muted"
                       }`}
                     ></div>
                     <div className="step-content d-flex">
@@ -136,7 +144,7 @@ export default function VerticalProgressCard({
                         <User size={18} />
                       </div>
                       <div className="ms-3 flex-grow-1">
-                        <h6 className="mb-1 text-dark">{step.approverID}</h6>
+                        <h6 className="mb-1 text-dark">{step.approverName}</h6>
                         <p className={`mb-0 ${getStatusColor(step.status)}`}>
                           {step.status}
                         </p>
@@ -144,7 +152,7 @@ export default function VerticalProgressCard({
                         {step.approvalComments?.length > 0 && (
                           <div className="p-2 mt-2 rounded bg-danger-subtle border-start border-4 border-danger comment-highlight">
                             <h6 className="text-danger d-flex align-items-center mb-2">
-                              <MessageCircle size={16} className="me-2" />{" "}
+                              <MessageCircle size={16} className="me-2" />
                               Comment(s)
                             </h6>
                             <ul className="mb-0 ps-3 small text-dark fw-semibold">
@@ -193,6 +201,8 @@ export default function VerticalProgressCard({
             )}
           </div>
         </SimpleBar>
+
+        {/* Note */}
         <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-3">
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">

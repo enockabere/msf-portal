@@ -1,11 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { NextRequest, NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
 
+function formatTime(value: string): string {
+  if (!value || typeof value !== "string") return "00:00:00";
+  const [hh = "00", mm = "00"] = value.split(":");
+  return `${hh.padStart(2, "0")}:${mm.padStart(2, "0")}:00`;
+}
+
+function formatDate(value: string): string {
+  if (!value || typeof value !== "string") return "0001-01-01";
+  return new Date(value).toISOString().split("T")[0];
+}
+
 export async function PATCH(request: NextRequest) {
   try {
-    const { no: advanceNo, ...body } = await request.json();
+    const {
+      no: advanceNo,
+      collectionDate,
+      cashHours,
+      ...body
+    } = await request.json();
 
     if (!advanceNo) {
       return NextResponse.json(
@@ -17,7 +31,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const payload = { ...body, no: advanceNo };
+    const payload = {
+      ...body,
+      no: advanceNo,
+      collectionDate: formatDate(collectionDate),
+      cashHours: formatTime(cashHours),
+    };
+
+    console.log("📤 PATCH Payload:", payload);
 
     const options: any = {};
     if (process.env.BC_COMPANY_NAME) {
@@ -32,6 +53,7 @@ export async function PATCH(request: NextRequest) {
         primaryKey: ["no"],
       }
     );
+
     if ((response as any)?.error) {
       return NextResponse.json(
         {
