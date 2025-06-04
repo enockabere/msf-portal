@@ -71,14 +71,14 @@ export default function TravelAdvanceForm({
                 throw new Error(res.error.message);
             }
 
-            Swal.fire("Success", "Travel advance created successfully!");
+            await Swal.fire("Success", "Travel advance created successfully!");
         } catch (error: any) {
-            Swal.fire("Error creating travel advance", error.message);
+            await Swal.fire("Error creating travel advance", error.message);
         } finally {
             setLoading(false);
             onSubmit();
         }
-    }, [travelInfo.no]);
+    }, [onSubmit, travelInfo.no]);
 
     const addNewLine = () => {
         setLines((prev) => [...prev, { billingCode: "", amount: 0 }]);
@@ -86,7 +86,6 @@ export default function TravelAdvanceForm({
 
     return (
         <div>
-            <h4>Create Travel Advance Lines</h4>
             <div className="alert alert-primary" role="alert">
                 <strong>Note:</strong> Create advance items before creating the <strong>Travel Advance</strong>
             </div>

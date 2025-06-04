@@ -10,8 +10,6 @@ interface GroupedChecklist {
   [travellerName: string]: ChecklistItem[];
 }
 
-const FCM_TRAVEL_LINK = "https://fcmtravel.co.ke/msf/";
-
 export default function ChecklistForm({ travelInfo, checklistType }: { travelInfo: TravelRequest, checklistType: string }) {
   const [visaChecklist, setVisaChecklist] = useState<GroupedChecklist>({});
   const { dispatcher } = usePageLoader().actions;
@@ -110,20 +108,6 @@ export default function ChecklistForm({ travelInfo, checklistType }: { travelInf
   return (
     <div className="row g-3">
       <div className="col-12">
-        <div className="alert alert-info">
-          <p className="mb-0">
-            Click this link to request for your travel voucher: {' '}
-            <a
-              href={FCM_TRAVEL_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary fw-bold"
-            >
-              fcmtravel.co.ke/msf
-            </a>
-          </p>
-        </div>
-
         {renderTravellerChecklists()}
       </div>
     </div>
