@@ -76,12 +76,12 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
 
   const canExemptFromTravelling = useMemo(() => !hasValidVisa, [hasValidVisa])
 
-  const handleInputChange = async (value: boolean) => {
+  const handleExemptChange = async (value: boolean) => {
     setFormData((prev) => ({...prev, exemptFromTravelling: value}));
 
     try {
       const res = await patchResource("visaApplicationLines", {
-        data: formData,
+        data: removeNullAndUndefinedFromObject(formData),
         primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType', 'lineNo']
       });
 
@@ -160,7 +160,7 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
                 role="switch"
                 id={`exempt-switch-${line.lineNo}`}
                 checked={formData.exemptFromTravelling}
-                onChange={(e) => handleInputChange(e.target.checked)}
+                onChange={(e) => handleExemptChange(e.target.checked)}
               />
               <label
                 className="form-check-label"
