@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const documentNo = searchParams.get("documentNo");
 
+    console.log(documentNo);
+
     if (!documentNo) {
       return NextResponse.json(
         { error: "Missing document number in query" },
@@ -25,7 +27,6 @@ export async function GET(request: NextRequest) {
     if (cached && cached.expiry > now) {
       return NextResponse.json({ data: cached.data });
     }
-    // const start = performance.now(); // Start timer
 
     const response = await transport.get(
       "/api/Kinetics/VOYAGER/v1.0/approvalEntries",
@@ -40,6 +41,8 @@ export async function GET(request: NextRequest) {
       data: response,
       expiry: now + CACHE_TTL_SECONDS * 1000,
     };
+
+    console.log({ data: response });
 
     return NextResponse.json({ data: response });
   } catch (error) {

@@ -43,6 +43,7 @@ export default function VerticalProgressCard({
   useEffect(() => {
     const fetchApprovals = async () => {
       if (advance?.no) {
+        console.log(advance?.no);
         try {
           const res = await fetch(
             `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
