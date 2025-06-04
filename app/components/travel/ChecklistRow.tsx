@@ -177,7 +177,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
       }
 
       const file = res.value[0];
-      downloadFileFromBase64(file.attachment, file.documentCode);
+      await downloadFileFromBase64(file.attachment, file.documentCode);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Error opening attachment";
       Swal.fire("Error", message, "error");
@@ -216,6 +216,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
           type="button"
           onClick={() => handleViewAttachment(attachment)}
           className="btn btn-outline-danger btn-sm"
+          title="Download attachment"
         >
           Attached File
         </button>
@@ -224,6 +225,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
             type="button"
             onClick={() => handleDeleteAttachment(attachment)}
             className="btn btn-danger dropdown-toggle dropdown-toggle-split"
+            title="Delete attachment"
           >
             <XCircle size={16} />
           </button>
