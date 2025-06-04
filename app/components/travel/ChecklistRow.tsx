@@ -54,6 +54,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
       }
 
       if (res) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { attachment, ...savedFile } = res;
         setFormData(prev => ({
           ...prev,
