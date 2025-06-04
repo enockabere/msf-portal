@@ -106,7 +106,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
         'perDiemAllotments',
         {
           dimensions: {
-            filters: { dimensionCode: 'OC' }
+            $filter: `dimensionCode eq 'OC' or dimensionCode eq 'DEPARTMENTS'`,
           },
         },
         {
@@ -364,7 +364,21 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 label="Cost Center"
                 value={formData.shortcutDimension1Code}
                 onChange={(value) => onFormChange('shortcutDimension1Code', value)}
-                options={dimensions.map(d => ({ code: d.code, description: d.name }))}
+                options={dimensions.filter(d => d.dimensionCode === "OC").map(d => ({ code: d.code, description: d.name }))}
+                required
+                disabled={isReadOnly}
+                showAsterisk
+              />
+            </div>
+          )}
+
+          {requiredFields.includes('shortcutDimension2Code') && (
+            <div className="col-md-4">
+              <FormSelect
+                label="Department"
+                value={formData.shortcutDimension2Code}
+                onChange={(value) => onFormChange('shortcutDimension2Code', value)}
+                options={dimensions.filter(d => d.dimensionCode === "DEPARTMENTS").map(d => ({ code: d.code, description: d.name }))}
                 required
                 disabled={isReadOnly}
                 showAsterisk

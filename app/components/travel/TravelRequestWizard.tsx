@@ -223,6 +223,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           "annualTrip",
           "accommodationType",
           "shortcutDimension1Code",
+          "shortcutDimension2Code",
         ]);
       } else if (profile.type === "Visitor") {
         setHeaderRequiredFields([
