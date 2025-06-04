@@ -12,7 +12,7 @@ interface GroupedChecklist {
 
 const FCM_TRAVEL_LINK = "https://fcmtravel.co.ke/msf/";
 
-export default function VisaChecklist({ travelInfo }: { travelInfo: TravelRequest }) {
+export default function ChecklistForm({ travelInfo, checklistType }: { travelInfo: TravelRequest, checklistType: string }) {
   const [visaChecklist, setVisaChecklist] = useState<GroupedChecklist>({});
   const { dispatcher } = usePageLoader().actions;
 
@@ -37,16 +37,16 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
     }, {});
   }, []);
 
-  const fetchVisaChecklist = useCallback(async () => {
+  const fetchChecklist = useCallback(async () => {
     try {
-      setLoadingState(true, 'Fetching visa checklist...');
+      setLoadingState(true, 'Fetching checklist...');
 
       const res = await getResource('travellerChecklist', {
         params: {
           filters: {
             documentNo: travelInfo.no,
             documentType: travelInfo.documentType,
-            checklistType: "Visa",
+            checklistType: checklistType,
             verified: false,
           },
           "$expand": `attachments($select=keyID,documentCode)`
@@ -54,7 +54,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
       });
 
       if (res.error) {
-        throw new Error(res.error.message || 'Failed to fetch visa checklist');
+        throw new Error(res.error.message || 'Failed to fetch checklist');
       }
 
       setVisaChecklist(groupChecklistItems(res.value));
@@ -63,17 +63,17 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
     } finally {
       setLoadingState(false);
     }
-  }, [groupChecklistItems, setLoadingState, showErrorAlert, travelInfo]);
+  }, [checklistType, groupChecklistItems, setLoadingState, showErrorAlert, travelInfo.documentType, travelInfo.no]);
 
   useEffect(() => {
-    fetchVisaChecklist();
-  }, [fetchVisaChecklist]);
+    fetchChecklist();
+  }, [fetchChecklist]);
 
   const renderTravellerChecklists = () => {
     if (Object.keys(visaChecklist).length === 0) {
       return (
         <div className="alert alert-warning mt-3">
-          No visa checklist items found for this travel request.
+          No checklist items found for this travel request.
         </div>
       );
     }

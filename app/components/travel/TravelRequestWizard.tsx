@@ -38,11 +38,10 @@ import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
 import TravelAdvanceDetails from "./TravelAdvanceDetails";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
 import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
-import VisaChecklist from "@/app/components/advances/forms/Travel/VisaChecklist";
+import ChecklistForm from "@/app/components/advances/forms/Travel/ChecklistForm";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravellersForm from "../advances/forms/Travel/TravellersForm";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
-import TravellerChecklist from "@/app/components/advances/forms/Travel/TravellerChecklist";
 import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
@@ -1046,11 +1045,11 @@ const StepContent: React.FC<StepContentProps> = ({
       return <VisaApplicationForm travelRequest={travelRequestHeader} expenseCodes={expenseCodes} onSubmit={fetchTravelRequest} />;
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
-        <VisaChecklist travelInfo={travelRequestHeader} />
+        <ChecklistForm travelInfo={travelRequestHeader} checklistType={"Visa"} />
       ) : null;
     case "traveller-checklist":
       return checklistCount.totalTravelCount > 0 ? (
-        <TravellerChecklist travelInfo={travelRequestHeader} />
+        <ChecklistForm travelInfo={travelRequestHeader} checklistType={"Travel"} />
       ) : null;
     case "documents":
       return (
