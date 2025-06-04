@@ -207,7 +207,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     const setRequiredFieldsBasedOnProfile = () => {
       const baseFields = [
         "documentType",
-        "passportNo",
+        //"passportNo",
         "travellerNo",
         "requirePerDiem",
         "missionType",

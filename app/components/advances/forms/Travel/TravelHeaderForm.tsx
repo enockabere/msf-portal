@@ -245,7 +245,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
           )}
 
 
-          {/* {requiredFields.includes('passportNo') && (
+          {requiredFields.includes('passportNo') && (
             <div className="col-md-4">
               <FormInput
                 label="ID/Passport Number"
@@ -257,7 +257,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 showAsterisk
               />
             </div>
-          )} */}
+          )}
 
           {requiredFields.includes('departureDate') && (
             <div className="col-md-4">
