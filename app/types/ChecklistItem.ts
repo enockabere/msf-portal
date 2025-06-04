@@ -13,5 +13,6 @@ export interface ChecklistItem {
     renewable: boolean;
     verified: boolean;
     relatedDocumentCode: string;
+    attachments: Array<Record<string, any> | []>;
     [key: string]: any;
 }

@@ -10,20 +10,36 @@ interface GroupedChecklist {
   [travellerName: string]: ChecklistItem[];
 }
 
+const FCM_TRAVEL_LINK = "https://fcmtravel.co.ke/msf/";
+
 export default function VisaChecklist({ travelInfo }: { travelInfo: TravelRequest }) {
   const [visaChecklist, setVisaChecklist] = useState<GroupedChecklist>({});
-  const { actions } = usePageLoader();
-  const { dispatcher } = actions;
+  const { dispatcher } = usePageLoader().actions;
+
+  const showErrorAlert = useCallback(async (title: string, error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    await Swal.fire(title, errorMessage, "error");
+  }, []);
+
+  const setLoadingState = useCallback((loading: boolean, message = '') => {
+    dispatcher({
+      type: 'PATCH_LOADING_STATE',
+      payload: { loading, message }
+    });
+  }, [dispatcher]);
+
+  const groupChecklistItems = useCallback((items: ChecklistItem[]): GroupedChecklist => {
+    return items.reduce((acc: GroupedChecklist, item: ChecklistItem) => {
+      const name = item.travellerName || 'Unknown Traveller';
+      if (!acc[name]) acc[name] = [];
+      acc[name].push(item);
+      return acc;
+    }, {});
+  }, []);
 
   const fetchVisaChecklist = useCallback(async () => {
     try {
-      dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: true,
-          message: 'Fetching visa checklist...',
-        }
-      });
+      setLoadingState(true, 'Fetching visa checklist...');
 
       const res = await getResource('travellerChecklist', {
         params: {
@@ -41,33 +57,55 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
         throw new Error(res.error.message || 'Failed to fetch visa checklist');
       }
 
-      const groupedCheckList = res.value.reduce((acc: GroupedChecklist, item: ChecklistItem) => {
-        const name = item.travellerName || 'Unknown Traveller';
-        if (!acc[name]) {
-          acc[name] = [];
-        }
-        acc[name].push(item);
-        return acc;
-      }, {});
-
-      setVisaChecklist(groupedCheckList);
+      setVisaChecklist(groupChecklistItems(res.value));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      await Swal.fire("Error fetching checklist", errorMessage, "error");
+      await showErrorAlert("Error fetching checklist", error);
     } finally {
-      dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
-      });
+      setLoadingState(false);
     }
-  }, [dispatcher, travelInfo.no, travelInfo.documentType]);
+  }, [groupChecklistItems, setLoadingState, showErrorAlert, travelInfo]);
 
   useEffect(() => {
     fetchVisaChecklist();
   }, [fetchVisaChecklist]);
+
+  const renderTravellerChecklists = () => {
+    if (Object.keys(visaChecklist).length === 0) {
+      return (
+        <div className="alert alert-warning mt-3">
+          No visa checklist items found for this travel request.
+        </div>
+      );
+    }
+
+    return Object.entries(visaChecklist).map(([travellerName, items]) => (
+      <div key={travellerName} className="mb-4">
+        <div className="bg-danger p-2 rounded">
+          <h5 className="text-white fw-bold m-0">{travellerName}</h5>
+        </div>
+
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mt-2">
+            <thead className="table-light">
+            <tr>
+              <th>Item Description</th>
+              <th>Attachment</th>
+              <th className="text-end">Has Item</th>
+            </tr>
+            </thead>
+            <tbody>
+            {items.map((row) => (
+              <ChecklistRow
+                key={`${row.lineNo}-${row.checklistItem}-${row.travellerName}`}
+                row={row}
+              />
+            ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ));
+  };
 
   return (
     <div className="row g-3">
@@ -76,7 +114,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
           <p className="mb-0">
             Click this link to request for your travel voucher: {' '}
             <a
-              href="https://fcmtravel.co.ke/msf/"
+              href={FCM_TRAVEL_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary fw-bold"
@@ -86,39 +124,7 @@ export default function VisaChecklist({ travelInfo }: { travelInfo: TravelReques
           </p>
         </div>
 
-        {Object.entries(visaChecklist).map(([travellerName, items]) => (
-          <div key={travellerName} className="mb-4">
-            <div className="bg-danger p-2 rounded">
-              <h5 className="text-white fw-bold m-0">{travellerName}</h5>
-            </div>
-
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mt-2">
-                <thead className="table-light">
-                <tr>
-                  <th>Item Description</th>
-                  <th>Attachment</th>
-                  <th className="text-end">Has Item</th>
-                </tr>
-                </thead>
-                <tbody>
-                {items.map((row) => (
-                  <ChecklistRow
-                    key={`${row.lineNo}-${row.checklistItem}-${row.travellerName}`}
-                    row={row}
-                  />
-                ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ))}
-
-        {Object.keys(visaChecklist).length === 0 && (
-          <div className="alert alert-warning mt-3">
-            No visa checklist items found for this travel request.
-          </div>
-        )}
+        {renderTravellerChecklists()}
       </div>
     </div>
   );
