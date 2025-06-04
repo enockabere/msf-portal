@@ -117,6 +117,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   const { dispatcher } = actions;
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const { expenseCodes, fetchSetups } = useMySetups();
+  const [advances, setAdvances] = useState<Record<string, any>[]>([]);
 
   // Derived values
   const isReadOnly = useMemo(
@@ -268,10 +269,31 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       setTravelRequestHeader(prev => ({ ...prev, ...header}));
 
       setChecklistCount(checklistCounter(header.travellers));
+      getImprest()
     } catch (error: any) {
       console.error('Error fetching travel request:', error.message);
     }
   }, [fetchTravelRequestResource, travelRequestHeader.no]);
+
+  const getImprest = async ()=> {
+    try {
+      const res = await getResource('imprest', {
+        params: {
+          filters: {
+            referenceNo	: travelRequestHeader.no,
+          }
+        }
+      })
+
+      if (res.error) {
+        return Swal.fire(res.error.code, res.error.message, 'error');
+      }
+
+      setAdvances(res.value)
+    } catch (error) {
+      return Swal.fire(error.code, error.message, 'error');
+    }
+  }
 
   useEffect(() => {
     const loadHeaderRequest = async (requestNo: string) => {
@@ -314,6 +336,10 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
     fetchSetups(['expenseCodes']);
   }, [dispatcher, fetchSetups, fetchTravelRequestResource, requestNo]);
+
+  useEffect(() => {
+    getImprest()
+  }, [travelRequestHeader.no]);
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
@@ -816,6 +842,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               checklistCount={checklistCount}
               confirmBooking={confirmBooking}
               expenseCodes={expenseCodes}
+              advances={advances}
             />
 
               <StepActions
@@ -946,6 +973,7 @@ interface StepContentProps {
   checklistCount: Record<string, number>;
   confirmBooking: (value) => void;
   expenseCodes: Record<string, any>;
+  advances: Record<string, any>[]
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -959,6 +987,7 @@ const StepContent: React.FC<StepContentProps> = ({
   checklistCount,
   confirmBooking,
   expenseCodes,
+  advances
 }) => {
   switch (activeTab) {
     case "info":
@@ -1038,12 +1067,12 @@ const StepContent: React.FC<StepContentProps> = ({
               travelInfo={travelRequestHeader}
               onSubmit={fetchTravelRequest} />
           <TravelAdvanceGLTable
-              travelInfo={travelRequestHeader}
+              advances={advances}
           />
         </div>
       ) : null;
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader} expenseCodes={expenseCodes} onSubmit={fetchTravelRequest} />;
+      return <VisaApplicationForm travelRequest={travelRequestHeader} expenseCodes={expenseCodes} onSubmit={fetchTravelRequest} advances={advances}/>;
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
         <ChecklistForm travelInfo={travelRequestHeader} checklistType={"Visa"} />
