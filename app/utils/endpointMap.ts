@@ -51,8 +51,10 @@ export const endpointMap = {
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",
   perDiemAllotments: "/api/kinetics/adminTravel/v1.0/perDiemAllotments",
-  sendTravelRequestForApproval: "/ODataV4/TravelManager_sendTravelRequestForApproval",
-  cancelTravelRequestApprovalRequest: "/ODataV4/TravelManager_cancelTravelRequestApprovalRequest",
+  sendTravelRequestForApproval:
+    "/ODataV4/TravelManager_sendTravelRequestForApproval",
+  cancelTravelRequestApprovalRequest:
+    "/ODataV4/TravelManager_cancelTravelRequestApprovalRequest",
   travellerChecklist: "/api/kinetics/adminTravel/v1.0/travellerChecklist",
   travellers: "/api/kinetics/adminTravel/v1.0/travellers",
   genders: "/api/kinetics/enigma/v1.0/genders",
@@ -60,16 +62,18 @@ export const endpointMap = {
   travelAttachments: "/api/kinetics/adminTravel/v1.0/attachments",
   visaApplications: "/api/kinetics/adminTravel/v1.0/visaApplications",
   visaApplicationLines: "/api/kinetics/adminTravel/v1.0/visaApplicationLines",
-  travelRequestProviders: "/api/kinetics/adminTravel/v1.0/travelRequestProviders",
+  travelRequestProviders:
+    "/api/kinetics/adminTravel/v1.0/travelRequestProviders",
   getBTACertificate: "/ODataV4/TravelManager_getBTACertificate",
   getIntroductoryLetter: "/ODataV4/TravelManager_getIntroductoryLetter",
   travel_attachments: "/api/kinetics/adminTravel/v1.0/attachments",
-  getLetterOfInvitation: "/ODataV4/TravelManager_getLetterOfInvitation",
   stageDocumentChecklist:
     "/api/kinetics/adminTravel/v1.0/stageDocumentChecklist",
   submitVisitorTravelRequest: "/ODataV4/TravelManager_submitTravelRequest",
   missionTypes: "/api/KineticTechnology/CashMgt/v2.0/missionTypes",
   travelRequestLine: "/api/kinetics/adminTravel/v1.0/travelRequestLines",
+  getLetterOfInvitation1: "/ODataV4/TravelManager_getLetterOfInvitation1",
+  getLetterOfInvitation2: "/ODataV4/TravelManager_getLetterOfInvitation2",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { DownloadCloud, FileText, Building, X } from "lucide-react";
-import { getResource } from "@/app/lib/api/http";
+import { getResource, codeUnit } from "@/app/lib/api/http";
 import "./download.css";
 
 interface NoEtaDownloadsProps {
@@ -33,8 +33,8 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
       setDownloadStatus((prev) => ({ ...prev, loi: "loading" }));
 
       Swal.fire({
-        title: "Preparing Document...",
-        text: "Generating your Letter of Invitation",
+        title: "Preparing Documents...",
+        text: "Generating your Letters of Invitation",
         didOpen: () => Swal.showLoading(),
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -47,47 +47,59 @@ const NoEtaDownloads: React.FC<NoEtaDownloadsProps> = ({
       };
 
       const docType = docTypeMap[primaryKey.documentType] || "1";
+      const docNo = primaryKey.no;
 
-      const res = await fetch("/api/codeunit/travel/getLetterOfInvitation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          docType,
-          docNo: primaryKey.no,
-        }),
-      });
+      const codeUnits: {
+        method: "getLetterOfInvitation1" | "getLetterOfInvitation2";
+        filename: string;
+      }[] = [
+        {
+          method: "getLetterOfInvitation1",
+          filename: `LetterOfInvitation1_${docNo}.pdf`,
+        },
+        {
+          method: "getLetterOfInvitation2",
+          filename: `LetterOfInvitation2_${docNo}.pdf`,
+        },
+      ];
 
-      const data = await res.json();
-      if (data?.error) {
-        throw new Error(data.error.message || "Unknown error from codeunit");
+      for (const { method, filename } of codeUnits) {
+        const res = await codeUnit(method, {
+          data: { docType, docNo },
+        });
+
+        if (res?.error)
+          throw new Error(`Error from ${method}: ${res.error.message}`);
+        if (!res?.value) throw new Error(`No response value from ${method}`);
+
+        const base64 = res.value;
+
+        const link = document.createElement("a");
+        link.href = `data:application/pdf;base64,${base64}`;
+        link.download = filename;
+        link.target = "_self";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
-
-      if (!data?.downloadUrl) {
-        throw new Error("Missing download URL in response.");
-      }
-
-      const link = document.createElement("a");
-      link.href = `data:application/pdf;base64,${data.downloadUrl.value}`;
-      link.download = `LetterOfInvitation_${primaryKey.no}.pdf`;
-      link.target = "_self";
-      link.rel = "noopener";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
 
       setDownloadStatus((prev) => ({ ...prev, loi: "success" }));
 
       Swal.fire({
         icon: "success",
-        title: "Downloaded Successfully",
-        text: "Your Letter of Invitation has been downloaded.",
+        title: "Download Complete",
+        text: "Both Letters of Invitation have been downloaded.",
         timer: 2000,
-        timerProgressBar: true,
         showConfirmButton: false,
       });
-    } catch (err: any) {
+    } catch (error: any) {
       setDownloadStatus((prev) => ({ ...prev, loi: "error" }));
-      Swal.fire("Error", err.message || "Unexpected error occurred", "error");
+      Swal.fire(
+        "Download Failed",
+        error.message || "An error occurred",
+        "error"
+      );
     }
   };
 
