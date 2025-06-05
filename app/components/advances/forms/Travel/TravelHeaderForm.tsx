@@ -11,6 +11,7 @@ import FormInput from "@/app/components/inputs/FormInput";
 const TRAVEL_TYPES = [
   { code: "Local", description: "Local" },
   { code: "International", description: "International" },
+  { code: "Regional", description: "Regional" },
 ];
 
 interface Props {
@@ -135,7 +136,7 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 label="Origin Country"
                 value={formData.originCountryCode}
                 onChange={handleCountryChange}
-                options={countries.map(item => ({ code: item.code, description: item.displayName }))}
+                options={countries.map(item => ({ code: item.code, description: item.name }))}
                 required
                 disabled={isReadOnly}
                 showAsterisk
@@ -218,7 +219,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                       }
                     }}
                     disabled={isReadOnly}
-                    required
                   />
 
                 <label className="form-check-label" htmlFor="annualTripSwitch">
