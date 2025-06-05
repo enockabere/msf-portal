@@ -22,7 +22,6 @@ export default function OperationalHeaderStep({
     banks,
     bankBranches,
     paymentMethods,
-    globalCurrencies,
     currencies,
   } = useMySetups();
 
