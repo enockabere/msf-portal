@@ -17,18 +17,31 @@ export default function OperationalHeaderStep({
   onFormChange,
   buttonsArray,
 }: OperationalHeaderStepProps) {
-  const { imprestTypes, banks, bankBranches, paymentMethods, globalCurrencies } =
-    useMySetups();
+  const {
+    imprestTypes,
+    banks,
+    bankBranches,
+    paymentMethods,
+    globalCurrencies,
+    currencies,
+  } = useMySetups();
+
+  const combinedCurrencies = [
+    { code: "", description: "Kenya Shillings" },
+    ...currencies,
+  ];
+
   const { isNew } = useAdvance();
 
-
   const buttonSet = buttonsArray(
-    isNew ? 'isNew'
-      : formData?.imprestStatus === 'Issued' ? 'Issued'
-        : formData?.status === 'Open' || formData?.status === 'Pending Approval'
-          ? formData?.status : 'default'
+    isNew
+      ? "isNew"
+      : formData?.imprestStatus === "Issued"
+      ? "Issued"
+      : formData?.status === "Open" || formData?.status === "Pending Approval"
+      ? formData?.status
+      : "default"
   );
-
 
   const renderViewByTypes = (method: string) => {
     if (!method) return null;
@@ -201,8 +214,11 @@ export default function OperationalHeaderStep({
         {formData?.amountToPayHeader && (
           <div className="badge text-dark fs-6">
             Total Advance:{" "}
-            {(findObjectFromArray(globalCurrencies, "code", formData?.currencyCode)
-              ?.displayName as string) || "KES"}{" "}
+            {(findObjectFromArray(
+              combinedCurrencies,
+              "code",
+              formData?.currencyCode
+            )?.description as string) || "KES"}
             {formData?.amountToPayHeader}
           </div>
         )}
@@ -241,10 +257,10 @@ export default function OperationalHeaderStep({
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
               >
                 <option defaultValue={""}> -- Select Currency -- </option>
-                {globalCurrencies.map((currency: Record<string, any>) => {
+                {combinedCurrencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>
-                      {currency.displayName}
+                      {currency.description}
                     </option>
                   );
                 })}
@@ -260,15 +276,26 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
+                disabled={
+                  !formData?.currencyCode && formData?.currencyCode !== ""
+                }
               >
                 <option defaultValue={""}> --Select payment method-- </option>
-                {paymentMethods.map((method: Record<string, any>) => {
-                  return (
-                    <option value={method.code} key={method.code}>
-                      {method.description}
-                    </option>
-                  );
-                })}
+                {paymentMethods
+                  .filter((method: Record<string, any>) => {
+                    const isMpesa = method.description
+                      ?.toLowerCase()
+                      .includes("mpesa");
+                    const isKES = formData?.currencyCode === "";
+                    return !isMpesa || (isMpesa && isKES);
+                  })
+                  .map((method: Record<string, any>) => {
+                    return (
+                      <option value={method.code} key={method.code}>
+                        {method.description}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
           </div>
@@ -291,10 +318,11 @@ export default function OperationalHeaderStep({
 
           <div className="row mt-4">
             <div className="col-12 d-flex justify-content-end gap-3">
-              {
-                buttonSet.filter((btn: any) => {
-                  return btn.stepOne
-                }).map((button: any) => {
+              {buttonSet
+                .filter((btn: any) => {
+                  return btn.stepOne;
+                })
+                .map((button: any) => {
                   return (
                     <button
                       key={button.id}
@@ -305,7 +333,7 @@ export default function OperationalHeaderStep({
                       {button.icon}
                       {button.label}
                     </button>
-                  )
+                  );
                 })}
             </div>
           </div>
