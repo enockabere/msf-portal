@@ -75,7 +75,10 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
   const { loading, actions } = usePageLoader();
   const { dispatcher } = actions;
 
-  const canExemptFromTravelling = useMemo(() => line.validVisa === "No", [line.validVisa])
+  const canExemptFromTravelling = useMemo(() => {
+    return line.validVisa === "No" && line.travellerType !== "Self";
+  },
+  [line.validVisa, line.travellerType])
 
   const handleExemptChange = async (value: boolean) => {
     try {
