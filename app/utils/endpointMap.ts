@@ -46,7 +46,7 @@ export const endpointMap = {
   userProfiles: "/api/kinetics/enigma/v1.0/userProfiles",
   profileDependants: "/api/kinetics/adminTravel/v1.0/profileDependants",
   travelRequests: "/api/kinetics/adminTravel/v1.0/travelRequests",
-  countries: "/api/v1.0/countriesRegions",
+  countries: "/api/kinetics/adminTravel/v1.0/countriesRegions",
   cities: "/api/kinetics/enigma/v1.0/postCodes",
   modeOfTransport: "/api/KineticTechnology/CashMgt/v2.0/modeOfTransport",
   travelRoutes: "/api/kinetics/adminTravel/v1.0/travelRequestRoutes",

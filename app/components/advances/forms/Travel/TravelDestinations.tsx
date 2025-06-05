@@ -38,6 +38,7 @@ const TravelDestinationForm = ({
                                    modeOfTransport,
                                    countries,
                                    isLocal,
+                                   isRegional,
                                    onFieldChange,
                                    onSave,
                                    onRemove,
@@ -49,6 +50,7 @@ const TravelDestinationForm = ({
     modeOfTransport: any[];
     countries: any[];
     isLocal: boolean;
+    isRegional: boolean;
     onFieldChange: (index: number, field: string, value: string) => void;
     onSave: (index: number) => void;
     onRemove: (index: number) => void;
@@ -56,7 +58,7 @@ const TravelDestinationForm = ({
   <div className="row g-2 mb-2 pb-2 border-bottom m-1">
       <div className="col-md-6 col-lg-4">
           <label className="form-label">
-              Origin Country <span className="text-danger">*</span>
+              Origin Country <span className="text-danger">*{isRegional} </span>
           </label>
           <select
             className="form-select"
@@ -68,15 +70,27 @@ const TravelDestinationForm = ({
                   .filter((country) => country.code === 'KE')
                   .map((country) => (
                     <option key={country.code} value={country.code}>
-                        {country.displayName}
+                        {country.name}
                     </option>
                   ))
+              ): isRegional ? (
+                  // Regional: East African countries
+                  <>
+                      <option value="">-- Origin Country --</option>
+                      {countries
+                      .filter((country) => country.regional)
+                      .map((country) => (
+                      <option key={country.code} value={country.code}>
+                          {country.name}
+                      </option>
+                      ))}
+                  </>
               ) : (
                 <>
                     <option value="">-- Origin Country --</option>
                     {countries.map((country) => (
                       <option key={country.code} value={country.code}>
-                          {country.displayName}
+                          {country.name}
                       </option>
                     ))}
                 </>
@@ -116,15 +130,27 @@ const TravelDestinationForm = ({
                   .filter((country) => country.code === 'KE')
                   .map((country) => (
                     <option key={country.code} value={country.code}>
-                        {country.displayName}
+                        {country.name}
                     </option>
                   ))
-              ) : (
+              ) : isRegional ? (
+                  // Regional: East African countries
+                  <>
+                      <option value="">-- Origin Country --</option>
+                      {countries
+                          .filter((country) => country.regional)
+                          .map((country) => (
+                              <option key={country.code} value={country.code}>
+                                  {country.name}
+                              </option>
+                      ))}
+                  </>
+              ): (
                 <>
                     <option value="">-- Destination Country --</option>
                     {countries.map((country) => (
                       <option key={country.code} value={country.code}>
-                          {country.displayName}
+                          {country.name}
                       </option>
                     ))}
                 </>
@@ -215,6 +241,7 @@ export default function TravelDestinations({
     const { actions } = usePageLoader();
     const { dispatcher } = actions;
     const isLocal = travelRequestHeader.TypeOfTravel === 'Local';
+    const isRegional = travelRequestHeader.TypeOfTravel === 'Regional';
 
     const fetchCities = useCallback(async (countryCode: string, countryField: string) => {
         try {
@@ -275,7 +302,7 @@ export default function TravelDestinations({
             fetchCities('KE', 'originCountryCode');
             fetchCities('KE', 'destinationCountryCode');
         }
-    }, [fetchCities, isLocal, travelRequestHeader.documentNo, travelRequestHeader.documentType]);
+    }, [fetchCities, isLocal, isRegional, travelRequestHeader.documentNo, travelRequestHeader.documentType]);
 
     const saveDestination = useCallback(async (index: number) => {
         const destination = destinations[index];
@@ -376,6 +403,7 @@ export default function TravelDestinations({
                   modeOfTransport={modeOfTransport}
                   countries={countries}
                   isLocal={isLocal}
+                  isRegional={isRegional}
                   onFieldChange={handleDestinationChange}
                   onSave={saveDestination}
                   onRemove={removeDestination}
