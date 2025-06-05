@@ -19,6 +19,8 @@ import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
 import { Advance, SalaryAdvanceData } from "@/app/types/advance";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import VerticalProgressCard from "./VerticalProgressCard";
+import CashDetails from "./components/CashDetails";
 
 const SkeletonLoader = ({
   height = "38px",
@@ -104,6 +106,8 @@ export default function SalaryAdvanceForm({
   const { data: session } = useSession();
   const employeeNo = session?.user?.profile?.no;
   const advanceStatus = advance?.status || "Open";
+  const [collectionDate, setCollectionDate] = useState("");
+  const [cashHours, setCashHours] = useState("");
 
   const {
     currencies,
@@ -366,7 +370,9 @@ export default function SalaryAdvanceForm({
         Swal.fire("Error", "MPESA is only valid for KES currency", "error");
         return;
       }
+
       setIsSubmitting(true);
+
       try {
         if (!advanceAmount || isNaN(Number(advanceAmount))) {
           Swal.fire("Error", "Please enter a valid advance amount.", "error");
@@ -392,6 +398,9 @@ export default function SalaryAdvanceForm({
         if (paymentMethod === "MPESA") {
           payload.mobilePhoneNo = `+254${phone}`;
           payload.identificationDocumentNo = idNumber;
+        } else if (paymentMethod === "CASH") {
+          payload.collectionDate = collectionDate;
+          payload.cashHours = cashHours;
         } else {
           payload.accountNo = accountNo;
           payload.bankCode = bank;
@@ -402,7 +411,10 @@ export default function SalaryAdvanceForm({
           payload.employeeBankName =
             banks.find((b: Record<string, any>) => b.no === bank)?.name || "";
           payload.chequeName = chequeName;
-          if (paymentMethod === "RTGS") payload.swiftCode = swiftCode;
+
+          if (paymentMethod === "RTGS") {
+            payload.swiftCode = swiftCode;
+          }
         }
 
         const isEdit = !!advanceNo;
@@ -414,6 +426,7 @@ export default function SalaryAdvanceForm({
         if (isEdit) {
           payload.no = advanceNo;
         }
+
         const res = await fetch(endpoint, {
           method,
           headers: { "Content-Type": "application/json" },
@@ -421,6 +434,7 @@ export default function SalaryAdvanceForm({
         });
 
         const response = await res.json();
+
         if (!res.ok || response.error || response.success === false) {
           const rawMsg =
             response?.rawResponse?.error?.message ||
@@ -429,9 +443,11 @@ export default function SalaryAdvanceForm({
           Swal.fire("Error", rawMsg || "Unknown API error", "error");
           return;
         }
+
         if (!isEdit) {
           setSelectedRowHandler(response.data);
         }
+
         const newAdvanceNo =
           response?.data?.no ||
           response?.no ||
@@ -441,7 +457,9 @@ export default function SalaryAdvanceForm({
         if (!newAdvanceNo) {
           throw new Error("No advance number returned from server");
         }
+
         setSavedAdvanceNo(newAdvanceNo);
+
         Swal.fire(
           "Success",
           isEdit
@@ -449,6 +467,7 @@ export default function SalaryAdvanceForm({
             : `Salary advance #${newAdvanceNo} created successfully!`,
           "success"
         );
+
         try {
           const approvalRes = await fetch(
             "/api/bc/advances/salary/sendApproval",
@@ -529,6 +548,8 @@ export default function SalaryAdvanceForm({
       phone,
       payrollPeriods,
       swiftCode,
+      collectionDate,
+      cashHours,
       advanceApplicationDate,
       setSelectedRowHandler,
       advanceStatus,
@@ -537,94 +558,109 @@ export default function SalaryAdvanceForm({
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={5000} />
-      <form className="p-2 pt-3" onSubmit={handleSubmit}>
-        {cutoffPassed && (
-          <div className="alert alert-warning mt-3">
-            <strong>Notice:</strong> Advance requests for this payroll period
-            are no longer allowed. The cutoff date has passed.
-          </div>
-        )}
+      <div className="row">
+        <div className="col-md-9">
+          <ToastContainer position="top-right" autoClose={5000} />
+          <form className="p-2 pt-3" onSubmit={handleSubmit}>
+            {cutoffPassed && (
+              <div className="alert alert-warning mt-3">
+                <strong>Notice:</strong> Advance requests for this payroll
+                period are no longer allowed. The cutoff date has passed.
+              </div>
+            )}
 
-        {isLoading ? (
-          <>
-            <LoadingOverlay />
-            <div className="skeleton-form">
-              <FormRowSkeleton />
-              <FormRowSkeleton />
-              <FormRowSkeleton />
-              <FormRowSkeleton />
-            </div>
-          </>
-        ) : (
-          <>
-            <SalaryAdvanceHeader
-              advanceNo={advanceNo}
-              status={advance?.status}
-            />
-            <SalaryAdvanceFields
-              advanceAmount={advanceAmount}
-              setAdvanceAmount={setAdvanceAmount}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              currency={currency}
-              setCurrency={setCurrency}
-              currencies={displayedCurrencies}
-              paymentMethods={paymentMethods}
-              advanceLimit={advanceLimit}
-              isLimitLoading={isLimitLoading}
+            {isLoading ? (
+              <>
+                <LoadingOverlay />
+                <div className="skeleton-form">
+                  <FormRowSkeleton />
+                  <FormRowSkeleton />
+                  <FormRowSkeleton />
+                  <FormRowSkeleton />
+                </div>
+              </>
+            ) : (
+              <>
+                <SalaryAdvanceHeader
+                  advanceNo={advanceNo}
+                  status={advance?.status}
+                />
+                <SalaryAdvanceFields
+                  advanceAmount={advanceAmount}
+                  setAdvanceAmount={setAdvanceAmount}
+                  paymentMethod={paymentMethod}
+                  setPaymentMethod={setPaymentMethod}
+                  currency={currency}
+                  setCurrency={setCurrency}
+                  currencies={displayedCurrencies}
+                  paymentMethods={paymentMethods}
+                  advanceLimit={advanceLimit}
+                  isLimitLoading={isLimitLoading}
+                  isViewMode={isViewMode}
+                  status={advance?.status || ""}
+                />
+
+                {paymentMethod === "MPESA" ? (
+                  <MpesaDetails
+                    phone={phone}
+                    setPhone={setPhone}
+                    idNumber={idNumber}
+                    setIdNumber={setIdNumber}
+                    isViewMode={isViewMode}
+                    required={currency === "KES" && paymentMethod === "MPESA"}
+                    status={advance?.status || ""}
+                  />
+                ) : paymentMethod === "CHEQUE" ||
+                  paymentMethod === "RTGS" ||
+                  paymentMethod === "EFT" ? (
+                  <BankDetails
+                    accountNo={accountNo}
+                    setAccountNo={setAccountNo}
+                    bank={bank}
+                    setBank={setBank}
+                    branch={branch}
+                    setBranch={setBranch}
+                    chequeName={chequeName}
+                    setChequeName={setChequeName}
+                    swiftCode={swiftCode}
+                    setSwiftCode={setSwiftCode}
+                    paymentMethod={paymentMethod}
+                    banks={banks}
+                    filteredBranches={filteredBranches}
+                    isViewMode={isViewMode}
+                    status={advance?.status || ""}
+                  />
+                ) : paymentMethod === "CASH" ? (
+                  <CashDetails
+                    collectionDate={collectionDate}
+                    setCollectionDate={setCollectionDate}
+                    cashHours={cashHours}
+                    setCashHours={setCashHours}
+                    isViewMode={isViewMode}
+                  />
+                ) : null}
+              </>
+            )}
+            <ActionButtons
+              isSubmitting={isSubmitting}
+              isLoading={isLoading}
               isViewMode={isViewMode}
+              cutoffPassed={cutoffPassed}
+              limitExceeded={
+                typeof advanceLimit === "number" &&
+                parseFloat(advanceAmount) > advanceLimit
+              }
               status={advance?.status || ""}
+              advanceNo={savedAdvanceNo}
+              onSuccess={onSuccess}
+              employeeNo={employeeNo}
             />
-
-            {paymentMethod === "MPESA" ? (
-              <MpesaDetails
-                phone={phone}
-                setPhone={setPhone}
-                idNumber={idNumber}
-                setIdNumber={setIdNumber}
-                isViewMode={isViewMode}
-                required={currency === "KES" && paymentMethod === "MPESA"}
-                status={advance?.status || ""}
-              />
-            ) : paymentMethod === "CHEQUE" ||
-              paymentMethod === "RTGS" ||
-              paymentMethod === "EFT" ? (
-              <BankDetails
-                accountNo={accountNo}
-                setAccountNo={setAccountNo}
-                bank={bank}
-                setBank={setBank}
-                branch={branch}
-                setBranch={setBranch}
-                chequeName={chequeName}
-                setChequeName={setChequeName}
-                swiftCode={swiftCode}
-                setSwiftCode={setSwiftCode}
-                paymentMethod={paymentMethod}
-                banks={banks}
-                filteredBranches={filteredBranches}
-                isViewMode={isViewMode}
-                status={advance?.status || ""}
-              />
-            ) : null}
-          </>
-        )}
-        <ActionButtons
-          isSubmitting={isSubmitting}
-          isLoading={isLoading}
-          isViewMode={isViewMode}
-          cutoffPassed={cutoffPassed}
-          limitExceeded={
-            typeof advanceLimit === "number" &&
-            parseFloat(advanceAmount) > advanceLimit
-          }
-          status={advance?.status || ""}
-          advanceNo={savedAdvanceNo}
-          onSuccess={onSuccess}
-          employeeNo={employeeNo}
-        />
-      </form>
+          </form>
+        </div>
+        <div className="col-md-3">
+          <VerticalProgressCard advance={advance ? advance : null} />
+        </div>
+      </div>
     </>
   );
 }

@@ -6,8 +6,8 @@ import NoEtaDownloads from "./NoEtaDownloads";
 import { getResource, patchResource } from "@/app/lib/api/http";
 import { Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
-import DataTable, { TableColumn } from "react-data-table-component";
-import "../../../tables/datatable-custom.css";
+import SanitizedDataTable from "@/app/components/tables/SanitizedDataTable";
+import { TableColumn } from "react-data-table-component";
 import "./download.css";
 
 interface TravelDocumentsProps {
@@ -110,7 +110,6 @@ const TravelDocuments: React.FC<TravelDocumentsProps> = ({
     {
       name: "Has ETA",
       width: "30%",
-      center: true,
       cell: (row: Traveller) => (
         <div
           key={row.lineNo}
@@ -176,16 +175,12 @@ const TravelDocuments: React.FC<TravelDocumentsProps> = ({
               <div className="card-body">
                 <div className="mb-4">
                   <h5 className="card-title fw-semibold mb-3">Travellers</h5>
-                  <DataTable
-                    className="react-data-table compact"
+                  <SanitizedDataTable
+                    title=""
                     columns={columns}
                     data={travellers}
-                    pagination
-                    striped
-                    dense
-                    highlightOnHover
-                    responsive
-                    noDataComponent="No traveller records found"
+                    loading={loading}
+                    searchPlaceholder="Search travellers..."
                   />
                 </div>
 

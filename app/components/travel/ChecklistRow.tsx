@@ -76,7 +76,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
   const handleFileUpload = useCallback(async (file: File) => {
     try {
       const base64String = await fileToBase64(file);
-      const base64Data = base64String.split(',')[1];
+      const base64Data = base64String.split(",")[1];
 
       if (!base64Data) {
         throw new Error("Invalid file data");
@@ -88,7 +88,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
         documentCode: row.relatedDocumentCode,
         attachment: base64Data,
         attachedDate: new Date().toISOString(),
-        relatedRecordId: row.id
+        relatedRecordId: row.id,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "File upload failed";
@@ -118,9 +118,15 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
         has,
       };
 
-      const res = await patchResource('travellerChecklist', {
+      const res = await patchResource("travellerChecklist", {
         data: payload,
-        primaryKey: ['documentType', 'documentNo', 'lineNo', 'checklistType', 'checklistItem'],
+        primaryKey: [
+          "documentType",
+          "documentNo",
+          "lineNo",
+          "checklistType",
+          "checklistItem",
+        ],
       });
 
       if (res.error) {
@@ -188,7 +194,7 @@ export default function ChecklistRow({ row }: { row: ChecklistItem }) {
 
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 2000);
+      const timer = setTimeout(() => setSuccessMessage(""), 2000);
       return () => clearTimeout(timer);
     }
   }, [successMessage]);

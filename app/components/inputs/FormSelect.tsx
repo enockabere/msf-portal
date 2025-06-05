@@ -21,7 +21,7 @@ const FormSelect = ({
   placeholder?: string;
   showAsterisk?: boolean;
 }) => (
-  <>
+  <div className="form-group">
     <label className="form-label">
       {label} {showAsterisk && <span className="text-danger">*</span>}
     </label>
@@ -40,7 +40,7 @@ const FormSelect = ({
         </option>
       ))}
     </select>
-  </>
+  </div>
 );
 
 export default FormSelect;

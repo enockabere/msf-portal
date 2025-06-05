@@ -1,22 +1,15 @@
-import React, {useEffect, useState} from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import {getResource} from "@/app/lib/api/http";
-import {TravelRequest} from "@/app/types/travel";
 import {Advance} from "@/app/types/advance";
-import Swal from "sweetalert2";
 import {Eye} from "lucide-react";
 import {useRouter} from "next/navigation";
 
-
-
 interface TravelAdvanceGLTableProps {
-    travelInfo: TravelRequest;
+    advances: Record<string, any>[];
     loading?: boolean;
     type?: string
 }
 
-const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ travelInfo, loading, type }) => {
-    const [advances, setAdvances] = useState<Advance[]>([]);
+const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ advances, loading, type }) => {
     const router = useRouter();
 
     const handleNav = (e: React.MouseEvent, advanceNo: string) => {
@@ -47,31 +40,6 @@ const TravelAdvanceGLTable: React.FC<TravelAdvanceGLTableProps> = ({ travelInfo,
         },
     ];
 
-
-    useEffect(() => {
-        const getImprest = async ()=> {
-            try {
-                const res = await getResource('imprest', {
-                    params: {
-                        filters: {
-                            referenceNo	: travelInfo.no,
-                        }
-                    }
-                })
-
-                if (res.error) {
-                    return Swal.fire(res.error.code, res.error.message, 'error');
-                }
-
-                setAdvances(res.value)
-            } catch (error) {
-                return Swal.fire(error.code, error.message, 'error');
-            }
-        }
-
-        getImprest()
-
-    }, []);
 
 
     return (

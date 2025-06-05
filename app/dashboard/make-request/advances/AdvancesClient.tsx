@@ -6,7 +6,6 @@ import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
 import SalaryAdvanceForm from "@/app/components/advances/forms/SalaryAdvanceForm";
-import VerticalProgressCard from "@/app/components/advances/forms/VerticalProgressCard";
 import CustomModal from "@/app/components/modals/CustomModal";
 import {
   FileClock,
@@ -45,15 +44,17 @@ export default function AdvancesClient() {
         `/api/bc/advances/salary/requests?employeeNo=${employeeNo}`
       );
       const json = await res.json();
-      console.log("Fetched data:  advance client", json["data"]["value"])
+      console.log("Fetched data:  advance client", json["data"]["value"]);
       setAdvanceData(() => {
         const newAdvance = json["data"]["value"] || [];
         setSelectedAdvance((prev) => {
           if (prev) {
-            return newAdvance.find((val: Record<string, any>) => val.no === prev.no)
+            return newAdvance.find(
+              (val: Record<string, any>) => val.no === prev.no
+            );
           }
           return prev;
-        })
+        });
         return newAdvance;
       });
     } catch (err) {
@@ -62,8 +63,6 @@ export default function AdvancesClient() {
       setLoading(false);
     }
   }, [session]);
-
-
 
   const [placement, setPlacement] = useState<
     "right" | "top" | "bottom" | "left"
@@ -114,7 +113,7 @@ export default function AdvancesClient() {
   ];
 
   const handleSetSelectedRow = (advance: Advance | null = null) => {
-    console.log("advance Value: ", advance)
+    console.log("advance Value: ", advance);
     if (advance) {
       setSelectedAdvance(advance);
       setShowModal(true);
@@ -122,7 +121,7 @@ export default function AdvancesClient() {
       setShowModal(false);
       setSelectedAdvance(null);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAdvances();
@@ -188,7 +187,9 @@ export default function AdvancesClient() {
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   selectedAdvance={selectedAdvance}
-                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
+                  setSelectedRowHandler={(advance: Advance) =>
+                    handleSetSelectedRow(advance)
+                  }
                 />
               </div>
             </div>
@@ -206,7 +207,9 @@ export default function AdvancesClient() {
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
                   selectedAdvance={selectedAdvance}
-                  setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
+                  setSelectedRowHandler={(advance: Advance) =>
+                    handleSetSelectedRow(advance)
+                  }
                 />
               </div>
             </div>
@@ -223,7 +226,9 @@ export default function AdvancesClient() {
                 initialTab={activeStatusTab}
                 refetch={fetchAdvances}
                 selectedAdvance={selectedAdvance}
-                setSelectedRowHandler={(advance: Advance) => handleSetSelectedRow(advance)}
+                setSelectedRowHandler={(advance: Advance) =>
+                  handleSetSelectedRow(advance)
+                }
               />
             </div>
           </div>
@@ -236,28 +241,21 @@ export default function AdvancesClient() {
         size="xl"
         titleIcon={<Wallet size={18} className="text-white" />}
       >
-        <div className="row">
-          <div className="col-md-9">
-            <SalaryAdvanceForm
-              onSuccess={(status) => {
-                const statusToTab: Record<string, string> = {
-                  Open: "open",
-                  "Pending Approval": "pending",
-                  Released: "released",
-                };
-                if (status && statusToTab[status]) {
-                  setActiveStatusTab(statusToTab[status]);
-                }
-                fetchAdvances();
-              }}
-              advance={selectedAdvance}
-              setSelectedRowHandler={handleSetSelectedRow}
-            />
-          </div>
-          <div className="col-md-3">
-            <VerticalProgressCard advance={null} />
-          </div>
-        </div>
+        <SalaryAdvanceForm
+          onSuccess={(status) => {
+            const statusToTab: Record<string, string> = {
+              Open: "open",
+              "Pending Approval": "pending",
+              Released: "released",
+            };
+            if (status && statusToTab[status]) {
+              setActiveStatusTab(statusToTab[status]);
+            }
+            fetchAdvances();
+          }}
+          advance={selectedAdvance}
+          setSelectedRowHandler={handleSetSelectedRow}
+        />
       </CustomModal>
     </div>
   );

@@ -167,23 +167,25 @@ export default function ProgressIndicator({
             step.
           </div>
         </div>
-        <div
-          className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          <div className="toast-body d-flex flex-column gap-2">
-            <div className="d-flex align-items-center gap-2">
-              <span>Double-check the requested amount before submitting.</span>
+        {!isSubmitted && (
+            <div
+                className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+            >
+              <div className="toast-body d-flex flex-column gap-2">
+                <div className="d-flex align-items-center gap-2">
+                  <span>Double-check the requested amount before submitting.</span>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  className="btn-close btn-close-white ms-auto me-2"
+                  aria-label="Close"
+              ></button>
             </div>
-          </div>
-          <button
-            type="button"
-            className="btn-close btn-close-white ms-auto me-2"
-            aria-label="Close"
-          ></button>
-        </div>
+        )}
       </div>
     </div>
   );

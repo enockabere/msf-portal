@@ -101,6 +101,7 @@
   --bs-secondary-color: #96a0b5;
   --bs-secondary-color-rgb: 150, 160, 181;
   --bs-secondary-bg: #ffffff;
+  --bs-secondary-bg-disabled: #f1f1f1;
   --bs-secondary-bg-rgb: 255, 255, 255;
   --bs-tertiary-color: rgba(43, 45, 59, 0.5);
   --bs-tertiary-color-rgb: 43, 45, 59;
@@ -149,6 +150,7 @@
   --bs-secondary-color: #aab0b9;
   --bs-secondary-color-rgb: 170, 176, 185;
   --bs-secondary-bg: #202221;
+  --bs-secondary-bg-disabled: #656565;
   --bs-secondary-bg-rgb: 32, 34, 33;
   --bs-tertiary-color: rgba(217, 225, 236, 0.5);
   --bs-tertiary-color-rgb: 217, 225, 236;
@@ -2536,7 +2538,8 @@ textarea.form-control-lg {
   background-image: none;
 }
 .form-select:disabled {
-  background-color: var(--bs-secondary-bg);
+  background-color: var(--bs-secondary-bg-disabled);
+  color: var(--bs-label-color);
 }
 .form-select:-moz-focusring {
   color: transparent;
