@@ -23,5 +23,6 @@ export interface TravelRequest {
   budgetCode: string;
   approvalStatus: 'Open' | string;
   hasValidVisa: false;
+  bookingComplete: false;
   [key: string]: any;
 }

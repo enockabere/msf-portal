@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { TravelInfo } from "./TravelAdvanceHeader";
 import { useMySetups } from "@/app/context/SetupContext";
 import { TravelRequest } from "@/app/types/travel";
 import { getResource } from "@/app/lib/api/http";
-import { decodeValue } from "@/app/utils/helpers";
 import FormSelect from "@/app/components/inputs/FormSelect";
 import FormInput from "@/app/components/inputs/FormInput";
 
@@ -15,23 +13,11 @@ const TRAVEL_TYPES = [
   { code: "International", description: "International" },
 ];
 
-const ACCOMMODATION_TYPES = [
-  { code: "Self-Arranged", description: "Self Arranged" },
-  { code: "Full Board", description: "Full Board" },
-  { code: "Half Board", description: "Half Board" },
-  { code: "Bed & Breakfast", description: "Bed & Breakfast" },
-];
-
-const YES_NO_OPTIONS = [
-  { code: 'true', description: 'Yes' },
-  { code: 'false', description: 'No' },
-];
-
 interface Props {
   formData: TravelRequest;
   requiredFields: Array<string>;
   isReadOnly: boolean;
-  onFormChange: (field: keyof TravelInfo, value: any) => void;
+  onFormChange: (field: keyof TravelRequest, value: any) => void;
 }
 
 const CabDetails = ({ travelRequest }: { travelRequest: TravelRequest }) => (
@@ -64,8 +50,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
     modesOfTransport,
     dimensions,
     countries,
-    perDiemAllotments,
-    missionTypes,
     fetchSetups,
   } = useMySetups();
 
@@ -127,13 +111,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const requiresPerDiemChecker = useCallback((accommodationType: string) => {
-    const allotment = perDiemAllotments.find(
-      (item: Record<string, any>) => decodeValue(item.accommodationType) === accommodationType
-    );
-    return allotment?.perDiemAllocated > 0;
-  }, [perDiemAllotments]);
 
   const handleCountryChange = useCallback(async (value: string) => {
     onFormChange('originCountryCode', value);
@@ -308,49 +285,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 value={formData.returnDate}
                 onChange={(value) => onFormChange('returnDate', value)}
                 type="date"
-                required
-                disabled={isReadOnly}
-                showAsterisk
-              />
-            </div>
-          )}
-
-          {requiredFields.includes('accommodationType') && (
-            <div className="col-md-4">
-              <FormSelect
-                label="Accommodation Type"
-                value={decodeValue(formData.accommodationType)}
-                onChange={(value) => onFormChange("accommodationType", value)}
-                options={ACCOMMODATION_TYPES}
-                required
-                disabled={isReadOnly}
-                showAsterisk
-              />
-            </div>
-          )}
-
-          {requiredFields.includes('requirePerDiem') &&
-            requiresPerDiemChecker(decodeValue(formData.accommodationType)) && (
-              <div className="col-md-4">
-                <FormSelect
-                  label="Require Per Diem"
-                  value={formData.requirePerDiem}
-                  onChange={(value) => onFormChange('requirePerDiem', value === 'true')}
-                  options={YES_NO_OPTIONS}
-                  required
-                  disabled={isReadOnly}
-                  showAsterisk
-                />
-              </div>
-            )}
-
-          {requiredFields.includes('missionType') && formData.requirePerDiem && (
-            <div className="col-md-4">
-              <FormSelect
-                label="Type of Mission"
-                value={formData.missionType}
-                onChange={(value) => onFormChange("missionType", value)}
-                options={missionTypes.map(item => ({ code: item.code, description: item.description }))}
                 required
                 disabled={isReadOnly}
                 showAsterisk

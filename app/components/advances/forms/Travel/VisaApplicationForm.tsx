@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { TravelRequest } from "@/app/types/travel";
-import {codeUnit, createResource, getResource, patchResource} from "@/app/lib/api/http";
+import {codeUnit, createResource, patchResource} from "@/app/lib/api/http";
 import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Save, Wallet } from "lucide-react";
@@ -54,9 +54,10 @@ interface VisaApplicationLineProps {
   lineIndex: number;
   isReadOnly: boolean;
   countries: Array<Record<string, any>>;
+  onSubmit: () => void;
 }
 
-const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineIndex, isReadOnly, countries}) => {
+const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineIndex, isReadOnly, countries, onSubmit}) => {
   const [formData, setFormData] = useState({
     documentType: line.documentType,
     requestNo: line.requestNo,
@@ -73,22 +74,29 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
   const [successMessage, setSuccessMessage] = useState('');
   const { loading, actions } = usePageLoader();
   const { dispatcher } = actions;
-  const [hasValidVisa, setHasValidVisa] = useState(line.validVisa === 'Yes')
 
-  const canExemptFromTravelling = useMemo(() => !hasValidVisa, [hasValidVisa])
+  const canExemptFromTravelling = useMemo(() => line.validVisa === "No", [line.validVisa])
 
   const handleExemptChange = async (value: boolean) => {
-    setFormData((prev) => ({...prev, exemptFromTravelling: value}));
-
     try {
       const res = await patchResource("visaApplicationLines", {
-        data: removeNullAndUndefinedFromObject(formData),
+        data: {
+          documentType: formData.documentType,
+          requestNo: formData.requestNo,
+          profileNo: formData.profileNo,
+          visaType: formData.visaType,
+          lineNo: formData.lineNo,
+          exemptFromTravelling: value,
+        },
         primaryKey: ['documentType', 'requestNo', 'profileNo', 'visaType', 'lineNo']
       });
 
       if (res.error) {
         throw new Error(res.error.message);
       }
+
+      setFormData((prev) => ({...prev, exemptFromTravelling: value}));
+      onSubmit();
     } catch (error: any) {
       await Swal.fire("Error updating Visa application line", error.message, "error");
     }
@@ -124,8 +132,8 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
         throw new Error(operation.error.message);
       }
 
-      setHasValidVisa(formData.validVisa === 'Yes');
       setSuccessMessage('Saved!');
+      onSubmit();
     } catch (error: any) {
       await Swal.fire('Error saving details', error.message, 'error');
     } finally {
@@ -270,60 +278,18 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
   const { actions, loading } = usePageLoader();
   const { dispatcher } = actions;
 
-  const fetchVisaApplications = useCallback(async () => {
-    try {
-      dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: true,
-          message: 'Fetching required visas...',
-        }
-      });
+  const prepareVisaApplications = useCallback(() => {
+    const formattedApplications = travelRequest.visaApplications.map((application: VisaApplication) => ({
+      ...application,
+      visaApplicationLines: application.visaApplicationLines?.map((line: VisaApplicationLine) => ({
+        ...line,
+        dateIssued: line.dateIssued === "0001-01-01" ? "" : line.dateIssued,
+        expiryDate: line.expiryDate === "0001-01-01" ? "" : line.expiryDate,
+      })) || []
+    }));
 
-      const res = await getResource('visaApplications', {
-        params: {
-          filters: {
-            requestNo: travelRequest.no,
-            documentType: travelRequest.documentType,
-            profileNo: travelRequest.travellerNo,
-          },
-          '$expand': 'visaApplicationLines',
-        }
-      });
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      const applications = res.value;
-
-      const formattedApplications = applications.map((application: VisaApplication) => ({
-        ...application,
-        visaApplicationLines: application.visaApplicationLines?.map((line: VisaApplicationLine) => ({
-          ...line,
-          dateIssued: line.dateIssued === "0001-01-01" ? "" : line.dateIssued,
-          expiryDate: line.expiryDate === "0001-01-01" ? "" : line.expiryDate,
-        })) || []
-      }));
-
-      setVisaApplications(formattedApplications);
-    } catch (error: any) {
-      Swal.fire('Error fetching Visa applications', error.message, 'error');
-    } finally {
-      dispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
-      });
-    }
-  }, [
-    dispatcher,
-    travelRequest.no,
-    travelRequest.documentType,
-    travelRequest.travellerNo,
-  ]);
+    setVisaApplications(formattedApplications);
+  }, [travelRequest.visaApplications]);
 
 
   const createVisaAdvance = useCallback(async () => {
@@ -367,8 +333,8 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         throw new Error(res.error.message);
       }
 
-      await createVisaAdvance()
-      onSubmit()
+      await createVisaAdvance();
+      onSubmit();
     } catch (error) {
       await Swal.fire("Error creating visa advance", error.message);
     } finally {
@@ -380,7 +346,6 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
         }
       });
     }
-
   }
 
   useEffect(() => {
@@ -393,8 +358,8 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
       }
     ]);
 
-    fetchVisaApplications();
-  }, [fetchSetups, fetchVisaApplications, travelRequest.no]);
+    prepareVisaApplications();
+  }, [fetchSetups, prepareVisaApplications, travelRequest.no]);
 
   return (
     <div className="row g-3">
@@ -439,7 +404,12 @@ const VisaApplicationForm: React.FC<VisaApplicationFormProps> = ({ travelRequest
             </div>
 
             {application.visaApplicationLines.map((line, lineIndex) => (
-              <VisaApplicationLine key={lineIndex} line={line} lineIndex={lineIndex} isReadOnly={travelRequest.hasValidVisa} countries={countries}/>
+              <VisaApplicationLine
+                key={lineIndex} line={line}
+                lineIndex={lineIndex}
+                isReadOnly={travelRequest.hasValidVisa}
+                countries={countries}
+                onSubmit={onSubmit}/>
             ))}
           </div>
         ))}
