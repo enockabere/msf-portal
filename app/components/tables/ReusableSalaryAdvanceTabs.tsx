@@ -77,38 +77,52 @@ export default function ReusableSalaryAdvanceTabs({
     let open = advanceByStatus.get('Open') || [];
     let pending = advanceByStatus.get('Pending Approval') || [];
     let released = advanceByStatus.get('Released') || [];
+    let settled = advanceByStatus.get('Settled') || [];
+    let accounted = advanceByStatus.get('Accounted') || [];
+    let rejected = advanceByStatus.get('Rejected') || [];
+    let issued = advanceByStatus.get('Issued') || [];
 
     if (isOtherAdvances) {
       const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
       open = advancesByImprestStatus.get('Draft') || [];
       pending = advancesByImprestStatus.get('Pending') || [];
+      settled = advancesByImprestStatus.get('Settled') || [];
+      accounted = advancesByImprestStatus.get('Accounted') || [];
+      rejected = advancesByImprestStatus.get('Rejected') || [];
+      issued = advancesByImprestStatus.get('Issued') || [];
       released = [
         ...advancesByImprestStatus.get('Approved') || [],
-        ...advancesByImprestStatus.get('Issued') || [],
-        ...advancesByImprestStatus.get('Accounted') || [],
-        ...advancesByImprestStatus.get('Settled') || [],
         ...advancesByImprestStatus.get('Posted') || [],
         ...advancesByImprestStatus.get('Pending Liquidation') || [],
-        ...advancesByImprestStatus.get('Rejected') || [],
         ...advancesByImprestStatus.get('Liquidation Rejected') || [],
         ...advancesByImprestStatus.get('Reversed') || [],
       ];
+
     }
 
 
     return {
       open,
       pending,
+      settled,
+      accounted,
+      rejected,
       released,
+      issued,
     };
   }, [data, isOtherAdvances]);
 
   useEffect(() => {
+    const statuses = ['open', 'pending', 'released', 'settled', 'accounted', 'rejected', 'issued']
     const counts = {
       open: filteredByStatus.open.length,
       pending: filteredByStatus.pending.length,
       released: filteredByStatus.released.length,
-      total: filteredByStatus.open.length + filteredByStatus.pending.length + filteredByStatus.released.length,
+      settled: filteredByStatus.settled.length,
+      accounted: filteredByStatus.accounted.length,
+      rejected: filteredByStatus.rejected.length,
+      issued: filteredByStatus.issued.length,
+      total: statuses.reduce((sum, status) => sum + filteredByStatus[status].length, 0),
     };
 
     if (counts.total > 0) {
@@ -123,7 +137,7 @@ export default function ReusableSalaryAdvanceTabs({
     if (
       !didSetInitialTab.current &&
       initialTab &&
-      ["open", "pending", "released"].includes(initialTab)
+      ["open", "pending", "released", "Settled", "Accounted", "Rejected"].includes(initialTab)
     ) {
       setActiveTab(initialTab);
       didSetInitialTab.current = true;
@@ -172,6 +186,58 @@ export default function ReusableSalaryAdvanceTabs({
             <SkeletonDataTable
               columns={columns}
               data={filteredByStatus.released}
+              searchPlaceholder={searchPlaceHolder}
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="settled"
+          title={`Settled (${filteredByStatus.settled.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.settled}
+              searchPlaceholder={searchPlaceHolder}
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="accounted"
+          title={`Accounted (${filteredByStatus.accounted.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.accounted}
+              searchPlaceholder={searchPlaceHolder}
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="rejected"
+          title={`Rejected (${filteredByStatus.rejected.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.rejected}
+              searchPlaceholder={searchPlaceHolder}
+              loading={loading}
+            />
+          </div>
+        </Tab>
+        <Tab
+          eventKey="issued"
+          title={`Issued (${filteredByStatus.issued.length})`}
+        >
+          <div className="pt-3">
+            <SkeletonDataTable
+              columns={columns}
+              data={filteredByStatus.issued}
               searchPlaceholder={searchPlaceHolder}
               loading={loading}
             />

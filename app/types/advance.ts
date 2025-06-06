@@ -13,7 +13,7 @@ export interface Advance {
   employeeName?: string;
   advanceType?: AdvanceType;
   applicationAmount?: number;
-  status?: "Open" | "Pending Approval" | "Released";
+  status?: "Open" | "Pending Approval" | "Released" | "Settled" | "Accounted" | "Rejected" | "Issued";
   documentStatus?: string;
   preferredDisbursementDate?: string;
   repaymentAmount?: number;
