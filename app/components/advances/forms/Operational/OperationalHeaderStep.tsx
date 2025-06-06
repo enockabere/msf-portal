@@ -64,6 +64,7 @@ export default function OperationalHeaderStep({
                     value={formData?.phoneNo}
                     onChange={(e) => onFormChange("phoneNo", e.target.value)}
                     maxLength={25}
+                    disabled={!['Open', ''].includes(formData?.status)}
                   />
                 </div>
               </div>
@@ -80,6 +81,7 @@ export default function OperationalHeaderStep({
                     onFormChange("idPassportNumber", e.target.value)
                   }
                   placeholder="Enter ID or Passport number"
+                  disabled={!['Open', ''].includes(formData?.status)}
                 />
               </div>
             </div>
@@ -101,6 +103,7 @@ export default function OperationalHeaderStep({
                   id="account-no"
                   value={formData?.accountNo}
                   onChange={(e) => onFormChange("accountNo", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
                 />
               </div>
               <div className="col-md-4 mb-3">
@@ -112,6 +115,7 @@ export default function OperationalHeaderStep({
                   id="bank"
                   value={formData?.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
                 >
                   <option defaultValue={""}> --Select bank --</option>
                   {banks.map((bank: Record<string, any>) => {
@@ -132,6 +136,7 @@ export default function OperationalHeaderStep({
                   id="branch"
                   value={formData?.branch}
                   onChange={(e) => onFormChange("branch", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
                 >
                   <option> --Select branch-- </option>
                   {bankBranches.map((branch: Record<string, any>) => {
@@ -156,6 +161,7 @@ export default function OperationalHeaderStep({
                   id="swift-code"
                   value={formData?.swiftCode}
                   onChange={(e) => onFormChange("swiftCode", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
                 />
               </div>
             </div>
@@ -179,6 +185,7 @@ export default function OperationalHeaderStep({
                     onFormChange("cashCollectionDate", e.target.value)
                   }
                   min={new Date().toISOString().split("T")[0]}
+                  disabled={!['Open', ''].includes(formData?.status)}
                   required
                 />
               </div>
@@ -191,6 +198,7 @@ export default function OperationalHeaderStep({
                   className="form-select"
                   value={formData?.cashHours}
                   onChange={(e) => onFormChange("cashHours", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
                   required
                 >
                   <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>
@@ -234,6 +242,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 value={formData?.imprestType}
                 onChange={(e) => onFormChange("imprestType", e.target.value)}
+                disabled={!['Open', ''].includes(formData?.status)}
               >
                 <option defaultValue={""}>--select imprest type--</option>
                 {imprestTypes.map((type: Record<string, any>) => {
@@ -254,6 +263,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 value={formData?.currencyCode}
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
+                disabled={!['Open', ''].includes(formData?.status)}
               >
                 <option defaultValue={""}> -- Select Currency -- </option>
                 {combinedCurrencies.map((currency: Record<string, any>) => {
@@ -276,7 +286,7 @@ export default function OperationalHeaderStep({
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
                 disabled={
-                  !formData?.currencyCode && formData?.currencyCode !== ""
+                  !formData?.currencyCode && formData?.currencyCode !== "" || !['Open', ''].includes(formData?.status)
                 }
               >
                 <option defaultValue={""}> --Select payment method-- </option>
@@ -311,6 +321,7 @@ export default function OperationalHeaderStep({
                 placeholder="e.g. Fuel, petty cash..."
                 value={formData?.Purpose}
                 onChange={(e) => onFormChange("Purpose", e.target.value)}
+                disabled={!['Open', ''].includes(formData?.status)}
               />
             </div>
           </div>
