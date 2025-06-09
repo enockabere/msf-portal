@@ -181,7 +181,7 @@ export default function OperationalAdvanceForm({
     const strippedFormData = removeNullAndUndefinedFromObject(formData);
     const missingRequiredValuesBeforeNext = checkIfMissingRequiredProperty(
       strippedFormData,
-      ["imprestType", "currencyCode"]
+      ["imprestType"]
     );
     if (
       !missingRequiredValuesBeforeNext ||
@@ -314,7 +314,6 @@ export default function OperationalAdvanceForm({
           "imprestType",
           "postingDate",
           "employeeNo",
-          "currencyCode",
           "paymentMethod",
           "Purpose",
         ]
@@ -353,7 +352,7 @@ export default function OperationalAdvanceForm({
       });
       let res: RequestResponse = {};
       if (isEditing || formData?.status === 'Open') {
-        if (knownSchema.currencyCode === "KES") knownSchema.currencyCode = "";
+        if (knownSchema.currencyCode === "") knownSchema.currencyCode = "";
         const { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod } = knownSchema;
         res = await putResource("imprest", {
           primaryKey: ['no', 'documentType'],

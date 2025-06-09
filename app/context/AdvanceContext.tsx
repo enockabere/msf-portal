@@ -29,7 +29,7 @@ const initialState = {
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
-        currencyCode: "KES",
+        currencyCode: "",
         paymentMethod: "",
         cashCollectionDate: "",
         cashHours: "",

@@ -221,7 +221,7 @@ export default function OperationalHeaderStep({
               currencies,
               "code",
               formData?.currencyCode
-            )?.description as string) || "KES"}
+            )?.description as string) || ""}
             {formData?.amountToPayHeader}
           </div>
         )}
@@ -285,7 +285,7 @@ export default function OperationalHeaderStep({
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
                 disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
               >
-                <option defaultValue={"KES"} selected> Kenya Shillings </option>
+                <option defaultValue={""} value="" selected> Kenya Shillings </option>
                 {currencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>
