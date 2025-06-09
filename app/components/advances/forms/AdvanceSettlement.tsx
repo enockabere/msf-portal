@@ -785,9 +785,6 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
                   <SettlementExpenseForm
                     selectedLineIndex={activeLineIndex}
                     setActiveLineIndex={setActiveLineIndex}
-                    selectedAdvanceLineForViewAccountingDetails={
-                      selectedAdvanceLineForViewAccountingDetails
-                    }
                     selectedAdvanceLineForView={selectedAdvanceLineForView}
                     saveAccountingLine={handleSaveAccountedRow}
                     deleteDetailedExpesneLine={handleDeleteDetailedExpesneLine}

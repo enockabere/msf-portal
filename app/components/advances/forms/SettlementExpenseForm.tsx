@@ -4,8 +4,6 @@ import React from "react";
 import {
   PlusCircle,
   FileChartColumnIncreasing,
-  Building2,
-  FolderOpen,
   DollarSign,
 } from "lucide-react";
 import { useAdvance } from "@/app/context/AdvanceContext";
@@ -23,7 +21,6 @@ interface Props {
     line: Record<string, any>
   ) => Promise<void>;
   selectedAdvanceLineForView?: Record<string, any>;
-  selectedAdvanceLineForViewAccountingDetails?: Record<string, any>[];
   selectedLineIndex?: number | null;
   setActiveLineIndex?: (index: number) => void;
   addNewEntryToAccount?: (exp: Record<string, any>) => void;
@@ -34,7 +31,6 @@ export default function SettlementExpenseForm({
   saveAccountingLine,
   deleteDetailedExpesneLine,
   selectedAdvanceLineForView,
-  selectedAdvanceLineForViewAccountingDetails,
   selectedLineIndex,
   setActiveLineIndex,
   addNewEntryToAccount,

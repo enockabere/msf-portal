@@ -12,7 +12,6 @@ export const GetColumnByType = (
         getTypeIcon?: (type: string, ...args: any) => ''
     }
 ) => {
-    const isReleasedTab = options?.currentTab === "released";
     const { currencies, imprestTypes } = options;
 
     const issuedStatus = [
