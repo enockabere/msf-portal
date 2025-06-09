@@ -3,9 +3,6 @@
 import { transport } from "@brainspore/hypernexus";
 import { NextRequest, NextResponse } from "next/server";
 
-const memoryCache: Record<string, { data: any; expiry: number }> = {};
-const CACHE_TTL_SECONDS = 300;
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -18,14 +15,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const cacheKey = `approvals-${documentNo}`;
-    const cached = memoryCache[cacheKey];
-    const now = Date.now();
-
-    if (cached && cached.expiry > now) {
-      return NextResponse.json({ data: cached.data });
-    }
-
     const response = await transport.get(
       "/api/Kinetics/VOYAGER/v1.0/approvalEntries",
       {
@@ -35,12 +24,6 @@ export async function GET(request: NextRequest) {
         $expand: "*",
       }
     );
-    memoryCache[cacheKey] = {
-      data: response,
-      expiry: now + CACHE_TTL_SECONDS * 1000,
-    };
-
-    console.log({ data: response });
 
     return NextResponse.json({ data: response });
   } catch (error) {
