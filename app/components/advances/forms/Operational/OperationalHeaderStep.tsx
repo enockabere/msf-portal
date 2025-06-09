@@ -19,6 +19,7 @@ export default function OperationalHeaderStep({
 }: OperationalHeaderStepProps) {
   const {
     imprestTypes,
+    travelRequests,
     banks,
     bankBranches,
     paymentMethods,
@@ -30,16 +31,16 @@ export default function OperationalHeaderStep({
     ...currencies,
   ];
 
-  const { isNew } = useAdvance();
+  const { isNew, showAssociatedTravelRequestControl } = useAdvance();
 
   const buttonSet = buttonsArray(
     isNew
       ? "isNew"
       : formData?.imprestStatus === "Issued"
-      ? "Issued"
-      : formData?.status === "Open" || formData?.status === "Pending Approval"
-      ? formData?.status
-      : "default"
+        ? "Issued"
+        : formData?.status === "Open" || formData?.status === "Pending Approval"
+          ? formData?.status
+          : "default"
   );
 
   const renderViewByTypes = (method: string) => {
@@ -310,7 +311,32 @@ export default function OperationalHeaderStep({
           </div>
           {renderViewByTypes(formData?.paymentMethod)}
           <div className="row">
-            <div className="col-md-12 mb-3">
+            {
+              showAssociatedTravelRequestControl && <div className="col-md-6 mb-3">
+                <label htmlFor="reletedTravelRequest" className="form-label">
+                  Releted Travel Request
+                </label>
+                <select
+                  id="reletedTravelRequest"
+                  className="form-select"
+                  value={formData?.Purpose}
+                  onChange={(e) => onFormChange("", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
+                >
+                  <option defaultValue={""}> --Select associated Travel request-- </option>
+                  {
+                    travelRequests.map((request: Record<string, any>) => {
+                      return (
+                        <option value={request.no} key={request.no}>
+                          {`${request.no} - ${request.purposeOfTravel}`}
+                        </option>
+                      );
+                    })
+                  }
+                </select>
+              </div>
+            }
+            <div className="col-md-6 mb-3">
               <label htmlFor="purpose" className="form-label">
                 Purpose
               </label>

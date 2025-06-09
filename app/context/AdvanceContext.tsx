@@ -58,6 +58,7 @@ const initialState = {
     accountedLines: [] as Record<string, any>[],
     selectedAdvanceLineForView: {} as Record<string, any>,
     selectedAdvanceLineForViewAccountingDetails: [] as Record<string, any>[],
+    showAssociatedTravelRequestControl: false satisfies boolean,
     actions: {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchAdvanceTypes: (endpoints: ENDPOINTMAP, options: RequestOptions): Promise<RequestResponse> => {
@@ -184,6 +185,12 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 selectedAdvanceLineForViewAccountingDetails: action.payload,
+            }
+        };
+        case 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL': {
+            return {
+                ...state,
+                showAssociatedTravelRequestControl: action.payload,
             }
         }
     }

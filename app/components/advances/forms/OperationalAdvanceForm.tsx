@@ -13,6 +13,7 @@ import {
   removeNullAndUndefinedFromObject,
   removeObjectProps,
   safeTypechecker,
+  suggestImprestType,
 } from "@/app/utils/helpers";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useSession } from "next-auth/react";
@@ -40,6 +41,7 @@ export default function OperationalAdvanceForm({
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [paymentMethodType, setPaymentMethodType] = useState<string>("");
   const {
+    OC,
     paymentMethods,
     employeeBanks,
     DEPARTMENTS,
@@ -59,8 +61,52 @@ export default function OperationalAdvanceForm({
       payload: { [field]: value },
     });
     handleSettingPaymentMethodType();
+    handleSettingReletedTravelRequestControl();
   };
+  async function handleSettingReletedTravelRequestControl() {
+    const assumedImprestTypes = ["OPERATION", "TRAVEL"];
+    let imprestType: string;
+    for (const type of assumedImprestTypes) {
+      imprestType = suggestImprestType(type, formData?.imprestType);
+    }
 
+    switch (imprestType) {
+      case 'TRAVEL': {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: true,
+          }
+        });
+        await fetchSetups([
+          {
+            dimensions: {
+              filters: {
+                dimensionCode: 'OC',
+              }
+            }
+          }
+        ]);
+        if (data.user.profile[`shortcutDimension${OC?.[0]?.globalDimensionNo}Code`] === 'MSF-EA') {
+          await fetchSetups([
+            {
+              'travelRequests': {
+                filters: {
+                  documentType: 'Employee',
+                  travellerNo: data?.user?.profile?.no,
+                  approvalStatus: 'Released',
+                }
+              }
+            }
+          ]);
+          dispatcher({
+            type: 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL',
+            payload: true,
+          });
+        };
+      };
+    }
+  }
   const handleExpenseChange = <K extends keyof ExpenseItem>(
     index: number,
     field: K,

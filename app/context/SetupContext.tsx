@@ -17,7 +17,9 @@ const localSetupCache = new Map<string, any>();
 const state = {
   imprestTypes: [] as Array<Record<string, any>>,
   DEPARTMENTS: [] as Array<Record<string, any>>,
+  OC: [] as Array<Record<string, any>>,
   PROJECT: [] as Array<Record<string, any>>,
+  travelRequests: [] as Array<Record<string, any>>,
   currencies: [] as Array<Record<string, any>>,
   globalCurrencies: [] as Array<Record<string, any>>,
   dimensions: [] as Array<Record<string, any>>,
@@ -63,6 +65,7 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
         if (action.payload.dimensions) {
           action.payload.PROJECT = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'PROJECT');
           action.payload.DEPARTMENTS = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'DEPARTMENTS');
+          action.payload.OC = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'OC');
         }
         return { ...state, ...action.payload };
       }

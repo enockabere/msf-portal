@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import { useMySetups } from "@/app/context/SetupContext";
+import { suggestImprestType } from "@/app/utils/helpers";
 
 interface Props {
   data: Advance[];
@@ -50,11 +51,12 @@ export default function ReusableSalaryAdvanceTabs({
       for (const prop in icons[type]) {
         if (args.length && args[0].length) {
           const [value] = args;
-          if (value) {
-            if (value.toLowerCase().split(' ').join("").includes(prop.toLowerCase())) {
-              passedImprestType = prop;
-            };
-          }
+          passedImprestType = suggestImprestType(prop, value);
+          // if (value) {
+          //   if (value.toLowerCase().split(' ').join("").includes(prop.toLowerCase())) {
+          //     passedImprestType = prop;
+          //   };
+          // }
         }
       }
       return icons['Other'][passedImprestType] || "fa-solid fa-file-alt";
