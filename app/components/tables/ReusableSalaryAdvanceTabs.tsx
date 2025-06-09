@@ -36,6 +36,24 @@ export default function ReusableSalaryAdvanceTabs({
 
   const isOtherAdvances = path.includes('otherAdvances');
   const advanceSet: AdvanceTypeKey = isOtherAdvances ? 'Other' : 'Salary';
+  const eventKeys = {
+    Other: [
+      { key: 'open', value: 'Open'},
+      { key: 'pending', value: 'Pending'},
+      { key: 'released', value: 'Released'},
+      { key: 'issued', value: 'Issued'},
+      { key: 'pendingVerification', value: 'Pending Verification'},
+      { key: 'surrendered', value: 'Surrendered'},
+      { key: 'surrenderRejected', value: 'Surrender Rejected'},
+      { key: 'partiallySettled', value: 'Partially Settled'},
+      { key: 'settled', value: 'Settled'},
+    ],
+    Salary: [
+      { key: 'open', value: 'Open'},
+      { key: 'pending', value: 'Pending'},
+      { key: 'released', value: 'Released'},
+    ],
+  }
   const searchPlaceHolder = isOtherAdvances ? 'Search advances...' : 'Search salary advances...'
   const getTypeIcon = useCallback((type: string, ...args: any) => {
     const icons: Record<AdvanceTypeKey, any> = {
@@ -78,18 +96,24 @@ export default function ReusableSalaryAdvanceTabs({
     let pending = advanceByStatus.get('Pending Approval') || [];
     let released = advanceByStatus.get('Released') || [];
     let settled = advanceByStatus.get('Settled') || [];
-    let accounted = advanceByStatus.get('Accounted') || [];
     let rejected = advanceByStatus.get('Rejected') || [];
+    let surrenderRejected = advanceByStatus.get('Surrender Rejected') || [];
     let issued = advanceByStatus.get('Issued') || [];
+    let pendingVerification = advanceByStatus.get('Pending Verification') || [];
+    let surrendered = advanceByStatus.get('Surrendered') || [];
+    let partiallySettled = advanceByStatus.get('Partially Settled') || [];
 
     if (isOtherAdvances) {
       const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
       open = advancesByImprestStatus.get('Draft') || [];
       pending = advancesByImprestStatus.get('Pending') || [];
       settled = advancesByImprestStatus.get('Settled') || [];
-      accounted = advancesByImprestStatus.get('Accounted') || [];
       rejected = advancesByImprestStatus.get('Rejected') || [];
+      surrenderRejected = advancesByImprestStatus.get('Surrender Rejected') || [];
       issued = advancesByImprestStatus.get('Issued') || [];
+      pendingVerification = advancesByImprestStatus.get('Pending Verification') || [];
+      surrendered = advancesByImprestStatus.get('Surrendered') || [];
+      partiallySettled = advancesByImprestStatus.get('artially Settled') || [];
       released = [
         ...advancesByImprestStatus.get('Approved') || [],
         ...advancesByImprestStatus.get('Posted') || [],
@@ -104,22 +128,28 @@ export default function ReusableSalaryAdvanceTabs({
     return {
       open,
       pending,
-      settled,
-      accounted,
-      rejected,
       released,
       issued,
+      pendingVerification,
+      surrenderRejected,
+      surrendered,
+      partiallySettled,
+      rejected,
+      settled,
     };
   }, [data, isOtherAdvances]);
 
   useEffect(() => {
-    const statuses = ['open', 'pending', 'released', 'settled', 'accounted', 'rejected', 'issued']
+    const statuses = ['open', 'pending', 'released', 'issued', 'pendingVerification', 'surrenderRejected', 'surrendered', 'partiallySettled', 'settled', 'rejected']
     const counts = {
       open: filteredByStatus.open.length,
       pending: filteredByStatus.pending.length,
       released: filteredByStatus.released.length,
+      pendingVerification: filteredByStatus.pendingVerification.length,
+      surrenderRejected: filteredByStatus.surrenderRejected.length,
+      surrendered: filteredByStatus.surrendered.length,
+      partiallySettled: filteredByStatus.partiallySettled.length,
       settled: filteredByStatus.settled.length,
-      accounted: filteredByStatus.accounted.length,
       rejected: filteredByStatus.rejected.length,
       issued: filteredByStatus.issued.length,
       total: statuses.reduce((sum, status) => sum + filteredByStatus[status].length, 0),
@@ -137,7 +167,7 @@ export default function ReusableSalaryAdvanceTabs({
     if (
       !didSetInitialTab.current &&
       initialTab &&
-      ["open", "pending", "released", "Settled", "Accounted", "Rejected"].includes(initialTab)
+      ["open", "pending", "released", "pendingVerification", "surrenderRejected", "surrendered", "partiallySettled", "Settled", "Accounted", "Rejected"].includes(initialTab)
     ) {
       setActiveTab(initialTab);
       didSetInitialTab.current = true;
@@ -155,94 +185,20 @@ export default function ReusableSalaryAdvanceTabs({
   return (
     <div>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
-        <Tab eventKey="open" title={`Open (${filteredByStatus.open.length})`}>
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.open}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="pending"
-          title={`Pending (${filteredByStatus.pending.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.pending}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="released"
-          title={`Released (${filteredByStatus.released.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.released}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="settled"
-          title={`Settled (${filteredByStatus.settled.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.settled}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="accounted"
-          title={`Accounted (${filteredByStatus.accounted.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.accounted}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="rejected"
-          title={`Rejected (${filteredByStatus.rejected.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.rejected}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
-        <Tab
-          eventKey="issued"
-          title={`Issued (${filteredByStatus.issued.length})`}
-        >
-          <div className="pt-3">
-            <SkeletonDataTable
-              columns={columns}
-              data={filteredByStatus.issued}
-              searchPlaceholder={searchPlaceHolder}
-              loading={loading}
-            />
-          </div>
-        </Tab>
+        {
+          eventKeys[advanceSet].map(item => {
+            return <Tab eventKey={item.key} key={item.key} title={`${item.value} (${filteredByStatus[item.key].length})`}>
+              <div className="pt-3">
+                <SkeletonDataTable
+                    columns={columns}
+                    data={filteredByStatus[item.key]}
+                    searchPlaceholder={searchPlaceHolder}
+                    loading={loading}
+                />
+              </div>
+            </Tab>
+          })
+        }
       </Tabs>
 
       <AdvanceRequestAction
