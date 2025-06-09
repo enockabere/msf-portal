@@ -110,7 +110,7 @@ export default function RequestCards() {
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
-        currencyCode: "",
+        currencyCode: "KES",
         paymentMethod: "",
         cashCollectionDate: "",
         cashHours: "",
@@ -164,9 +164,8 @@ export default function RequestCards() {
       <div className="row row-cols-1 row-cols-md-4 g-3">
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 0 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -302,9 +301,8 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
-              activeIndex === 1 ? "active" : ""
-            }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 1 ? "active" : ""
+              }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -403,8 +401,8 @@ export default function RequestCards() {
           requestType === "Expense"
             ? "Record Expense"
             : requestType === "Requisition"
-            ? "New Requisition"
-            : `Request ${captions[advanceType]} Advance`
+              ? "New Requisition"
+              : `Request ${captions[advanceType]} Advance`
         }
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}

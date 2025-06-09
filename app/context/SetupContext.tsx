@@ -63,7 +63,6 @@ function reducer(state: MySetupsState, action: Action): MySetupsState {
     case "PATCH":
       {
         if (action.payload.dimensions) {
-          console.log('dimensions: ', action.payload.dimensions);
           action.payload.PROJECT = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'PROJECT');
           action.payload.DEPARTMENTS = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'DEPARTMENTS');
           action.payload.OC = action.payload.dimensions.filter((dimension: Record<string, any>) => dimension.dimensionCode === 'OC');

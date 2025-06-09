@@ -26,11 +26,6 @@ export default function OperationalHeaderStep({
     currencies,
   } = useMySetups();
 
-  const combinedCurrencies = [
-    { code: "", description: "Kenya Shillings" },
-    ...currencies,
-  ];
-
   const { isNew, showAssociatedTravelRequestControl } = useAdvance();
 
   const buttonSet = buttonsArray(
@@ -223,7 +218,7 @@ export default function OperationalHeaderStep({
           <div className="badge text-dark fs-6">
             Total Advance:{" "}
             {(findObjectFromArray(
-              combinedCurrencies,
+              currencies,
               "code",
               formData?.currencyCode
             )?.description as string) || "KES"}
@@ -290,7 +285,7 @@ export default function OperationalHeaderStep({
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
                 disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
               >
-                <option defaultValue={"KES"}> Kenya Shillings </option>
+                <option defaultValue={"KES"} selected> Kenya Shillings </option>
                 {currencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>

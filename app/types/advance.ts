@@ -38,6 +38,7 @@ export interface ExpenseItem {
   expenseCode: string;
   unitCost: number;
   description?: string;
+  operationCenter?: string;
   costCenter: string;
   project: string;
   [key: string]: any;

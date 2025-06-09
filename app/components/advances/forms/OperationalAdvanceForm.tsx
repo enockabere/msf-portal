@@ -41,11 +41,11 @@ export default function OperationalAdvanceForm({
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [paymentMethodType, setPaymentMethodType] = useState<string>("");
   const {
-    OC,
     paymentMethods,
     employeeBanks,
     DEPARTMENTS,
     PROJECT,
+    OC,
     expenseCodes,
     fetchSetups,
   } = useMySetups();
@@ -81,15 +81,6 @@ export default function OperationalAdvanceForm({
               message: '',
             }
           });
-          await fetchSetups([
-            {
-              dimensions: {
-                filters: {
-                  dimensionCode: 'OC',
-                }
-              }
-            }
-          ]);
           if (data.user.profile.type === 'Employee') {
             await fetchSetups([
               {
@@ -165,8 +156,12 @@ export default function OperationalAdvanceForm({
         expenseCode: "",
         unitCost: NaN,
         description: "",
-        costCenter: "",
-        project: "",
+        operationCenter: data?.user?.profile?.[`shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`],
+        costCenter: data?.user?.profile?.[`shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`],
+        project: data?.user?.profile?.[`shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`],
+        [`shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`]: data?.user?.profile?.[`shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`],
+        [`shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`]: data?.user?.profile?.[`shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`],
+        [`shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`]: data?.user?.profile?.[`shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`],
       },
     });
   };
@@ -236,10 +231,12 @@ export default function OperationalAdvanceForm({
         employeeNo: data.user?.profile?.no,
         requestedBy: data.user?.profile?.no,
         requestedByFor: data.user?.profile?.no,
-        shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
-        shortcutDimension2Code: data.user?.profile?.shortcutDimension2Code,
-        shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
       };
+      for (const [key, value] of Object.entries(data?.user.profile)) {
+        if (key.toLocaleLowerCase().includes('shortcutDimension'.toLocaleLowerCase())) {
+          presets[key] = value;
+        }
+      }
       let savedLines = [];
       if (!expenses.length && (isEditing || formData?.status === 'Open')) {
         const res = await getResource('imprestLine', {
@@ -402,6 +399,11 @@ export default function OperationalAdvanceForm({
       const expenseRequestOption: batchRequestOptions[] = [];
       const patchBatchRequestOptions = [];
       expenses.forEach((expense: ExpenseItem, index: number) => {
+        const operationCenterDimention = findObjectFromArray(
+          OC,
+          "code",
+          expense.operationCenter
+        );
         const costCenterDimension = findObjectFromArray(
           DEPARTMENTS,
           "code",
@@ -418,6 +420,7 @@ export default function OperationalAdvanceForm({
           expense.expenseCode
         );
         if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);
+        expense[constructDimension(operationCenterDimention)] = expense.operationCenter;
         expense[constructDimension(costCenterDimension)] = expense.costCenter;
         expense[constructDimension(projectDimension)] = expense.project;
         expense.description = glAccount.description as string;
@@ -425,12 +428,19 @@ export default function OperationalAdvanceForm({
           ...expense,
           Quantity: 1,
           documentType: "Imprest",
-          shortcutDimension1Code: data.user?.profile?.shortcutDimension1Code,
-          shortcutDimension3Code: data.user?.profile?.shortcutDimension3Code,
         };
+        for (const [key, value] of Object.entries(data?.user.profile)) {
+          if (key.toLocaleLowerCase().includes('shortcutDimension'.toLocaleLowerCase())) {
+            const preservedUpdates = [constructDimension(operationCenterDimention), constructDimension(costCenterDimension), constructDimension(projectDimension)];
+            if (!preservedUpdates.includes(key)) {
+              linePayload[key] = value;
+            }
+          }
+        }
         const strippedLinePayload =
           removeNullAndUndefinedFromObject(linePayload);
         const validSchema = removeObjectProps(strippedLinePayload, [
+          "operationCenter",
           "costCenter",
           "project",
         ]);

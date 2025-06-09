@@ -27,7 +27,7 @@ const initialState = {
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
-        currencyCode: "",
+        currencyCode: "KES",
         paymentMethod: "",
         cashCollectionDate: "",
         cashHours: "",
@@ -264,10 +264,10 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             fetchSetups([
                 {
                     dimensions: {
-                        $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT'`
+                        $filter: `dimensionCode eq 'DEPARTMENTS' or dimensionCode eq 'PROJECT' or dimensionCode eq 'OC'`
                     }
                 }
-            ]),
+            ], true),
             fetchSetups([
                 {
                     expenseCodes: {

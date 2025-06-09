@@ -31,7 +31,7 @@ export default function OperationalLineStep({
   onCancel,
   currency,
 }: OperationalLineStepProps) {
-  const { expenseCodes, currencies, PROJECT, DEPARTMENTS } = useMySetups();
+  const { expenseCodes, currencies, PROJECT, DEPARTMENTS, OC } = useMySetups();
   const { formData, isNew, } = useAdvance();
   const showMileageColumn = expenses.some((e) => e.category === "Transport");
 
@@ -91,6 +91,7 @@ export default function OperationalLineStep({
                 <th>Category</th>
                 <th>Amount ({selectedCurrency})</th>
                 {showMileageColumn && <th>Mileage</th>}
+                <th>Operation Center</th>
                 <th>Cost Center</th>
                 <th>Project</th>
                 <th>Action</th>
@@ -152,7 +153,32 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                        `shortcutDimension${DEPARTMENTS[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`
+                        ]
+                      }
+                      onChange={(e) =>
+                        onExpenseChange(idx, "operationCenter", e.target.value)
+                      }
+                    >
+                      <option defaultValue={""}>
+                        -- Select Operation Center --
+                      </option>
+                      {OC.map((oc: Record<string, any>) => {
+                        return (
+                          <option value={oc.code} key={oc.code}>
+                            {" "}
+                            {`${oc.code}-${oc.name}`}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      className="form-select"
+                      value={
+                        exp[
+                        `shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
@@ -177,7 +203,7 @@ export default function OperationalLineStep({
                       className="form-select"
                       value={
                         exp[
-                        `shortcutDimension${PROJECT[0]["globalDimensionNo"]}Code`
+                        `shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`
                         ]
                       }
                       onChange={(e) =>
