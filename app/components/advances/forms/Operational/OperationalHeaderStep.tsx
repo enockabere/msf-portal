@@ -56,6 +56,11 @@ export default function OperationalHeaderStep({
                   <input
                     type="tel"
                     className="form-control"
+                    style={
+                      !['Open', ''].includes(formData?.status)
+                          ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                          : {}
+                    }
                     id="mpesa-phone"
                     value={formData?.phoneNo}
                     onChange={(e) => onFormChange("phoneNo", e.target.value)}
@@ -71,6 +76,11 @@ export default function OperationalHeaderStep({
                 <input
                   type="text"
                   className="form-control"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   id="id-passport"
                   value={formData?.idPassportNumber}
                   onChange={(e) =>
@@ -96,6 +106,11 @@ export default function OperationalHeaderStep({
                 <input
                   type="text"
                   className="form-control"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   id="account-no"
                   value={formData?.accountNo}
                   onChange={(e) => onFormChange("accountNo", e.target.value)}
@@ -108,6 +123,11 @@ export default function OperationalHeaderStep({
                 </label>
                 <select
                   className="form-select"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   id="bank"
                   value={formData?.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
@@ -129,6 +149,11 @@ export default function OperationalHeaderStep({
                 </label>
                 <select
                   className="form-select"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   id="branch"
                   value={formData?.branch}
                   onChange={(e) => onFormChange("branch", e.target.value)}
@@ -154,6 +179,11 @@ export default function OperationalHeaderStep({
                 <input
                   type="text"
                   className="form-control"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   id="swift-code"
                   value={formData?.swiftCode}
                   onChange={(e) => onFormChange("swiftCode", e.target.value)}
@@ -176,6 +206,11 @@ export default function OperationalHeaderStep({
                   type="date"
                   id="cash-collection-date"
                   className="form-control"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   value={formData?.cashCollectionDate}
                   onChange={(e) =>
                     onFormChange("cashCollectionDate", e.target.value)
@@ -192,6 +227,11 @@ export default function OperationalHeaderStep({
                 <select
                   id="cash-hours"
                   className="form-select"
+                  style={
+                    !['Open', ''].includes(formData?.status)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
+                  }
                   value={formData?.cashHours}
                   onChange={(e) => onFormChange("cashHours", e.target.value)}
                   disabled={!['Open', ''].includes(formData?.status)}
@@ -257,6 +297,11 @@ export default function OperationalHeaderStep({
               <select
                 id="payment-method"
                 className="form-select"
+                style={
+                  !['Open', ''].includes(formData?.status)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
+                }
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
                 disabled={
@@ -331,6 +376,11 @@ export default function OperationalHeaderStep({
                 type="text"
                 id="purpose"
                 className="form-control"
+                style={
+                  !['Open', ''].includes(formData?.status)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
+                }
                 placeholder="e.g. Fuel, petty cash..."
                 value={formData?.Purpose}
                 onChange={(e) => onFormChange("Purpose", e.target.value)}
