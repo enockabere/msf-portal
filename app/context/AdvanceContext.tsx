@@ -41,6 +41,7 @@ const initialState = {
         no: "",
         imprestStatus: "",
         status: "",
+        relatedDocNo: "",
     } satisfies FormData,
     expenses: [] as ExpenseItem[],
     advanceCounts: {

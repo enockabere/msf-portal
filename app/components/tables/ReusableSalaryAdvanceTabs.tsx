@@ -51,12 +51,10 @@ export default function ReusableSalaryAdvanceTabs({
       for (const prop in icons[type]) {
         if (args.length && args[0].length) {
           const [value] = args;
-          passedImprestType = suggestImprestType(prop, value);
-          // if (value) {
-          //   if (value.toLowerCase().split(' ').join("").includes(prop.toLowerCase())) {
-          //     passedImprestType = prop;
-          //   };
-          // }
+          const type = suggestImprestType(prop, value);
+          if (type) {
+            passedImprestType = type;
+          }
         }
       }
       return icons['Other'][passedImprestType] || "fa-solid fa-file-alt";

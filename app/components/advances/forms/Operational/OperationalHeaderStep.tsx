@@ -256,28 +256,6 @@ export default function OperationalHeaderStep({
               </select>
             </div>
             <div className="col-md-4 mb-3">
-              <label htmlFor="currency" className="form-label">
-                Currency
-              </label>
-              <select
-                id="currency"
-                className="form-select"
-                value={formData?.currencyCode}
-                onChange={(e) => onFormChange("currencyCode", e.target.value)}
-                disabled={!['Open', ''].includes(formData?.status)}
-              >
-                <option defaultValue={""}> -- Select Currency -- </option>
-                {combinedCurrencies.map((currency: Record<string, any>) => {
-                  return (
-                    <option value={currency.code} key={currency.code}>
-                      {currency.description}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
               <label htmlFor="payment-method" className="form-label">
                 Payment Method
               </label>
@@ -287,18 +265,11 @@ export default function OperationalHeaderStep({
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
                 disabled={
-                  !formData?.currencyCode && formData?.currencyCode !== "" || !['Open', ''].includes(formData?.status)
+                  !['Open', ''].includes(formData?.status)
                 }
               >
-                <option defaultValue={""}> --Select payment method-- </option>
+                <option defaultValue={""}> -- Select payment method -- </option>
                 {paymentMethods
-                  .filter((method: Record<string, any>) => {
-                    const isMpesa = method.description
-                      ?.toLowerCase()
-                      .includes("mpesa");
-                    const isKES = formData?.currencyCode === "";
-                    return !isMpesa || (isMpesa && isKES);
-                  })
                   .map((method: Record<string, any>) => {
                     return (
                       <option value={method.code} key={method.code}>
@@ -306,6 +277,27 @@ export default function OperationalHeaderStep({
                       </option>
                     );
                   })}
+              </select>
+            </div>
+            <div className="col-md-4 mb-3">
+              <label htmlFor="currency" className="form-label">
+                Currency
+              </label>
+              <select
+                id="currency"
+                className="form-select"
+                value={formData?.currencyCode}
+                onChange={(e) => onFormChange("currencyCode", e.target.value)}
+                disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
+              >
+                <option defaultValue={"KES"}> Kenya Shillings </option>
+                {currencies.map((currency: Record<string, any>) => {
+                  return (
+                    <option value={currency.code} key={currency.code}>
+                      {currency.description}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -319,8 +311,8 @@ export default function OperationalHeaderStep({
                 <select
                   id="reletedTravelRequest"
                   className="form-select"
-                  value={formData?.Purpose}
-                  onChange={(e) => onFormChange("", e.target.value)}
+                  value={formData?.relatedDocNo}
+                  onChange={(e) => onFormChange("relatedDocNo", e.target.value)}
                   disabled={!['Open', ''].includes(formData?.status)}
                 >
                   <option defaultValue={""}> --Select associated Travel request-- </option>
@@ -336,7 +328,7 @@ export default function OperationalHeaderStep({
                 </select>
               </div>
             }
-            <div className="col-md-6 mb-3">
+            <div className={showAssociatedTravelRequestControl ? 'col-md-6 mb-3' : 'col-md-12 mb-3'}>
               <label htmlFor="purpose" className="form-label">
                 Purpose
               </label>

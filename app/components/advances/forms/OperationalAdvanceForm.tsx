@@ -61,50 +61,61 @@ export default function OperationalAdvanceForm({
       payload: { [field]: value },
     });
     handleSettingPaymentMethodType();
-    handleSettingReletedTravelRequestControl();
+    handleSettingReletedTravelRequestControl(field, value);
   };
-  async function handleSettingReletedTravelRequestControl() {
+  async function handleSettingReletedTravelRequestControl(field: keyof FormData, value: string) {
     const assumedImprestTypes = ["OPERATION", "TRAVEL"];
     let imprestType: string;
-    for (const type of assumedImprestTypes) {
-      imprestType = suggestImprestType(type, formData?.imprestType);
-    }
-
-    switch (imprestType) {
-      case 'TRAVEL': {
-        loaderDispatcher({
-          type: 'PATCH_LOADING_STATE',
-          payload: {
-            loading: true,
-          }
-        });
-        await fetchSetups([
-          {
-            dimensions: {
-              filters: {
-                dimensionCode: 'OC',
-              }
+    if (field === 'imprestType') {
+      for (const type of assumedImprestTypes) {
+        const suggestedType = suggestImprestType(type, value);
+        if (suggestedType)
+          imprestType = suggestedType;
+      }
+      switch (imprestType) {
+        case 'TRAVEL': {
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: true,
+              message: '',
             }
-          }
-        ]);
-        if (data.user.profile[`shortcutDimension${OC?.[0]?.globalDimensionNo}Code`] === 'MSF-EA') {
+          });
           await fetchSetups([
             {
-              'travelRequests': {
+              dimensions: {
                 filters: {
-                  documentType: 'Employee',
-                  travellerNo: data?.user?.profile?.no,
-                  approvalStatus: 'Released',
+                  dimensionCode: 'OC',
                 }
               }
             }
           ]);
-          dispatcher({
-            type: 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL',
-            payload: true,
-          });
+          if (data.user.profile.type === 'Employee') {
+            await fetchSetups([
+              {
+                'travelRequests': {
+                  filters: {
+                    documentType: 'Employee',
+                    travellerNo: data?.user?.profile?.no,
+                    approvalStatus: 'Released',
+                  }
+                }
+              }
+            ]);
+            dispatcher({
+              type: 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL',
+              payload: true,
+            });
+          };
         };
-      };
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: false,
+              message: '',
+            }
+          });
+      }
     }
   }
   const handleExpenseChange = <K extends keyof ExpenseItem>(
@@ -322,6 +333,7 @@ export default function OperationalAdvanceForm({
       });
       let res: RequestResponse = {};
       if (isEditing || formData?.status === 'Open') {
+        if (knownSchema.currencyCode === "KES") knownSchema.currencyCode = "";
         const { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod } = knownSchema;
         res = await putResource("imprest", {
           primaryKey: ['no', 'documentType'],
@@ -479,59 +491,6 @@ export default function OperationalAdvanceForm({
         });
       }
 
-      // expenses.forEach((expense: ExpenseItem, index: number) => {
-      //   const costCenterDimension = findObjectFromArray(
-      //     DEPARTMENTS,
-      //     "code",
-      //     expense.costCenter
-      //   );
-      //   const projectDimension = findObjectFromArray(
-      //     PROJECT,
-      //     "code",
-      //     expense.project
-      //   );
-      //   const glAccount = findObjectFromArray(
-      //     expenseCodes,
-      //     "code",
-      //     expense.expenseCode
-      //   );
-      //   if (safeTypechecker(glAccount) !== "Object") throw new Error(`line ${index + 1} is invalid!`);
-      //   expense[constructDimension(costCenterDimension)] = expense.costCenter;
-      //   expense[constructDimension(projectDimension)] = expense.project;
-      //   expense.description = glAccount.description as string;
-      //   const linePayload = {
-      //     ...expense,
-      //     ...defaults,
-      //   };
-      //   const strippedLinePayload =
-      //     removeNullAndUndefinedFromObject(linePayload);
-      //   const validSchema = removeObjectProps(strippedLinePayload, [
-      //     "costCenter",
-      //     "project",
-      //   ]);
-      //   const validateRequiredProps = checkIfMissingRequiredProperty(
-      //     validSchema,
-      //     ["documentNo", "documentType", "expenseCode", "unitCost", "Quantity"]
-      //   );
-      //   if (!validateRequiredProps) throw new Error(`Line ${index + 1} could noe be validated`);;
-      //   if (validateRequiredProps.missing) {
-      //     throw new Error(`Line ${index + 1} is missing ${validateRequiredProps.prop.join(',')} properties`);
-      //   }
-      //   if ((isEditing || formData?.status === 'Open') && validSchema?.lineNo >= 0) {
-      //     patchBatchRequestOptions.push(
-      //       patchResource('imprestLine', {
-      //         primaryKey: ['documentNo', 'documentType', 'lineNo'],
-      //         data: validSchema
-      //       })
-      //     );
-      //   } else {
-      //     expenseRequestOption.push({
-      //       method: "POST",
-      //       endpoint: "imprestLine",
-      //       data: validSchema,
-      //     } satisfies batchRequestOptions);
-      //   }
-      // });
       const addedLines = expenses.length;
       const lineCaption = addedLines > 1 ? "lines" : "line";
       if (!isEditing || !formData?.status) {
@@ -753,6 +712,7 @@ export default function OperationalAdvanceForm({
         updateMobileMoneyFields();
         updateEmployeeBank(true);
         updateCashFields(true);
+
         break;
       }
       case "Cheques":
