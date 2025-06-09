@@ -33,6 +33,10 @@ export default function VerticalProgressCard({
   const isNew = !advance;
 
   useEffect(() => {
+    console.log("🔍 Advance data received by VerticalProgressCard:", advance);
+  }, [advance]);
+
+  useEffect(() => {
     setApplicationDate(
       advance?.applicationDate
         ? dayjs(advance.applicationDate).format("D MMM YYYY, hh:mm A")
@@ -52,6 +56,11 @@ export default function VerticalProgressCard({
             (a: ApprovalEntry, b: ApprovalEntry) =>
               (a.sequenceNo || 0) - (b.sequenceNo || 0)
           );
+          console.log("✅ Approval Entries:", sorted);
+
+          const current = sorted.find((e) => e.status === "Open");
+          console.log("🟡 Current Approver:", current);
+
           setApprovalEntries(sorted);
         } catch (err) {
           console.error("❌ Error fetching approvals", err);
