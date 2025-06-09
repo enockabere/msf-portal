@@ -90,7 +90,7 @@ export default function ProgressIndicator({
     <div className="card h-100 border-0 shadow-sm">
       <div className="card-header bg-primary-subtle">
         <h4 className="card-title fw-semibold mb-0 text-dark">
-          {isSubmitted ? "Advance Approvers" : "Application Progress"}
+          {isSubmitted ? "Advance Approvers" : "Application Progress"} - {isSubmitted}
         </h4>
       </div>
       <div className="card-body bg-primary-subtle pt-0">
@@ -160,31 +160,34 @@ export default function ProgressIndicator({
             );
           })}
         </div>
-        <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-5">
-          <span className="text-primary fw-semibold">Note:</span>
-          <div className="text-primary mt-1">
-            Ensure all required fields are filled before proceeding to the next
-            step.
-          </div>
-        </div>
         {!isSubmitted && (
-            <div
-                className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
-                role="alert"
-                aria-live="assertive"
-                aria-atomic="true"
-            >
-              <div className="toast-body d-flex flex-column gap-2">
-                <div className="d-flex align-items-center gap-2">
-                  <span>Double-check the requested amount before submitting.</span>
+            <>
+              <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-5">
+                <span className="text-primary fw-semibold">Note:</span>
+                <div className="text-primary mt-1">
+                  Ensure all required fields are filled before proceeding to the next
+                  step.
                 </div>
               </div>
-              <button
-                  type="button"
-                  className="btn-close btn-close-white ms-auto me-2"
-                  aria-label="Close"
-              ></button>
-            </div>
+
+              <div
+                  className="toast d-flex align-items-center w-100 text-white border-0 show bg-info mt-3"
+                  role="alert"
+                  aria-live="assertive"
+                  aria-atomic="true"
+              >
+                <div className="toast-body d-flex flex-column gap-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <span>Double-check the requested amount before submitting.</span>
+                  </div>
+                </div>
+                <button
+                    type="button"
+                    className="btn-close btn-close-white ms-auto me-2"
+                    aria-label="Close"
+                ></button>
+              </div>
+            </>
         )}
       </div>
     </div>
