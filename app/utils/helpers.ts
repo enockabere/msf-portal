@@ -90,3 +90,13 @@ export const constructDimension = (schema: Record<string, any>, schemaKey: strin
         return `${prefix}${schema[schemaKey]}${suffix}`
     }
 };
+
+export const suggestImprestType = (assumedCode: string, dynamicValue: string): string | undefined => {
+    let suggestedType: string;
+    if (dynamicValue) {
+        if (dynamicValue.toLowerCase().split(' ').join("").includes(assumedCode.toLowerCase())) {
+            suggestedType = assumedCode;
+        };
+    }
+    return suggestedType;
+} 

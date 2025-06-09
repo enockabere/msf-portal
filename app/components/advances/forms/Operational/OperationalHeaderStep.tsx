@@ -19,27 +19,23 @@ export default function OperationalHeaderStep({
 }: OperationalHeaderStepProps) {
   const {
     imprestTypes,
+    travelRequests,
     banks,
     bankBranches,
     paymentMethods,
     currencies,
   } = useMySetups();
 
-  const combinedCurrencies = [
-    { code: "", description: "Kenya Shillings" },
-    ...currencies,
-  ];
-
-  const { isNew } = useAdvance();
+  const { isNew, showAssociatedTravelRequestControl } = useAdvance();
 
   const buttonSet = buttonsArray(
     isNew
       ? "isNew"
       : formData?.imprestStatus === "Issued"
-      ? "Issued"
-      : formData?.status === "Open" || formData?.status === "Pending Approval"
-      ? formData?.status
-      : "default"
+        ? "Issued"
+        : formData?.status === "Open" || formData?.status === "Pending Approval"
+          ? formData?.status
+          : "default"
   );
 
   const renderViewByTypes = (method: string) => {
@@ -222,7 +218,7 @@ export default function OperationalHeaderStep({
           <div className="badge text-dark fs-6">
             Total Advance:{" "}
             {(findObjectFromArray(
-              combinedCurrencies,
+              currencies,
               "code",
               formData?.currencyCode
             )?.description as string) || "KES"}
@@ -255,28 +251,6 @@ export default function OperationalHeaderStep({
               </select>
             </div>
             <div className="col-md-4 mb-3">
-              <label htmlFor="currency" className="form-label">
-                Currency
-              </label>
-              <select
-                id="currency"
-                className="form-select"
-                value={formData?.currencyCode}
-                onChange={(e) => onFormChange("currencyCode", e.target.value)}
-                disabled={!['Open', ''].includes(formData?.status)}
-              >
-                <option defaultValue={""}> -- Select Currency -- </option>
-                {combinedCurrencies.map((currency: Record<string, any>) => {
-                  return (
-                    <option value={currency.code} key={currency.code}>
-                      {currency.description}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
               <label htmlFor="payment-method" className="form-label">
                 Payment Method
               </label>
@@ -286,18 +260,11 @@ export default function OperationalHeaderStep({
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
                 disabled={
-                  !formData?.currencyCode && formData?.currencyCode !== "" || !['Open', ''].includes(formData?.status)
+                  !['Open', ''].includes(formData?.status)
                 }
               >
-                <option defaultValue={""}> --Select payment method-- </option>
+                <option defaultValue={""}> -- Select payment method -- </option>
                 {paymentMethods
-                  .filter((method: Record<string, any>) => {
-                    const isMpesa = method.description
-                      ?.toLowerCase()
-                      .includes("mpesa");
-                    const isKES = formData?.currencyCode === "";
-                    return !isMpesa || (isMpesa && isKES);
-                  })
                   .map((method: Record<string, any>) => {
                     return (
                       <option value={method.code} key={method.code}>
@@ -307,10 +274,56 @@ export default function OperationalHeaderStep({
                   })}
               </select>
             </div>
+            <div className="col-md-4 mb-3">
+              <label htmlFor="currency" className="form-label">
+                Currency
+              </label>
+              <select
+                id="currency"
+                className="form-select"
+                value={formData?.currencyCode}
+                onChange={(e) => onFormChange("currencyCode", e.target.value)}
+                disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
+              >
+                <option defaultValue={"KES"} selected> Kenya Shillings </option>
+                {currencies.map((currency: Record<string, any>) => {
+                  return (
+                    <option value={currency.code} key={currency.code}>
+                      {currency.description}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
           {renderViewByTypes(formData?.paymentMethod)}
           <div className="row">
-            <div className="col-md-12 mb-3">
+            {
+              showAssociatedTravelRequestControl && <div className="col-md-6 mb-3">
+                <label htmlFor="reletedTravelRequest" className="form-label">
+                  Releted Travel Request
+                </label>
+                <select
+                  id="reletedTravelRequest"
+                  className="form-select"
+                  value={formData?.relatedDocNo}
+                  onChange={(e) => onFormChange("relatedDocNo", e.target.value)}
+                  disabled={!['Open', ''].includes(formData?.status)}
+                >
+                  <option defaultValue={""}> --Select associated Travel request-- </option>
+                  {
+                    travelRequests.map((request: Record<string, any>) => {
+                      return (
+                        <option value={request.no} key={request.no}>
+                          {`${request.no} - ${request.purposeOfTravel}`}
+                        </option>
+                      );
+                    })
+                  }
+                </select>
+              </div>
+            }
+            <div className={showAssociatedTravelRequestControl ? 'col-md-6 mb-3' : 'col-md-12 mb-3'}>
               <label htmlFor="purpose" className="form-label">
                 Purpose
               </label>
