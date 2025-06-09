@@ -27,6 +27,7 @@ interface Props {
   selectedLineIndex?: number | null;
   setActiveLineIndex?: (index: number) => void;
   addNewEntryToAccount?: (exp: Record<string, any>) => void;
+  handleViewLineAccountingDetails?:(index: number, exp: Record<string, any>) => Promise<void>
 }
 
 export default function SettlementExpenseForm({
@@ -37,6 +38,7 @@ export default function SettlementExpenseForm({
   selectedLineIndex,
   setActiveLineIndex,
   addNewEntryToAccount,
+  handleViewLineAccountingDetails,
 }: Props) {
   const { expenses } = useAdvance();
   const { DEPARTMENTS, PROJECT } = useMySetups();
@@ -88,6 +90,7 @@ export default function SettlementExpenseForm({
                           data-bs-target={`#collapse-${idx}`}
                           aria-expanded="false"
                           aria-controls={`collapse-${idx}`}
+                          onClick={() => {setActiveLineIndex?.(idx);handleViewLineAccountingDetails(idx, exp)}}
                         >
                           <div className="d-flex align-items-center justify-content-between w-100 me-2">
                             <div className="d-flex align-items-center flex-grow-1">
@@ -154,7 +157,6 @@ export default function SettlementExpenseForm({
                               type="button"
                               className="btn btn-outline-primary btn-sm px-3 py-1"
                               onClick={() => {
-                                setActiveLineIndex?.(idx);
                                 addNewEntryToAccount?.(exp);
                               }}
                             >
