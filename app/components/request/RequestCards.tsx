@@ -253,6 +253,7 @@ export default function RequestCards() {
                               `/dashboard/make-request/${type.route}`
                             );
                           }}
+                          disabled={type.disabled}
                         >
                           {type.title}
                         </button>
@@ -288,6 +289,7 @@ export default function RequestCards() {
                           key={advance.key}
                           datatype={advance.key}
                           onClick={handleSetAdvanceType}
+                          disabled={advance.disabled}
                         >
                           {advance.title}
                         </button>

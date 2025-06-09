@@ -14,12 +14,14 @@ const initialState = {
         {
             title: 'Salary Advance',
             key: 'Salary',
-            route: 'advances'
+            route: 'advances',
+            disabled: false,
         },
         {
             title: 'Other Advance',
             key: 'Other',
-            route: 'otherAdvances'
+            route: 'otherAdvances',
+            disabled: false,
         },
     ] satisfies AdvanceType[],
     formData: {
@@ -192,6 +194,21 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
             return {
                 ...state,
                 showAssociatedTravelRequestControl: action.payload,
+            }
+        }
+        case 'PATCH_ADVANCE_TYPES_DISABLE_STATUS': {
+            return {
+                ...state,
+                advanceTypes: state.advanceTypes.map((type) => {
+                    if (type.key === action.payload.key) {
+                        type = {
+                            ...type,
+                            ...action.payload,
+                        };
+                        return type;
+                    }
+                    return type;
+                }),
             }
         }
     }
