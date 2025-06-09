@@ -16,7 +16,7 @@ interface ReusableTabbedAdvanceTableProps {
   type: string;
 }
 
-export default function ReusableTabbedAdvanceTable({
+export default function ReusableTabbedTable({
   tabs,
   profile,
   type

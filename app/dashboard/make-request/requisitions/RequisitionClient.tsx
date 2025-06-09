@@ -1,16 +1,31 @@
 "use client";
 
 import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequisitionRequests";
-import {useEffect, useState} from "react";
-import {getResource} from "@/app/lib/api/http";
+import { useEffect, useMemo, useState } from "react";
+import { codeUnit, getResource } from "@/app/lib/api/http";
 import {toast} from "react-toastify";
 import {Briefcase, PlusCircle, ShoppingCartIcon, Store, User} from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import CustomModal from "@/app/components/modals/CustomModal";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
+import { useSession } from "next-auth/react";
+
+interface Statistics {
+    totalRequisitions: number;
+    totalUserRequisitions: number;
+    totalPurchaseRequisitions: number;
+    totalStoreRequisitions: number;
+}
 
 export default function RequisitionClient() {
     const [requisitions, setRequisitions] = useState([])
+    const [statistics, setStatistics] = useState<Statistics>({
+        totalRequisitions: 0,
+        totalUserRequisitions: 0,
+        totalPurchaseRequisitions: 0,
+        totalStoreRequisitions: 0,
+    });
+    const { data: session } = useSession();
 
     const handleNewRequisitionRequestClick = () => setShowModal(true);
     const handleCloseModal = () => setShowModal(false);
@@ -18,63 +33,90 @@ export default function RequisitionClient() {
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
-        const fetchRequisitions = async () => {
+        const fetchRequisitions = async (status?: string) => {
             try {
+                let filters = `contains(requestedByFor, '${session?.user?.profile?.no || ""}')`;
+
+                if (status) {
+                    filters += ` and status eq ${status}`;
+                }
+
                 const res = await getResource('requisitions', {
                     params: {
-                        // Params
+                        $filter: filters,
                     }
                 });
 
                 if (res.error) {
-                    console.log('Requisition fetch error: ', res.error);
-                    toast.error(res.error.message)
+                    throw new Error(res.error.message);
                 } else {
                     setRequisitions([...res.value])
                 }
             } catch (error: any) {
+                toast.error(error.message);
                 console.log('Error fetching requisitions!', error.message)
             }
-        }
+        };
+
+        const fetchStatistics = async () => {
+            try {
+                const res = await codeUnit("getRequisitionStats", {
+                    data: {
+                        employeeNo: session?.user?.profile?.no || ""
+                    }
+                });
+
+                if (res.error) {
+                    throw new Error(res.error.message);
+                }
+
+                setStatistics({...JSON.parse(res.value)})
+            } catch (error: any) {
+                toast.error(error.message);
+            }
+        };
 
         fetchRequisitions();
-    }, [])
+        fetchStatistics();
+    }, [session?.user?.profile?.no])
 
-    const cards = [
-        {
-            title: "Open Requisitions",
-            value: 79,
-            description: "Open Requisitions",
-            icon: <Briefcase size={28} />,
-            bgColorClass: "bg-light-warning",
-            textColorClass: "text-warning",
-            onClick: () => { }, // You can add modal trigger logic later
-        },
-        {
-            title: "Pending Requisitions",
-            value: 40,
-            description: "Pending Requisitions",
-            icon: <User size={28} />,
-            bgColorClass: "bg-light-success",
-            textColorClass: "text-success",
-        },
-        {
-            title: "Approved Requisitions",
-            value: 27,
-            description: "Approved Requisitions",
-            icon: <ShoppingCartIcon size={28} />,
-            bgColorClass: "bg-light-info",
-            textColorClass: "text-info",
-        },
-        {
-            title: "Total Requisitions",
-            value: 13,
-            description: "Total Requisition",
-            icon: <Store size={28} />,
-            bgColorClass: "bg-light-warning",
-            textColorClass: "text-warning",
-        },
-    ];
+    const cards = useMemo(() => {
+        return [
+            {
+                title: "User Requisitions",
+                value: statistics.totalUserRequisitions,
+                description: "User Requisitions",
+                icon: <User size={28} />,
+                bgColorClass: "bg-light-success",
+                textColorClass: "text-success",
+            },
+            {
+                title: "Store Requisitions",
+                value: statistics.totalStoreRequisitions,
+                description: "Store Requisitions",
+                icon: <Briefcase size={28} />,
+                bgColorClass: "bg-light-warning",
+                textColorClass: "text-warning",
+                onClick: () => { }, // You can add modal trigger logic later
+            },
+            {
+                title: "Purchase Requisitions",
+                value: statistics.totalPurchaseRequisitions,
+                description: "Purchase Requisitions",
+                icon: <ShoppingCartIcon size={28} />,
+                bgColorClass: "bg-light-info",
+                textColorClass: "text-info",
+            },
+            {
+                title: "Total Requisitions",
+                value: statistics.totalRequisitions,
+                description: "Total Requisition",
+                icon: <Store size={28} />,
+                bgColorClass: "bg-light-warning",
+                textColorClass: "text-warning",
+            },
+        ];
+    }, [statistics.totalPurchaseRequisitions, statistics.totalRequisitions, statistics.totalStoreRequisitions, statistics.totalUserRequisitions]);
 
     return (
         <div className="page-content dashboard-container p-3">

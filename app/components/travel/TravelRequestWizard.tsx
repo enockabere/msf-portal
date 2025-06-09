@@ -254,28 +254,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications($expand=visaApplicationLines),travelTypeStage",
       }
     })
-  }, [])
+  }, []);
 
-  const fetchTravelRequest = useCallback(async (requestNo?: string) => {
-    try {
-      const res = await fetchTravelRequestResource(requestNo ?? travelRequestHeader.no);
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      const header = res.value.at(0)
-
-      setTravelRequestHeader(prev => ({ ...prev, ...header, documentType: decodeValue(header.documentType)}));
-
-      setChecklistCount(checklistCounter(header.travellers));
-      getImprest()
-    } catch (error: any) {
-      console.error('Error fetching travel request:', error.message);
-    }
-  }, [fetchTravelRequestResource, travelRequestHeader.no]);
-
-  const getImprest = async ()=> {
+  const getImprest = useCallback(async ()=> {
     try {
       const res = await getResource('imprest', {
         params: {
@@ -293,7 +274,27 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     } catch (error) {
       return Swal.fire(error.code, error.message, 'error');
     }
-  }
+  }, [travelRequestHeader.no]);
+
+  const fetchTravelRequest = useCallback(async (requestNo?: string) => {
+    try {
+      const res = await fetchTravelRequestResource(requestNo ?? travelRequestHeader.no);
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      const header = res.value.at(0)
+
+      setTravelRequestHeader(prev => ({ ...prev, ...header, documentType: decodeValue(header.documentType)}));
+
+      setChecklistCount(checklistCounter(header.travellers));
+
+      await getImprest();
+    } catch (error: any) {
+      console.error('Error fetching travel request:', error.message);
+    }
+  }, [fetchTravelRequestResource, getImprest, travelRequestHeader.no]);
 
   useEffect(() => {
     const loadHeaderRequest = async (requestNo: string) => {
@@ -338,8 +339,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [dispatcher, fetchSetups, fetchTravelRequestResource, requestNo]);
 
   useEffect(() => {
-    getImprest()
-  }, [travelRequestHeader.no]);
+    getImprest();
+  }, [getImprest, travelRequestHeader.no]);
 
   const getKeysToRetain = () => {
     const excludedKeys: (keyof typeof INITIAL_TRAVEL_REQUEST)[] = [
@@ -373,14 +374,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           message: "Saving Request",
         },
       });
-      const operation = knownSchema.no
-        ? patchResource("travelRequests", {
+      const res = knownSchema.no
+        ? await patchResource("travelRequests", {
             data: knownSchema,
             primaryKey: ["no", "documentType"],
           })
-        : createResource("travelRequests", { data: knownSchema });
+        : await createResource("travelRequests", { data: knownSchema });
 
-      const res = await operation;
       if (res.error) {
         throw new Error(res.error.message);
       }

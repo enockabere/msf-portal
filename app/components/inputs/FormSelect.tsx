@@ -9,9 +9,8 @@ const FormSelect = ({
                       required,
                       disabled,
                       placeholder = "-- Select --",
-                      showAsterisk = false
                     }: {
-  label: string;
+  label?: string;
   id?: string;
   value: any;
   onChange: (value: any) => void;
@@ -19,15 +18,16 @@ const FormSelect = ({
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;
-  showAsterisk?: boolean;
 }) => (
   <div className="form-group">
-    <label className="form-label">
-      {label} {showAsterisk && <span className="text-danger">*</span>}
-    </label>
+    {label && (
+      <label className="form-label" htmlFor={id || label}>
+        {label} {required && <span className="text-danger">*</span>}
+      </label>
+    )}
     <select
       className="form-select"
-      id={id || label}
+      id={id || ""}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       required={required}

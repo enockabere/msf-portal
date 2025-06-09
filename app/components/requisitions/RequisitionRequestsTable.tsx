@@ -3,6 +3,10 @@
 import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { formatDate } from "@/app/utils/dateFormats";
+import { decodeValue, formatNumber } from "@/app/utils/helpers";
+import { EyeIcon, PlusCircle } from "lucide-react";
+import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
+import CustomModal from "@/app/components/modals/CustomModal";
 
 interface RequisitionRequestsTableProps {
     data: Array<Record<string, any>>;
@@ -12,6 +16,7 @@ interface RequisitionRequestsTableProps {
 export default function RequisitionRequestsTable({data, loading}: RequisitionRequestsTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [search, setSearch] = useState("");
+    const [requisitionId, setRequisitionId] = useState(null);
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -20,6 +25,11 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
             );
         });
     }, [search, data]);
+
+    const handleCloseModal = () => setRequisitionId(null)
+    const handleOpenModal = (id: string) => {
+        setRequisitionId(id);
+    }
 
     const columns = [
         {
@@ -43,7 +53,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
             selector: (row: Record<string, any>) =>
                 `${
                     row.currencyCode || "KES"
-                } ${row.amount.toLocaleString()}`,
+                } ${formatNumber(row.amount)}`,
         },
         {
             name: "Order Date",
@@ -70,9 +80,11 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                     Released: "fas fa-check-circle me-1",
                     "Pending Approval": "fas fa-clock me-1",
                 };
+
+                const status = decodeValue(row.status);
                 return (
-                    <span className={badgeMap[row.status]}>
-            <i className={iconMap[row.status]}/> {row.status}
+                    <span className={badgeMap[status]}>
+            <i className={iconMap[status]}/> {status}
           </span>
                 );
             },
@@ -84,7 +96,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                     <button
                         className="text-primary border-0 bg-transparent"
                         title="View"
-                        onClick={() => console.log("open", row)}
+                        onClick={() => handleOpenModal(row.id)}
                     >
                         <i className="las la-eye fs-18"/>
                     </button>
@@ -101,11 +113,25 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                 title=""
                 columns={columns}
                 data={loading ? [] : filteredData}
-                searchPlaceholder="Search travel requests..."
+                searchPlaceholder="Search requisition requests..."
                 loading={loading}
                 includeStatusFilter={true}
                 includeDateFilter={true}
             />
+
+            <CustomModal
+              show={!!requisitionId}
+              onClose={handleCloseModal}
+              title="View Requisition"
+              size="xl"
+              titleIcon={<EyeIcon size={18} className="text-white" />}
+            >
+                <div className="row">
+                    <div className="col-md-12">
+                        <RequisitionForm requisitionId={requisitionId} />
+                    </div>
+                </div>
+            </CustomModal>
         </>
     );
 }

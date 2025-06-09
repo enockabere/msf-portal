@@ -10,7 +10,7 @@ const FormInput = ({
                      required,
                      disabled,
                    }: {
-  label?: string;
+  label: string;
   id?: string;
   value: any;
   onChange: (value: any) => void;
@@ -26,16 +26,14 @@ const FormInput = ({
 
   return (
     <div className="form-group">
-      {label && (
-        <label className="form-label" htmlFor={id || label}>
-          {label} {required && <span className="text-danger">*</span>}
-        </label>
-      )}
+      <label className="form-label">
+        {label} {required && <span className="text-danger">*</span>}
+      </label>
       <div style={{ position: "relative" }}>
         <input
           type={type}
           className="form-control"
-          id={id || ""}
+          id={id || label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={type === "date" ? undefined : placeholder} // Don't use placeholder for date inputs

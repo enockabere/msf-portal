@@ -80,6 +80,8 @@ export const pickKeys = <T extends Record<string, any>>(obj: T | any, props: str
 }
 
 export const decodeValue = (value: string) => {
+    if (!value) return value;
+
     return value.replace(/_x([0-9A-Fa-f]{4})_/g, (_, hex) =>
         String.fromCharCode(parseInt(hex, 16))
     );
@@ -90,3 +92,25 @@ export const constructDimension = (schema: Record<string, any>, schemaKey: strin
         return `${prefix}${schema[schemaKey]}${suffix}`
     }
 };
+
+export const employeeName = (employee: Record<string, unknown>) => {
+    const names = [employee.firstName, employee.middleName, employee.lastName]
+    return names.join(' ')
+};
+
+export const { format: formatNumber } = Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 2,
+});
+
+export const formatCurrency = (value: number, currency = 'KES', locale = 'en-US') => {
+    if (['EURO PAY', 'EURO'].includes(currency)) {
+        currency = 'EUR'
+    }
+
+    const { format } = Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency || 'KES',
+        maximumFractionDigits: 2,
+    })
+    return format(value)
+}
