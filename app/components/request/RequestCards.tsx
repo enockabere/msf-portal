@@ -253,7 +253,6 @@ export default function RequestCards() {
                               `/dashboard/make-request/${type.route}`
                             );
                           }}
-                          disabled={type.disabled}
                         >
                           {type.title}
                         </button>
