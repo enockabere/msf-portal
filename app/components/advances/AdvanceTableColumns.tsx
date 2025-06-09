@@ -227,7 +227,7 @@ export const GetColumnByType = (
                             </button>
                         )}
 
-                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && isReleasedTab && (
+                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && (
                             <button
                                 key="settle"
                                 className="text-danger border-0 bg-transparent"

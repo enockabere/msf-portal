@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import "./SalaryAdvanceForm.css";
-import ProgressIndicator from "./Operational/ProgressIndicator";
+import VerticalProgressCard from "./VerticalProgressCard";
 import OperationalHeaderStep from "./Operational/OperationalHeaderStep";
 import OperationalLineStep from "./Operational/OperationalLineStep";
-import { ExpenseItem, FormData } from "@/app/types/advance";
+import { ExpenseItem, FormData, SalaryAdvanceData } from "@/app/types/advance";
 import {
   checkIfMissingRequiredProperty,
   constructDimension,
@@ -54,6 +54,18 @@ export default function OperationalAdvanceForm({
   const { actions: loaderActions } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
   const { data } = useSession();
+
+  function isValidStatus(status: any): status is SalaryAdvanceData["status"] {
+    return [
+      "Open",
+      "Pending Approval",
+      "Released",
+      "Settled",
+      "Accounted",
+      "Rejected",
+      "Issued",
+    ].includes(status);
+  }
 
   const handleFormChange = (field: keyof FormData, value: string) => {
     dispatcher({
@@ -123,7 +135,6 @@ export default function OperationalAdvanceForm({
         },
       },
     });
-
   };
 
   const handleFileChange = (index: number, file: File | null) => {
@@ -192,25 +203,33 @@ export default function OperationalAdvanceForm({
     setCurrentStep(1);
   };
   const postResourceAction = async (resourceCode: any) => {
-    const response = await getResource('imprest', {
+    const response = await getResource("imprest", {
       params: {
         filters: {
           no: resourceCode,
-        }
-      }
+        },
+      },
     });
     if (response.error) {
-      Swal.fire('Error!', 'Error retrieving the just created advance.', 'error');
+      Swal.fire(
+        "Error!",
+        "Error retrieving the just created advance.",
+        "error"
+      );
       closeModalHandler();
       return;
     }
     dispatcher({
-      type: 'OPEN_EXISTING_ADVANCE',
+      type: "OPEN_EXISTING_ADVANCE",
       payload: response.value?.at(0),
     });
     dispatcher({
-      type: 'ADVANCE_CREATION_STATUSES',
-      payload: { isNew: false, isEditing: response?.status === 'Open', setForView: true },
+      type: "ADVANCE_CREATION_STATUSES",
+      payload: {
+        isNew: false,
+        isEditing: response?.status === "Open",
+        setForView: true,
+      },
     });
     handlePrev();
   }
@@ -261,10 +280,14 @@ export default function OperationalAdvanceForm({
           type: 'PATCH_LOADING_STATE',
           payload: {
             loading: false,
-            message: ''
-          }
+            message: "",
+          },
         });
-        return Swal.fire('Error!', 'You must add at least one advance line to proceed!', 'warning');
+        return Swal.fire(
+          "Error!",
+          "You must add at least one advance line to proceed!",
+          "warning"
+        );
       }
       loaderDispatcher({
         type: 'PATCH_LOADING_STATE',
@@ -360,20 +383,21 @@ export default function OperationalAdvanceForm({
       await handleSubmittingAdvanceLine(lineValidation, res as FormData);
       Swal.fire(
         "Success",
-        `${res.imprestType} advance was ${isEditing ? 'updated' : 'created'} successfully!`,
+        `${res.imprestType} advance was ${
+          isEditing ? "updated" : "created"
+        } successfully!`,
         "success"
       ).then(async (result) => {
         if (result.isConfirmed) {
           loaderDispatcher({
-            type: 'PATCH_LOADING_STATE',
+            type: "PATCH_LOADING_STATE",
             payload: {
-              message: 'Just a second...',
-            }
+              message: "Just a second...",
+            },
           });
           await postResourceAction(res?.no);
         }
       });
-
     } catch (error: any) {
       loaderDispatcher({
         type: 'PATCH_LOADING_STATE',
@@ -525,7 +549,11 @@ export default function OperationalAdvanceForm({
               }
             }
             if (failedLines) {
-              throw new Error(`${failedLines} ${failedLines > 1 ? 'lines' : 'line'} did not save!`);
+              throw new Error(
+                `${failedLines} ${
+                  failedLines > 1 ? "lines" : "line"
+                } did not save!`
+              );
             }
           }
         } else {
@@ -713,7 +741,7 @@ export default function OperationalAdvanceForm({
       ],
     };
     return conditionalButtons[condtion];
-  }
+  };
 
   const getProfileValues = async () => {
     if (!formData?.paymentMethod) return null;
@@ -831,7 +859,7 @@ export default function OperationalAdvanceForm({
 
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
-      <div className="row flex-grow-1">
+      <div className="row flex-grow-1 gx-1">
         <div className="col-md-9">
           {currentStep === 1 ? (
             <OperationalHeaderStep
@@ -853,9 +881,12 @@ export default function OperationalAdvanceForm({
           )}
         </div>
         <div className="col-md-3">
-          <ProgressIndicator
-            currentStep={currentStep}
-            isSubmitted={['Pending Approval', 'Rejected', 'Approved', 'Released'].includes(formData?.status)}
+          <VerticalProgressCard
+            advance={
+              isValidStatus(formData.status)
+                ? { ...(formData as any), status: formData.status }
+                : null
+            }
           />
         </div>
       </div>
@@ -863,8 +894,9 @@ export default function OperationalAdvanceForm({
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
-              }`}
+            className={`rounded-circle ${
+              currentStep === step ? "bg-danger" : "bg-secondary"
+            }`}
             style={{
               width: "10px",
               height: "10px",
