@@ -3,7 +3,6 @@
 import { Tabs, Tab } from "react-bootstrap";
 import TravelRequestTable from "../travel/TravelRequestTable";
 import RequisitionRequestsTable from "../requisitions/RequisitionRequestsTable";
-import { onRefresh } from "next/dist/client/components/react-dev-overlay/pages/client";
 
 interface TabConfig {
   key: string;

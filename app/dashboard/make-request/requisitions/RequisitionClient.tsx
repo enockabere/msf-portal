@@ -3,7 +3,7 @@
 import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequisitionRequests";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { codeUnit, getResource } from "@/app/lib/api/http";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { Briefcase, PlusCircle, ShoppingCartIcon, Store, User } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import CustomModal from "@/app/components/modals/CustomModal";
