@@ -82,6 +82,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
             "DetailedLineMgtDocNo",
             "DetailedLineMgtLineNo",
             "amount",
+            "description",
           ]
         : [
             "DetailedLineMgtDocType",
@@ -89,6 +90,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
             "DetailedLineMgtLineNo",
             "amount",
             "attachment",
+            "description",
           ]
     );
     if (!isMissingRequiredProp)
@@ -196,7 +198,6 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
       });
     }
   };
-
   function isValidSurrenderStatus(
     status: any
   ): status is
