@@ -110,7 +110,6 @@ export default function OperationalAdvanceForm({
               payload: true,
             });
           };
-        };
           loaderDispatcher({
             type: 'PATCH_LOADING_STATE',
             payload: {
@@ -118,6 +117,14 @@ export default function OperationalAdvanceForm({
               message: '',
             }
           });
+          break;
+        };
+        default: {
+          dispatcher({
+            type: 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL',
+            payload: false,
+          });
+        }
       }
     }
   }
