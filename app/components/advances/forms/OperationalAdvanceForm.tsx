@@ -110,7 +110,6 @@ export default function OperationalAdvanceForm({
               payload: true,
             });
           };
-        };
           loaderDispatcher({
             type: 'PATCH_LOADING_STATE',
             payload: {
@@ -118,6 +117,14 @@ export default function OperationalAdvanceForm({
               message: '',
             }
           });
+          break;
+        };
+        default: {
+          dispatcher({
+            type: 'SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL',
+            payload: false,
+          });
+        }
       }
     }
   }
@@ -126,12 +133,37 @@ export default function OperationalAdvanceForm({
     field: K,
     value: ExpenseItem[K]
   ) => {
+    const dimensionfields = {};
+    switch (field) {
+      case 'operationCenter': {
+        const selectedDimention = findObjectFromArray(OC, 'code', value);
+        if (selectedDimention) {
+          dimensionfields[`shortcutDimension${selectedDimention.globalDimensionNo}Code`] = value;
+        }
+        break;
+      };
+      case 'costCenter': {
+        const selectedDimention = findObjectFromArray(DEPARTMENTS, 'code', value);
+        if (selectedDimention) {
+          dimensionfields[`shortcutDimension${selectedDimention.globalDimensionNo}Code`] = value;
+        }
+        break;
+      };
+      case 'project': {
+        const selectedDimention = findObjectFromArray(PROJECT, 'code', value);
+        if (selectedDimention) {
+          dimensionfields[`shortcutDimension${selectedDimention.globalDimensionNo}Code`] = value;
+        }
+        break;
+      };
+    }
     dispatcher({
       type: "CHANGE_EXPENSE_LINE",
       payload: {
         index,
         update: {
           [field]: value,
+          ...dimensionfields,
         },
       },
     });
@@ -382,8 +414,7 @@ export default function OperationalAdvanceForm({
       await handleSubmittingAdvanceLine(lineValidation, res as FormData);
       Swal.fire(
         "Success",
-        `${res.imprestType} advance was ${
-          isEditing ? "updated" : "created"
+        `${res.imprestType} advance was ${isEditing ? "updated" : "created"
         } successfully!`,
         "success"
       ).then(async (result) => {
@@ -549,8 +580,7 @@ export default function OperationalAdvanceForm({
             }
             if (failedLines) {
               throw new Error(
-                `${failedLines} ${
-                  failedLines > 1 ? "lines" : "line"
+                `${failedLines} ${failedLines > 1 ? "lines" : "line"
                 } did not save!`
               );
             }
@@ -893,9 +923,8 @@ export default function OperationalAdvanceForm({
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${
-              currentStep === step ? "bg-danger" : "bg-secondary"
-            }`}
+            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
+              }`}
             style={{
               width: "10px",
               height: "10px",

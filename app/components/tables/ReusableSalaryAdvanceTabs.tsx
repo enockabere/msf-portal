@@ -99,7 +99,7 @@ export default function ReusableSalaryAdvanceTabs({
     let rejected = advanceByStatus.get('Rejected') || [];
     let surrenderRejected = advanceByStatus.get('Surrender Rejected') || [];
     let issued = advanceByStatus.get('Issued') || [];
-    let pendingVerification = advanceByStatus.get('Pending Verification') || [];
+    let pendingVerification = advanceByStatus.get('Pending_x0020_Liquidation') || [];
     let surrendered = advanceByStatus.get('Surrendered') || [];
     let partiallySettled = advanceByStatus.get('Partially Settled') || [];
 
@@ -111,7 +111,7 @@ export default function ReusableSalaryAdvanceTabs({
       rejected = advancesByImprestStatus.get('Rejected') || [];
       surrenderRejected = advancesByImprestStatus.get('Surrender Rejected') || [];
       issued = advancesByImprestStatus.get('Issued') || [];
-      pendingVerification = advancesByImprestStatus.get('Pending Verification') || [];
+      pendingVerification = advancesByImprestStatus.get('Pending_x0020_Liquidation') || [];
       surrendered = advancesByImprestStatus.get('Surrendered') || [];
       partiallySettled = advancesByImprestStatus.get('artially Settled') || [];
       released = [
