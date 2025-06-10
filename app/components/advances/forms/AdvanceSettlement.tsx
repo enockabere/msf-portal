@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import SettlementExpenseForm from "./SettlementExpenseForm";
-import ProgressIndicator from "./Operational/ProgressIndicator";
 import {
   AlertTriangle,
   ArrowDown,
@@ -31,6 +30,7 @@ import {
 import { RequestResponse } from "@/app/types/options";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import AccountingExpenseDetailsForm from "./AccountingExpenseDetailsForm";
+import VerticalProgressCard from "./VerticalProgressCard";
 
 interface Props {
   closeSettlementDialog?: () => void;
@@ -196,6 +196,32 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
       });
     }
   };
+
+  function isValidSurrenderStatus(
+    status: any
+  ): status is
+    | "Open"
+    | "Issued"
+    | "Accounted"
+    | "Settled"
+    | "Posted"
+    | "Pending Liquidation"
+    | "Rejected"
+    | "Liquidation Rejected"
+    | "Reversed" {
+    return [
+      "Open",
+      "Issued",
+      "Accounted",
+      "Settled",
+      "Posted",
+      "Pending Liquidation",
+      "Rejected",
+      "Liquidation Rejected",
+      "Reversed",
+    ].includes(status);
+  }
+
   const handleViewLineAccountingDetails = async (
     index: number,
     exp: Record<string, any>
@@ -586,6 +612,12 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
     }
   }, [expenses, dispatcher]);
 
+  useEffect(() => {
+    if (formData) {
+      console.log("Current formData:", formData);
+    }
+  }, [formData]);
+
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
       <div className="row flex-grow-1">
@@ -789,7 +821,9 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
                     saveAccountingLine={handleSaveAccountedRow}
                     deleteDetailedExpesneLine={handleDeleteDetailedExpesneLine}
                     addNewEntryToAccount={addNewEntryToAccount}
-                    handleViewLineAccountingDetails={handleViewLineAccountingDetails}
+                    handleViewLineAccountingDetails={
+                      handleViewLineAccountingDetails
+                    }
                   />
                 )}
                 {showAdvanceAccountedLineDetailsModal && (
@@ -910,18 +944,12 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
           </div>
         </div>
         <div className="col-md-3">
-          <ProgressIndicator
-            currentStep={3}
-            isSubmitted={[
-              "Issued",
-              "Accounted",
-              "Settled",
-              "Posted",
-              "Pending Liquidation",
-              "Rejected",
-              "Liquidation Rejected",
-              "Reversed",
-            ].includes(formData.imprestStatus)}
+          <VerticalProgressCard
+            advance={
+              formData && isValidSurrenderStatus(formData?.status)
+                ? { ...(formData as any), status: formData.status }
+                : null
+            }
           />
         </div>
       </div>

@@ -29,12 +29,9 @@ export default function VerticalProgressCard({
 }: VerticalProgressCardProps) {
   const [applicationDate, setApplicationDate] = useState<string>("");
   const [approvalEntries, setApprovalEntries] = useState<ApprovalEntry[]>([]);
+  const [isLoadingApprovals, setIsLoadingApprovals] = useState(true);
 
   const isNew = !advance;
-
-  useEffect(() => {
-    console.log("🔍 Advance data received by VerticalProgressCard:", advance);
-  }, [advance]);
 
   useEffect(() => {
     setApplicationDate(
@@ -47,6 +44,7 @@ export default function VerticalProgressCard({
   useEffect(() => {
     const fetchApprovals = async () => {
       if (advance?.no) {
+        setIsLoadingApprovals(true);
         try {
           const res = await fetch(
             `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
@@ -56,14 +54,12 @@ export default function VerticalProgressCard({
             (a: ApprovalEntry, b: ApprovalEntry) =>
               (a.sequenceNo || 0) - (b.sequenceNo || 0)
           );
-          console.log("✅ Approval Entries:", sorted);
-
-          const current = sorted.find((e) => e.status === "Open");
-          console.log("🟡 Current Approver:", current);
-
           setApprovalEntries(sorted);
         } catch (err) {
           console.error("❌ Error fetching approvals", err);
+          setApprovalEntries([]);
+        } finally {
+          setIsLoadingApprovals(false);
         }
       }
     };
@@ -116,7 +112,6 @@ export default function VerticalProgressCard({
           </div>
         )}
 
-        {/* Stepper */}
         <SimpleBar
           style={{ maxHeight: 360, paddingRight: "8px" }}
           autoHide={false}
@@ -124,7 +119,31 @@ export default function VerticalProgressCard({
           forceVisible="y"
         >
           <div className="vertical-stepper pe-2">
-            {approvalEntries.length > 0 ? (
+            {isLoadingApprovals ? (
+              // Skeleton loader streaming layout
+              Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="step mb-3 d-flex gap-3 align-items-start"
+                >
+                  <div className="step-icon-lg bg-secondary-subtle skeleton rounded-circle"></div>
+                  <div className="flex-grow-1">
+                    <div
+                      className="skeleton w-50 mb-2 rounded"
+                      style={{ height: "14px" }}
+                    ></div>
+                    <div
+                      className="skeleton w-75 mb-2 rounded"
+                      style={{ height: "12px" }}
+                    ></div>
+                    <div
+                      className="skeleton w-100 rounded"
+                      style={{ height: "10px" }}
+                    ></div>
+                  </div>
+                </div>
+              ))
+            ) : approvalEntries.length > 0 ? (
               approvalEntries.map((step, i) => {
                 const isApproved = step.status === "Approved";
                 const isOpen = step.status === "Open";

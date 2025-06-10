@@ -73,6 +73,7 @@ const initialState = {
         handleFetchingSetup: (): Promise<void> => { return Promise.resolve() },
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchLineSetup: (): Promise<void> => { return Promise.resolve() },
+        fetchImprestsPendingSettlement: (): Promise<void> => { return Promise.resolve() },
     }
 }
 export type AdvanceState = typeof initialState;
@@ -296,6 +297,31 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             ], true),
         ])
     }, [advance.formData, fetchSetups]);
+    const fetchImprestsPendingSettlement = useCallback(async () => {
+        const ocludedStatuses = ['Draft', 'Pending', 'Approved', 'Issued', 'Accounted'];
+        let query: string;
+        ocludedStatuses.forEach((ocludedStatus) => {
+            if (query) {
+                query = `${query} or imprestStatus eq '${ocludedStatus}'`;
+            } else {
+                query = `imprestStatus eq '${ocludedStatus}'`;
+            }
+        });
+        const imprest = await getResource(`imprest`, {
+            params: {
+                returnRecords: false,
+                '$count': true,
+                '$filter': query,
+            }
+        });
+        dispatcher({
+            type: 'PATCH_ADVANCE_TYPES_DISABLE_STATUS',
+            payload: {
+                key: 'Other',
+                disabled: !!imprest,
+            },
+        })
+    }, [dispatcher]);
     const contextValue = useMemo(() => ({
 
         ...advance,
@@ -305,6 +331,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             fetchLineSetup,
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
+            fetchImprestsPendingSettlement,
         }
     }), [advance, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
 
