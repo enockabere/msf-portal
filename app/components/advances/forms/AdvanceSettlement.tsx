@@ -197,9 +197,10 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
     }
   };
 
-  function isValidImprestStatus(
+  function isValidSurrenderStatus(
     status: any
   ): status is
+    | "Open"
     | "Issued"
     | "Accounted"
     | "Settled"
@@ -209,6 +210,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
     | "Liquidation Rejected"
     | "Reversed" {
     return [
+      "Open",
       "Issued",
       "Accounted",
       "Settled",
@@ -610,6 +612,12 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
     }
   }, [expenses, dispatcher]);
 
+  useEffect(() => {
+    if (formData) {
+      console.log("Current formData:", formData);
+    }
+  }, [formData]);
+
   return (
     <div className="container-fluid d-flex flex-column min-vh-100">
       <div className="row flex-grow-1">
@@ -813,7 +821,9 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
                     saveAccountingLine={handleSaveAccountedRow}
                     deleteDetailedExpesneLine={handleDeleteDetailedExpesneLine}
                     addNewEntryToAccount={addNewEntryToAccount}
-                    handleViewLineAccountingDetails={handleViewLineAccountingDetails}
+                    handleViewLineAccountingDetails={
+                      handleViewLineAccountingDetails
+                    }
                   />
                 )}
                 {showAdvanceAccountedLineDetailsModal && (
@@ -936,7 +946,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
         <div className="col-md-3">
           <VerticalProgressCard
             advance={
-              isValidImprestStatus(formData.status)
+              formData && isValidSurrenderStatus(formData?.status)
                 ? { ...(formData as any), status: formData.status }
                 : null
             }
