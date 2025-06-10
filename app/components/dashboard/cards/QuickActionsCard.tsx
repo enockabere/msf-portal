@@ -70,6 +70,16 @@ export default function QuickActionsCard() {
               <p className="mb-0 fs-13">View</p>
             </Link>
           </div>
+          <div className="col-6">
+            <Link
+              href="/dashboard/make-request/requisitions"
+              className="action-card bg-info p-3 rounded text-center d-block text-white"
+            >
+              <i className="iconoir-page h4 mb-2"></i>
+              <h5 className="mb-1 fw-bold">Requisitions</h5>
+              <p className="mb-0 fs-13">View</p>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

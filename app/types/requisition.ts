@@ -21,10 +21,11 @@ export interface Requisition {
 
 export interface RequisitionLine {
   id?: string;
+  lineNo?: number,
   documentType: string;
   documentNo: string;
   billingItemCode: string;
-  description: string;
+  description?: string;
   quantity: number;
   unitCost: number;
   unitOfMeasure: string;
@@ -34,14 +35,4 @@ export interface RequisitionLine {
   globalDimension3Code?: string;
   globalDimension4Code?: string;
   [key: string]: any;
-}
-
-export interface Attachment {
-  tableID?: number;
-  no: string;
-  documentType: string;
-  lineNo?: number;
-  id?: number;
-  fileName: string;
-  attachment?: string;
 }

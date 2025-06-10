@@ -5,9 +5,11 @@ import { useMemo } from "react";
 import { decodeValue } from "@/app/utils/helpers";
 
 interface Props {
-    records: Array<Record<string, any>>
+    records: Array<Record<string, any>>,
+    isLoading: boolean;
+    onRefresh?: () => void,
 }
-export default function TabbedRequisitionRequests({ records }: Props) {
+export default function TabbedRequisitionRequests({ records, isLoading, onRefresh }: Props) {
     const openRequisitions = useMemo(() => {
         return records.filter((item) => item.status === 'Open')
     }, [records])
@@ -26,5 +28,5 @@ export default function TabbedRequisitionRequests({ records }: Props) {
         { key: "released", label: "Released", data: releasedRequisitions },
     ];
 
-    return <ReusableTabbedTable tabs={tabData} type="requisition"/>;
+    return <ReusableTabbedTable tabs={tabData} type="requisition" isLoading={isLoading} onRefresh={onRefresh}/>;
 }

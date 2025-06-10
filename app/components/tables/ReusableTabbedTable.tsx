@@ -3,6 +3,7 @@
 import { Tabs, Tab } from "react-bootstrap";
 import TravelRequestTable from "../travel/TravelRequestTable";
 import RequisitionRequestsTable from "../requisitions/RequisitionRequestsTable";
+import { onRefresh } from "next/dist/client/components/react-dev-overlay/pages/client";
 
 interface TabConfig {
   key: string;
@@ -14,12 +15,16 @@ interface ReusableTabbedAdvanceTableProps {
   tabs: TabConfig[];
   profile?: Record<string, any>;
   type: string;
+  isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function ReusableTabbedTable({
   tabs,
   profile,
-  type
+  type,
+  isLoading,
+  onRefresh
 }: ReusableTabbedAdvanceTableProps) {
   return (
     <div className="position-relative">
@@ -33,8 +38,8 @@ export default function ReusableTabbedTable({
                 title={`${tab.label} (${tab.data.length})`}
               >
                 <div className="pt-3">
-                  {type === "travel" && (<TravelRequestTable data={tab.data} loading={false} profile={profile} />)}
-                  {type === "requisition" && (<RequisitionRequestsTable data={tab.data} loading={false} />)}
+                  {type === "travel" && (<TravelRequestTable data={tab.data} loading={isLoading} profile={profile} />)}
+                  {type === "requisition" && (<RequisitionRequestsTable data={tab.data} loading={isLoading} onRefresh={onRefresh} />)}
                 </div>
               </Tab>
             ))}

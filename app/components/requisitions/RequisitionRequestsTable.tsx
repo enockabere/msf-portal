@@ -4,16 +4,17 @@ import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { formatDate } from "@/app/utils/dateFormats";
 import { decodeValue, formatNumber } from "@/app/utils/helpers";
-import { EyeIcon, PlusCircle } from "lucide-react";
+import { EyeIcon } from "lucide-react";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
 import CustomModal from "@/app/components/modals/CustomModal";
 
 interface RequisitionRequestsTableProps {
     data: Array<Record<string, any>>;
     loading: boolean;
+    onRefresh?: () => void;
 }
 
-export default function RequisitionRequestsTable({data, loading}: RequisitionRequestsTableProps) {
+export default function RequisitionRequestsTable({data, loading, onRefresh}: RequisitionRequestsTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [search, setSearch] = useState("");
     const [requisitionId, setRequisitionId] = useState(null);
@@ -38,7 +39,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
             cell: (row: Record<string, any>) => (
                 <span
                     className="text-blue text-decoration-underline cursor-pointer"
-                    onClick={() => console.log("View", row)}
+                    onClick={() => handleOpenModal(row.id)}
                 >
           {row.no}
         </span>
@@ -128,7 +129,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
             >
                 <div className="row">
                     <div className="col-md-12">
-                        <RequisitionForm requisitionId={requisitionId} />
+                        <RequisitionForm requisitionId={requisitionId} onClose={handleCloseModal} onSuccess={onRefresh} />
                     </div>
                 </div>
             </CustomModal>

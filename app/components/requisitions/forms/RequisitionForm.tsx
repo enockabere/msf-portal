@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, CircleCheckIcon, CircleX, Plus, Save, Trash2, UploadCloud } from "lucide-react";
-import { Attachment, Requisition, RequisitionLine } from "@/app/types/requisition";
+import { Requisition, RequisitionLine } from "@/app/types/requisition";
 import { useSession } from "next-auth/react";
 import FormInput from "@/app/components/inputs/FormInput";
 import FormSelect from "@/app/components/inputs/FormSelect";
@@ -16,9 +15,11 @@ import {
   removeNullAndUndefinedFromObject
 } from "@/app/utils/helpers";
 import Swal from "sweetalert2";
+import { toast } from 'react-toastify';
 import { codeUnit, createResource, deleteResource, getResource, patchResource } from "@/app/lib/api/http";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import FormSwitch from "@/app/components/inputs/FormSwitch";
+import FormFileInput from "@/app/components/inputs/FormFileInput";
 
 const INITIAL_REQUEST: Requisition = {
   id: "",
@@ -41,10 +42,10 @@ const INITIAL_REQUEST: Requisition = {
 
 const INITIAL_REQUEST_LINE = {
   id: "",
+  lineNo: undefined,
   documentType: "User Requisition",
   documentNo: "",
   billingItemCode: "",
-  description: "",
   quantity: 1,
   unitCost: 0,
   unitOfMeasure: "",
@@ -66,7 +67,18 @@ const REQUEST_FOR_OPTIONS = [
   },
 ];
 
-export default function RequisitionForm({ requisitionId }: {requisitionId?: string; }) {
+interface Attachment {
+  fileName: string;
+  base64?: string;
+  tableID?: number;
+  no?: string;
+  documentType?: string;
+  lineNo?: number;
+  id?: number;
+  [key: string]: any;
+}
+
+export default function RequisitionForm({ requisitionId, onClose, onSuccess }: {requisitionId?: string; onClose: () => void; onSuccess: () => void; }) {
   const {data: session} = useSession();
   const employee: Record<string, any> = {
     number: session?.user?.profile?.no,
@@ -90,13 +102,32 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
   } = useMySetups();
 
   const [formData, setFormData] = useState<Requisition>(INITIAL_REQUEST);
-  const [requisitionLines, setRequisitionLines] = useState<Array<RequisitionLine>>([INITIAL_REQUEST_LINE]);
-  const [attachments, setAttachments] = useState<Array<Attachment>>([])
+  const [requisitionLines, setRequisitionLines] = useState<RequisitionLine[]>([INITIAL_REQUEST_LINE]);
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [requestFor, setRequestFor] = useState('myself');
   const [formAction, setFormAction] = useState<'save' | 'submit'>('save');
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
-  const router = useRouter();
+
+  const loadRequisition = async (requisitionId: string) => {
+    const res = await getResource("requisitions", {
+      params: {
+        filters: {
+          id: requisitionId
+        },
+        $expand: "requisitionLines,attachments($select=tableID,no,documentType,lineNo,id,fileName)"
+      }
+    });
+
+    if (res.error) {
+      throw new Error(res.error.message);
+    }
+
+    const { requisitionLines, attachments, ...requisition } = res.value.at(0)
+    setFormData(prev => ({...prev, ...requisition}));
+    setRequisitionLines(prev => requisitionLines.length ? [...requisitionLines] : [...prev]);
+    setAttachments(prev => [...prev, ...attachments]);
+  };
 
   useEffect(() => {
     const loadSetups = async () => {
@@ -138,24 +169,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
           },
         });
 
-        const res = await getResource("requisitions", {
-          params: {
-            filters: {
-              id: requisitionId
-            },
-            $expand: "requisitionLines,attachments($select=tableID,no,documentType,lineNo,id,fileName)"
-          }
-        });
-
-        if (res.error) {
-          throw new Error(res.error.message);
-        }
-
-        const { requisitionLines, attachments, ...requisition } = res.value.at(0)
-        setFormData(prev => ({...prev, ...requisition}));
-        setRequisitionLines(prev => requisitionLines.length ? [...requisitionLines] : [...prev]);
-        setAttachments(prev => [...prev, ...attachments]);
-
+        await loadRequisition(requisitionId);
       } catch (error: any) {
         await Swal.fire("Error fetching requisition record", error.message, "error");
       } finally {
@@ -194,7 +208,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
     }))
   };
 
-  const handleBillingItemsChange = (index: number, field: keyof RequisitionLine, value: any) => {
+  const handleRequisitionLineChange = (index: number, field: keyof RequisitionLine, value: any) => {
     setRequisitionLines(prevLines =>
       prevLines.map((line, i) =>
         i === index ? { ...line, [field]: value } : line
@@ -221,7 +235,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
       const strippedPayload: Record<string, any> = removeNullAndUndefinedFromObject(formData);
       const payload = pickKeys(strippedPayload, Object.keys(INITIAL_REQUEST));
 
-      const reqResponse = payload.no
+      const reqResponse = payload.id
         ? await patchResource("requisitions", {
           data: payload,
           primaryKey: ["id"],
@@ -232,32 +246,33 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
         throw new Error(reqResponse.error.message);
       }
 
+      setFormData(prev => ({...prev, ...reqResponse}));
+
       // Process each line individually
       const operations = await Promise.all(
         requisitionLines.map(async (line: RequisitionLine) => {
           const strippedPayload = pickKeys(removeNullAndUndefinedFromObject(line), Object.keys(INITIAL_REQUEST_LINE));
 
-          const payload = {
-            ...strippedPayload,
-            ...{
-              documentNo: reqResponse.no,
-              globalDimension1Code: reqResponse.globalDimension1Code,
-              globalDimension2Code: reqResponse.globalDimension2Code,
-              globalDimension3Code: reqResponse.globalDimension3Code,
-              globalDimension4Code: reqResponse.globalDimension4Code,
-            }}
+          const payload = hydrateRequisitionLine(strippedPayload, reqResponse);
 
-          return line.id
-          return line.id
+          return payload.id
             ? await patchResource('requisitionLines', {
-              data: {payload},
+              data: payload,
               primaryKey: ["id"]
             })
             : await createResource('requisitionLines', { data: payload });
         })
       );
 
-      const hasError = operations.some(operation => !!operation.error);
+      let hasError = false;
+      requisitionLines.forEach((_, index: number) => {
+        if (operations[index].error) {
+          hasError = true;
+        } else {
+          handleRequisitionLineChange(index, 'id', operations[index].id);
+          handleRequisitionLineChange(index, 'lineNo', operations[index].lineNo);
+        }
+      });
 
       if (hasError) {
         console.log("Operations", operations);
@@ -267,19 +282,21 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
       if (formAction === "submit") {
         // Send for approval
         const res = await codeUnit("sendRequisitionForApproval", {
-          data: { headerNo: reqResponse.id }
+          data: { headerNo: reqResponse.no }
         });
 
         if (res.error) {
           throw new Error(res.error.message);
         }
 
-        await Swal.fire("Success", "Requisition has been sent for approval");
+        toast.success("Requisition has been sent for approval");
       } else {
-        await Swal.fire("Success", "Requisition has been saved successfully");
+        toast.success("Requisition has been saved successfully");
       }
+
+      handleSuccess();
     } catch (error: any) {
-      await Swal.fire("Failed to save requisition", error.message, "error");
+      await Swal.fire(`Failed to ${formAction} requisition`, error.message, "error");
     } finally {
       dispatcher({
         type: "PATCH_LOADING_STATE",
@@ -289,6 +306,24 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
         },
       });
     }
+  };
+
+  const handleSuccess = () => {
+    onSuccess();
+    onClose();
+  };
+
+  const hydrateRequisitionLine = (line: Record<string, any>, requisition: Record<string, any>): Record<string, any> => {
+    return {
+      ...line,
+      ...{
+        documentNo: line.documentNo || requisition.no,
+        locationCode: line.locationCode || requisition.locationCode,
+        globalDimension1Code: line.globalDimension1Code || requisition.globalDimension1Code,
+        globalDimension2Code: line.globalDimension2Code || requisition.globalDimension2Code,
+        globalDimension3Code: line.globalDimension3Code || requisition.globalDimension3Code,
+        globalDimension4Code: line.globalDimension4Code || requisition.globalDimension4Code,
+      }}
   }
 
   const handleCancelApprovalRequest = async () => {
@@ -300,6 +335,18 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
           message: "Cancelling Approval Request",
         },
       });
+
+      const res = await codeUnit("cancelRequisitionApprovalRequest", {
+        data: { headerNo: formData.no }
+      });
+
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+
+      await loadRequisition(formData.id);
+
+      await Swal.fire("Success", "Requisition approval request has been canceled");
     } catch (error: any) {
       await Swal.fire("Cancel approval request failed", error.message, "error");
     } finally {
@@ -335,15 +382,20 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
     }
   };
 
+  const getRequisitionLineAmount = (unitCost: number, quantity: number) => {
+    const total = unitCost * quantity;
+    return formatCurrency(total, formData.currencyCode);
+  }
+
   const totalAmount = useMemo(() =>
       requisitionLines.reduce(
-        (sum, item) => sum + (item.quantity * item.unitCost),
+        (sum, item) => sum + ((item.quantity || 0) * (item.unitCost || 0)),
         0
       ), [requisitionLines]);
 
-  const goBack = () => {
-    router.refresh();
-  };
+  const isReadyOnly = useMemo(() => {
+    return formData.status && decodeValue(formData.status) !== "Open";
+  }, [formData.status]);
 
   return (
     <div className="container-fluid d-flex flex-column">
@@ -356,6 +408,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               onChange={(value) => handleFormChange("title", value)}
               placeholder="Enter title"
               required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -366,6 +419,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               onChange={(value) => handleFormChange("description", value)}
               placeholder="Enter brief description"
               required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -376,6 +430,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               onChange={(value) => setRequestFor(value)}
               options={REQUEST_FOR_OPTIONS}
               required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -387,6 +442,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 onChange={(value) => handleFormChange("requestedFor", value)}
                 options={employees.map(item => ({code: item.number, description: employeeName(item)}))}
                 required
+                disabled={isReadyOnly}
               />
             </div>
           )}
@@ -398,6 +454,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               value={formData.dueDate}
               onChange={(value) => handleFormChange("dueDate", value)}
               required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -409,6 +466,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               onChange={(value) => handleFormChange("currencyCode", value)}
               options={globalCurrencies.map(item => ({code: item.code, description: item.displayName}))}
               required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -420,19 +478,18 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
               onChange={(value) => handleFormChange("locationCode", value)}
               options={locations.map(item => ({code: item.code, description: item.name}))}
               required
+              disabled={isReadyOnly}
             />
           </div>
 
           <div className="col-md-4">
-            <label className="form-label">
-              <UploadCloud size={14} className="me-1"/> Upload Attachment
-            </label>
-
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*,.pdf"
-              onChange={(e) => console.log(1, e.target.files?.[0] || null)}
+            <FormFileInput
+              label={<><UploadCloud size={14} className="me-1"/> Upload Attachment</>}
+              value={attachments}
+              multiple={false}
+              onChange={(value) => setAttachments(value)}
+              required
+              disabled={isReadyOnly}
             />
           </div>
 
@@ -450,6 +507,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 onChange={(value) => handleFormChange("urgencyReasons", value)}
                 placeholder="Why is the request urgent?"
                 required
+                disabled={isReadyOnly}
               />
             )}
           </div>
@@ -469,6 +527,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 onChange={(value) => handleFormChange("globalDimension1Code", value)}
                 options={OC.map(d => ({code: d.code, description: d.name}))}
                 required
+                disabled={isReadyOnly}
               />
             </div>
             <div className="col-md-6">
@@ -479,6 +538,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 onChange={(value) => handleFormChange("globalDimension2Code", value)}
                 options={DEPARTMENTS.map(d => ({code: d.code, description: d.name}))}
                 required
+                disabled={isReadyOnly}
               />
             </div>
             <div className="col-md-6">
@@ -488,6 +548,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 placeholder="Select Country"
                 onChange={(value) => handleFormChange("globalDimension3Code", value)}
                 options={COUNTRY.map(d => ({code: d.code, description: d.name}))}
+                disabled={isReadyOnly}
               />
             </div>
             <div className="col-md-6">
@@ -497,6 +558,7 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                 placeholder="Select Project"
                 onChange={(value) => handleFormChange("globalDimension4Code", value)}
                 options={PROJECT.map(d => ({code: d.code, description: d.name}))}
+                disabled={isReadyOnly}
               />
             </div>
           </div>
@@ -508,24 +570,27 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
           <div className="p-2 mb-3 bg-light d-flex justify-content-between align-items-center"
                style={{background: "#f43434"}}>
             <h5 className="mb-0 text-dark">Billing Items</h5>
-            <button
-              type="button"
-              className="btn btn-success d-flex align-items-center gap-1"
-              onClick={addRequisitionLine}>
-              <Plus size={16}/>
-              Add Billing Item
-            </button>
+            {!isReadyOnly && (
+              <button
+                type="button"
+                className="btn btn-success d-flex align-items-center gap-1"
+                onClick={addRequisitionLine}
+              >
+                <Plus size={16}/>
+                Add Billing Item
+              </button>
+            )}
           </div>
 
           <div className="table-responsive">
             <table className="table table-bordered mb-0 align-middle">
               <thead className="table-light">
               <tr>
-                <th className="w-25">Item</th>
+                <th>Item</th>
                 <th>Units</th>
-                <th style={{width: '10%'}}>Quantity</th>
-                <th style={{width: '15%'}}>Unit Cost</th>
-                <th>Location</th>
+                <th>Quantity</th>
+                <th>Unit Cost</th>
+                <th>Amount</th>
                 <th>Actions</th>
               </tr>
               </thead>
@@ -536,9 +601,11 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                     <div className="">
                       <FormSelect
                         value={requisitionLines[idx].billingItemCode}
-                        onChange={(value) => handleBillingItemsChange(idx, "billingItemCode", value)}
+                        onChange={(value) => handleRequisitionLineChange(idx, "billingItemCode", value)}
                         options={billingItems.map(item => ({code: item.code, description: item.description}))}
                         required
+                        disabled={isReadyOnly}
+                        styles="mb-0"
                       />
                     </div>
                   </td>
@@ -546,41 +613,38 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
                     <div className="">
                       <FormSelect
                         value={requisitionLines[idx].unitOfMeasure}
-                        onChange={(value) => handleBillingItemsChange(idx, "unitOfMeasure", value)}
+                        onChange={(value) => handleRequisitionLineChange(idx, "unitOfMeasure", value)}
                         options={unitsOfMeasure.map(item => ({code: item.code, description: item.displayName}))}
                         required
+                        disabled={isReadyOnly}
+                        styles="mb-0"
                       />
                     </div>
                   </td>
                   <td>
                     <div className="">
                       <FormInput
-                        type="number"
                         value={requisitionLines[idx].quantity}
-                        onChange={(value) => handleBillingItemsChange(idx, "quantity", parseInt(value || 0))}
+                        onChange={(value) => handleRequisitionLineChange(idx, "quantity", Number(value))}
                         required
+                        disabled={isReadyOnly}
+                        styles="mb-0"
                       />
                     </div>
                   </td>
                   <td>
                     <div className="">
                       <FormInput
-                        type="number"
                         value={requisitionLines[idx].unitCost}
-                        onChange={(value) => handleBillingItemsChange(idx, "unitCost", parseFloat(value || 0))}
+                        onChange={(value) => handleRequisitionLineChange(idx, "unitCost", Number(value))}
                         required
+                        disabled={isReadyOnly}
+                        styles="mb-0"
                       />
                     </div>
                   </td>
                   <td>
-                    <div className="">
-                      <FormSelect
-                        value={requisitionLines[idx].locationCode}
-                        onChange={(value) => handleBillingItemsChange(idx, "locationCode", value)}
-                        options={locations.map(item => ({code: item.code, description: item.name}))}
-                        required
-                      />
-                    </div>
+                    {getRequisitionLineAmount(requisitionLines[idx].unitCost, requisitionLines[idx].quantity)}
                   </td>
                   <td className="">
                     <button
@@ -609,31 +673,33 @@ export default function RequisitionForm({ requisitionId }: {requisitionId?: stri
             <button
               type="button"
               className="btn btn-outline-secondary"
-              onClick={goBack}>
+              onClick={onClose}>
               <ArrowLeft size={16} className="me-1"/>
               Go Back
             </button>
 
-            <button
-              type="submit"
-              className="btn btn-danger d-flex align-items-center gap-1"
-              onClick={() => {
-                setFormAction('save');
-              }}>
-              <Save size={16}/>
-              Save
-            </button>
+            {!isReadyOnly && (
+              <>
+                <button
+                  type="submit"
+                  className="btn btn-danger d-flex align-items-center gap-1"
+                  onClick={() => {
+                    setFormAction('save');
+                  }}>
+                  <Save size={16}/>
+                  Save
+                </button>
 
-            {formData.status === "Open" && (
-              <button
-                type="submit"
-                className="btn btn-success d-flex align-items-center gap-1"
-                onClick={() => {
-                  setFormAction('submit');
-                }}>
-                <CircleCheckIcon size={16}/>
-                Submit for Approval
-              </button>
+                <button
+                  type="submit"
+                  className="btn btn-success d-flex align-items-center gap-1"
+                  onClick={() => {
+                    setFormAction('submit');
+                  }}>
+                  <CircleCheckIcon size={16}/>
+                  Submit for Approval
+                </button>
+              </>
             )}
 
             {decodeValue(formData.status) === "Pending Approval" && (
