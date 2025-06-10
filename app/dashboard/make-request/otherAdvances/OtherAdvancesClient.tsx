@@ -22,6 +22,7 @@ import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import { useSearchParams } from 'next/navigation';
+import { findObjectFromArray } from "@/app/utils/helpers";
 
 const ReusableSalaryAdvanceTabs = dynamic(
   () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
@@ -46,8 +47,9 @@ export default function OtherAdvancesClient() {
     advanceCounts,
     showAdvannceSettlementForm,
     showAdvanceAccountedLineDetailsModal,
+    advanceTypes,
   } = useAdvance();
-  const { dispatcher, handleFetchingSetup, fetchLineSetup } = actions;
+  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement } = actions;
   const { actions: loaderActions } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
   const searchParams = useSearchParams();
@@ -368,6 +370,10 @@ export default function OtherAdvancesClient() {
     ]);
     return () => abortController.abort('Duplicate request');
   }, [showModal, formData, dispatcher, fetchLineSetup]);
+
+  useEffect(() => {
+    fetchImprestsPendingSettlement();
+  }, [fetchImprestsPendingSettlement]);
   const renderSummary = () => (
     <SummaryCards
       title="Advance Requests"
@@ -378,6 +384,7 @@ export default function OtherAdvancesClient() {
       actionButton={
         <button
           className="btn bg-danger text-white btn-md"
+          disabled={findObjectFromArray(advanceTypes, 'key', 'Other')?.disabled ? true : false}
           onClick={handleNewRequestClick}
         >
           <i className="fa fa-plus me-1" />
