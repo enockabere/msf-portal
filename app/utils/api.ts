@@ -70,11 +70,26 @@ export async function apiFetch(
             ...options.params,
             company: process.env.BC_COMPANY_NAME,
         }
+        let returnRecords = true;
+        let countParam: boolean = false;
+        if (options.params['$count']) {
+            countParam = true;
+            returnRecords = options.params['returnRecords'];
+        }
         const { data, params, batch, ...rest } = options;
         const otherOptions = { params: params as never, ...rest };
         switch (method.toLowerCase()) {
             case 'get':
-                response = await transport.get<RequestResponse>(memoryMap.get(endpoint), params, rest as unknown); break;
+                {
+                    let url = memoryMap.get(endpoint);
+                    if (countParam && !returnRecords) {
+                        url = `${url}/$count`;
+                        delete params['$count'];
+                    }
+                    delete params['returnRecords'];
+                    response = await transport.get<RequestResponse>(url, params, rest as unknown);
+                    break;
+                }
             case 'post':
                 response = await transport.post<RequestResponse>(memoryMap.get(endpoint), data, otherOptions as unknown); break;
             case 'put':

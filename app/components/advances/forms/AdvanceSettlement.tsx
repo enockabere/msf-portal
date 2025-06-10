@@ -238,10 +238,10 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
             return line.DetailedLineMgtLineNo === exp.lineNo;
           }
         );
-        dispatcher({
-          type: "SET_SETTLEMENT_MODAL",
-          payload: false,
-        });
+        // dispatcher({
+        //   type: "SET_SETTLEMENT_MODAL",
+        //   payload: false,
+        // });
         dispatcher({
           type: "SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS",
           payload: exp,
@@ -250,10 +250,10 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
           type: "SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS",
           payload: selectLineAccountingEntries,
         });
-        dispatcher({
-          type: "SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL",
-          payload: true,
-        });
+        // dispatcher({
+        //   type: "SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL",
+        //   payload: true,
+        // });
       }
     } catch (error: any) {
       Swal.fire("Error", error.message, "error");
@@ -809,13 +809,11 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
                   <SettlementExpenseForm
                     selectedLineIndex={activeLineIndex}
                     setActiveLineIndex={setActiveLineIndex}
-                    selectedAdvanceLineForViewAccountingDetails={
-                      selectedAdvanceLineForViewAccountingDetails
-                    }
                     selectedAdvanceLineForView={selectedAdvanceLineForView}
                     saveAccountingLine={handleSaveAccountedRow}
                     deleteDetailedExpesneLine={handleDeleteDetailedExpesneLine}
                     addNewEntryToAccount={addNewEntryToAccount}
+                    handleViewLineAccountingDetails={handleViewLineAccountingDetails}
                   />
                 )}
                 {showAdvanceAccountedLineDetailsModal && (

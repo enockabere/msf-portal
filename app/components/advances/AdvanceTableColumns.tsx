@@ -12,7 +12,6 @@ export const GetColumnByType = (
         getTypeIcon?: (type: string, ...args: any) => ''
     }
 ) => {
-    const isReleasedTab = options?.currentTab === "released";
     const { currencies, imprestTypes } = options;
 
     const issuedStatus = [
@@ -227,7 +226,7 @@ export const GetColumnByType = (
                             </button>
                         )}
 
-                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && isReleasedTab && (
+                        {(row.imprestStatus === "Issued" || row.imprestStatus === "Accounted") && (
                             <button
                                 key="settle"
                                 className="text-danger border-0 bg-transparent"
