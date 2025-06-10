@@ -32,14 +32,17 @@ export default function CashDetails({
       </div>
       <div className="col-md-6 mb-3">
         <label className="form-label">Collection Time</label>
-        <input
-          type="time"
-          className="form-control"
+        <select
+          id="cash-hours"
+          className="form-select"
           value={cashHours}
           onChange={(e) => setCashHours(e.target.value)}
           disabled={isViewMode}
           required
-        />
+        >
+          <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>
+          <option value="Afternoon">Afternoon (1:00 PM - 5:00 PM)</option>
+        </select>
       </div>
     </div>
   );

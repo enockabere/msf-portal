@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
 
-function formatTime(value: string): string {
-  if (!value || typeof value !== "string") return "00:00:00";
-  const [hh = "00", mm = "00"] = value.split(":");
-  return `${hh.padStart(2, "0")}:${mm.padStart(2, "0")}:00`;
-}
-
 function formatDate(value: string): string {
   if (!value || typeof value !== "string") return "0001-01-01";
   return new Date(value).toISOString().split("T")[0];
@@ -35,7 +29,7 @@ export async function PATCH(request: NextRequest) {
       ...body,
       no: advanceNo,
       collectionDate: formatDate(collectionDate),
-      cashHours: formatTime(cashHours),
+      cashHours: cashHours,
     };
 
     console.log("📤 PATCH Payload:", payload);

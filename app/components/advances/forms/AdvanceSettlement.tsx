@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import SettlementExpenseForm from "./SettlementExpenseForm";
-import ProgressIndicator from "./Operational/ProgressIndicator";
 import {
   AlertTriangle,
   ArrowDown,
@@ -31,6 +30,7 @@ import {
 import { RequestResponse } from "@/app/types/options";
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 import AccountingExpenseDetailsForm from "./AccountingExpenseDetailsForm";
+import VerticalProgressCard from "./VerticalProgressCard";
 
 interface Props {
   closeSettlementDialog?: () => void;
@@ -196,6 +196,30 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
       });
     }
   };
+
+  function isValidImprestStatus(
+    status: any
+  ): status is
+    | "Issued"
+    | "Accounted"
+    | "Settled"
+    | "Posted"
+    | "Pending Liquidation"
+    | "Rejected"
+    | "Liquidation Rejected"
+    | "Reversed" {
+    return [
+      "Issued",
+      "Accounted",
+      "Settled",
+      "Posted",
+      "Pending Liquidation",
+      "Rejected",
+      "Liquidation Rejected",
+      "Reversed",
+    ].includes(status);
+  }
+
   const handleViewLineAccountingDetails = async (
     index: number,
     exp: Record<string, any>
@@ -912,18 +936,12 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
           </div>
         </div>
         <div className="col-md-3">
-          <ProgressIndicator
-            currentStep={3}
-            isSubmitted={[
-              "Issued",
-              "Accounted",
-              "Settled",
-              "Posted",
-              "Pending Liquidation",
-              "Rejected",
-              "Liquidation Rejected",
-              "Reversed",
-            ].includes(formData.imprestStatus)}
+          <VerticalProgressCard
+            advance={
+              isValidImprestStatus(formData.status)
+                ? { ...(formData as any), status: formData.status }
+                : null
+            }
           />
         </div>
       </div>

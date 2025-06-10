@@ -26,11 +26,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const formatTime = (time: string | undefined): string => {
-      if (!time || time.trim() === "") return "00:00:00";
-      return time.length === 5 ? `${time}:00` : time;
-    };
-
     const formatDate = (date: string | undefined): string => {
       if (!date || date.trim() === "") return "0001-01-01";
       return new Date(date).toISOString().split("T")[0];
@@ -40,7 +35,7 @@ export async function POST(request: Request) {
       ...body,
       applicationDate: new Date().toISOString().split("T")[0],
       collectionDate: formatDate(body.collectionDate),
-      cashHours: formatTime(body.cashHours),
+      cashHours: body.cashHours,
     };
 
     const options: any = {};
