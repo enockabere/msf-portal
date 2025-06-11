@@ -887,7 +887,7 @@ export default function OperationalAdvanceForm({
   }, [employeeBanks, formData?.paymentMethod, paymentMethodType]);
 
   return (
-    <div className="container-fluid d-flex flex-column min-vh-100">
+    <div className="container-fluid d-flex flex-column">
       <div className="row flex-grow-1 gx-1">
         <div className="col-md-9">
           {currentStep === 1 ? (
