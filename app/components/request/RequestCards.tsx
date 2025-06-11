@@ -297,7 +297,7 @@ export default function RequestCards() {
                           key={advance.key}
                           datatype={advance.key}
                           onClick={handleSetAdvanceType}
-                        // disabled={advance.disabled}
+                          disabled={advance.disabled}
                         >
                           {advance.title}
                         </button>

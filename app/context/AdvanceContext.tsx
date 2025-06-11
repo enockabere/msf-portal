@@ -78,6 +78,8 @@ const initialState = {
         fetchLineSetup: (): Promise<void> => { return Promise.resolve() },
         fetchImprestsPendingSettlement: (): Promise<void> => { return Promise.resolve() },
         fetchAdvances: (): Promise<void> => { return Promise.resolve() },
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        fetchAdvanceLines: (no: string, isSettled = false): Promise<void> => { return Promise.resolve() },
     }
 }
 export type AdvanceState = typeof initialState;
@@ -324,14 +326,14 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             params: {
                 returnRecords: false,
                 '$count': true,
-                '$filter': `no eq ${session?.user?.profile?.no} and ${query}`,
+                '$filter': `no eq '${session?.user?.profile?.no}' and ${query}`,
             }
         });
         dispatcher({
             type: 'PATCH_ADVANCE_TYPES_DISABLE_STATUS',
             payload: {
                 key: 'Other',
-                disabled: !!imprest,
+                disabled: (imprest as unknown as number) > 2,
             },
         })
     }, [session?.user?.profile?.no, dispatcher]);
@@ -374,6 +376,31 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             });
         }
     }, [session, dispatchLoader]);
+    const fetchAdvanceLines = useCallback(async (no, isSettlment = false) => {
+        const fetchLines = async () => {
+            const res = await getResource('imprestLine', {
+                params: {
+                    filters: {
+                        documentNo: no,
+                        ...(isSettlment && { Surrender: true }),
+                    },
+                },
+            });
+            if (res.error) {
+                return Swal.fire(res.error.code, res.error.message, 'error');
+            }
+            dispatcher(
+                {
+                    type: 'SET_EXISTING_ADVANCE_LINES',
+                    payload: res.value,
+                },
+            );
+        }
+        await Promise.all([
+            fetchLineSetup(),
+            fetchLines(),
+        ]);
+    }, [dispatcher, fetchLineSetup]);
     const contextValue = useMemo(() => ({
 
         ...advance,
@@ -385,6 +412,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             fetchAdvanceTypes,
             fetchImprestsPendingSettlement,
             fetchAdvances,
+            fetchAdvanceLines,
         }
     }), [advance, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances]);
 
