@@ -107,7 +107,7 @@ export default function OperationalLineStep({
                       onChange={(e) => {
                         onExpenseChange(idx, "expenseCode", e.target.value);
                       }}
-                      disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                      disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                     >
                       <option defaultValue={""}>
                         -- Select Category --
@@ -134,9 +134,9 @@ export default function OperationalLineStep({
                         onExpenseChange(idx, "unitCost", Number(e.target.value))
                       }
                       placeholder="Enter Amount"
-                      disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                      disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                       style={
-                        !['Draft', undefined, null].includes(formData?.imprestStatus)
+                        !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
                           ? { backgroundColor: '#F1F1F1', color: '#6B7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
                           : {}
                       }
@@ -152,7 +152,7 @@ export default function OperationalLineStep({
                           onExpenseChange(idx, "mileage", e.target.value)
                         }
                         placeholder="Mileage"
-                        disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                        disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                       />
                     </td>
                   )}
@@ -167,7 +167,7 @@ export default function OperationalLineStep({
                       onChange={(e) =>
                         onExpenseChange(idx, "operationCenter", e.target.value)
                       }
-                      disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                      disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                     >
                       <option defaultValue={""}>
                         -- Select Operation Center --
@@ -193,7 +193,7 @@ export default function OperationalLineStep({
                       onChange={(e) =>
                         onExpenseChange(idx, "costCenter", e.target.value)
                       }
-                      disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                      disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                     >
                       <option defaultValue={""}>
                         -- Select Cost Center --
@@ -219,7 +219,7 @@ export default function OperationalLineStep({
                       onChange={(e) =>
                         onExpenseChange(idx, "project", e.target.value)
                       }
-                      disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                      disabled={!['Draft', undefined, null, 'Open', ''].includes(formData?.imprestStatus || formData?.status)}
                     >
                       <option defaultValue={""}>-- Select Project --</option>
                       {PROJECT.map((project: Record<string, any>) => {
@@ -232,12 +232,12 @@ export default function OperationalLineStep({
                     </select>
                   </td>
                   <td className="text-center d-flex gap-1 justify-content-center">
-                    {['Draft', undefined, null].includes(formData?.imprestStatus) && (
+                    {['Draft', undefined, null, ""].includes(formData?.imprestStatus) && (
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => onRemoveExpense(idx)}
-                        disabled={!['Draft', undefined, null].includes(formData?.imprestStatus)}
+                        disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                       >
                         <Trash2 size={16} />
                       </button>
