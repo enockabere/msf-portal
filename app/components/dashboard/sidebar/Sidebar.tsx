@@ -1,6 +1,6 @@
 "use client";
 
-import { useSidebarToggle } from "@/app/hooks/useSidebarToggle";
+import { useSidebarToggle } from "../../../hooks/useSidebarToggle";
 import SidebarBrand from "./SidebarBrand";
 import SidebarMenu from "./SidebarMenu";
 import SidebarUserInfo from "./SidebarUserInfo";

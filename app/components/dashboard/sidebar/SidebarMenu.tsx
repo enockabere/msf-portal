@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../context/PageLoaderContext";
 import { useEffect, useState, startTransition } from "react";
 import { getResource } from "@/app/lib/api/http";
 import { normalizeDocType } from "@/app/utils/normalizeDocType";
@@ -163,7 +163,9 @@ export default function SidebarMenu() {
               }`}
               href="#sidebarAdminTravel"
               data-bs-toggle="collapse"
-              aria-expanded={currentPath.startsWith("/dashboard/make-request/travel")}
+              aria-expanded={currentPath.startsWith(
+                "/dashboard/make-request/travel"
+              )}
               aria-controls="sidebarAdminTravel"
             >
               <i className="iconoir-airplane menu-icon"></i>
@@ -171,7 +173,9 @@ export default function SidebarMenu() {
             </a>
             <div
               className={`collapse ${
-                currentPath.startsWith("/dashboard/make-request/travel") ? "show" : ""
+                currentPath.startsWith("/dashboard/make-request/travel")
+                  ? "show"
+                  : ""
               }`}
               id="sidebarAdminTravel"
             >
@@ -180,9 +184,13 @@ export default function SidebarMenu() {
                   <a
                     href="/dashboard/make-request/travel"
                     className={`nav-link ${
-                      currentPath === "/dashboard/make-request/travel" ? "active" : ""
+                      currentPath === "/dashboard/make-request/travel"
+                        ? "active"
+                        : ""
                     }`}
-                    onClick={(e) => handleNav(e, "/dashboard/make-request/travel")}
+                    onClick={(e) =>
+                      handleNav(e, "/dashboard/make-request/travel")
+                    }
                   >
                     Travel requests
                   </a>
@@ -195,13 +203,16 @@ export default function SidebarMenu() {
           <li className="nav-item">
             <a
               className={`nav-link ${
-                currentPath.startsWith("/dashboard/make-request/advances") || currentPath.startsWith("/dashboard/make-request/otherAdvances")
+                currentPath.startsWith("/dashboard/make-request/advances") ||
+                currentPath.startsWith("/dashboard/make-request/otherAdvances")
                   ? "active"
                   : ""
               }`}
               href="#sidebarFinance"
               data-bs-toggle="collapse"
-              aria-expanded={currentPath.startsWith("/dashboard/make-request/advances")}
+              aria-expanded={currentPath.startsWith(
+                "/dashboard/make-request/advances"
+              )}
               aria-controls="sidebarFinance"
             >
               <i className="iconoir-wallet menu-icon"></i>
@@ -209,7 +220,9 @@ export default function SidebarMenu() {
             </a>
             <div
               className={`collapse ${
-                currentPath.startsWith("/dashboard/make-request/travel") ? "show" : ""
+                currentPath.startsWith("/dashboard/make-request/travel")
+                  ? "show"
+                  : ""
               }`}
               id="sidebarFinance"
             >
@@ -218,9 +231,13 @@ export default function SidebarMenu() {
                   <a
                     href="/dashboard/make-request/advances"
                     className={`nav-link ${
-                      currentPath === "/dashboard/make-request/advances" ? "active" : ""
+                      currentPath === "/dashboard/make-request/advances"
+                        ? "active"
+                        : ""
                     }`}
-                    onClick={(e) => handleNav(e, "/dashboard/make-request/advances")}
+                    onClick={(e) =>
+                      handleNav(e, "/dashboard/make-request/advances")
+                    }
                   >
                     Salary Advances
                   </a>
@@ -230,9 +247,13 @@ export default function SidebarMenu() {
                   <a
                     href="/dashboard/make-request/otherAdvances"
                     className={`nav-link ${
-                      currentPath === "/dashboard/make-request/otherAdvances" ? "active" : ""
+                      currentPath === "/dashboard/make-request/otherAdvances"
+                        ? "active"
+                        : ""
                     }`}
-                    onClick={(e) => handleNav(e, "/dashboard/make-request/otherAdvances")}
+                    onClick={(e) =>
+                      handleNav(e, "/dashboard/make-request/otherAdvances")
+                    }
                   >
                     Other Advances
                   </a>
@@ -251,7 +272,9 @@ export default function SidebarMenu() {
               }`}
               href="#sidebarProcurement"
               data-bs-toggle="collapse"
-              aria-expanded={currentPath.startsWith("/dashboard/make-request/requisitions")}
+              aria-expanded={currentPath.startsWith(
+                "/dashboard/make-request/requisitions"
+              )}
               aria-controls="sidebarProcurement"
             >
               <i className="iconoir-page menu-icon"></i>
@@ -259,7 +282,9 @@ export default function SidebarMenu() {
             </a>
             <div
               className={`collapse ${
-                currentPath.startsWith("/dashboard/make-request/requisitions") ? "show" : ""
+                currentPath.startsWith("/dashboard/make-request/requisitions")
+                  ? "show"
+                  : ""
               }`}
               id="sidebarProcurement"
             >
@@ -268,9 +293,13 @@ export default function SidebarMenu() {
                   <a
                     href="/dashboard/make-request/requisitions"
                     className={`nav-link ${
-                      currentPath === "/dashboard/make-request/requisitions" ? "active" : ""
+                      currentPath === "/dashboard/make-request/requisitions"
+                        ? "active"
+                        : ""
                     }`}
-                    onClick={(e) => handleNav(e, "/dashboard/make-request/requisitions")}
+                    onClick={(e) =>
+                      handleNav(e, "/dashboard/make-request/requisitions")
+                    }
                   >
                     Requisitions
                   </a>
@@ -289,7 +318,10 @@ export default function SidebarMenu() {
             >
               <i className="iconoir-check-circle menu-icon"></i>
               <span>
-                Approvals & Reviews <span className="badge bg-danger text-white rounded-pill ms-2">{approvalCount}</span>
+                Approvals & Reviews{" "}
+                <span className="badge bg-danger text-white rounded-pill ms-2">
+                  {approvalCount}
+                </span>
               </span>
             </a>
           </li>
@@ -304,11 +336,7 @@ export default function SidebarMenu() {
               Help & Support <span className="badge bg-warning ms-2">Soon</span>
             </span>
           </li>
-          {[
-            "FAQs",
-            "Submit a Ticket",
-            "Documentation",
-          ].map((label, index) => (
+          {["FAQs", "Submit a Ticket", "Documentation"].map((label, index) => (
             <li className="nav-item" key={index}>
               <a className="nav-link" href="#">
                 <i
