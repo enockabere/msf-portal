@@ -193,7 +193,6 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
               options={countries.map(item => ({ code: item.code, description: item.displayName }))}
               required
               disabled={isReadOnly}
-              showAsterisk
             />
           </div>
 
@@ -206,7 +205,6 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
               options={VALID_VISA_OPTIONS}
               required
               disabled={isReadOnly}
-              showAsterisk
             />
           </div>
 
@@ -221,7 +219,6 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
                   placeholder="Enter Passport number"
                   required
                   disabled={isReadOnly}
-                  showAsterisk
                 />
               </div>
               <div className="col-md-4">
@@ -233,7 +230,6 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
                   type="date"
                   required
                   disabled={isReadOnly}
-                  showAsterisk
                 />
               </div>
               <div className="col-md-4">
@@ -245,7 +241,6 @@ const VisaApplicationLine: React.FC<VisaApplicationLineProps> = ({line, lineInde
                   type="date"
                   required
                   disabled={isReadOnly}
-                  showAsterisk
                 />
               </div>
             </>

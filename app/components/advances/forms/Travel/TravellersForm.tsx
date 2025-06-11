@@ -132,8 +132,6 @@ const AddTravellerForm: React.FC<AddTravellerFormProps> = ({
               value={formData.travellerName}
               onChange={(value) => handleFormChange("travellerName", value)}
               placeholder="Enter Traveller Name"
-              required
-              showAsterisk
             />
           </div>
           <div className="col-md-6">
@@ -143,7 +141,6 @@ const AddTravellerForm: React.FC<AddTravellerFormProps> = ({
               value={formData.dob}
               onChange={(value) => handleFormChange("dob", value)}
               required
-              showAsterisk
             />
           </div>
           <div className="col-md-6">
@@ -153,7 +150,6 @@ const AddTravellerForm: React.FC<AddTravellerFormProps> = ({
               onChange={(value) => handleFormChange("countryOfOrigin", value)}
               options={countryOptions}
               required
-              showAsterisk
             />
           </div>
           <div className="col-md-6">

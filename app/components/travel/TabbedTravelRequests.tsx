@@ -1,6 +1,6 @@
 "use client";
 
-import ReusableTabbedAdvanceTable from "../tables/ReusableTabbedAdvanceTable";
+import ReusableTabbedTable from "../tables/ReusableTabbedTable";
 import { useMemo } from "react";
 import { decodeValue } from "@/app/utils/helpers";
 
@@ -27,5 +27,5 @@ export default function TabbedTravelRequests({ records, profile }: Props) {
     { key: "released", label: "Approved", data: approvedRequests },
   ];
 
-  return <ReusableTabbedAdvanceTable tabs={tabData} profile={profile} type="travel"/>;
+  return <ReusableTabbedTable tabs={tabData} profile={profile} type="travel"/>;
 }

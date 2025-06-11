@@ -139,7 +139,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={countries.map(item => ({ code: item.code, description: item.name }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -153,7 +152,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={originCities.map(city => ({ code: city.city, description: city.city }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -167,7 +165,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={TRAVEL_TYPES}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -181,7 +178,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={modesOfTransport.map(item => ({ code: item.code, description: item.description }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -195,7 +191,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={purposeOfTravel.map(item => ({ code: item.code, description: item.description }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -238,7 +233,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 placeholder="Enter ID or Passport number"
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -252,7 +246,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 type="date"
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -266,7 +259,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 type="date"
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -280,7 +272,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 type="time"
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -294,7 +285,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 type="date"
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -308,7 +298,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={dimensions.filter(d => d.dimensionCode === "OC").map(d => ({ code: d.code, description: d.name }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
@@ -322,7 +311,6 @@ export default function TravelHeaderForm({ formData, requiredFields, isReadOnly,
                 options={dimensions.filter(d => d.dimensionCode === "DEPARTMENTS").map(d => ({ code: d.code, description: d.name }))}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
           )}
