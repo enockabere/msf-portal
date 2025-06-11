@@ -251,7 +251,7 @@ export default function OperationalAdvanceForm({
     const strippedFormData = removeNullAndUndefinedFromObject(formData);
     const missingRequiredValuesBeforeNext = checkIfMissingRequiredProperty(
       strippedFormData,
-      ["imprestType", "currencyCode"]
+      formData.status ? ["imprestType"] : ["imprestType", "currencyCode"]
     );
     if (
       !missingRequiredValuesBeforeNext ||

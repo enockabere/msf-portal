@@ -14,8 +14,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { FormData } from "@/app/types/advance";
-import { getResource } from "@/app/lib/api/http";
-import Swal from "sweetalert2";
+// import { getResource } from "@/app/lib/api/http";
+// import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
@@ -46,7 +46,7 @@ export default function OtherAdvancesClient() {
     showAdvanceAccountedLineDetailsModal,
     advanceTypes,
   } = useAdvance();
-  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances } = actions;
+  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances, fetchAdvanceLines } = actions;
   const { actions: loaderActions, loading } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
   const searchParams = useSearchParams();
@@ -86,6 +86,7 @@ export default function OtherAdvancesClient() {
                 message: '',
               }
             });
+            await fetchAdvanceLines(advance?.no, true);
           }
         } else {
           setShowModal(true);
@@ -321,35 +322,36 @@ export default function OtherAdvancesClient() {
   }, [setBreadcrumb]);
 
   useEffect(() => {
-    const abortController = new AbortController();
-    const fetchAdvanceLines = async () => {
+    // const abortController = new AbortController();
+    // const fetchAdvanceLines = async () => {
 
-      const res = await getResource('imprestLine', {
-        params: {
-          filters: {
-            documentNo: formData?.no,
-          },
-        },
-      });
-      if (res.error) {
-        return Swal.fire(res.error.code, res.error.message, 'error');
-      }
-      dispatcher(
-        {
-          type: 'SET_EXISTING_ADVANCE_LINES',
-          payload: res.value,
-        },
-      );
-    }
-    if (formData?.no) {
+    //   const res = await getResource('imprestLine', {
+    //     params: {
+    //       filters: {
+    //         documentNo: formData?.no,
+    //       },
+    //     },
+    //   });
+    //   if (res.error) {
+    //     return Swal.fire(res.error.code, res.error.message, 'error');
+    //   }
+    //   dispatcher(
+    //     {
+    //       type: 'SET_EXISTING_ADVANCE_LINES',
+    //       payload: res.value,
+    //     },
+    //   );
+    // }
+    // if (formData?.no) {
 
-    }
-    Promise.all([
-      fetchLineSetup(),
-      fetchAdvanceLines(),
-    ]);
-    return () => abortController.abort('Duplicate request');
-  }, [showModal, formData, dispatcher, fetchLineSetup]);
+    // }
+    // Promise.all([
+    //   fetchLineSetup(),
+    //   fetchAdvanceLines(),
+    // ]);
+    // return () => abortController.abort('Duplicate request');
+    fetchAdvanceLines(formData?.no);
+  }, [formData?.no]);
 
   useEffect(() => {
     fetchImprestsPendingSettlement();
