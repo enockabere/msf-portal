@@ -33,18 +33,7 @@ import {
   RequestResponse,
 } from "@/app/types/options";
 import { useAdvance } from "@/app/context/AdvanceContext";
-<<<<<<< HEAD
-import {
-  ArrowDown,
-  ArrowRightCircle,
-  Check,
-  RefreshCw,
-  Undo2,
-  XCircle,
-} from "lucide-react";
-=======
 import { ArrowDown, Check, RefreshCw, Undo2, XCircle } from "lucide-react";
->>>>>>> 462b752 (update fixes)
 import { usePageLoader } from "@/app/context/PageLoaderContext";
 
 interface ValidateLine {
@@ -96,63 +85,6 @@ export default function OperationalAdvanceForm({
     handleSettingPaymentMethodType();
     // handleSettingReletedTravelRequestControl(field, value);
   };
-<<<<<<< HEAD
-  async function handleSettingReletedTravelRequestControl(
-    field: keyof FormData,
-    value: string
-  ) {
-    const assumedImprestTypes = ["OPERATION", "TRAVEL"];
-    let imprestType: string;
-    if (field === "imprestType") {
-      for (const type of assumedImprestTypes) {
-        const suggestedType = suggestImprestType(type, value);
-        if (suggestedType) imprestType = suggestedType;
-      }
-      switch (imprestType) {
-        case "TRAVEL": {
-          loaderDispatcher({
-            type: "PATCH_LOADING_STATE",
-            payload: {
-              loading: true,
-              message: "",
-            },
-          });
-          if (data.user.profile.type === "Employee") {
-            await fetchSetups([
-              {
-                travelRequests: {
-                  filters: {
-                    documentType: "Employee",
-                    travellerNo: data?.user?.profile?.no,
-                    approvalStatus: "Released",
-                  },
-                },
-              },
-            ]);
-            dispatcher({
-              type: "SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL",
-              payload: true,
-            });
-          }
-          loaderDispatcher({
-            type: "PATCH_LOADING_STATE",
-            payload: {
-              loading: false,
-              message: "",
-            },
-          });
-          break;
-        }
-        default: {
-          dispatcher({
-            type: "SET_SHOW_ASSOCIATED_TRAVEL_REQUEST_CONTROL",
-            payload: false,
-          });
-        }
-      }
-    }
-  }
-=======
   // async function handleSettingReletedTravelRequestControl(field: keyof FormData, value: string) {
   //   const assumedImprestTypes = ["OPERATION", "TRAVEL"];
   //   let imprestType: string;
@@ -206,7 +138,6 @@ export default function OperationalAdvanceForm({
   //     }
   //   }
   // }
->>>>>>> 462b752 (update fixes)
   const handleExpenseChange = <K extends keyof ExpenseItem>(
     index: number,
     field: K,
@@ -290,27 +221,27 @@ export default function OperationalAdvanceForm({
         description: "",
         operationCenter:
           data?.user?.profile?.[
-            `shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`
           ],
         costCenter:
           data?.user?.profile?.[
-            `shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`
           ],
         project:
           data?.user?.profile?.[
-            `shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`
           ],
         [`shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`]:
           data?.user?.profile?.[
-            `shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${OC?.[0]?.["globalDimensionNo"]}Code`
           ],
         [`shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`]:
           data?.user?.profile?.[
-            `shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${DEPARTMENTS?.[0]?.["globalDimensionNo"]}Code`
           ],
         [`shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`]:
           data?.user?.profile?.[
-            `shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`
+          `shortcutDimension${PROJECT?.[0]?.["globalDimensionNo"]}Code`
           ],
       },
     });
@@ -481,8 +412,7 @@ export default function OperationalAdvanceForm({
         });
         return Swal.fire(
           "Validation Error!",
-          `Missing [${isMissingRequiredProp.prop.join(",")}] ${
-            isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
+          `Missing [${isMissingRequiredProp.prop.join(",")}] ${isMissingRequiredProp.prop.length > 1 ? "Properties" : "Property"
           }`
         );
       }
@@ -496,26 +426,11 @@ export default function OperationalAdvanceForm({
         },
       });
       let res: RequestResponse = {};
-<<<<<<< HEAD
-      if (isEditing || formData?.status === "Open") {
-        if (knownSchema.currencyCode === "") knownSchema.currencyCode = "";
-        const {
-          currencyCode,
-          imprestType,
-          no,
-          documentType,
-          Purpose,
-          phoneNo,
-          paymentMethod,
-        } = knownSchema;
-=======
       if (knownSchema.currencyCode === "KES") {
         knownSchema.currencyCode = " ";
       };
-      console.log('currency code after implicit mod: ', knownSchema.currencyCode);
       if (isEditing || formData?.status === 'Open') {
         const { currencyCode, imprestType, no, documentType, Purpose, phoneNo, paymentMethod } = knownSchema;
->>>>>>> 462b752 (update fixes)
         res = await putResource("imprest", {
           primaryKey: ["no", "documentType"],
           data: {
@@ -552,8 +467,7 @@ export default function OperationalAdvanceForm({
       await handleSubmittingAdvanceLine(lineValidation, res as FormData);
       Swal.fire(
         "Success",
-        `${res.imprestType} advance was ${
-          isEditing ? "updated" : "created"
+        `${res.imprestType} advance was ${isEditing ? "updated" : "created"
         } successfully!`,
         "success"
       ).then(async (result) => {
@@ -736,8 +650,7 @@ export default function OperationalAdvanceForm({
           if (batchRequestOption.length !== expenses.length)
             Swal.fire(
               "Alert!",
-              `${
-                addedLines > 1 ? "Some" : "The"
+              `${addedLines > 1 ? "Some" : "The"
               } advance ${lineCaption} will not be submitted due to errors`,
               "info"
             );
@@ -755,8 +668,7 @@ export default function OperationalAdvanceForm({
             }
             if (failedLines) {
               throw new Error(
-                `${failedLines} ${
-                  failedLines > 1 ? "lines" : "line"
+                `${failedLines} ${failedLines > 1 ? "lines" : "line"
                 } did not save!`
               );
             }
@@ -798,19 +710,11 @@ export default function OperationalAdvanceForm({
   }
   const handleSendForApproval = async (no: string) => {
     try {
-<<<<<<< HEAD
-      if (formData.no) {
-        const response = await codeUnit("SendAdvanceForApproval", {
-          data: {
-            docNo: formData.no,
-          },
-=======
       if (no) {
         const response = await codeUnit('SendAdvanceForApproval', {
           data: {
             docNo: no,
           }
->>>>>>> 462b752 (update fixes)
         });
         if (response.error) {
           return Swal.fire(
@@ -819,24 +723,12 @@ export default function OperationalAdvanceForm({
             "error"
           );
         }
-<<<<<<< HEAD
-        Swal.fire(
-          "Success",
-          `${formData.imprestType} advance successfully sent for approval`,
-          "success"
-        ).then(async (result) => {
-          if (result.isConfirmed) {
-            await postResourceAction(formData.no);
-          }
-        });
-=======
         Swal.fire('Success', `${formData.imprestType} advance successfully sent for approval`, 'success')
           .then(async (result) => {
             if (result.isConfirmed) {
               await postResourceAction(no);
             }
           })
->>>>>>> 462b752 (update fixes)
       }
     } catch (error: any) {
       Swal.fire("Error", error.message, "error");
@@ -879,15 +771,9 @@ export default function OperationalAdvanceForm({
     const conditionalButtons = {
       default: [
         {
-<<<<<<< HEAD
-          id: "klkfrtrsjro",
-          action: () => {},
-          label: "Save & Continue",
-=======
           id: 'klkfrtrsjro',
           action: () => { },
           label: 'View Expense Lines',
->>>>>>> 462b752 (update fixes)
           icon: <ArrowDown size={16} />,
           classes:
             "btn btn-primary d-flex align-items-center gap-2 fw-semibold",
@@ -899,11 +785,7 @@ export default function OperationalAdvanceForm({
         {
           id: "ewrtyujhht",
           action: async () => await handleNext(),
-<<<<<<< HEAD
-          label: "Save & Continue",
-=======
           label: 'View Expense Lines',
->>>>>>> 462b752 (update fixes)
           icon: <ArrowDown size={16} />,
           classes:
             "btn btn-primary d-flex align-items-center gap-2 fw-semibold",
@@ -931,17 +813,6 @@ export default function OperationalAdvanceForm({
           stepOne: true,
           stepTwo: true,
         },
-<<<<<<< HEAD
-        {
-          id: "rsgrthpokpoktr",
-          action: async () => handleSendForApproval(),
-          label: "Send For Approval",
-          classes: "btn btn-info d-flex align-items-center gap-2 fw-semibold",
-          icon: <ArrowRightCircle size={16} />,
-          stepOne: true,
-          stepTwo: true,
-        },
-=======
         // {
         //   id: 'rsgrthpokpoktr',
         //   action: async () => handleSendForApproval(),
@@ -951,15 +822,10 @@ export default function OperationalAdvanceForm({
         //   stepOne: true,
         //   stepTwo: true,
         // },
->>>>>>> 462b752 (update fixes)
         {
           id: "hoiyhjtoigjfoieje",
           action: async () => await handleNext(),
-<<<<<<< HEAD
-          label: "Save & Continue",
-=======
           label: 'View Expense Lines',
->>>>>>> 462b752 (update fixes)
           icon: <ArrowDown size={16} />,
           classes:
             "btn btn-primary d-flex align-items-center gap-2 fw-semibold",
@@ -981,11 +847,7 @@ export default function OperationalAdvanceForm({
         {
           id: "qsfrgjorijioji",
           action: async () => await handleNext(),
-<<<<<<< HEAD
-          label: "Save & Continue",
-=======
           label: 'View Expense Lines',
->>>>>>> 462b752 (update fixes)
           icon: <ArrowDown size={16} />,
           classes:
             "btn btn-primary d-flex align-items-center gap-2 fw-semibold",
@@ -1006,11 +868,7 @@ export default function OperationalAdvanceForm({
         {
           id: "iutieorvtrutnriewh",
           action: async () => await handleNext(),
-<<<<<<< HEAD
-          label: "Save & Continue",
-=======
           label: 'View Expense Lines',
->>>>>>> 462b752 (update fixes)
           icon: <ArrowDown size={16} />,
           classes:
             "btn btn-primary d-flex align-items-center gap-2 fw-semibold",
@@ -1130,7 +988,7 @@ export default function OperationalAdvanceForm({
   useEffect(() => {
     updateEmployeeBank(
       paymentMethodType !== "Cheques" &&
-        paymentMethodType !== "Bank_x0020_Transfer"
+      paymentMethodType !== "Bank_x0020_Transfer"
     );
     updateMobileMoneyFields(paymentMethodType !== "Mpesa");
     updateCashFields(paymentMethodType !== "Cash");
@@ -1173,9 +1031,8 @@ export default function OperationalAdvanceForm({
         {[1, 2].map((step) => (
           <div
             key={step}
-            className={`rounded-circle ${
-              currentStep === step ? "bg-danger" : "bg-secondary"
-            }`}
+            className={`rounded-circle ${currentStep === step ? "bg-danger" : "bg-secondary"
+              }`}
             style={{
               width: "10px",
               height: "10px",
