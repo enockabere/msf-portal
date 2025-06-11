@@ -41,7 +41,7 @@ export default function RequestCards() {
   const { actions: loaderActions } = usePageLoader();
   const { dispatcher: dispatchLoader } = loaderActions;
   const { advanceTypes, actions } = useAdvance();
-  const { dispatcher, handleFetchingSetup } = actions;
+  const { dispatcher, handleFetchingSetup, fetchAdvances: otherAdvances } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -98,7 +98,7 @@ export default function RequestCards() {
     }
   };
 
-  const handleCloseModal = () => (
+  const handleCloseModal = (modal = '') => (
     setShowModal(false),
     dispatcher({
       type: "ADVANCE_CREATION_STATUSES",
@@ -125,7 +125,16 @@ export default function RequestCards() {
         imprestStatus: "",
         status: "",
       },
-    })
+    }),
+    (
+      (
+        async () => {
+          if (modal === 'other') {
+            await otherAdvances()
+          }
+        }
+      )()
+    )
   );
 
   const fetchAdvances = useCallback(async () => {
@@ -288,7 +297,7 @@ export default function RequestCards() {
                           key={advance.key}
                           datatype={advance.key}
                           onClick={handleSetAdvanceType}
-                          disabled={advance.disabled}
+                        // disabled={advance.disabled}
                         >
                           {advance.title}
                         </button>
@@ -421,7 +430,7 @@ export default function RequestCards() {
           )}
           {requestType === "Advance" && advanceType === "Other" && (
             <div className="col-md-12">
-              <OperationalAdvanceForm closeModalHandler={handleCloseModal} />
+              <OperationalAdvanceForm closeModalHandler={() => handleCloseModal('other')} />
             </div>
           )}
           {requestType === "Expense" && (

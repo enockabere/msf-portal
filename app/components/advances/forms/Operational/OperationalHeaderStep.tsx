@@ -58,8 +58,8 @@ export default function OperationalHeaderStep({
                     className="form-control"
                     style={
                       !['Open', ''].includes(formData?.status)
-                          ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                          : {}
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
                     }
                     id="mpesa-phone"
                     value={formData?.phoneNo}
@@ -78,8 +78,8 @@ export default function OperationalHeaderStep({
                   className="form-control"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="id-passport"
                   value={formData?.idPassportNumber}
@@ -108,8 +108,8 @@ export default function OperationalHeaderStep({
                   className="form-control"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="account-no"
                   value={formData?.accountNo}
@@ -125,8 +125,8 @@ export default function OperationalHeaderStep({
                   className="form-select"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="bank"
                   value={formData?.bankNo}
@@ -151,8 +151,8 @@ export default function OperationalHeaderStep({
                   className="form-select"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="branch"
                   value={formData?.branch}
@@ -181,8 +181,8 @@ export default function OperationalHeaderStep({
                   className="form-control"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="swift-code"
                   value={formData?.swiftCode}
@@ -208,8 +208,8 @@ export default function OperationalHeaderStep({
                   className="form-control"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   value={formData?.cashCollectionDate}
                   onChange={(e) =>
@@ -229,8 +229,8 @@ export default function OperationalHeaderStep({
                   className="form-select"
                   style={
                     !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   value={formData?.cashHours}
                   onChange={(e) => onFormChange("cashHours", e.target.value)}
@@ -299,8 +299,8 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 style={
                   !['Open', ''].includes(formData?.status)
-                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                      : {}
+                    ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                    : {}
                 }
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
@@ -330,7 +330,7 @@ export default function OperationalHeaderStep({
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
                 disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
               >
-                <option defaultValue={""} value="" selected> Kenya Shillings </option>
+                <option value="KES" selected> Kenya Shillings </option>
                 {currencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>
@@ -378,8 +378,8 @@ export default function OperationalHeaderStep({
                 className="form-control"
                 style={
                   !['Open', ''].includes(formData?.status)
-                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                      : {}
+                    ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                    : {}
                 }
                 placeholder="e.g. Fuel, petty cash..."
                 value={formData?.Purpose}
