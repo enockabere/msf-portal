@@ -6,10 +6,13 @@ import { RequestOptions, RequestResponse } from "../types/options";
 import { ENDPOINTMAP } from "../utils/endpointMap";
 import { getResource } from "../lib/api/http";
 import Swal from "sweetalert2";
-import { AdvanceCount, AdvanceType, ExpenseItem, FormData } from "../types/advance";
+import { AdvanceCount, AdvanceType, ExpenseItem, FormData, Advance } from "../types/advance";
 import { useMySetups } from "./SetupContext";
+import { useSession } from "next-auth/react";
+import { usePageLoader } from "./PageLoaderContext";
 
 const initialState = {
+    advanceData: [] satisfies Advance[],
     advanceTypes: [
         {
             title: 'Salary Advance',
@@ -29,7 +32,7 @@ const initialState = {
         imprestType: "",
         Purpose: "",
         amountToPayHeader: null,
-        currencyCode: "",
+        currencyCode: "KES",
         paymentMethod: "",
         cashCollectionDate: "",
         cashHours: "",
@@ -74,6 +77,9 @@ const initialState = {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         fetchLineSetup: (): Promise<void> => { return Promise.resolve() },
         fetchImprestsPendingSettlement: (): Promise<void> => { return Promise.resolve() },
+        fetchAdvances: (): Promise<void> => { return Promise.resolve() },
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        fetchAdvanceLines: (no: string, isSettled = false): Promise<void> => { return Promise.resolve() },
     }
 }
 export type AdvanceState = typeof initialState;
@@ -212,6 +218,12 @@ function AdvanceReducer(state: AdvanceState, action: ReducerFunctionActionType) 
                 }),
             }
         }
+        case 'SET_ADVANCEDATA': {
+            return {
+                ...state,
+                advanceData: action.payload,
+            }
+        }
     }
 }
 
@@ -221,6 +233,9 @@ const AdvanceContext = createContext<AdvanceState | undefined>(undefined);
 export const AdvanceContextProvider = ({ children }: { children: ReactNode }) => {
     const [advance, dispatcher] = useReducer(AdvanceReducer, initialState);
     const { fetchSetups } = useMySetups();
+    const { data: session } = useSession();
+    const { actions } = usePageLoader();
+    const { dispatcher: dispatchLoader } = actions;
 
     const fetchAdvanceTypes = useCallback(
         async (endpoint: ENDPOINTMAP, options: RequestOptions) => {
@@ -311,17 +326,82 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             params: {
                 returnRecords: false,
                 '$count': true,
-                '$filter': query,
+                '$filter': `no eq '${session?.user?.profile?.no}' and ${query}`,
             }
         });
+        console.log('imprest count: ', imprest);
         dispatcher({
             type: 'PATCH_ADVANCE_TYPES_DISABLE_STATUS',
             payload: {
                 key: 'Other',
-                disabled: !!imprest,
+                disabled: (imprest as unknown as number) > 2,
             },
         })
-    }, [dispatcher]);
+    }, [session?.user?.profile?.no, dispatcher]);
+    const fetchAdvances = useCallback(async () => {
+        const employeeNo = session?.user?.profile?.no;
+        if (!employeeNo) return;
+        dispatchLoader({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+                loading: true,
+                message: '',
+            }
+        });
+
+        try {
+            const res = await getResource('imprest', {
+                params: {
+                    filters: {
+                        employeeNo,
+                    },
+                    '$orderby': 'no desc',
+                }
+            });
+            if (res.error) {
+                return Swal.fire(res.error.code, res.error.message, 'error');
+            }
+            dispatcher({
+                type: 'SET_ADVANCEDATA',
+                payload: res.value.reverse(),
+            });
+        } catch (err: any) {
+            Swal.fire('Error!', err.message, 'error');
+        } finally {
+            dispatchLoader({
+                type: 'PATCH_LOADING_STATE',
+                payload: {
+                    loading: false,
+                    message: '',
+                }
+            });
+        }
+    }, [session, dispatchLoader]);
+    const fetchAdvanceLines = useCallback(async (no, isSettlment = false) => {
+        const fetchLines = async () => {
+            const res = await getResource('imprestLine', {
+                params: {
+                    filters: {
+                        documentNo: no,
+                        ...(isSettlment && { Surrender: true }),
+                    },
+                },
+            });
+            if (res.error) {
+                return Swal.fire(res.error.code, res.error.message, 'error');
+            }
+            dispatcher(
+                {
+                    type: 'SET_EXISTING_ADVANCE_LINES',
+                    payload: res.value,
+                },
+            );
+        }
+        await Promise.all([
+            fetchLineSetup(),
+            fetchLines(),
+        ]);
+    }, [dispatcher, fetchLineSetup]);
     const contextValue = useMemo(() => ({
 
         ...advance,
@@ -332,8 +412,10 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
             dispatcher: dispatcherCaller,
             fetchAdvanceTypes,
             fetchImprestsPendingSettlement,
+            fetchAdvances,
+            fetchAdvanceLines,
         }
-    }), [advance, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup]);
+    }), [advance, fetchAdvanceTypes, dispatcherCaller, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances]);
 
     return (
         <AdvanceContext.Provider value={contextValue} >

@@ -216,7 +216,7 @@ export const GetColumnByType = (
                 name: "Actions",
                 cell: (row: Advance) => (
                     <div className="d-flex gap-2">
-                        {row.status === "Open" && (
+                        {['Draft'].includes(row.imprestStatus) && (
                             <button
                                 className="text-primary border-0 bg-transparent"
                                 onClick={() => cb(row)}

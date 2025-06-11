@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import dynamic from "next/dynamic";
@@ -14,9 +13,9 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
-import { Advance, FormData } from "@/app/types/advance";
-import { getResource } from "@/app/lib/api/http";
-import Swal from "sweetalert2";
+import { FormData } from "@/app/types/advance";
+// import { getResource } from "@/app/lib/api/http";
+// import Swal from "sweetalert2";
 import { useMySetups } from "@/app/context/SetupContext";
 import { useAdvance } from "@/app/context/AdvanceContext";
 import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
@@ -30,9 +29,6 @@ const ReusableSalaryAdvanceTabs = dynamic(
 );
 
 export default function OtherAdvancesClient() {
-  const { data: session } = useSession();
-  const [advanceData, setAdvanceData] = useState<Advance[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeStatusTab] = useState<string>("open");
 
   const [placement, setPlacement] = useState<
@@ -42,6 +38,7 @@ export default function OtherAdvancesClient() {
   const { setBreadcrumb } = useBreadcrumb();
   const { fetchSetups } = useMySetups();
   const {
+    advanceData,
     formData,
     actions,
     advanceCounts,
@@ -49,12 +46,96 @@ export default function OtherAdvancesClient() {
     showAdvanceAccountedLineDetailsModal,
     advanceTypes,
   } = useAdvance();
-  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement } = actions;
-  const { actions: loaderActions } = usePageLoader();
+  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances, fetchAdvanceLines } = actions;
+  const { actions: loaderActions, loading } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
   const searchParams = useSearchParams();
   const advanceNo = searchParams?.get('advanceNo');
 
+  const handleSetSelectedRow = useCallback(
+    async function (advance: FormData | null = null, ...args: any) {
+      if (advance) {
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: true,
+            message: '',
+          }
+        });
+        await handleFetchingSetup();
+        await fetchLineSetup();
+        dispatcher({
+          type: 'OPEN_EXISTING_ADVANCE',
+          payload: advance,
+        });
+        dispatcher({
+          type: 'ADVANCE_CREATION_STATUSES',
+          payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
+        });
+        if (args.length && args[0].length) {
+          const [isSettlement] = args[0];
+          if (isSettlement) {
+            dispatcher({
+              type: 'SET_SETTLEMENT_MODAL',
+              payload: true,
+            });
+            loaderDispatcher({
+              type: 'PATCH_LOADING_STATE',
+              payload: {
+                loading: false,
+                message: '',
+              }
+            });
+            await fetchAdvanceLines(advance?.no, true);
+          }
+        } else {
+          setShowModal(true);
+          loaderDispatcher({
+            type: 'PATCH_LOADING_STATE',
+            payload: {
+              loading: false,
+              message: '',
+            }
+          });
+        }
+      } else {
+        setShowModal(false);
+        dispatcher({
+          type: 'OPEN_EXISTING_ADVANCE',
+          payload: {
+            imprestType: "",
+            Purpose: "",
+            amountToPayHeader: null,
+            currencyCode: "KES",
+            paymentMethod: "",
+            cashCollectionDate: "",
+            cashHours: "",
+            idPassportNumber: "",
+            accountNo: "",
+            bankNo: "",
+            branch: "",
+            swiftCode: "",
+            phoneNo: "",
+            accountName: "",
+            no: "",
+            imprestStatus: "",
+            status: "",
+          },
+        });
+        dispatcher({
+          type: 'ADVANCE_CREATION_STATUSES',
+          payload: { isNew: false, isEditing: false, setForView: false },
+        });
+        loaderDispatcher({
+          type: 'PATCH_LOADING_STATE',
+          payload: {
+            loading: false,
+            message: '',
+          }
+        });
+      }
+    }, [dispatcher, fetchLineSetup, handleFetchingSetup, loaderDispatcher]
+  );
 
   useEffect(() => {
     if (advanceNo && advanceData.length) {
@@ -63,31 +144,7 @@ export default function OtherAdvancesClient() {
         handleSetSelectedRow(advance as FormData);
       }
     }
-  }, [advanceNo, advanceData]);
-
-  const fetchAdvances = useCallback(async () => {
-    const employeeNo = session?.user?.profile?.no;
-    if (!employeeNo) return;
-    setLoading(true);
-
-    try {
-      const res = await getResource('imprest', {
-        params: {
-          filters: {
-            employeeNo,
-          },
-        }
-      });
-      if (res.error) {
-        return Swal.fire(res.error.code, res.error.message, 'error');
-      }
-      setAdvanceData(res.value);
-    } catch (err: any) {
-      Swal.fire('Error!', err.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [session]);
+  }, [advanceNo, advanceData, handleSetSelectedRow]);
 
   const handleChangePlacement = (newPlacement: typeof placement) => {
     setPlacement(newPlacement);
@@ -188,7 +245,12 @@ export default function OtherAdvancesClient() {
       type: 'ADVANCE_CREATION_STATUSES',
       payload: { isNew: false, isEditing: false, setForView: false },
     });
-    setShowModal(false)
+    setShowModal(false);
+    (
+      async () => {
+        await fetchAdvances();
+      }
+    )();
   };
 
 
@@ -228,87 +290,6 @@ export default function OtherAdvancesClient() {
     },
   ];
 
-  const handleSetSelectedRow = async (advance: FormData | null = null, ...args: any) => {
-    if (advance) {
-      loaderDispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: true,
-          message: '',
-        }
-      });
-      await handleFetchingSetup();
-      await fetchLineSetup();
-      dispatcher({
-        type: 'OPEN_EXISTING_ADVANCE',
-        payload: advance,
-      });
-      dispatcher({
-        type: 'ADVANCE_CREATION_STATUSES',
-        payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
-      });
-      if (args.length && args[0].length) {
-        const [isSettlement] = args[0];
-        if (isSettlement) {
-          dispatcher({
-            type: 'SET_SETTLEMENT_MODAL',
-            payload: true,
-          });
-          loaderDispatcher({
-            type: 'PATCH_LOADING_STATE',
-            payload: {
-              loading: false,
-              message: '',
-            }
-          });
-        }
-      } else {
-        setShowModal(true);
-        loaderDispatcher({
-          type: 'PATCH_LOADING_STATE',
-          payload: {
-            loading: false,
-            message: '',
-          }
-        });
-      }
-    } else {
-      setShowModal(false);
-      dispatcher({
-        type: 'OPEN_EXISTING_ADVANCE',
-        payload: {
-          imprestType: "",
-          Purpose: "",
-          amountToPayHeader: null,
-          currencyCode: "KES",
-          paymentMethod: "",
-          cashCollectionDate: "",
-          cashHours: "",
-          idPassportNumber: "",
-          accountNo: "",
-          bankNo: "",
-          branch: "",
-          swiftCode: "",
-          phoneNo: "",
-          accountName: "",
-          no: "",
-          imprestStatus: "",
-          status: "",
-        },
-      });
-      dispatcher({
-        type: 'ADVANCE_CREATION_STATUSES',
-        payload: { isNew: false, isEditing: false, setForView: false },
-      });
-      loaderDispatcher({
-        type: 'PATCH_LOADING_STATE',
-        payload: {
-          loading: false,
-          message: '',
-        }
-      });
-    }
-  }
   useEffect(() => {
     const abortController = new AbortController();
     Promise.allSettled([
@@ -341,35 +322,36 @@ export default function OtherAdvancesClient() {
   }, [setBreadcrumb]);
 
   useEffect(() => {
-    const abortController = new AbortController();
-    const fetchAdvanceLines = async () => {
+    // const abortController = new AbortController();
+    // const fetchAdvanceLines = async () => {
 
-      const res = await getResource('imprestLine', {
-        params: {
-          filters: {
-            documentNo: formData?.no,
-          },
-        },
-      });
-      if (res.error) {
-        return Swal.fire(res.error.code, res.error.message, 'error');
-      }
-      dispatcher(
-        {
-          type: 'SET_EXISTING_ADVANCE_LINES',
-          payload: res.value,
-        },
-      );
-    }
-    if (formData?.no) {
+    //   const res = await getResource('imprestLine', {
+    //     params: {
+    //       filters: {
+    //         documentNo: formData?.no,
+    //       },
+    //     },
+    //   });
+    //   if (res.error) {
+    //     return Swal.fire(res.error.code, res.error.message, 'error');
+    //   }
+    //   dispatcher(
+    //     {
+    //       type: 'SET_EXISTING_ADVANCE_LINES',
+    //       payload: res.value,
+    //     },
+    //   );
+    // }
+    // if (formData?.no) {
 
-    }
-    Promise.all([
-      fetchLineSetup(),
-      fetchAdvanceLines(),
-    ]);
-    return () => abortController.abort('Duplicate request');
-  }, [showModal, formData, dispatcher, fetchLineSetup]);
+    // }
+    // Promise.all([
+    //   fetchLineSetup(),
+    //   fetchAdvanceLines(),
+    // ]);
+    // return () => abortController.abort('Duplicate request');
+    fetchAdvanceLines(formData?.no);
+  }, [formData?.no]);
 
   useEffect(() => {
     fetchImprestsPendingSettlement();

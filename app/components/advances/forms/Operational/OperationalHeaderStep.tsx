@@ -57,15 +57,15 @@ export default function OperationalHeaderStep({
                     type="tel"
                     className="form-control"
                     style={
-                      !['Open', ''].includes(formData?.status)
-                          ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                          : {}
+                      !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                        : {}
                     }
                     id="mpesa-phone"
                     value={formData?.phoneNo}
                     onChange={(e) => onFormChange("phoneNo", e.target.value)}
                     maxLength={25}
-                    disabled={!['Open', ''].includes(formData?.status)}
+                    disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                   />
                 </div>
               </div>
@@ -77,9 +77,9 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="id-passport"
                   value={formData?.idPassportNumber}
@@ -87,7 +87,7 @@ export default function OperationalHeaderStep({
                     onFormChange("idPassportNumber", e.target.value)
                   }
                   placeholder="Enter ID or Passport number"
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 />
               </div>
             </div>
@@ -107,14 +107,14 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="account-no"
                   value={formData?.accountNo}
                   onChange={(e) => onFormChange("accountNo", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 />
               </div>
               <div className="col-md-4 mb-3">
@@ -124,14 +124,14 @@ export default function OperationalHeaderStep({
                 <select
                   className="form-select"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="bank"
                   value={formData?.bankNo}
                   onChange={(e) => onFormChange("bankNo", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 >
                   <option defaultValue={""}> --Select bank --</option>
                   {banks.map((bank: Record<string, any>) => {
@@ -150,14 +150,14 @@ export default function OperationalHeaderStep({
                 <select
                   className="form-select"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="branch"
                   value={formData?.branch}
                   onChange={(e) => onFormChange("branch", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 >
                   <option> --Select branch-- </option>
                   {bankBranches.map((branch: Record<string, any>) => {
@@ -180,14 +180,14 @@ export default function OperationalHeaderStep({
                   type="text"
                   className="form-control"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   id="swift-code"
                   value={formData?.swiftCode}
                   onChange={(e) => onFormChange("swiftCode", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 />
               </div>
             </div>
@@ -207,16 +207,16 @@ export default function OperationalHeaderStep({
                   id="cash-collection-date"
                   className="form-control"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   value={formData?.cashCollectionDate}
                   onChange={(e) =>
                     onFormChange("cashCollectionDate", e.target.value)
                   }
                   min={new Date().toISOString().split("T")[0]}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                   required
                 />
               </div>
@@ -228,13 +228,13 @@ export default function OperationalHeaderStep({
                   id="cash-hours"
                   className="form-select"
                   style={
-                    !['Open', ''].includes(formData?.status)
-                        ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                        : {}
+                    !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                      : {}
                   }
                   value={formData?.cashHours}
                   onChange={(e) => onFormChange("cashHours", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                   required
                 >
                   <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>
@@ -261,7 +261,8 @@ export default function OperationalHeaderStep({
               currencies,
               "code",
               formData?.currencyCode
-            )?.description as string) || ""}
+            )?.description as string) || "KES"}
+            {" "}
             {formData?.amountToPayHeader}
           </div>
         )}
@@ -278,7 +279,7 @@ export default function OperationalHeaderStep({
                 className="form-select"
                 value={formData?.imprestType}
                 onChange={(e) => onFormChange("imprestType", e.target.value)}
-                disabled={!['Open', ''].includes(formData?.status)}
+                disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
               >
                 <option defaultValue={""}>--select imprest type--</option>
                 {imprestTypes.map((type: Record<string, any>) => {
@@ -298,14 +299,14 @@ export default function OperationalHeaderStep({
                 id="payment-method"
                 className="form-select"
                 style={
-                  !['Open', ''].includes(formData?.status)
-                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                      : {}
+                  !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                    ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                    : {}
                 }
                 value={formData?.paymentMethod}
                 onChange={(e) => onFormChange("paymentMethod", e.target.value)}
                 disabled={
-                  !['Open', ''].includes(formData?.status)
+                  !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
                 }
               >
                 <option defaultValue={""}> -- Select payment method -- </option>
@@ -326,11 +327,14 @@ export default function OperationalHeaderStep({
               <select
                 id="currency"
                 className="form-select"
-                value={formData?.currencyCode}
+                value={
+                  formData?.currencyCode ? formData?.currencyCode :
+                    formData?.currencyCode === " " || formData?.currencyCode === "" ? "KES" : "KES"
+                }
                 onChange={(e) => onFormChange("currencyCode", e.target.value)}
-                disabled={!['Open', ''].includes(formData?.status) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
+                disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus) || findObjectFromArray(paymentMethods, 'code', formData.paymentMethod)?.type === 'Mpesa'}
               >
-                <option defaultValue={""} value="" selected> Kenya Shillings </option>
+                <option defaultValue="KES" selected> Kenya Shillings </option>
                 {currencies.map((currency: Record<string, any>) => {
                   return (
                     <option value={currency.code} key={currency.code}>
@@ -353,7 +357,7 @@ export default function OperationalHeaderStep({
                   className="form-select"
                   value={formData?.relatedDocNo}
                   onChange={(e) => onFormChange("relatedDocNo", e.target.value)}
-                  disabled={!['Open', ''].includes(formData?.status)}
+                  disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
                 >
                   <option defaultValue={""}> --Select associated Travel request-- </option>
                   {
@@ -377,14 +381,14 @@ export default function OperationalHeaderStep({
                 id="purpose"
                 className="form-control"
                 style={
-                  !['Open', ''].includes(formData?.status)
-                      ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
-                      : {}
+                  !['Draft', undefined, null, ""].includes(formData?.imprestStatus)
+                    ? { backgroundColor: '#f1f1f1', color: '#6b7280', cursor: 'not-allowed' } // Light gray bg, dim text, not-allowed cursor
+                    : {}
                 }
                 placeholder="e.g. Fuel, petty cash..."
                 value={formData?.Purpose}
                 onChange={(e) => onFormChange("Purpose", e.target.value)}
-                disabled={!['Open', ''].includes(formData?.status)}
+                disabled={!['Draft', undefined, null, ""].includes(formData?.imprestStatus)}
               />
             </div>
           </div>
