@@ -41,6 +41,7 @@ export default function ReusableSalaryAdvanceTabs({
     Other: [
       { key: 'open', value: 'Open'},
       { key: 'pending', value: 'Pending'},
+      { key: 'rejected', value: 'Rejected'},
       { key: 'released', value: 'Released'},
       { key: 'issued', value: 'Issued'},
       { key: 'pendingVerification', value: 'Pending Verification'},
