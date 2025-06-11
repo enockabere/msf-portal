@@ -622,7 +622,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
   return (
     <div className="container-fluid d-flex flex-column">
       <div className="row flex-grow-1">
-        <div className="col-md-9">
+        <div className="col-md-8">
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
               <h5 className="mb-0 fw-semibold text-dark">Advance Settlement</h5>
@@ -944,7 +944,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-4">
           <VerticalProgressCard
             advance={
               formData && isValidSurrenderStatus(formData?.status)

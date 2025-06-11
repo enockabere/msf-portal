@@ -559,7 +559,7 @@ export default function SalaryAdvanceForm({
   return (
     <>
       <div className="row">
-        <div className="col-md-9">
+        <div className="col-md-8">
           <ToastContainer position="top-right" autoClose={5000} />
           <form className="p-2 pt-3" onSubmit={handleSubmit}>
             {cutoffPassed && (
@@ -657,7 +657,7 @@ export default function SalaryAdvanceForm({
             />
           </form>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-4">
           <VerticalProgressCard advance={advance ? advance : null} />
         </div>
       </div>
