@@ -10,7 +10,7 @@ type MpesaDetailsProps = {
   isLoading?: boolean;
   isViewMode?: boolean;
   required?: boolean;
-  status?: string; // <-- Added status prop
+  status?: string;
 };
 
 export default function MpesaDetails({
@@ -21,10 +21,15 @@ export default function MpesaDetails({
   isLoading = false,
   isViewMode = false,
   required = false,
-  status = "", 
+  status = "",
 }: MpesaDetailsProps) {
   const isDisabled =
-    isViewMode || status === "Pending Approval" || status === "Released"; 
+    isViewMode || status === "Pending Approval" || status === "Released";
+
+  const readOnlyStyle =
+    !["Open", ""].includes(status) || isDisabled
+      ? { backgroundColor: "#f1f1f1", color: "#6b7280", cursor: "not-allowed" }
+      : {};
 
   return (
     <div className="fade-in">
@@ -50,6 +55,7 @@ export default function MpesaDetails({
                 maxLength={9}
                 disabled={isDisabled}
                 required={required}
+                style={readOnlyStyle}
               />
             </div>
           )}
@@ -74,6 +80,7 @@ export default function MpesaDetails({
               onChange={(e) => setIdNumber(e.target.value)}
               disabled={isDisabled}
               required={required}
+              style={readOnlyStyle}
             />
           )}
         </div>

@@ -18,7 +18,7 @@ interface BankDetailsProps {
   filteredBranches: any[];
   isLoading?: boolean;
   isViewMode?: boolean;
-  status?: string; // <-- Added status prop
+  status?: string;
 }
 
 export default function BankDetails({
@@ -44,9 +44,13 @@ export default function BankDetails({
   const isCHEQUE = paymentMethod === "CHEQUE";
 
   const isRequired = isRTGS || isCHEQUE || isEFT;
-
   const isDisabled =
     isViewMode || status === "Pending Approval" || status === "Released";
+
+  const readOnlyStyle =
+    !["Open", ""].includes(status) || isDisabled
+      ? { backgroundColor: "#f1f1f1", color: "#6b7280", cursor: "not-allowed" }
+      : {};
 
   return (
     <div className="fade-in">
@@ -69,6 +73,7 @@ export default function BankDetails({
               onChange={(e) => setAccountNo(e.target.value)}
               required={isRequired}
               disabled={isDisabled}
+              style={readOnlyStyle}
             />
           )}
         </div>
@@ -90,6 +95,7 @@ export default function BankDetails({
               onChange={(e) => setBank(e.target.value)}
               required={isRequired}
               disabled={isDisabled}
+              style={readOnlyStyle}
             >
               <option value="">Select Bank</option>
               {banks.map((b) => (
@@ -120,6 +126,7 @@ export default function BankDetails({
               onChange={(e) => setBranch(e.target.value)}
               required={isRequired}
               disabled={!bank || isDisabled}
+              style={readOnlyStyle}
             >
               <option value="">Select Branch</option>
               {filteredBranches.map((bb) => (
@@ -149,6 +156,7 @@ export default function BankDetails({
               onChange={(e) => setChequeName(e.target.value)}
               required={isRequired}
               disabled={isDisabled}
+              style={readOnlyStyle}
             />
           )}
         </div>
@@ -174,6 +182,7 @@ export default function BankDetails({
                 onChange={(e) => setSwiftCode(e.target.value)}
                 required={isRTGS}
                 disabled={isDisabled}
+                style={readOnlyStyle}
               />
             )}
           </div>

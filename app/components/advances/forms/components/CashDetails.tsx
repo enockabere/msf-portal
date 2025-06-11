@@ -8,6 +8,7 @@ interface Props {
   cashHours: string;
   setCashHours: (v: string) => void;
   isViewMode: boolean;
+  status?: string;
 }
 
 export default function CashDetails({
@@ -16,7 +17,16 @@ export default function CashDetails({
   cashHours,
   setCashHours,
   isViewMode,
+  status = "",
 }: Props) {
+  const isDisabled =
+    isViewMode || status === "Pending Approval" || status === "Released";
+
+  const readOnlyStyle =
+    !["Open", ""].includes(status) || isDisabled
+      ? { backgroundColor: "#f1f1f1", color: "#6b7280", cursor: "not-allowed" }
+      : {};
+
   return (
     <div className="row">
       <div className="col-md-6 mb-3">
@@ -26,7 +36,8 @@ export default function CashDetails({
           className="form-control"
           value={collectionDate}
           onChange={(e) => setCollectionDate(e.target.value)}
-          disabled={isViewMode}
+          disabled={isDisabled}
+          style={readOnlyStyle}
           required
         />
       </div>
@@ -37,7 +48,8 @@ export default function CashDetails({
           className="form-select"
           value={cashHours}
           onChange={(e) => setCashHours(e.target.value)}
-          disabled={isViewMode}
+          disabled={isDisabled}
+          style={readOnlyStyle}
           required
         >
           <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>

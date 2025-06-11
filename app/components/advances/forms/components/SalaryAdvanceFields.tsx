@@ -37,6 +37,11 @@ export default function SalaryAdvanceFields({
   const isDisabled =
     isViewMode || status === "Pending Approval" || status === "Released";
 
+  const readOnlyStyle =
+    !["Open", ""].includes(status) || isDisabled
+      ? { backgroundColor: "#f1f1f1", color: "#6b7280", cursor: "not-allowed" }
+      : {};
+
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value;
     setCurrency(selectedCurrency);
@@ -71,6 +76,7 @@ export default function SalaryAdvanceFields({
           onChange={handleCurrencyChange}
           disabled={isDisabled}
           required
+          style={readOnlyStyle}
         >
           <option value="">-- Select Currency --</option>
           {currencies.map((c) => (
@@ -94,6 +100,7 @@ export default function SalaryAdvanceFields({
           onChange={(e) => setAdvanceAmount(e.target.value)}
           required
           disabled={isDisabled}
+          style={readOnlyStyle}
         />
         {typeof advanceLimit === "number" && (
           <div className="mt-1 small">
@@ -128,6 +135,7 @@ export default function SalaryAdvanceFields({
           onChange={(e) => setPaymentMethod(e.target.value)}
           disabled={isDisabled || !currencyChosen}
           required
+          style={readOnlyStyle}
         >
           <option value="">-- Select Payment Method --</option>
           {filteredPaymentMethods.map((pm) => (
