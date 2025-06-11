@@ -431,7 +431,7 @@ export default function RequestCards() {
           )}
           {requestType === "Requisition" && (
             <div className="col-md-12">
-              <RequisitionForm />
+              <RequisitionForm onClose={handleCloseModal} />
             </div>
           )}
         </div>

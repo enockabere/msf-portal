@@ -79,7 +79,7 @@ type FormAction = 'save' | 'submit';
 interface RequisitionFormProps {
   requisitionNo?: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClose, onSuccess }) => {
@@ -327,7 +327,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
         toast.success("Requisition has been saved successfully");
       }
 
-      onSuccess();
+      if (onSuccess) {
+        onSuccess();
+      }
+
       onClose();
     } catch (error: any) {
       await Swal.fire(`Failed to ${formAction} requisition`, error.message, "error");
