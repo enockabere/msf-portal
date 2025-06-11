@@ -33,7 +33,7 @@ export default function QuickActionsCard() {
       href: "/dashboard/make-request/requisitions",
       icon: "iconoir-page",
       title: "Requisitions",
-      bgColor: "bg-info",
+      bgColor: "bg-danger",
     },
   ];
 
