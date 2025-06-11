@@ -29,9 +29,10 @@ export default function VerticalProgressCard({
 }: VerticalProgressCardProps) {
   const [applicationDate, setApplicationDate] = useState<string>("");
   const [approvalEntries, setApprovalEntries] = useState<ApprovalEntry[]>([]);
-  const [isLoadingApprovals, setIsLoadingApprovals] = useState(true);
+  const [isLoadingApprovals, setIsLoadingApprovals] = useState<boolean>(false);
 
   const isNew = !advance;
+  const hasAdvanceNo = Boolean(advance?.no);
 
   useEffect(() => {
     setApplicationDate(
@@ -43,28 +44,28 @@ export default function VerticalProgressCard({
 
   useEffect(() => {
     const fetchApprovals = async () => {
-      if (advance?.no) {
-        setIsLoadingApprovals(true);
-        try {
-          const res = await fetch(
-            `/api/bc/advances/salary/approvals?documentNo=${advance.no}`
-          );
-          const json = await res.json();
-          const sorted = (json?.data?.value || []).sort(
-            (a: ApprovalEntry, b: ApprovalEntry) =>
-              (a.sequenceNo || 0) - (b.sequenceNo || 0)
-          );
-          setApprovalEntries(sorted);
-        } catch (err) {
-          console.error("❌ Error fetching approvals", err);
-          setApprovalEntries([]);
-        } finally {
-          setIsLoadingApprovals(false);
-        }
+      if (!hasAdvanceNo) return;
+      setIsLoadingApprovals(true);
+      try {
+        const res = await fetch(
+          `/api/bc/advances/salary/approvals?documentNo=${advance!.no}`
+        );
+        const json = await res.json();
+        const sorted = (json?.data?.value || []).sort(
+          (a: ApprovalEntry, b: ApprovalEntry) =>
+            (a.sequenceNo || 0) - (b.sequenceNo || 0)
+        );
+        setApprovalEntries(sorted);
+      } catch (err) {
+        console.error("❌ Error fetching approvals", err);
+        setApprovalEntries([]);
+      } finally {
+        setIsLoadingApprovals(false);
       }
     };
+
     fetchApprovals();
-  }, [advance]);
+  }, [hasAdvanceNo]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -79,7 +80,7 @@ export default function VerticalProgressCard({
     }
   };
 
-  const formatAgeing = (ageingStr: string | undefined) => {
+  const formatAgeing = (ageingStr?: string) => {
     const match = ageingStr?.match(/P(\d+)D(?:T(\d+)H(\d+)M)?/);
     if (!match) return null;
     const [, days, hours, minutes] = match;
@@ -101,7 +102,6 @@ export default function VerticalProgressCard({
       </div>
 
       <div className="card-body bg-primary-subtle pt-0">
-        {/* Current Approver Section */}
         {approvalEntries.length > 0 && currentApprover && (
           <div className="p-3 border rounded bg-light mb-3">
             <h6 className="text-primary mb-1">Current Approver</h6>
@@ -119,8 +119,7 @@ export default function VerticalProgressCard({
           forceVisible="y"
         >
           <div className="vertical-stepper pe-2">
-            {isLoadingApprovals ? (
-              // Skeleton loader streaming layout
+            {isLoadingApprovals && hasAdvanceNo ? (
               Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
@@ -230,7 +229,6 @@ export default function VerticalProgressCard({
           </div>
         </SimpleBar>
 
-        {/* Note */}
         <div className="bg-primary-subtle p-2 border-dashed border-primary rounded mt-3">
           <span className="text-primary fw-semibold">Note:</span>
           <div className="text-primary mt-1">
