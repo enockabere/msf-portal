@@ -9,9 +9,9 @@ const FormInput = ({
                      placeholder = "",
                      required,
                      disabled,
-                     showAsterisk = false
+                     styles,
                    }: {
-  label: string;
+  label?: string;
   id?: string;
   value: any;
   onChange: (value: any) => void;
@@ -19,7 +19,7 @@ const FormInput = ({
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  showAsterisk?: boolean;
+  styles?: string;
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -27,15 +27,17 @@ const FormInput = ({
   const showDatePlaceholder = type === "date" && !value && !isFocused;
 
   return (
-    <div className="form-group">
-      <label className="form-label">
-        {label} {showAsterisk && <span className="text-danger">*</span>}
-      </label>
+    <div className={`form-group ${styles || 'input'}`}>
+      {label && (
+        <label className="form-label" htmlFor={id || label}>
+          {label} {required && <span className="text-danger">*</span>}
+        </label>
+      )}
       <div style={{ position: "relative" }}>
         <input
           type={type}
           className="form-control"
-          id={id || label}
+          id={id || "input"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={type === "date" ? undefined : placeholder} // Don't use placeholder for date inputs

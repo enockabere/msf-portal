@@ -2339,7 +2339,7 @@ progress {
   opacity: 1;
 }
 .form-control:disabled {
-  background-color: var(--bs-secondary-bg);
+  background-color: var(--bs-secondary-bg-disabled);
   opacity: 1;
 }
 .form-control::-webkit-file-upload-button {
@@ -2539,7 +2539,6 @@ textarea.form-control-lg {
 }
 .form-select:disabled {
   background-color: var(--bs-secondary-bg-disabled);
-  color: var(--bs-label-color);
 }
 .form-select:-moz-focusring {
   color: transparent;

@@ -41,12 +41,12 @@ export default function ReusableSalaryAdvanceTabs({
     Other: [
       { key: 'open', value: 'Open'},
       { key: 'pending', value: 'Pending'},
+      { key: 'rejected', value: 'Rejected'},
       { key: 'released', value: 'Released'},
       { key: 'issued', value: 'Issued'},
       { key: 'pendingVerification', value: 'Pending Verification'},
       { key: 'surrendered', value: 'Surrendered'},
       { key: 'surrenderRejected', value: 'Surrender Rejected'},
-      { key: 'partiallySettled', value: 'Partially Settled'},
       { key: 'settled', value: 'Settled'},
     ],
     Salary: [
@@ -101,7 +101,6 @@ export default function ReusableSalaryAdvanceTabs({
     let issued = advanceByStatus.get('Issued') || [];
     let pendingVerification = advanceByStatus.get('Pending_x0020_Liquidation') || [];
     let surrendered = advanceByStatus.get('Surrendered') || [];
-    let partiallySettled = advanceByStatus.get('Partially Settled') || [];
 
     if (isOtherAdvances) {
       const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
@@ -113,7 +112,6 @@ export default function ReusableSalaryAdvanceTabs({
       issued = advancesByImprestStatus.get('Issued') || [];
       pendingVerification = advancesByImprestStatus.get('Pending_x0020_Liquidation') || [];
       surrendered = advancesByImprestStatus.get('Surrendered') || [];
-      partiallySettled = advancesByImprestStatus.get('artially Settled') || [];
       released = [
         ...advancesByImprestStatus.get('Approved') || [],
         ...advancesByImprestStatus.get('Posted') || [],
@@ -133,14 +131,13 @@ export default function ReusableSalaryAdvanceTabs({
       pendingVerification,
       surrenderRejected,
       surrendered,
-      partiallySettled,
       rejected,
       settled,
     };
   }, [data, isOtherAdvances]);
 
   useEffect(() => {
-    const statuses = ['open', 'pending', 'released', 'issued', 'pendingVerification', 'surrenderRejected', 'surrendered', 'partiallySettled', 'settled', 'rejected']
+    const statuses = ['open', 'pending', 'released', 'issued', 'pendingVerification', 'surrenderRejected', 'surrendered', 'settled', 'rejected']
     const counts = {
       open: filteredByStatus.open.length,
       pending: filteredByStatus.pending.length,
@@ -148,7 +145,6 @@ export default function ReusableSalaryAdvanceTabs({
       pendingVerification: filteredByStatus.pendingVerification.length,
       surrenderRejected: filteredByStatus.surrenderRejected.length,
       surrendered: filteredByStatus.surrendered.length,
-      partiallySettled: filteredByStatus.partiallySettled.length,
       settled: filteredByStatus.settled.length,
       rejected: filteredByStatus.rejected.length,
       issued: filteredByStatus.issued.length,

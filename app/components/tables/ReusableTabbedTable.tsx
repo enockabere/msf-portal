@@ -14,12 +14,16 @@ interface ReusableTabbedAdvanceTableProps {
   tabs: TabConfig[];
   profile?: Record<string, any>;
   type: string;
+  isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
-export default function ReusableTabbedAdvanceTable({
+export default function ReusableTabbedTable({
   tabs,
   profile,
-  type
+  type,
+  isLoading,
+  onRefresh
 }: ReusableTabbedAdvanceTableProps) {
   return (
     <div className="position-relative">
@@ -33,8 +37,8 @@ export default function ReusableTabbedAdvanceTable({
                 title={`${tab.label} (${tab.data.length})`}
               >
                 <div className="pt-3">
-                  {type === "travel" && (<TravelRequestTable data={tab.data} loading={false} profile={profile} />)}
-                  {type === "requisition" && (<RequisitionRequestsTable data={tab.data} loading={false} />)}
+                  {type === "travel" && (<TravelRequestTable data={tab.data} loading={isLoading} profile={profile} />)}
+                  {type === "requisition" && (<RequisitionRequestsTable data={tab.data} loading={isLoading} onRefresh={onRefresh} />)}
                 </div>
               </Tab>
             ))}
