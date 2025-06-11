@@ -329,6 +329,7 @@ export const AdvanceContextProvider = ({ children }: { children: ReactNode }) =>
                 '$filter': `no eq '${session?.user?.profile?.no}' and ${query}`,
             }
         });
+        console.log('imprest count: ', imprest);
         dispatcher({
             type: 'PATCH_ADVANCE_TYPES_DISABLE_STATUS',
             payload: {

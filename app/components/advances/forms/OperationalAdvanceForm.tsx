@@ -772,7 +772,7 @@ export default function OperationalAdvanceForm({
       default: [
         {
           id: 'klkfrtrsjro',
-          action: () => { },
+          action: async () => await handleNext(),
           label: 'View Expense Lines',
           icon: <ArrowDown size={16} />,
           classes:
