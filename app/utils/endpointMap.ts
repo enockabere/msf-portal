@@ -75,6 +75,7 @@ export const endpointMap = {
   getRequisitionStats: "/ODataV4/Requisition_getRequisitionStats",
   requisitions: "/api/kinetics/requisition/v1.0/requisitions",
   requisitionLines: "/api/kinetics/requisition/v1.0/requisitionLines",
+  requisitionAttachments: "/api/kinetics/requisition/v1.0/attachments",
   sendRequisitionForApproval: "/ODataV4/Requisition_SendApprovalRequest",
   cancelRequisitionApprovalRequest: "/ODataV4/Requisition_CancelApprovalRequest",
 } as const;

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { formatDate } from "@/app/utils/dateFormats";
 import { decodeValue, formatNumber } from "@/app/utils/helpers";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, Pencil } from "lucide-react";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
 import CustomModal from "@/app/components/modals/CustomModal";
 
@@ -17,7 +17,8 @@ interface RequisitionRequestsTableProps {
 export default function RequisitionRequestsTable({data, loading, onRefresh}: RequisitionRequestsTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [search, setSearch] = useState("");
-    const [requisitionId, setRequisitionId] = useState(null);
+    const [requisitionNo, setRequisitionNo] = useState(null);
+    const [clickAction, setClickAction] = useState('View');
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -27,9 +28,10 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
         });
     }, [search, data]);
 
-    const handleCloseModal = () => setRequisitionId(null)
-    const handleOpenModal = (id: string) => {
-        setRequisitionId(id);
+    const handleCloseModal = () => setRequisitionNo(null)
+    const handleOpenModal = (no: string, action) => {
+        setRequisitionNo(no);
+        setClickAction(action);
     }
 
     const columns = [
@@ -39,7 +41,7 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
             cell: (row: Record<string, any>) => (
                 <span
                     className="text-blue text-decoration-underline cursor-pointer"
-                    onClick={() => handleOpenModal(row.id)}
+                    onClick={() => handleOpenModal(row.no, 'View')}
                 >
           {row.no}
         </span>
@@ -47,7 +49,7 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
         },
         {
             name: "Title",
-            selector: (row: Record<string, any>) => row.description,
+            selector: (row: Record<string, any>) => row.title,
         },
         {
             name: "Amount",
@@ -97,10 +99,19 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
                     <button
                         className="text-primary border-0 bg-transparent"
                         title="View"
-                        onClick={() => handleOpenModal(row.id)}
+                        onClick={() => handleOpenModal(row.no, 'View')}
                     >
                         <i className="las la-eye fs-18"/>
                     </button>
+                    {row.status === "Open" && (
+                      <button
+                        className="text-primary border-0 bg-transparent"
+                        title="Edit"
+                        onClick={() => handleOpenModal(row.no, 'Edit')}
+                      >
+                          <i className="la la-pencil fs-18"/>
+                      </button>
+                    )}
                 </div>
             ),
             ignoreRowClick: true,
@@ -121,15 +132,17 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
             />
 
             <CustomModal
-              show={!!requisitionId}
+              show={!!requisitionNo}
               onClose={handleCloseModal}
-              title="View Requisition"
+              title={`${clickAction} Requisition (${requisitionNo})`}
               size="xl"
-              titleIcon={<EyeIcon size={18} className="text-white" />}
+              titleIcon={clickAction === 'Edit'
+                ? <Pencil size={18} className="text-white" />
+                : <EyeIcon size={18} className="text-white" />}
             >
                 <div className="row">
                     <div className="col-md-12">
-                        <RequisitionForm requisitionId={requisitionId} onClose={handleCloseModal} onSuccess={onRefresh} />
+                        <RequisitionForm requisitionNo={requisitionNo} onClose={handleCloseModal} onSuccess={onRefresh} />
                     </div>
                 </div>
             </CustomModal>

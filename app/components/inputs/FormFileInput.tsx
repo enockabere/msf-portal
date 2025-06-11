@@ -1,4 +1,5 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
+import { XCircle } from "lucide-react";
 
 interface FileData {
   base64?: string;
@@ -13,11 +14,14 @@ interface Props {
   value: FileData[];
   accept?: string;
   onChange: (files: FileData[]) => void;
+  onView?: (file: FileData) => void;
+  onRemove?: (file: FileData) => void;
   multiple?: boolean;
   required?: boolean;
   disabled?: boolean;
   styles?: string;
   maxFiles?: number;
+  preview?: boolean;
 }
 
 const FormFileInput = ({
@@ -26,12 +30,17 @@ const FormFileInput = ({
                      value = [],
                      accept = 'image/*,.pdf',
                      onChange,
+                     onView,
+                     onRemove,
                      multiple = false,
                      required,
                      disabled,
                      styles,
-                     maxFiles = 5
+                     maxFiles = 5,
+                     preview = false
                    }: Props) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
@@ -48,7 +57,8 @@ const FormFileInput = ({
 
     try {
       const filePromises = files.map(async (file) => {
-        const base64 = await convertToBase64(file);
+        const base64String = await convertToBase64(file);
+        const base64 = base64String.split(",")[1];
         return {
           base64,
           fileName: file.name,
@@ -79,10 +89,17 @@ const FormFileInput = ({
     });
   };
 
-  const removeFile = (index: number) => {
+  const removeFile = (index: number, file: FileData) => {
     const updatedFiles = [...value];
     updatedFiles.splice(index, 1);
     onChange(updatedFiles);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    if (onRemove) {
+      onRemove(file);
+    }
   };
 
   return (
@@ -102,47 +119,34 @@ const FormFileInput = ({
         required={required && value.length === 0}
         disabled={disabled}
         multiple={multiple}
+        ref={fileInputRef}
       />
 
-      {maxFiles && multiple && (
-        <small className="text-muted d-block mt-1">
-          Max {maxFiles} files allowed
-        </small>
-      )}
-
       {/* File previews */}
-      <div className="file-previews mt-3">
-        {value.map((file, index) => (
-          <div key={index} className="file-preview mb-2 p-2 border rounded">
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="file-info">
-                <span className="filename">{file.fileName}</span>
-                <small className="file-size text-muted d-block">
-                  {(file.size ? file.size / 1024 : 0).toFixed(2)} KB
-                </small>
-              </div>
+      {preview && (
+        <div className="d-flex flex-wrap mt-1 gap-1">
+          {value.map((file, index) => (
+            <div key={index} className="btn-group">
               <button
                 type="button"
-                className="btn btn-sm btn-outline-danger"
-                onClick={() => removeFile(index)}
+                onClick={() => onView && onView(file)}
+                className="btn btn-outline-danger btn-sm"
+                title="Download attachment"
               >
-                ×
+                {file.fileName}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeFile(index, file)}
+                className="btn btn-danger dropdown-toggle dropdown-toggle-split"
+                title="Delete attachment"
+              >
+                <XCircle size={16} />
               </button>
             </div>
-
-            {file.base64.startsWith('data:image/') && (
-              <div className="image-preview mt-2">
-                <img
-                  src={file.base64}
-                  alt={`Preview ${index}`}
-                  className="img-thumbnail"
-                  style={{maxWidth: '150px', maxHeight: '150px'}}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
