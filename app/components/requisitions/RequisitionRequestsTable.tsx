@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { EyeIcon, Pencil } from "lucide-react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { formatDate } from "@/app/utils/dateFormats";
 import { decodeValue, formatNumber } from "@/app/utils/helpers";
-import { EyeIcon, Pencil } from "lucide-react";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
 import CustomModal from "@/app/components/modals/CustomModal";
+import FormInput from "@/app/components/inputs/FormInput";
 
 interface RequisitionRequestsTableProps {
     data: Array<Record<string, any>>;
@@ -14,35 +15,58 @@ interface RequisitionRequestsTableProps {
     onRefresh?: () => void;
 }
 
-export default function RequisitionRequestsTable({data, loading, onRefresh}: RequisitionRequestsTableProps) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [search, setSearch] = useState("");
-    const [requisitionNo, setRequisitionNo] = useState(null);
-    const [clickAction, setClickAction] = useState('View');
+interface FilterState {
+    search: string;
+    category: string;
+    orderDate: string | null;
+}
+
+export default function RequisitionRequestsTable({ data, loading, onRefresh }: RequisitionRequestsTableProps) {
+    const [filters, setFilters] = useState<FilterState>({
+        search: "",
+        category: "all",
+        orderDate: null,
+    });
+    const [requisitionNo, setRequisitionNo] = useState<string | null>(null);
+    const [clickAction, setClickAction] = useState<'View' | 'Edit'>('View');
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
-            return (
-                item.no.toLowerCase().includes(search.toLowerCase())
-            );
-        });
-    }, [search, data]);
+            // Search filter
+            const matchesSearch = item.no.toLowerCase().includes(filters.search.toLowerCase());
 
-    const handleCloseModal = () => setRequisitionNo(null)
-    const handleOpenModal = (no: string, action) => {
+            // Category filter
+            const matchesCategory = filters.category === "all" ||
+              decodeValue(item.documentType) === filters.category;
+
+            // Order date filter
+            const matchesOrderDate = !filters.orderDate ||
+              new Date(item.orderDate).toDateString() === new Date(filters.orderDate).toDateString();
+
+            return matchesSearch && matchesCategory && matchesOrderDate;
+        });
+    }, [data, filters]);
+
+    const handleCloseModal = () => setRequisitionNo(null);
+
+    const handleOpenModal = (no: string, action: 'View' | 'Edit') => {
         setRequisitionNo(no);
         setClickAction(action);
-    }
+    };
+
+    const handleFilterChange = (name: keyof FilterState, value: string | null) => {
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
 
     const columns = [
         {
             name: "Reference",
             sortable: true,
             cell: (row: Record<string, any>) => (
-                <span
-                    className="text-blue text-decoration-underline cursor-pointer"
-                    onClick={() => handleOpenModal(row.no, 'View')}
-                >
+              <span
+                className="text-blue text-decoration-underline cursor-pointer"
+                onClick={() => handleOpenModal(row.no, 'View')}
+              >
           {row.no}
         </span>
             ),
@@ -54,9 +78,7 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
         {
             name: "Amount",
             selector: (row: Record<string, any>) =>
-                `${
-                    row.currencyCode || "KES"
-                } ${formatNumber(row.amount)}`,
+              `${row.currencyCode || "KES"} ${formatNumber(row.amount)}`,
         },
         {
             name: "Order Date",
@@ -71,23 +93,25 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
             selector: (row: Record<string, any>) => row.RequestedForName,
         },
         {
-            name: "Status",
+            name: "Category",
             cell: (row: Record<string, any>) => {
-                const badgeMap = {
-                    Open: "badge bg-info-subtle text-info",
-                    Released: "badge bg-success-subtle text-success",
-                    "Pending Approval": "badge bg-warning-subtle text-warning",
-                };
-                const iconMap = {
-                    Open: "fas fa-folder-open me-1",
-                    Released: "fas fa-check-circle me-1",
-                    "Pending Approval": "fas fa-clock me-1",
+                const documentType = decodeValue(row.documentType);
+
+                const badgeClasses = {
+                    "User Requisition": "badge bg-info-subtle text-info",
+                    "Store Requisition": "badge bg-success-subtle text-success",
+                    "Purchase Requisition": "badge bg-warning-subtle text-warning",
                 };
 
-                const status = decodeValue(row.status);
+                const iconClasses = {
+                    "User Requisition": "fas fa-user me-1",
+                    "Store Requisition": "fas fa-store me-1",
+                    "Purchase Requisition": "fas fa-cart-shopping me-1",
+                };
+
                 return (
-                    <span className={badgeMap[status]}>
-            <i className={iconMap[status]}/> {status}
+                  <span className={badgeClasses[documentType]}>
+            <i className={iconClasses[documentType]} /> {documentType}
           </span>
                 );
             },
@@ -95,57 +119,117 @@ export default function RequisitionRequestsTable({data, loading, onRefresh}: Req
         {
             name: "Actions",
             cell: (row: Record<string, any>) => (
-                <div className="d-flex gap-2">
+              <div className="d-flex gap-2">
+                  <button
+                    className="text-primary border-0 bg-transparent"
+                    title="View"
+                    onClick={() => handleOpenModal(row.no, 'View')}
+                  >
+                      <i className="las la-eye fs-18" />
+                  </button>
+                  {row.status === "Open" && (
                     <button
-                        className="text-primary border-0 bg-transparent"
-                        title="View"
-                        onClick={() => handleOpenModal(row.no, 'View')}
+                      className="text-primary border-0 bg-transparent"
+                      title="Edit"
+                      onClick={() => handleOpenModal(row.no, 'Edit')}
                     >
-                        <i className="las la-eye fs-18"/>
+                        <i className="la la-pencil fs-18" />
                     </button>
-                    {row.status === "Open" && (
-                      <button
-                        className="text-primary border-0 bg-transparent"
-                        title="Edit"
-                        onClick={() => handleOpenModal(row.no, 'Edit')}
-                      >
-                          <i className="la la-pencil fs-18"/>
-                      </button>
-                    )}
-                </div>
+                  )}
+              </div>
             ),
             ignoreRowClick: true,
-            style: {minWidth: "120px"},
+            style: { minWidth: "120px" },
         },
     ];
 
-    return (
-        <>
-            <SkeletonDataTable
-                title=""
-                columns={columns}
-                data={loading ? [] : filteredData}
-                searchPlaceholder="Search requisition requests..."
-                loading={loading}
-                includeStatusFilter={true}
-                includeDateFilter={true}
-            />
+    const renderFilters = () => (
+      <>
+          <OrderDateFilter
+            disabled={loading}
+            value={filters.orderDate}
+            onChange={(date) => handleFilterChange('orderDate', date)}
+          />
+          <CategoryFilter
+            disabled={loading}
+            value={filters.category}
+            onChange={(category) => handleFilterChange('category', category)}
+          />
+      </>
+    );
 
-            <CustomModal
-              show={!!requisitionNo}
-              onClose={handleCloseModal}
-              title={`${clickAction} Requisition (${requisitionNo})`}
-              size="xl"
-              titleIcon={clickAction === 'Edit'
-                ? <Pencil size={18} className="text-white" />
-                : <EyeIcon size={18} className="text-white" />}
-            >
-                <div className="row">
-                    <div className="col-md-12">
-                        <RequisitionForm requisitionNo={requisitionNo} onClose={handleCloseModal} onSuccess={onRefresh} />
-                    </div>
-                </div>
-            </CustomModal>
-        </>
+    return (
+      <>
+          <SkeletonDataTable
+            title=""
+            columns={columns}
+            data={loading ? [] : filteredData}
+            searchPlaceholder="Search request..."
+            loading={loading}
+            filters={renderFilters()}
+          />
+
+          <CustomModal
+            show={!!requisitionNo}
+            onClose={handleCloseModal}
+            title={`${clickAction} Requisition (${requisitionNo})`}
+            size="xl"
+            titleIcon={clickAction === 'Edit' ?
+              <Pencil size={18} className="text-white" /> :
+              <EyeIcon size={18} className="text-white" />}
+          >
+              <div className="row">
+                  <div className="col-md-12">
+                      <RequisitionForm
+                        requisitionNo={requisitionNo}
+                        onClose={handleCloseModal}
+                        onSuccess={onRefresh}
+                      />
+                  </div>
+              </div>
+          </CustomModal>
+      </>
     );
 }
+
+interface OrderDateFilterProps {
+    disabled: boolean;
+    value: string | null;
+    onChange: (date: string | null) => void;
+}
+
+const OrderDateFilter = ({ disabled, value, onChange }: OrderDateFilterProps) => (
+  <div className="d-flex ps-2">
+      <FormInput
+        type="date"
+        id="orderDate"
+        placeholder="Order Date"
+        value={value || ""}
+        onChange={(value) => onChange(value || null)}
+        disabled={disabled}
+        styles="mb-0"
+      />
+  </div>
+);
+
+interface CategoryFilterProps {
+    disabled: boolean;
+    value: string;
+    onChange: (category: string) => void;
+}
+
+const CategoryFilter = ({ disabled, value, onChange }: CategoryFilterProps) => (
+  <div className="d-flex">
+      <select
+        className="form-select"
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+          <option value="all">All Categories</option>
+          <option value="User Requisition">User Requisition</option>
+          <option value="Purchase Requisition">Purchase Requisition</option>
+          <option value="Store Requisition">Store Requisition</option>
+      </select>
+  </div>
+);

@@ -4,7 +4,7 @@ import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequi
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { codeUnit, getResource } from "@/app/lib/api/http";
 import { ToastContainer } from 'react-toastify';
-import { Briefcase, PlusCircle, ShoppingCartIcon, Store, User } from "lucide-react";
+import { Layers, PlusCircle, ShoppingCartIcon, Store, User } from "lucide-react";
 import SummaryCards from "@/app/components/cards/SummaryCards";
 import CustomModal from "@/app/components/modals/CustomModal";
 import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
@@ -107,7 +107,7 @@ export default function RequisitionClient() {
       title: "Store Requisitions",
       value: statistics.totalStoreRequisitions,
       description: "Store Requisitions",
-      icon: <Briefcase size={28}/>,
+      icon: <Store size={28}/>,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
       onClick: async () => {
@@ -128,8 +128,8 @@ export default function RequisitionClient() {
     {
       title: "Total Requisitions",
       value: statistics.totalRequisitions,
-      description: "Total Requisition",
-      icon: <Store size={28}/>,
+      description: "Total Requisitions",
+      icon: <Layers size={28}/>,
       bgColorClass: "bg-light-warning",
       textColorClass: "text-warning",
       onClick: async () => {
