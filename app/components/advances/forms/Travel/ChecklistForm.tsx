@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { getResource } from "@/app/lib/api/http";
-import { TravelRequest } from "@/app/types/travel";
-import ChecklistRow from "@/app/components/travel/ChecklistRow";
-import { ChecklistItem } from "@/app/types/ChecklistItem";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { getResource } from "../../../../lib/api/http";
+import { TravelRequest } from "../../../../types/travel";
+import ChecklistRow from "../../../../components/travel/ChecklistRow";
+import { ChecklistItem } from "../../../../types/ChecklistItem";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
 import Swal from "sweetalert2";
 
 interface GroupedChecklist {

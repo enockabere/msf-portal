@@ -1,5 +1,5 @@
 
-import ApprovalsClient from "@/app/dashboard/approvals/ApprovalsClient";
+import ApprovalsClient from "../../dashboard/approvals/ApprovalsClient";
 
 export const metadata = {
     title: "Médecins Sans Frontières - Approvals",

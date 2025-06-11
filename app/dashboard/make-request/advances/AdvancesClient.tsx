@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
-import SummaryCards from "@/app/components/cards/SummaryCards";
+import { useBreadcrumb } from "../../../context/BreadcrumbContext";
+import SummaryCards from "../../../components/cards/SummaryCards";
 import dynamic from "next/dynamic";
-import SalaryAdvanceForm from "@/app/components/advances/forms/SalaryAdvanceForm";
-import CustomModal from "@/app/components/modals/CustomModal";
+import SalaryAdvanceForm from "../../../components/advances/forms/SalaryAdvanceForm";
+import CustomModal from "../../../components/modals/CustomModal";
 import {
   FileClock,
   ClipboardList,
@@ -14,12 +14,12 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
-import { Advance } from "@/app/types/advance";
+import { Advance } from "../../../types/advance";
 import { useSearchParams } from "next/navigation";
-import { useAdvance } from "@/app/context/AdvanceContext";
+import { useAdvance } from "../../../context/AdvanceContext";
 
 const ReusableSalaryAdvanceTabs = dynamic(
-  () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
+  () => import("../../../components/tables/ReusableSalaryAdvanceTabs"),
   { ssr: false }
 );
 

@@ -3,9 +3,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FilePlus, CheckCircle2, Clock, User, FileChartColumnIcon } from "lucide-react";
 import Swal from "sweetalert2";
-import { getResource } from "@/app/lib/api/http";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import { formatDate } from "@/app/utils/dateFormats";
+import { getResource } from "../../../../lib/api/http";
+import { useAdvance } from "../../../../context/AdvanceContext";
+import { formatDate } from "../../../../utils/dateFormats";
 
 
 interface ProgressIndicatorProps {

@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
+import { useBreadcrumb } from "../../../context/BreadcrumbContext";
 import { Wallet, Bell, Coins, BarChart } from "lucide-react";
-import SummaryCards from "@/app/components/cards/SummaryCards";
-import TabbedTravelRequests from "@/app/components/travel/TabbedTravelRequests";
-import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
-import CustomModal from "@/app/components/modals/CustomModal";
+import SummaryCards from "../../../components/cards/SummaryCards";
+import TabbedTravelRequests from "../../../components/travel/TabbedTravelRequests";
+import TravelRequestWizard from "../../../components/travel/TravelRequestWizard";
+import CustomModal from "../../../components/modals/CustomModal";
 import { useSession } from "next-auth/react";
-import { getResource } from "@/app/lib/api/http";
+import { getResource } from "../../../lib/api/http";
 import { toast } from "react-toastify";
 
 export default function TravelClient() {

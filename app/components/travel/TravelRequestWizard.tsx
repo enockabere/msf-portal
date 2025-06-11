@@ -18,36 +18,37 @@ import {
   CircleX,
   CircleCheckIcon,
   RouteIcon,
-  BaggageClaimIcon, BedIcon,
+  BaggageClaimIcon,
+  BedIcon,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "./TravelRequestWizard.css";
-import { TravelRequest } from "@/app/types/travel";
+import { TravelRequest } from "../../types/travel";
 import {
   codeUnit,
   createResource,
   getResource,
   patchResource,
-} from "@/app/lib/api/http";
+} from "../../lib/api/http";
 import {
   decodeValue,
   pickKeys,
   removeNullAndUndefinedFromObject,
-} from "@/app/utils/helpers";
+} from "../../utils/helpers";
 import TravelHeaderForm from "../advances/forms/Travel/TravelHeaderForm";
 import TravelAdvanceGLTable from "./TravelAdvanceGLTable";
-import VisaApplicationForm from "@/app/components/advances/forms/Travel/VisaApplicationForm";
-import ChecklistForm from "@/app/components/advances/forms/Travel/ChecklistForm";
+import VisaApplicationForm from "../../components/advances/forms/Travel/VisaApplicationForm";
+import ChecklistForm from "../../components/advances/forms/Travel/ChecklistForm";
 import TravelDestinations from "../advances/forms/Travel/TravelDestinations";
 import TravellersForm from "../advances/forms/Travel/TravellersForm";
 import ServiceProvidersList from "../advances/forms/Travel/ServiceProvidersList";
-import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
+import { downloadFileFromBase64 } from "../../utils/downloadBas64";
 import TravelDocuments from "../advances/forms/Travel/TravelDocuments";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../context/PageLoaderContext";
 import WelcomePackageModal from "../advances/forms/Travel/WelcomePackageDownload";
-import TravelAdvanceForm from "../advances/forms/Travel/TravelAdvanceForm"
-import {useMySetups} from "@/app/context/SetupContext";
-import AccommodationForm from "@/app/components/advances/forms/Travel/AccommodationForm";
+import TravelAdvanceForm from "../advances/forms/Travel/TravelAdvanceForm";
+import { useMySetups } from "../../context/SetupContext";
+import AccommodationForm from "../../components/advances/forms/Travel/AccommodationForm";
 
 // Type definitions
 interface WizardStep {
@@ -111,8 +112,13 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     INITIAL_TRAVEL_REQUEST
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>([]);
-  const [checklistCount, setChecklistCount] = useState<Record<string, number>>({totalVisaCount: 0, totalTravelCount: 0})
+  const [headerRequiredFields, setHeaderRequiredFields] = useState<string[]>(
+    []
+  );
+  const [checklistCount, setChecklistCount] = useState<Record<string, number>>({
+    totalVisaCount: 0,
+    totalTravelCount: 0,
+  });
   const { actions } = usePageLoader();
   const { dispatcher } = actions;
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -121,7 +127,9 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
 
   // Derived values
   const isReadOnly = useMemo(
-    () => travelRequestHeader.approvalStatus !== "Open" || decodeValue(travelRequestHeader.documentType) === 'Non-Resident',
+    () =>
+      travelRequestHeader.approvalStatus !== "Open" ||
+      decodeValue(travelRequestHeader.documentType) === "Non-Resident",
     [travelRequestHeader.approvalStatus, travelRequestHeader.documentType]
   );
 
@@ -150,20 +158,27 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [travelRequestHeader]);
 
   const requireVisa = useMemo(() => {
-    return travelRequestHeader.approvalStatus === "Released"
-      && travelRequestHeader.visaApplications.length > 0
-  }, [travelRequestHeader.approvalStatus, travelRequestHeader.visaApplications]);
+    return (
+      travelRequestHeader.approvalStatus === "Released" &&
+      travelRequestHeader.visaApplications.length > 0
+    );
+  }, [
+    travelRequestHeader.approvalStatus,
+    travelRequestHeader.visaApplications,
+  ]);
 
   const checklistCounter = (travellers: Array<Record<string, any>>) => {
     return travellers.reduce(
       (acc, traveller) => {
-        const visaItems = traveller.travellerChecklist?.filter(
-            (item: { checklistType: string; }) => item.checklistType === 'Visa'
-        ).length || 0;
+        const visaItems =
+          traveller.travellerChecklist?.filter(
+            (item: { checklistType: string }) => item.checklistType === "Visa"
+          ).length || 0;
 
-        const travelItems = traveller.travellerChecklist?.filter(
-            (item: { checklistType: string; }) => item.checklistType === 'Travel'
-        ).length || 0;
+        const travelItems =
+          traveller.travellerChecklist?.filter(
+            (item: { checklistType: string }) => item.checklistType === "Travel"
+          ).length || 0;
 
         return {
           totalVisaCount: acc.totalVisaCount + visaItems,
@@ -197,12 +212,12 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         citizenNonCitizen: profile.citizenNonCitizen,
         travellerNo: profile.no,
         createdbyProfileNo: profile.no,
-        passportNo: profile.passportNo || '',
-        shortcutDimension1Code: profile.shortcutDimension1Code || '',
-        shortcutDimension2Code: profile.shortcutDimension2Code || '',
+        passportNo: profile.passportNo || "",
+        shortcutDimension1Code: profile.shortcutDimension1Code || "",
+        shortcutDimension2Code: profile.shortcutDimension2Code || "",
       };
 
-      setTravelRequestHeader((prev) => ({...prev, ...baseData}));
+      setTravelRequestHeader((prev) => ({ ...prev, ...baseData }));
     };
 
     const setRequiredFieldsBasedOnProfile = () => {
@@ -248,53 +263,63 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
   }, [profile, requestNo]);
 
   const fetchTravelRequestResource = useCallback(async (requestNo: string) => {
-    return await getResource('travelRequests', {
+    return await getResource("travelRequests", {
       params: {
         filters: { no: requestNo },
-        '$expand': "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications($expand=visaApplicationLines),travelTypeStage",
-      }
-    })
+        $expand:
+          "travelRequestRoutes,travelRequestLines,travellers($expand=travellerChecklist($filter=verified eq false)),visaApplications($expand=visaApplicationLines),travelTypeStage",
+      },
+    });
   }, []);
 
-  const getImprest = useCallback(async ()=> {
+  const getImprest = useCallback(async () => {
     try {
-      const res = await getResource('imprest', {
+      const res = await getResource("imprest", {
         params: {
           filters: {
-            referenceNo	: travelRequestHeader.no,
-          }
-        }
-      })
+            referenceNo: travelRequestHeader.no,
+          },
+        },
+      });
 
       if (res.error) {
-        return Swal.fire(res.error.code, res.error.message, 'error');
+        return Swal.fire(res.error.code, res.error.message, "error");
       }
 
-      setAdvances(res.value)
+      setAdvances(res.value);
     } catch (error) {
-      return Swal.fire(error.code, error.message, 'error');
+      return Swal.fire(error.code, error.message, "error");
     }
   }, [travelRequestHeader.no]);
 
-  const fetchTravelRequest = useCallback(async (requestNo?: string) => {
-    try {
-      const res = await fetchTravelRequestResource(requestNo ?? travelRequestHeader.no);
+  const fetchTravelRequest = useCallback(
+    async (requestNo?: string) => {
+      try {
+        const res = await fetchTravelRequestResource(
+          requestNo ?? travelRequestHeader.no
+        );
 
-      if (res.error) {
-        throw new Error(res.error.message);
+        if (res.error) {
+          throw new Error(res.error.message);
+        }
+
+        const header = res.value.at(0);
+
+        setTravelRequestHeader((prev) => ({
+          ...prev,
+          ...header,
+          documentType: decodeValue(header.documentType),
+        }));
+
+        setChecklistCount(checklistCounter(header.travellers));
+
+        await getImprest();
+      } catch (error: any) {
+        console.error("Error fetching travel request:", error.message);
       }
-
-      const header = res.value.at(0)
-
-      setTravelRequestHeader(prev => ({ ...prev, ...header, documentType: decodeValue(header.documentType)}));
-
-      setChecklistCount(checklistCounter(header.travellers));
-
-      await getImprest();
-    } catch (error: any) {
-      console.error('Error fetching travel request:', error.message);
-    }
-  }, [fetchTravelRequestResource, getImprest, travelRequestHeader.no]);
+    },
+    [fetchTravelRequestResource, getImprest, travelRequestHeader.no]
+  );
 
   useEffect(() => {
     const loadHeaderRequest = async (requestNo: string) => {
@@ -313,13 +338,17 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           throw new Error(res.error.message);
         }
 
-        const header = res.value.at(0)
+        const header = res.value.at(0);
 
-        setTravelRequestHeader(prev => ({ ...prev, ...header, documentType: decodeValue(header.documentType)}));
+        setTravelRequestHeader((prev) => ({
+          ...prev,
+          ...header,
+          documentType: decodeValue(header.documentType),
+        }));
 
         setChecklistCount(checklistCounter(header.travellers));
       } catch (error: any) {
-        console.error('Error fetching travel request:', error.message);
+        console.error("Error fetching travel request:", error.message);
       } finally {
         dispatcher({
           type: "PATCH_LOADING_STATE",
@@ -335,7 +364,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
       loadHeaderRequest(requestNo);
     }
 
-    fetchSetups(['expenseCodes']);
+    fetchSetups(["expenseCodes"]);
   }, [dispatcher, fetchSetups, fetchTravelRequestResource, requestNo]);
 
   useEffect(() => {
@@ -567,11 +596,11 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
         }
 
         if (checklistCount.totalVisaCount) {
-          baseEmployeeSteps.push('checklist');
+          baseEmployeeSteps.push("checklist");
         }
 
         if (checklistCount.totalTravelCount) {
-          baseEmployeeSteps.push('traveller-checklist');
+          baseEmployeeSteps.push("traveller-checklist");
         }
 
         baseEmployeeSteps.push("accommodation");
@@ -580,14 +609,16 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
           baseEmployeeSteps.push("advance");
         }
 
-        return baseEmployeeSteps.map(id => allSteps.find(s => s.id === id)!);
+        return baseEmployeeSteps.map(
+          (id) => allSteps.find((s) => s.id === id)!
+        );
       } else if (isVisitorType) {
         if (checklistCount.totalVisaCount) {
-          baseVisitorSteps.push('checklist');
+          baseVisitorSteps.push("checklist");
         }
 
         if (checklistCount.totalTravelCount) {
-          baseVisitorSteps.push('traveller-checklist');
+          baseVisitorSteps.push("traveller-checklist");
         }
 
         if (travelRequestHeader.hasValidVisa) {
@@ -615,7 +646,7 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
     allSteps,
     requireVisa,
     checklistCount.totalVisaCount,
-    checklistCount.totalTravelCount
+    checklistCount.totalTravelCount,
   ]);
 
   useEffect(() => {
@@ -632,16 +663,19 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
               newCompletedSteps.add("destinations");
             break;
           case "travellers":
-            if (travelRequestHeader.travellers.length) newCompletedSteps.add("travellers");
+            if (travelRequestHeader.travellers.length)
+              newCompletedSteps.add("travellers");
             break;
           case "visa":
             if (travelRequestHeader.hasValidVisa) newCompletedSteps.add("visa");
             break;
           case "checklist":
-            if (travelRequestHeader.hasValidVisa) newCompletedSteps.add("checklist");
+            if (travelRequestHeader.hasValidVisa)
+              newCompletedSteps.add("checklist");
             break;
           case "accommodation":
-            if (travelRequestHeader.bookingComplete) newCompletedSteps.add("accommodation");
+            if (travelRequestHeader.bookingComplete)
+              newCompletedSteps.add("accommodation");
             break;
         }
       });
@@ -745,7 +779,8 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
                   <h5 className="m-0">Current Stage:</h5>
                   <span className="badge bg-primary p-1 ms-2">
                     {" "}
-                    {travelRequestHeader.travelTypeStage?.description || travelRequestHeader.currentStage}
+                    {travelRequestHeader.travelTypeStage?.description ||
+                      travelRequestHeader.currentStage}
                   </span>
                 </div>
               )}
@@ -801,36 +836,36 @@ export default function TravelRequestWizard({ requestNo, profile }: Props) {
             </ul>
           </nav>
 
-        <div className="wizard-content">
-          <div
-            className="step-panel"
-            role="tabpanel"
-            aria-labelledby={`${activeTab}-tab`}
-          >
-            <StepHeader
-              activeTab={activeTab}
-              currentSteps={currentSteps}
-              canSubmitForApproval={canSubmitForApproval}
-              canCancelApprovalRequest={canCancelApprovalRequest}
-              isSubmitting={isSubmitting}
-              handleSubmitForApproval={handleSubmitForApproval}
-              handleCancelApprovalRequest={handleCancelApprovalRequest}
-              downLoadBtaCertificate={downLoadBtaCertificate}
-              downLoadIntroductoryLetter={downLoadIntroductoryLetter}
-            />
+          <div className="wizard-content">
+            <div
+              className="step-panel"
+              role="tabpanel"
+              aria-labelledby={`${activeTab}-tab`}
+            >
+              <StepHeader
+                activeTab={activeTab}
+                currentSteps={currentSteps}
+                canSubmitForApproval={canSubmitForApproval}
+                canCancelApprovalRequest={canCancelApprovalRequest}
+                isSubmitting={isSubmitting}
+                handleSubmitForApproval={handleSubmitForApproval}
+                handleCancelApprovalRequest={handleCancelApprovalRequest}
+                downLoadBtaCertificate={downLoadBtaCertificate}
+                downLoadIntroductoryLetter={downLoadIntroductoryLetter}
+              />
 
-            <StepContent
-              activeTab={activeTab}
-              travelRequestHeader={travelRequestHeader}
-              headerRequiredFields={headerRequiredFields}
-              isReadOnly={isReadOnly}
-              saveTravelRequestHeader={saveTravelRequestHeader}
-              fetchTravelRequest={fetchTravelRequest}
-              handleFormChange={handleFormChange}
-              checklistCount={checklistCount}
-              expenseCodes={expenseCodes}
-              advances={advances}
-            />
+              <StepContent
+                activeTab={activeTab}
+                travelRequestHeader={travelRequestHeader}
+                headerRequiredFields={headerRequiredFields}
+                isReadOnly={isReadOnly}
+                saveTravelRequestHeader={saveTravelRequestHeader}
+                fetchTravelRequest={fetchTravelRequest}
+                handleFormChange={handleFormChange}
+                checklistCount={checklistCount}
+                expenseCodes={expenseCodes}
+                advances={advances}
+              />
 
               <StepActions
                 currentStepIndex={currentStepIndex}
@@ -959,7 +994,7 @@ interface StepContentProps {
   handleFormChange: (field: keyof TravelRequest, value: any) => void;
   checklistCount: Record<string, number>;
   expenseCodes: Record<string, any>;
-  advances: Record<string, any>[]
+  advances: Record<string, any>[];
 }
 
 const StepContent: React.FC<StepContentProps> = ({
@@ -972,7 +1007,7 @@ const StepContent: React.FC<StepContentProps> = ({
   handleFormChange,
   checklistCount,
   expenseCodes,
-  advances
+  advances,
 }) => {
   switch (activeTab) {
     case "info":
@@ -992,10 +1027,7 @@ const StepContent: React.FC<StepContentProps> = ({
 
           {!isReadOnly && (
             <div className="step-actions">
-              <button
-                type="submit"
-                className="primary-button"
-              >
+              <button type="submit" className="primary-button">
                 <Save size={16} className="button-icon" />
                 Save & Continue
               </button>
@@ -1032,23 +1064,35 @@ const StepContent: React.FC<StepContentProps> = ({
       return (
         <div>
           <TravelAdvanceForm
-              expenseCodes={expenseCodes}
-              travelInfo={travelRequestHeader}
-              onSubmit={fetchTravelRequest} />
-          <TravelAdvanceGLTable
-              advances={advances}
+            expenseCodes={expenseCodes}
+            travelInfo={travelRequestHeader}
+            onSubmit={fetchTravelRequest}
           />
+          <TravelAdvanceGLTable advances={advances} />
         </div>
       );
     case "visa":
-      return <VisaApplicationForm travelRequest={travelRequestHeader} expenseCodes={expenseCodes} onSubmit={fetchTravelRequest} advances={advances}/>;
+      return (
+        <VisaApplicationForm
+          travelRequest={travelRequestHeader}
+          expenseCodes={expenseCodes}
+          onSubmit={fetchTravelRequest}
+          advances={advances}
+        />
+      );
     case "checklist":
       return checklistCount.totalVisaCount > 0 ? (
-        <ChecklistForm travelInfo={travelRequestHeader} checklistType={"Visa"} />
+        <ChecklistForm
+          travelInfo={travelRequestHeader}
+          checklistType={"Visa"}
+        />
       ) : null;
     case "traveller-checklist":
       return checklistCount.totalTravelCount > 0 ? (
-        <ChecklistForm travelInfo={travelRequestHeader} checklistType={"Travel"} />
+        <ChecklistForm
+          travelInfo={travelRequestHeader}
+          checklistType={"Travel"}
+        />
       ) : null;
     case "documents":
       return (

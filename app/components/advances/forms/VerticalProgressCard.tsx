@@ -3,7 +3,7 @@
 import { FilePlus, Clock, User, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { SalaryAdvanceData } from "@/app/types/advance";
+import { SalaryAdvanceData } from "../../../types/advance";
 import "./VerticalProgressCard.css";
 import SimpleBar from "simplebar-react";
 import "simplebar-react/dist/simplebar.min.css";

@@ -10,7 +10,7 @@ import {
   MapPin,
   Globe,
 } from "lucide-react";
-import { formatDate } from "@/app/utils/dateFormats";
+import { formatDate } from "../../utils/dateFormats";
 
 export default function PersonalInfoCard() {
   const { data: session } = useSession();

@@ -10,15 +10,15 @@ import {
   PlusCircle,
   XCircle,
 } from "lucide-react";
-import { useAdvance } from "@/app/context/AdvanceContext";
+import { useAdvance } from "../../../context/AdvanceContext";
 import {
   checkIfMissingRequiredProperty,
   findObjectFromArray,
   removeNullAndUndefinedFromObject,
   removeObjectProps,
   safeTypechecker,
-} from "@/app/utils/helpers";
-import { useMySetups } from "@/app/context/SetupContext";
+} from "../../../utils/helpers";
+import { useMySetups } from "../../../context/SetupContext";
 import Swal from "sweetalert2";
 import {
   codeUnit,
@@ -26,9 +26,9 @@ import {
   deleteResource,
   getResource,
   patchResource,
-} from "@/app/lib/api/http";
-import { RequestResponse } from "@/app/types/options";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+} from "../../../lib/api/http";
+import { RequestResponse } from "../../../types/options";
+import { usePageLoader } from "../../../context/PageLoaderContext";
 import AccountingExpenseDetailsForm from "./AccountingExpenseDetailsForm";
 import VerticalProgressCard from "./VerticalProgressCard";
 

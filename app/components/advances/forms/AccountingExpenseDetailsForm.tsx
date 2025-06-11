@@ -2,8 +2,8 @@
 
 import React from "react";
 import { UploadCloud, Save, CheckCheck, Trash2 } from "lucide-react";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import { findObjectFromArray, safeTypechecker } from "@/app/utils/helpers";
+import { useAdvance } from "../../../context/AdvanceContext";
+import { findObjectFromArray, safeTypechecker } from "../../../utils/helpers";
 import Swal from "sweetalert2";
 
 interface Props {

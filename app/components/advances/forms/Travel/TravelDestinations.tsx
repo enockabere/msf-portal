@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Save, Trash2 } from "lucide-react";
-import { useMySetups } from "@/app/context/SetupContext";
-import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
+import { useMySetups } from "../../../../context/SetupContext";
+import { createResource, deleteResource, getResource } from "../../../../lib/api/http";
 import Swal from "sweetalert2";
-import { TravelRequest } from "@/app/types/travel";
-import { formatDate } from "@/app/utils/dateFormats";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { TravelRequest } from "../../../../types/travel";
+import { formatDate } from "../../../../utils/dateFormats";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
 
 interface Destination {
     documentType: string;

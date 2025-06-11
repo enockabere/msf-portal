@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Trash2, Plus, ArrowUp } from "lucide-react";
-import { ExpenseItem } from "@/app/types/advance";
-import { useMySetups } from "@/app/context/SetupContext";
-import { findObjectFromArray } from "@/app/utils/helpers";
-import { useAdvance } from "@/app/context/AdvanceContext";
+import { ExpenseItem } from "../../../../types/advance";
+import { useMySetups } from "../../../../context/SetupContext";
+import { findObjectFromArray } from "../../../../utils/helpers";
+import { useAdvance } from "../../../../context/AdvanceContext";
 
 interface OperationalLineStepProps {
   expenses: ExpenseItem[];

@@ -16,7 +16,7 @@ import {
   createResource,
   getResource,
   deleteResource,
-} from "@/app/lib/api/http";
+} from "../../../../lib/api/http";
 import { toast } from "react-toastify";
 import "./upload.css";
 

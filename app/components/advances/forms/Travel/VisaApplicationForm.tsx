@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { TravelRequest } from "@/app/types/travel";
-import {codeUnit, createResource, patchResource} from "@/app/lib/api/http";
+import { TravelRequest } from "../../../../types/travel";
+import {codeUnit, createResource, patchResource} from "../../../../lib/api/http";
 import Swal from "sweetalert2";
-import { useMySetups } from "@/app/context/SetupContext";
+import { useMySetups } from "../../../../context/SetupContext";
 import { Save, Wallet } from "lucide-react";
-import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
-import FormSelect from "@/app/components/inputs/FormSelect";
-import FormInput from "@/app/components/inputs/FormInput";
-import TravelAdvanceGLTable from "@/app/components/travel/TravelAdvanceGLTable";
+import { decodeValue, removeNullAndUndefinedFromObject } from "../../../../utils/helpers";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
+import FormSelect from "../../../../components/inputs/FormSelect";
+import FormInput from "../../../../components/inputs/FormInput";
+import TravelAdvanceGLTable from "../../../../components/travel/TravelAdvanceGLTable";
 
 const VALID_VISA_OPTIONS = [
   { code: 'Yes', description: 'Yes' },

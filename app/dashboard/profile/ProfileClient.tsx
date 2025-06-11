@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
+import { useBreadcrumb } from "../../context/BreadcrumbContext";
 import { useSession } from "next-auth/react";
-import ProfileSummaryCard from "@/app/components/profile/ProfileSummaryCard";
-import PersonalInfoCard from "@/app/components/profile/PersonalInfoCard";
-import ProfileTabs from "@/app/components/profile/ProfileTabs";
-import { getResource } from "@/app/lib/api/http";
+import ProfileSummaryCard from "../../components/profile/ProfileSummaryCard";
+import PersonalInfoCard from "../../components/profile/PersonalInfoCard";
+import ProfileTabs from "../../components/profile/ProfileTabs";
+import { getResource } from "../../lib/api/http";
 import { toast } from "react-toastify";
 
 interface Dependant {

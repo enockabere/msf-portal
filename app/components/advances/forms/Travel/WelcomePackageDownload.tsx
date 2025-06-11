@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Spinner } from "react-bootstrap";
 import Swal from "sweetalert2";
-import { getResource } from "@/app/lib/api/http";
+import { getResource } from "../../../../lib/api/http";
 import {
   DownloadCloud,
   Gift,

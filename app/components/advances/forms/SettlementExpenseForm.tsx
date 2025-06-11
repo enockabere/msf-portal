@@ -6,9 +6,9 @@ import {
   FileChartColumnIncreasing,
   DollarSign,
 } from "lucide-react";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import { useMySetups } from "@/app/context/SetupContext";
-import { findObjectFromArray } from "@/app/utils/helpers";
+import { useAdvance } from "../../../context/AdvanceContext";
+import { useMySetups } from "../../../context/SetupContext";
+import { findObjectFromArray } from "../../../utils/helpers";
 import AccountingExpenseDetailsForm from "./AccountingExpenseDetailsForm";
 
 interface Props {

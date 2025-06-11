@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useMySetups } from "@/app/context/SetupContext";
+import { useMySetups } from "../../../context/SetupContext";
 import Swal from "sweetalert2";
 
 interface BankDetails {

@@ -3,10 +3,10 @@
 import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { Wallet } from "lucide-react";
-import TravelRequestWizard from "@/app/components/travel/TravelRequestWizard";
-import CustomModal from "@/app/components/modals/CustomModal";
-import { formatDate } from "@/app/utils/dateFormats";
-import { decodeValue } from "@/app/utils/helpers";
+import TravelRequestWizard from "../../components/travel/TravelRequestWizard";
+import CustomModal from "../../components/modals/CustomModal";
+import { formatDate } from "../../utils/dateFormats";
+import { decodeValue } from "../../utils/helpers";
 
 interface TravelRequestTableProps {
   data: Array<Record<string, any>>;

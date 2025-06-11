@@ -3,10 +3,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import ConfirmedEtaUpload from "./ConfirmedEtaUpload";
 import NoEtaDownloads from "./NoEtaDownloads";
-import { getResource, patchResource } from "@/app/lib/api/http";
+import { getResource, patchResource } from "../../../../lib/api/http";
 import { Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
-import SanitizedDataTable from "@/app/components/tables/SanitizedDataTable";
+import SanitizedDataTable from "../../../../components/tables/SanitizedDataTable";
 import { TableColumn } from "react-data-table-component";
 import "./download.css";
 

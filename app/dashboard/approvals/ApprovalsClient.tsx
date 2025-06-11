@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { ToastContainer } from "react-toastify";
 import { useSession } from "next-auth/react";
 const ApprovalDataTableTable = dynamic(
-    () => import("@/app/components/approvals/ApprovalTable"),
+    () => import("../../components/approvals/ApprovalTable"),
     { ssr: false }
 );
 

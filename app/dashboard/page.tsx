@@ -1,4 +1,4 @@
-import DashboardClient from "@/app/dashboard/DashboardClient";
+import DashboardClient from "../dashboard/DashboardClient";
 
 export const metadata = {
   title: "Médecins Sans Frontières - Main Dashboard",

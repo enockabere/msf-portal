@@ -12,10 +12,10 @@ import SalaryAdvanceForm from "../advances/forms/SalaryAdvanceForm";
 import OperationalAdvanceForm from "../advances/forms/OperationalAdvanceForm";
 import RequisitionForm from "../requisitions/forms/RequisitionForm";
 import AdvanceSettlementForm from "../advances/forms/AdvanceSettlement";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../context/PageLoaderContext";
 import { useRouter } from "next/navigation";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import { AdvanceType } from "@/app/types/advance";
+import { useAdvance } from "../../context/AdvanceContext";
+import { AdvanceType } from "../../types/advance";
 
 type AdvanceTypeKey = "Salary" | "Other" | null;
 type RequestType = "Advance" | "Expense" | "Requisition" | null;
@@ -41,7 +41,11 @@ export default function RequestCards() {
   const { actions: loaderActions } = usePageLoader();
   const { dispatcher: dispatchLoader } = loaderActions;
   const { advanceTypes, actions } = useAdvance();
-  const { dispatcher, handleFetchingSetup, fetchAdvances: otherAdvances } = actions;
+  const {
+    dispatcher,
+    handleFetchingSetup,
+    fetchAdvances: otherAdvances,
+  } = actions;
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
     e.stopPropagation();
@@ -98,7 +102,7 @@ export default function RequestCards() {
     }
   };
 
-  const handleCloseModal = (modal = '') => (
+  const handleCloseModal = (modal = "") => (
     setShowModal(false),
     dispatcher({
       type: "ADVANCE_CREATION_STATUSES",
@@ -126,15 +130,11 @@ export default function RequestCards() {
         status: "",
       },
     }),
-    (
-      (
-        async () => {
-          if (modal === 'other') {
-            await otherAdvances()
-          }
-        }
-      )()
-    )
+    (async () => {
+      if (modal === "other") {
+        await otherAdvances();
+      }
+    })()
   );
 
   const fetchAdvances = useCallback(async () => {
@@ -173,8 +173,9 @@ export default function RequestCards() {
       <div className="row row-cols-1 row-cols-md-4 g-3">
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 0 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 0 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -311,8 +312,9 @@ export default function RequestCards() {
         </div>
         <div className="col">
           <div
-            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${activeIndex === 1 ? "active" : ""
-              }`}
+            className={`card request-hover-card h-100 text-center d-flex flex-column p-2 position-relative ${
+              activeIndex === 1 ? "active" : ""
+            }`}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -411,8 +413,8 @@ export default function RequestCards() {
           requestType === "Expense"
             ? "Record Expense"
             : requestType === "Requisition"
-              ? "New Requisition"
-              : `Request ${captions[advanceType]} Advance`
+            ? "New Requisition"
+            : `Request ${captions[advanceType]} Advance`
         }
         size="xl"
         titleIcon={<PlusCircle size={18} className="text-white" />}
@@ -430,7 +432,9 @@ export default function RequestCards() {
           )}
           {requestType === "Advance" && advanceType === "Other" && (
             <div className="col-md-12">
-              <OperationalAdvanceForm closeModalHandler={() => handleCloseModal('other')} />
+              <OperationalAdvanceForm
+                closeModalHandler={() => handleCloseModal("other")}
+              />
             </div>
           )}
           {requestType === "Expense" && (

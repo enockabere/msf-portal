@@ -1,4 +1,4 @@
-import LoginClient from "@/app/LoginClient";
+import LoginClient from "./LoginClient";
 
 export const metadata = {
   title: "Médecins Sans Frontières - Login",

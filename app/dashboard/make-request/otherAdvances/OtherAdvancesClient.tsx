@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
-import SummaryCards from "@/app/components/cards/SummaryCards";
+import { useBreadcrumb } from "../../../context/BreadcrumbContext";
+import SummaryCards from "../../../components/cards/SummaryCards";
 import dynamic from "next/dynamic";
-import OperationalAdvanceForm from "@/app/components/advances/forms/OperationalAdvanceForm";
-import CustomModal from "@/app/components/modals/CustomModal";
+import OperationalAdvanceForm from "../../../components/advances/forms/OperationalAdvanceForm";
+import CustomModal from "../../../components/modals/CustomModal";
 import {
   FileClock,
   ClipboardList,
@@ -13,18 +13,18 @@ import {
   Layers3,
   Wallet,
 } from "lucide-react";
-import { FormData } from "@/app/types/advance";
-// import { getResource } from "@/app/lib/api/http";
+import { FormData } from "../../../types/advance";
+// import { getResource } from "../../../lib/api/http";
 // import Swal from "sweetalert2";
-import { useMySetups } from "@/app/context/SetupContext";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import AdvanceSettlement from "@/app/components/advances/forms/AdvanceSettlement";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
-import { useSearchParams } from 'next/navigation';
-import { findObjectFromArray } from "@/app/utils/helpers";
+import { useMySetups } from "../../../context/SetupContext";
+import { useAdvance } from "../../../context/AdvanceContext";
+import AdvanceSettlement from "../../../components/advances/forms/AdvanceSettlement";
+import { usePageLoader } from "../../../context/PageLoaderContext";
+import { useSearchParams } from "next/navigation";
+import { findObjectFromArray } from "../../../utils/helpers";
 
 const ReusableSalaryAdvanceTabs = dynamic(
-  () => import("@/app/components/tables/ReusableSalaryAdvanceTabs"),
+  () => import("../../../components/tables/ReusableSalaryAdvanceTabs"),
   { ssr: false }
 );
 
@@ -46,62 +46,73 @@ export default function OtherAdvancesClient() {
     showAdvanceAccountedLineDetailsModal,
     advanceTypes,
   } = useAdvance();
-  const { dispatcher, handleFetchingSetup, fetchLineSetup, fetchImprestsPendingSettlement, fetchAdvances, fetchAdvanceLines } = actions;
+  const {
+    dispatcher,
+    handleFetchingSetup,
+    fetchLineSetup,
+    fetchImprestsPendingSettlement,
+    fetchAdvances,
+    fetchAdvanceLines,
+  } = actions;
   const { actions: loaderActions, loading } = usePageLoader();
   const { dispatcher: loaderDispatcher } = loaderActions;
   const searchParams = useSearchParams();
-  const advanceNo = searchParams?.get('advanceNo');
+  const advanceNo = searchParams?.get("advanceNo");
 
   const handleSetSelectedRow = useCallback(
     async function (advance: FormData | null = null, ...args: any) {
       if (advance) {
         loaderDispatcher({
-          type: 'PATCH_LOADING_STATE',
+          type: "PATCH_LOADING_STATE",
           payload: {
             loading: true,
-            message: '',
-          }
+            message: "",
+          },
         });
         await handleFetchingSetup();
         await fetchLineSetup();
         dispatcher({
-          type: 'OPEN_EXISTING_ADVANCE',
+          type: "OPEN_EXISTING_ADVANCE",
           payload: advance,
         });
         dispatcher({
-          type: 'ADVANCE_CREATION_STATUSES',
-          payload: { isNew: false, isEditing: advance.status === 'Open', setForView: true },
+          type: "ADVANCE_CREATION_STATUSES",
+          payload: {
+            isNew: false,
+            isEditing: advance.status === "Open",
+            setForView: true,
+          },
         });
         if (args.length && args[0].length) {
           const [isSettlement] = args[0];
           if (isSettlement) {
             dispatcher({
-              type: 'SET_SETTLEMENT_MODAL',
+              type: "SET_SETTLEMENT_MODAL",
               payload: true,
             });
             loaderDispatcher({
-              type: 'PATCH_LOADING_STATE',
+              type: "PATCH_LOADING_STATE",
               payload: {
                 loading: false,
-                message: '',
-              }
+                message: "",
+              },
             });
             await fetchAdvanceLines(advance?.no, true);
           }
         } else {
           setShowModal(true);
           loaderDispatcher({
-            type: 'PATCH_LOADING_STATE',
+            type: "PATCH_LOADING_STATE",
             payload: {
               loading: false,
-              message: '',
-            }
+              message: "",
+            },
           });
         }
       } else {
         setShowModal(false);
         dispatcher({
-          type: 'OPEN_EXISTING_ADVANCE',
+          type: "OPEN_EXISTING_ADVANCE",
           payload: {
             imprestType: "",
             Purpose: "",
@@ -123,23 +134,24 @@ export default function OtherAdvancesClient() {
           },
         });
         dispatcher({
-          type: 'ADVANCE_CREATION_STATUSES',
+          type: "ADVANCE_CREATION_STATUSES",
           payload: { isNew: false, isEditing: false, setForView: false },
         });
         loaderDispatcher({
-          type: 'PATCH_LOADING_STATE',
+          type: "PATCH_LOADING_STATE",
           payload: {
             loading: false,
-            message: '',
-          }
+            message: "",
+          },
         });
       }
-    }, [dispatcher, fetchLineSetup, handleFetchingSetup, loaderDispatcher]
+    },
+    [dispatcher, fetchLineSetup, handleFetchingSetup, loaderDispatcher]
   );
 
   useEffect(() => {
     if (advanceNo && advanceData.length) {
-      const advance = advanceData.find(a => a.no === advanceNo);
+      const advance = advanceData.find((a) => a.no === advanceNo);
       if (advance) {
         handleSetSelectedRow(advance as FormData);
       }
@@ -151,14 +163,13 @@ export default function OtherAdvancesClient() {
     localStorage.setItem("advancePlacement", newPlacement);
   };
 
-
   const handleSettlementClosing = () => {
     dispatcher({
-      type: 'SET_SETTLEMENT_MODAL',
+      type: "SET_SETTLEMENT_MODAL",
       payload: false,
     });
     dispatcher({
-      type: 'OPEN_EXISTING_ADVANCE',
+      type: "OPEN_EXISTING_ADVANCE",
       payload: {
         imprestType: "",
         Purpose: "",
@@ -180,47 +191,46 @@ export default function OtherAdvancesClient() {
       },
     });
     dispatcher({
-      type: 'SET_EXISTING_ADVANCE_LINES',
+      type: "SET_EXISTING_ADVANCE_LINES",
       payload: [],
     });
     dispatcher({
-      type: 'ADVANCE_CREATION_STATUSES',
+      type: "ADVANCE_CREATION_STATUSES",
       payload: { isNew: false, isEditing: false, setForView: false },
     });
-
-  }
+  };
 
   const handleClosingAdvanceAccountedLineDetailsModal = () => {
     dispatcher({
-      type: 'SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL',
+      type: "SET_ADVANCE_ACCOUNTED_LINE_DETAILS_MODAL",
       payload: false,
     });
     dispatcher({
-      type: 'SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+      type: "SET_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS",
       payload: {},
     });
     dispatcher({
-      type: 'SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS',
+      type: "SET_ACCOUNTING_LINES_FOR_SELECTED_ADVANCE_LINE_TO_VIEW_SETTLEMENT_DETAILS",
       payload: [],
     });
     dispatcher({
-      type: 'SET_SETTLEMENT_MODAL',
+      type: "SET_SETTLEMENT_MODAL",
       payload: true,
     });
-  }
+  };
 
   const handleNewRequestClick = async () => {
     await handleFetchingSetup();
     await fetchLineSetup();
     dispatcher({
-      type: 'ADVANCE_CREATION_STATUSES',
+      type: "ADVANCE_CREATION_STATUSES",
       payload: { isNew: true, isEditing: false, setForView: false },
     });
     setShowModal(true);
-  }
+  };
   const handleCloseModal = () => {
     dispatcher({
-      type: 'OPEN_EXISTING_ADVANCE',
+      type: "OPEN_EXISTING_ADVANCE",
       payload: {
         imprestType: "",
         Purpose: "",
@@ -242,18 +252,14 @@ export default function OtherAdvancesClient() {
       },
     });
     dispatcher({
-      type: 'ADVANCE_CREATION_STATUSES',
+      type: "ADVANCE_CREATION_STATUSES",
       payload: { isNew: false, isEditing: false, setForView: false },
     });
     setShowModal(false);
-    (
-      async () => {
-        await fetchAdvances();
-      }
-    )();
+    (async () => {
+      await fetchAdvances();
+    })();
   };
-
-
 
   const cards = [
     {
@@ -292,13 +298,8 @@ export default function OtherAdvancesClient() {
 
   useEffect(() => {
     const abortController = new AbortController();
-    Promise.allSettled([
-      fetchAdvances(),
-      fetchSetups([
-        'currencies',
-      ]),
-    ]);
-    return () => abortController.abort('Duplicate fetch!');
+    Promise.allSettled([fetchAdvances(), fetchSetups(["currencies"])]);
+    return () => abortController.abort("Duplicate fetch!");
   }, [fetchAdvances, fetchSetups]);
 
   useEffect(() => {
@@ -366,7 +367,11 @@ export default function OtherAdvancesClient() {
       actionButton={
         <button
           className="btn bg-danger text-white btn-md"
-          disabled={findObjectFromArray(advanceTypes, 'key', 'Other')?.disabled ? true : false}
+          disabled={
+            findObjectFromArray(advanceTypes, "key", "Other")?.disabled
+              ? true
+              : false
+          }
           onClick={handleNewRequestClick}
         >
           <i className="fa fa-plus me-1" />
@@ -397,7 +402,9 @@ export default function OtherAdvancesClient() {
                     loading={loading}
                     initialTab={activeStatusTab}
                     refetch={fetchAdvances}
-                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) =>
+                      handleSetSelectedRow(advance, args)
+                    }
                   />
                 </div>
               </div>
@@ -414,7 +421,9 @@ export default function OtherAdvancesClient() {
                     loading={loading}
                     initialTab={activeStatusTab}
                     refetch={fetchAdvances}
-                    setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                    setSelectedRowHandler={(advance: FormData, ...args: any) =>
+                      handleSetSelectedRow(advance, args)
+                    }
                   />
                 </div>
               </div>
@@ -431,7 +440,9 @@ export default function OtherAdvancesClient() {
                   loading={loading}
                   initialTab={activeStatusTab}
                   refetch={fetchAdvances}
-                  setSelectedRowHandler={(advance: FormData, ...args: any) => handleSetSelectedRow(advance, args)}
+                  setSelectedRowHandler={(advance: FormData, ...args: any) =>
+                    handleSetSelectedRow(advance, args)
+                  }
                 />
               </div>
             </div>
@@ -447,7 +458,10 @@ export default function OtherAdvancesClient() {
         >
           <div className="row">
             <div className="col-md-12">
-              <OperationalAdvanceForm closeModalHandler={handleCloseModal} openSettlmentModalFactory={handleSetSelectedRow} />
+              <OperationalAdvanceForm
+                closeModalHandler={handleCloseModal}
+                openSettlmentModalFactory={handleSetSelectedRow}
+              />
             </div>
           </div>
         </CustomModal>

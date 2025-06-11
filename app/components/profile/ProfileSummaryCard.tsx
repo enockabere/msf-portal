@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Users, Plane, Leaf, CalendarCheck } from "lucide-react";
 import { useSession } from "next-auth/react";
-import PageLoader from "@/app/components/loaders/PageLoader";
+import PageLoader from "../../components/loaders/PageLoader";
 
 interface Props {
   dependants: number;

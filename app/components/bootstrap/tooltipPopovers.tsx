@@ -1,5 +1,5 @@
 "use client";
-import { useBootstrapUI } from "@/app/hooks/useBootstrapUI";
+import { useBootstrapUI } from "../../hooks/useBootstrapUI";
 
 export default function BootstrapInitializer() {
   useBootstrapUI();

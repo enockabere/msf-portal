@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
+import { useBreadcrumb } from "../context/BreadcrumbContext";
 import QuickActionsCard from "../components/dashboard/cards/QuickActionsCard";
 import DashboardProfile from "../components/dashboard/cards/DashboardProfile";
 import AdvanceStatsCard from "../components/leave/AdvanceStatsCard";

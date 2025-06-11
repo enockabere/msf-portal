@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useMySetups } from "@/app/context/SetupContext";
+import { useMySetups } from "../../../context/SetupContext";
 import { Save, XCircle } from "lucide-react";
 
 interface Dependant {

@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from "react";
-import { codeUnit, createResource } from "@/app/lib/api/http";
-import { TravelRequest } from "@/app/types/travel";
+import { codeUnit, createResource } from "../../../../lib/api/http";
+import { TravelRequest } from "../../../../types/travel";
 import { Wallet } from "lucide-react";
 import Swal from "sweetalert2";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
+import SectionLoader from "../../../../components/loaders/SectionLoader";
 
 type AdvanceLine = {
     billingCode: string;

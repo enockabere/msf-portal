@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useMySetups } from "@/app/context/SetupContext";
-import { TravelRequest } from "@/app/types/travel";
-import { getResource } from "@/app/lib/api/http";
-import FormSelect from "@/app/components/inputs/FormSelect";
-import FormInput from "@/app/components/inputs/FormInput";
+import { useMySetups } from "../../../../context/SetupContext";
+import { TravelRequest } from "../../../../types/travel";
+import { getResource } from "../../../../lib/api/http";
+import FormSelect from "../../../../components/inputs/FormSelect";
+import FormInput from "../../../../components/inputs/FormInput";
 
 // Constants moved outside the component
 const TRAVEL_TYPES = [

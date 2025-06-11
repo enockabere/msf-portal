@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { DownloadCloud, FileText, Building, X } from "lucide-react";
-import { getResource, codeUnit } from "@/app/lib/api/http";
+import { getResource, codeUnit } from "../../../../lib/api/http";
 import "./download.css";
 
 interface NoEtaDownloadsProps {

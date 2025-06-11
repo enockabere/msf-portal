@@ -1,5 +1,5 @@
-import AdvancesClient from "@/app/dashboard/make-request/advances/AdvancesClient";
-import {AdvanceContextProvider} from "@/app/context/AdvanceContext";
+import AdvancesClient from "../../../dashboard/make-request/advances/AdvancesClient";
+import {AdvanceContextProvider} from "../../../context/AdvanceContext";
 
 export const metadata = {
   title: "Médecins Sans Frontières - Travel Request",

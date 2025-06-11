@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useMemo, useCallback, useReducer } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import { getResource } from "@/app/lib/api/http";
-import ApprovalDetailsModal from "@/app/components/approvals/ApprovalDetailsModal";
-import ApprovalStatsCard from "@/app/components/approvals/StatsCard";
+import { getResource } from "../../lib/api/http";
+import ApprovalDetailsModal from "../../components/approvals/ApprovalDetailsModal";
+import ApprovalStatsCard from "../../components/approvals/StatsCard";
 import Swal from "sweetalert2";
-import { Approval, ApprovalDocs } from "@/app/types/approval";
+import { Approval, ApprovalDocs } from "../../types/approval";
 
 interface ApprovalDataTableProps {
     employeeNo?: string;

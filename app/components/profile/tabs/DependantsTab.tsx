@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import CustomModal from "../../modals/CustomModal";
 import DependantForm from "./DependantForm";
 import SanitizedDataTable from "../../tables/SanitizedDataTable";
-import { formatDate } from "@/app/utils/dateFormats";
+import { formatDate } from "../../../utils/dateFormats";
 
 interface Dependant {
   name: string;

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import { useMySetups } from "@/app/context/SetupContext";
-import PageLoader from "@/app/components/loaders/PageLoader";
+import { useMySetups } from "../../../context/SetupContext";
+import PageLoader from "../../../components/loaders/PageLoader";
 import { Save } from "lucide-react";
 
 export default function ProfileSettings() {

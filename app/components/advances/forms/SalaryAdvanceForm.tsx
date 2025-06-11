@@ -10,13 +10,13 @@ import React, {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./SalaryAdvanceForm.css";
-import { useMySetups } from "@/app/context/SetupContext";
+import { useMySetups } from "../../../context/SetupContext";
 import ActionButtons from "./components/ActionButtons";
 import MpesaDetails from "./components/MpesaDetails";
 import BankDetails from "./components/BankDetails";
 import SalaryAdvanceHeader from "./components/SalaryAdvanceHeader";
 import SalaryAdvanceFields from "./components/SalaryAdvanceFields";
-import { Advance, SalaryAdvanceData } from "@/app/types/advance";
+import { Advance, SalaryAdvanceData } from "../../../types/advance";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import VerticalProgressCard from "./VerticalProgressCard";

@@ -2,7 +2,7 @@
 
 import ReusableTabbedTable from "../tables/ReusableTabbedTable";
 import { useMemo } from "react";
-import { decodeValue } from "@/app/utils/helpers";
+import { decodeValue } from "../../utils/helpers";
 
 interface Props {
   records: Array<Record<string, any>>

@@ -1,5 +1,5 @@
 import SkeletonDataTable from "../tables/SkeletonDataTable";
-import {Advance} from "@/app/types/advance";
+import {Advance} from "../../types/advance";
 import {Eye} from "lucide-react";
 import {useRouter} from "next/navigation";
 

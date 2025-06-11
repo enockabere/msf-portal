@@ -1,5 +1,5 @@
-import { AdvanceContextProvider } from "@/app/context/AdvanceContext";
-import MakeRequestClient from "@/app/dashboard/make-request/MakeRequestClient";
+import { AdvanceContextProvider } from "../../context/AdvanceContext";
+import MakeRequestClient from "../../dashboard/make-request/MakeRequestClient";
 
 export const metadata = {
   title: "Médecins Sans Frontières - Make Request",

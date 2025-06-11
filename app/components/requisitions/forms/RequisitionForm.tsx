@@ -1,26 +1,40 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CircleCheckIcon, CircleX, Plus, Save, Trash2, UploadCloud } from "lucide-react";
-import { Requisition, RequisitionLine } from "@/app/types/requisition";
+import {
+  ArrowLeft,
+  CircleCheckIcon,
+  CircleX,
+  Plus,
+  Save,
+  Trash2,
+  UploadCloud,
+} from "lucide-react";
+import { Requisition, RequisitionLine } from "../../../types/requisition";
 import { useSession } from "next-auth/react";
-import FormInput from "@/app/components/inputs/FormInput";
-import FormSelect from "@/app/components/inputs/FormSelect";
-import { useMySetups } from "@/app/context/SetupContext";
+import FormInput from "../../../components/inputs/FormInput";
+import FormSelect from "../../../components/inputs/FormSelect";
+import { useMySetups } from "../../../context/SetupContext";
 import {
   decodeValue,
   employeeName,
   formatCurrency,
   pickKeys,
-  removeNullAndUndefinedFromObject
-} from "@/app/utils/helpers";
+  removeNullAndUndefinedFromObject,
+} from "../../../utils/helpers";
 import Swal from "sweetalert2";
-import { toast } from 'react-toastify';
-import { codeUnit, createResource, deleteResource, getResource, patchResource } from "@/app/lib/api/http";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
-import FormSwitch from "@/app/components/inputs/FormSwitch";
-import FormFileInput from "@/app/components/inputs/FormFileInput";
-import { downloadFileFromBase64 } from "@/app/utils/downloadBas64";
+import { toast } from "react-toastify";
+import {
+  codeUnit,
+  createResource,
+  deleteResource,
+  getResource,
+  patchResource,
+} from "../../../lib/api/http";
+import { usePageLoader } from "../../../context/PageLoaderContext";
+import FormSwitch from "../../../components/inputs/FormSwitch";
+import FormFileInput from "../../../components/inputs/FormFileInput";
+import { downloadFileFromBase64 } from "../../../utils/downloadBas64";
 
 // Constants
 const INITIAL_REQUEST: Requisition = {
@@ -59,8 +73,8 @@ const INITIAL_REQUEST_LINE = {
 };
 
 const REQUEST_FOR_OPTIONS = [
-  { code: 'myself', description: 'Myself' },
-  { code: 'another', description: 'Another employee' },
+  { code: "myself", description: "Myself" },
+  { code: "another", description: "Another employee" },
 ];
 
 type Attachment = {
@@ -74,7 +88,7 @@ type Attachment = {
   [key: string]: any;
 };
 
-type FormAction = 'save' | 'submit';
+type FormAction = "save" | "submit";
 
 interface RequisitionFormProps {
   requisitionNo?: string;
@@ -82,10 +96,16 @@ interface RequisitionFormProps {
   onSuccess?: () => void;
 }
 
-const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClose, onSuccess }) => {
+const RequisitionForm: React.FC<RequisitionFormProps> = ({
+  requisitionNo,
+  onClose,
+  onSuccess,
+}) => {
   // Hooks and Context
   const { data: session } = useSession();
-  const { actions: { dispatcher } } = usePageLoader();
+  const {
+    actions: { dispatcher },
+  } = usePageLoader();
   const {
     OC,
     DEPARTMENTS,
@@ -101,28 +121,36 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
   // State
   const [formData, setFormData] = useState<Requisition>(INITIAL_REQUEST);
-  const [requisitionLines, setRequisitionLines] = useState<RequisitionLine[]>([INITIAL_REQUEST_LINE]);
+  const [requisitionLines, setRequisitionLines] = useState<RequisitionLine[]>([
+    INITIAL_REQUEST_LINE,
+  ]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [requestFor, setRequestFor] = useState('myself');
-  const [formAction, setFormAction] = useState<FormAction>('save');
+  const [requestFor, setRequestFor] = useState("myself");
+  const [formAction, setFormAction] = useState<FormAction>("save");
 
   // Derived values
-  const employee = useMemo(() => ({
-    number: session?.user?.profile?.no,
-    shortcutDimension1Code: session?.user?.profile?.shortcutDimension1Code,
-    shortcutDimension2Code: session?.user?.profile?.shortcutDimension2Code,
-    shortcutDimension3Code: session?.user?.profile?.shortcutDimension3Code,
-    shortcutDimension4Code: session?.user?.profile?.shortcutDimension4Code,
-  }), [session]);
+  const employee = useMemo(
+    () => ({
+      number: session?.user?.profile?.no,
+      shortcutDimension1Code: session?.user?.profile?.shortcutDimension1Code,
+      shortcutDimension2Code: session?.user?.profile?.shortcutDimension2Code,
+      shortcutDimension3Code: session?.user?.profile?.shortcutDimension3Code,
+      shortcutDimension4Code: session?.user?.profile?.shortcutDimension4Code,
+    }),
+    [session]
+  );
 
-  const totalAmount = useMemo(() =>
-    requisitionLines.reduce(
-      (sum, item) => sum + ((item.quantity || 0) * (item.unitCost || 0)),
-      0
-    ), [requisitionLines]);
+  const totalAmount = useMemo(
+    () =>
+      requisitionLines.reduce(
+        (sum, item) => sum + (item.quantity || 0) * (item.unitCost || 0),
+        0
+      ),
+    [requisitionLines]
+  );
 
-  const isReadOnly = useMemo(() =>
-      formData.status && decodeValue(formData.status) !== "Open",
+  const isReadOnly = useMemo(
+    () => formData.status && decodeValue(formData.status) !== "Open",
     [formData.status]
   );
 
@@ -130,11 +158,15 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
   // Helper functions
   const handleFormChange = (field: keyof Requisition, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleRequisitionLineChange = (index: number, field: keyof RequisitionLine, value: any) => {
-    setRequisitionLines(prevLines =>
+  const handleRequisitionLineChange = (
+    index: number,
+    field: keyof RequisitionLine,
+    value: any
+  ) => {
+    setRequisitionLines((prevLines) =>
       prevLines.map((line, i) =>
         i === index ? { ...line, [field]: value } : line
       )
@@ -149,17 +181,20 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
     setRequisitionLines([...requisitionLines, INITIAL_REQUEST_LINE]);
   };
 
-  const removeRequisitionLine = async (index: number, line: RequisitionLine) => {
+  const removeRequisitionLine = async (
+    index: number,
+    line: RequisitionLine
+  ) => {
     try {
       if (line.id) {
         const res = await deleteResource("requisitionLines", {
           data: line,
-          primaryKey: ['id'],
+          primaryKey: ["id"],
         });
 
         if (res.error) throw new Error(res.error.message);
       }
-      setRequisitionLines(prev => prev.filter((_, i) => i !== index));
+      setRequisitionLines((prev) => prev.filter((_, i) => i !== index));
     } catch (error: any) {
       await Swal.fire("Error deleting billing item", error.message, "error");
     }
@@ -170,34 +205,47 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
     const res = await getResource("requisitions", {
       params: {
         filters: { no: requisitionNo },
-        $expand: "requisitionLines,attachments($select=tableID,no,documentType,lineNo,id,fileName)"
-      }
+        $expand:
+          "requisitionLines,attachments($select=tableID,no,documentType,lineNo,id,fileName)",
+      },
     });
 
     if (res.error) throw new Error(res.error.message);
 
     const { requisitionLines, attachments, ...requisition } = res.value.at(0);
-    
+
     if (requisition.requestedFor !== employee.number) {
-      setRequestFor('another');
+      setRequestFor("another");
     }
 
     setFormData(requisition);
-    setRequisitionLines(requisitionLines.length ? requisitionLines : [INITIAL_REQUEST_LINE]);
+    setRequisitionLines(
+      requisitionLines.length ? requisitionLines : [INITIAL_REQUEST_LINE]
+    );
     setAttachments(attachments);
   };
 
-  const hydrateRequisitionLine = (line: Record<string, any>, requisition: Record<string, any>): Record<string, any> => ({
+  const hydrateRequisitionLine = (
+    line: Record<string, any>,
+    requisition: Record<string, any>
+  ): Record<string, any> => ({
     ...line,
     documentNo: line.documentNo || requisition.no,
     locationCode: line.locationCode || requisition.locationCode,
-    globalDimension1Code: line.globalDimension1Code || requisition.globalDimension1Code,
-    globalDimension2Code: line.globalDimension2Code || requisition.globalDimension2Code,
-    globalDimension3Code: line.globalDimension3Code || requisition.globalDimension3Code,
-    globalDimension4Code: line.globalDimension4Code || requisition.globalDimension4Code,
+    globalDimension1Code:
+      line.globalDimension1Code || requisition.globalDimension1Code,
+    globalDimension2Code:
+      line.globalDimension2Code || requisition.globalDimension2Code,
+    globalDimension3Code:
+      line.globalDimension3Code || requisition.globalDimension3Code,
+    globalDimension4Code:
+      line.globalDimension4Code || requisition.globalDimension4Code,
   });
 
-  const saveRequisitionLines = async (lines: RequisitionLine[], requisition: Record<string, any>) => {
+  const saveRequisitionLines = async (
+    lines: RequisitionLine[],
+    requisition: Record<string, any>
+  ) => {
     const operations = await Promise.all(
       lines.map(async (line) => {
         const strippedPayload = pickKeys(
@@ -207,38 +255,58 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
         const payload = hydrateRequisitionLine(strippedPayload, requisition);
 
         return payload.id
-          ? await patchResource('requisitionLines', { data: payload, primaryKey: ["id"] })
-          : await createResource('requisitionLines', { data: payload });
+          ? await patchResource("requisitionLines", {
+              data: payload,
+              primaryKey: ["id"],
+            })
+          : await createResource("requisitionLines", { data: payload });
       })
     );
 
     operations.forEach((op, index) => {
-      if (op.error) throw new Error('Saving of some lines failed');
-      handleRequisitionLineChange(index, 'id', op.id);
-      handleRequisitionLineChange(index, 'lineNo', op.lineNo);
+      if (op.error) throw new Error("Saving of some lines failed");
+      handleRequisitionLineChange(index, "id", op.id);
+      handleRequisitionLineChange(index, "lineNo", op.lineNo);
     });
   };
 
   const uploadFiles = async (files: Attachment[], requisitionNo: string) => {
     const operations = await Promise.all(
-      files.map(file => createResource("requisitionAttachments", {
-        data: { no: requisitionNo, fileName: file.fileName, attachment: file.base64 }
-      }))
+      files.map((file) =>
+        createResource("requisitionAttachments", {
+          data: {
+            no: requisitionNo,
+            fileName: file.fileName,
+            attachment: file.base64,
+          },
+        })
+      )
     );
 
-    if (operations.some(op => op.error)) {
-      throw new Error('Error saving attachments');
+    if (operations.some((op) => op.error)) {
+      throw new Error("Error saving attachments");
     }
   };
 
   const handleViewAttachment = async (file: Attachment) => {
     try {
-      dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: true, message: "Fetching attachment" } });
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: true, message: "Fetching attachment" },
+      });
 
       let base64 = file.base64;
       if (!base64) {
-        const res = await getResource('requisitionAttachments', {
-          params: { filters: pickKeys(file, ['tableID', 'no', 'documentType', 'lineNo', 'id']) }
+        const res = await getResource("requisitionAttachments", {
+          params: {
+            filters: pickKeys(file, [
+              "tableID",
+              "no",
+              "documentType",
+              "lineNo",
+              "id",
+            ]),
+          },
         });
 
         if (res.error) throw new Error(res.error.message);
@@ -247,19 +315,29 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
       await downloadFileFromBase64(base64, file.fileName);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Error opening attachment";
+      const message =
+        error instanceof Error ? error.message : "Error opening attachment";
       toast.error(message);
     } finally {
-      dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: false, message: "" } });
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: false, message: "" },
+      });
     }
   };
 
   const handleDeleteAttachment = async (file: Attachment) => {
     try {
       if (file.tableID) {
-        const res = await deleteResource('requisitionAttachments', {
-          data: pickKeys(file, ['tableID', 'no', 'documentType', 'lineNo', 'id']),
-          primaryKey: ['tableID', 'no', 'documentType', 'lineNo', 'id'],
+        const res = await deleteResource("requisitionAttachments", {
+          data: pickKeys(file, [
+            "tableID",
+            "no",
+            "documentType",
+            "lineNo",
+            "id",
+          ]),
+          primaryKey: ["tableID", "no", "documentType", "lineNo", "id"],
         });
 
         if (res.error) throw new Error(res.error.message);
@@ -271,19 +349,28 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
   const handleCancelApprovalRequest = async () => {
     try {
-      dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: true, message: "Cancelling Approval Request" } });
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: true, message: "Cancelling Approval Request" },
+      });
 
       const res = await codeUnit("cancelRequisitionApprovalRequest", {
-        data: { headerNo: formData.no }
+        data: { headerNo: formData.no },
       });
 
       if (res.error) throw new Error(res.error.message);
       await loadRequisition(formData.id);
-      await Swal.fire("Success", "Requisition approval request has been canceled");
+      await Swal.fire(
+        "Success",
+        "Requisition approval request has been canceled"
+      );
     } catch (error: any) {
       await Swal.fire("Cancel approval request failed", error.message, "error");
     } finally {
-      dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: false, message: "" } });
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: false, message: "" },
+      });
     }
   };
 
@@ -296,7 +383,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
         type: "PATCH_LOADING_STATE",
         payload: {
           loading: true,
-          message: formAction === "save" ? "Saving Request" : "Submitting for Approval",
+          message:
+            formAction === "save"
+              ? "Saving Request"
+              : "Submitting for Approval",
         },
       });
 
@@ -308,19 +398,24 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
       const payload = pickKeys(strippedPayload, Object.keys(INITIAL_REQUEST));
 
       const reqResponse = payload.id
-        ? await patchResource("requisitions", { data: payload, primaryKey: ["id"] })
+        ? await patchResource("requisitions", {
+            data: payload,
+            primaryKey: ["id"],
+          })
         : await createResource("requisitions", { data: payload });
 
       if (reqResponse.error) throw new Error(reqResponse.error.message);
 
-      setFormData(prev => ({ ...prev, ...reqResponse }));
+      setFormData((prev) => ({ ...prev, ...reqResponse }));
       await saveRequisitionLines(requisitionLines, reqResponse);
 
-      const newFiles = attachments.filter(attachment => !attachment.tableID);
+      const newFiles = attachments.filter((attachment) => !attachment.tableID);
       if (newFiles.length > 0) await uploadFiles(newFiles, reqResponse.no);
 
       if (formAction === "submit") {
-        const res = await codeUnit("sendRequisitionForApproval", { data: { headerNo: reqResponse.no } });
+        const res = await codeUnit("sendRequisitionForApproval", {
+          data: { headerNo: reqResponse.no },
+        });
         if (res.error) throw new Error(res.error.message);
         toast.success("Requisition has been sent for approval");
       } else {
@@ -333,16 +428,23 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
       onClose();
     } catch (error: any) {
-      await Swal.fire(`Failed to ${formAction} requisition`, error.message, "error");
+      await Swal.fire(
+        `Failed to ${formAction} requisition`,
+        error.message,
+        "error"
+      );
     } finally {
-      dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: false, message: "" } });
+      dispatcher({
+        type: "PATCH_LOADING_STATE",
+        payload: { loading: false, message: "" },
+      });
     }
   };
 
   // Effects
   useEffect(() => {
     const prepareFormData = () => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         requestedBy: employee.number,
         requestedFor: employee.number,
@@ -356,24 +458,34 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
     const fetchRequisition = async (requisitionNo: string) => {
       try {
-        dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: true, message: "Fetching requisition record" } });
+        dispatcher({
+          type: "PATCH_LOADING_STATE",
+          payload: { loading: true, message: "Fetching requisition record" },
+        });
         await loadRequisition(requisitionNo);
       } catch (error: any) {
-        await Swal.fire("Error fetching requisition record", error.message, "error");
+        await Swal.fire(
+          "Error fetching requisition record",
+          error.message,
+          "error"
+        );
       } finally {
-        dispatcher({ type: "PATCH_LOADING_STATE", payload: { loading: false, message: "" } });
+        dispatcher({
+          type: "PATCH_LOADING_STATE",
+          payload: { loading: false, message: "" },
+        });
       }
     };
 
     const initialize = async () => {
       try {
         await fetchSetups([
-          'employees',
-          'locations',
-          'dimensions',
-          'billingItems',
-          'unitsOfMeasure',
-          'globalCurrencies',
+          "employees",
+          "locations",
+          "dimensions",
+          "billingItems",
+          "unitsOfMeasure",
+          "globalCurrencies",
         ]);
 
         if (requisitionNo) {
@@ -382,7 +494,7 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
           prepareFormData();
         }
       } catch (error) {
-        console.error('Initialization error:', error);
+        console.error("Initialization error:", error);
       }
     };
 
@@ -428,13 +540,16 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
             />
           </div>
 
-          {requestFor === 'another' && (
+          {requestFor === "another" && (
             <div className="col-md-4">
               <FormSelect
                 label="Request For"
                 value={formData.requestedFor}
                 onChange={(value) => handleFormChange("requestedFor", value)}
-                options={employees.map(item => ({ code: item.number, description: employeeName(item) }))}
+                options={employees.map((item) => ({
+                  code: item.number,
+                  description: employeeName(item),
+                }))}
                 required
                 disabled={isReadOnly}
               />
@@ -458,7 +573,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
               value={formData.currencyCode}
               placeholder="-- Select Currency --"
               onChange={(value) => handleFormChange("currencyCode", value)}
-              options={globalCurrencies.map(item => ({ code: item.code, description: item.displayName }))}
+              options={globalCurrencies.map((item) => ({
+                code: item.code,
+                description: item.displayName,
+              }))}
               required
               disabled={isReadOnly}
             />
@@ -470,7 +588,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
               value={formData.locationCode}
               placeholder="-- Select Location --"
               onChange={(value) => handleFormChange("locationCode", value)}
-              options={locations.map(item => ({ code: item.code, description: item.name }))}
+              options={locations.map((item) => ({
+                code: item.code,
+                description: item.name,
+              }))}
               required
               disabled={isReadOnly}
             />
@@ -478,7 +599,11 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
           <div className="col-md-4">
             <FormFileInput
-              label={<><UploadCloud size={14} className="me-1" /> Upload Attachment</>}
+              label={
+                <>
+                  <UploadCloud size={14} className="me-1" /> Upload Attachment
+                </>
+              }
               value={attachments}
               multiple={true}
               preview={isEdit}
@@ -519,8 +644,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 label="Cost Center"
                 value={formData.globalDimension1Code}
                 placeholder="Select OC"
-                onChange={(value) => handleFormChange("globalDimension1Code", value)}
-                options={OC.map(d => ({ code: d.code, description: d.name }))}
+                onChange={(value) =>
+                  handleFormChange("globalDimension1Code", value)
+                }
+                options={OC.map((d) => ({ code: d.code, description: d.name }))}
                 required
                 disabled={isReadOnly}
               />
@@ -530,8 +657,13 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 label="Department"
                 value={formData.globalDimension2Code}
                 placeholder="Select Department"
-                onChange={(value) => handleFormChange("globalDimension2Code", value)}
-                options={DEPARTMENTS.map(d => ({ code: d.code, description: d.name }))}
+                onChange={(value) =>
+                  handleFormChange("globalDimension2Code", value)
+                }
+                options={DEPARTMENTS.map((d) => ({
+                  code: d.code,
+                  description: d.name,
+                }))}
                 required
                 disabled={isReadOnly}
               />
@@ -541,8 +673,13 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 label="Country"
                 value={formData.globalDimension3Code}
                 placeholder="Select Country"
-                onChange={(value) => handleFormChange("globalDimension3Code", value)}
-                options={COUNTRY.map(d => ({ code: d.code, description: d.name }))}
+                onChange={(value) =>
+                  handleFormChange("globalDimension3Code", value)
+                }
+                options={COUNTRY.map((d) => ({
+                  code: d.code,
+                  description: d.name,
+                }))}
                 disabled={isReadOnly}
               />
             </div>
@@ -551,8 +688,13 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 label="Project"
                 value={formData.globalDimension4Code}
                 placeholder="Select Project"
-                onChange={(value) => handleFormChange("globalDimension4Code", value)}
-                options={PROJECT.map(d => ({ code: d.code, description: d.name }))}
+                onChange={(value) =>
+                  handleFormChange("globalDimension4Code", value)
+                }
+                options={PROJECT.map((d) => ({
+                  code: d.code,
+                  description: d.name,
+                }))}
                 disabled={isReadOnly}
               />
             </div>
@@ -563,7 +705,10 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
 
         {/* Billing Items Section */}
         <div className="mb-3">
-          <div className="p-2 mb-3 bg-light d-flex justify-content-between align-items-center" style={{ background: "#f43434" }}>
+          <div
+            className="p-2 mb-3 bg-light d-flex justify-content-between align-items-center"
+            style={{ background: "#f43434" }}
+          >
             <h5 className="mb-0 text-dark">Billing Items</h5>
             {!isReadOnly && (
               <button
@@ -580,74 +725,108 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
           <div className="table-responsive">
             <table className="table table-bordered mb-0 align-middle">
               <thead className="table-light">
-              <tr>
-                <th>Item</th>
-                <th>Units</th>
-                <th>Quantity</th>
-                <th>Unit Cost</th>
-                <th>Amount</th>
-                <th>Actions</th>
-              </tr>
+                <tr>
+                  <th>Item</th>
+                  <th>Units</th>
+                  <th>Quantity</th>
+                  <th>Unit Cost</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-              {requisitionLines.map((line, idx) => (
-                <tr key={idx}>
-                  <td>
-                    <FormSelect
-                      value={line.billingItemCode}
-                      onChange={(value) => handleRequisitionLineChange(idx, "billingItemCode", value)}
-                      options={billingItems.map(item => ({ code: item.code, description: item.description }))}
-                      required
-                      disabled={isReadOnly}
-                      styles="mb-0"
-                    />
-                  </td>
-                  <td>
-                    <FormSelect
-                      value={line.unitOfMeasure}
-                      onChange={(value) => handleRequisitionLineChange(idx, "unitOfMeasure", value)}
-                      options={unitsOfMeasure.map(item => ({ code: item.code, description: item.displayName }))}
-                      required
-                      disabled={isReadOnly}
-                      styles="mb-0"
-                    />
-                  </td>
-                  <td>
-                    <FormInput
-                      value={line.quantity}
-                      onChange={(value) => handleRequisitionLineChange(idx, "quantity", Number(value))}
-                      required
-                      disabled={isReadOnly}
-                      styles="mb-0"
-                    />
-                  </td>
-                  <td>
-                    <FormInput
-                      value={line.unitCost}
-                      onChange={(value) => handleRequisitionLineChange(idx, "unitCost", Number(value))}
-                      required
-                      disabled={isReadOnly}
-                      styles="mb-0"
-                    />
-                  </td>
-                  <td>{getRequisitionLineAmount(line.unitCost, line.quantity)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => removeRequisitionLine(idx, line)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                {requisitionLines.map((line, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      <FormSelect
+                        value={line.billingItemCode}
+                        onChange={(value) =>
+                          handleRequisitionLineChange(
+                            idx,
+                            "billingItemCode",
+                            value
+                          )
+                        }
+                        options={billingItems.map((item) => ({
+                          code: item.code,
+                          description: item.description,
+                        }))}
+                        required
+                        disabled={isReadOnly}
+                        styles="mb-0"
+                      />
+                    </td>
+                    <td>
+                      <FormSelect
+                        value={line.unitOfMeasure}
+                        onChange={(value) =>
+                          handleRequisitionLineChange(
+                            idx,
+                            "unitOfMeasure",
+                            value
+                          )
+                        }
+                        options={unitsOfMeasure.map((item) => ({
+                          code: item.code,
+                          description: item.displayName,
+                        }))}
+                        required
+                        disabled={isReadOnly}
+                        styles="mb-0"
+                      />
+                    </td>
+                    <td>
+                      <FormInput
+                        value={line.quantity}
+                        onChange={(value) =>
+                          handleRequisitionLineChange(
+                            idx,
+                            "quantity",
+                            Number(value)
+                          )
+                        }
+                        required
+                        disabled={isReadOnly}
+                        styles="mb-0"
+                      />
+                    </td>
+                    <td>
+                      <FormInput
+                        value={line.unitCost}
+                        onChange={(value) =>
+                          handleRequisitionLineChange(
+                            idx,
+                            "unitCost",
+                            Number(value)
+                          )
+                        }
+                        required
+                        disabled={isReadOnly}
+                        styles="mb-0"
+                      />
+                    </td>
+                    <td>
+                      {getRequisitionLineAmount(line.unitCost, line.quantity)}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => removeRequisitionLine(idx, line)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
               <tfoot className="bg-light">
-              <tr>
-                <td>Total Amount</td>
-                <td colSpan={5} className="text-end">{formatCurrency(totalAmount, formData.currencyCode)}</td>
-              </tr>
+                <tr>
+                  <td>Total Amount</td>
+                  <td colSpan={5} className="text-end">
+                    {formatCurrency(totalAmount, formData.currencyCode)}
+                  </td>
+                </tr>
               </tfoot>
             </table>
           </div>
@@ -659,7 +838,8 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
             <button
               type="button"
               className="btn btn-outline-secondary"
-              onClick={onClose}>
+              onClick={onClose}
+            >
               <ArrowLeft size={16} className="me-1" />
               Go Back
             </button>
@@ -669,7 +849,8 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 <button
                   type="submit"
                   className="btn btn-danger d-flex align-items-center gap-1"
-                  onClick={() => setFormAction('save')}>
+                  onClick={() => setFormAction("save")}
+                >
                   <Save size={16} />
                   Save
                 </button>
@@ -677,7 +858,8 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
                 <button
                   type="submit"
                   className="btn btn-success d-flex align-items-center gap-1"
-                  onClick={() => setFormAction('submit')}>
+                  onClick={() => setFormAction("submit")}
+                >
                   <CircleCheckIcon size={16} />
                   Submit for Approval
                 </button>
@@ -688,7 +870,8 @@ const RequisitionForm: React.FC<RequisitionFormProps> = ({ requisitionNo, onClos
               <button
                 type="button"
                 className="btn btn-danger d-flex align-items-center gap-1"
-                onClick={handleCancelApprovalRequest}>
+                onClick={handleCancelApprovalRequest}
+              >
                 <CircleX size={16} />
                 Cancel Approval
               </button>

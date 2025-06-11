@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { TravelRequest } from "@/app/types/travel";
-import { getResource } from "@/app/lib/api/http";
+import { TravelRequest } from "../../../../types/travel";
+import { getResource } from "../../../../lib/api/http";
 import Swal from "sweetalert2";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
 
 interface ServiceProvider {
   serviceCode: string;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import CustomModal from "../modals/CustomModal";
 import SalaryAdvanceForm from "./forms/SalaryAdvanceForm";
 import { Wallet } from "lucide-react";
-import { Advance } from "@/app/types/advance";
+import { Advance } from "../../types/advance";
 
 interface AdvanceRequestActionProps {
   advance: Advance | null;

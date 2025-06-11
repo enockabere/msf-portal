@@ -3,14 +3,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
-import { TravelRequest } from "@/app/types/travel";
-import { createResource, deleteResource, getResource } from "@/app/lib/api/http";
+import { TravelRequest } from "../../../../types/travel";
+import { createResource, deleteResource, getResource } from "../../../../lib/api/http";
 import { Save, Trash2, XCircle, Plus } from "lucide-react";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
-import { useMySetups } from "@/app/context/SetupContext";
-import FormInput from "@/app/components/inputs/FormInput";
-import FormSelect from "@/app/components/inputs/FormSelect";
-import SectionLoader from "@/app/components/loaders/SectionLoader";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
+import { useMySetups } from "../../../../context/SetupContext";
+import FormInput from "../../../../components/inputs/FormInput";
+import FormSelect from "../../../../components/inputs/FormSelect";
+import SectionLoader from "../../../../components/loaders/SectionLoader";
 
 interface Traveller {
   travellerName: string;

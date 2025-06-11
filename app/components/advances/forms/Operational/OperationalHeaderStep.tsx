@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { FormData } from "@/app/types/advance";
-import { useMySetups } from "@/app/context/SetupContext";
-import { findObjectFromArray } from "@/app/utils/helpers";
-import { useAdvance } from "@/app/context/AdvanceContext";
+import { FormData } from "../../../../types/advance";
+import { useMySetups } from "../../../../context/SetupContext";
+import { findObjectFromArray } from "../../../../utils/helpers";
+import { useAdvance } from "../../../../context/AdvanceContext";
 
 interface OperationalHeaderStepProps {
   formData: FormData;

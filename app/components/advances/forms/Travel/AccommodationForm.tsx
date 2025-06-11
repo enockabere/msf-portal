@@ -1,13 +1,13 @@
-import { TravelRequest } from "@/app/types/travel";
+import { TravelRequest } from "../../../../types/travel";
 import React, { useCallback, useEffect, useState } from "react";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../../context/PageLoaderContext";
 import Swal from "sweetalert2";
-import { patchResource } from "@/app/lib/api/http";
-import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpers";
-import FormSelect from "@/app/components/inputs/FormSelect";
-import { useMySetups } from "@/app/context/SetupContext";
+import { patchResource } from "../../../../lib/api/http";
+import { decodeValue, removeNullAndUndefinedFromObject } from "../../../../utils/helpers";
+import FormSelect from "../../../../components/inputs/FormSelect";
+import { useMySetups } from "../../../../context/SetupContext";
 import { Save } from "lucide-react";
-import FormSwitch from "@/app/components/inputs/FormSwitch";
+import FormSwitch from "../../../../components/inputs/FormSwitch";
 
 const ACCOMMODATION_TYPES = [
   { code: "Self-Arranged", description: "Self Arranged" },
