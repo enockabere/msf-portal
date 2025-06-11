@@ -3,15 +3,22 @@
 import { useState, useMemo } from "react";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import { formatDate } from "@/app/utils/dateFormats";
+import { decodeValue, formatNumber } from "@/app/utils/helpers";
+import { EyeIcon, Pencil } from "lucide-react";
+import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
+import CustomModal from "@/app/components/modals/CustomModal";
 
 interface RequisitionRequestsTableProps {
     data: Array<Record<string, any>>;
     loading: boolean;
+    onRefresh?: () => void;
 }
 
-export default function RequisitionRequestsTable({data, loading}: RequisitionRequestsTableProps) {
+export default function RequisitionRequestsTable({data, loading, onRefresh}: RequisitionRequestsTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [search, setSearch] = useState("");
+    const [requisitionNo, setRequisitionNo] = useState(null);
+    const [clickAction, setClickAction] = useState('View');
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -21,6 +28,12 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
         });
     }, [search, data]);
 
+    const handleCloseModal = () => setRequisitionNo(null)
+    const handleOpenModal = (no: string, action) => {
+        setRequisitionNo(no);
+        setClickAction(action);
+    }
+
     const columns = [
         {
             name: "Reference",
@@ -28,7 +41,7 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
             cell: (row: Record<string, any>) => (
                 <span
                     className="text-blue text-decoration-underline cursor-pointer"
-                    onClick={() => console.log("View", row)}
+                    onClick={() => handleOpenModal(row.no, 'View')}
                 >
           {row.no}
         </span>
@@ -36,14 +49,14 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
         },
         {
             name: "Title",
-            selector: (row: Record<string, any>) => row.description,
+            selector: (row: Record<string, any>) => row.title,
         },
         {
             name: "Amount",
             selector: (row: Record<string, any>) =>
                 `${
                     row.currencyCode || "KES"
-                } ${row.amount.toLocaleString()}`,
+                } ${formatNumber(row.amount)}`,
         },
         {
             name: "Order Date",
@@ -70,9 +83,11 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                     Released: "fas fa-check-circle me-1",
                     "Pending Approval": "fas fa-clock me-1",
                 };
+
+                const status = decodeValue(row.status);
                 return (
-                    <span className={badgeMap[row.status]}>
-            <i className={iconMap[row.status]}/> {row.status}
+                    <span className={badgeMap[status]}>
+            <i className={iconMap[status]}/> {status}
           </span>
                 );
             },
@@ -84,10 +99,19 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                     <button
                         className="text-primary border-0 bg-transparent"
                         title="View"
-                        onClick={() => console.log("open", row)}
+                        onClick={() => handleOpenModal(row.no, 'View')}
                     >
                         <i className="las la-eye fs-18"/>
                     </button>
+                    {row.status === "Open" && (
+                      <button
+                        className="text-primary border-0 bg-transparent"
+                        title="Edit"
+                        onClick={() => handleOpenModal(row.no, 'Edit')}
+                      >
+                          <i className="la la-pencil fs-18"/>
+                      </button>
+                    )}
                 </div>
             ),
             ignoreRowClick: true,
@@ -101,11 +125,27 @@ export default function RequisitionRequestsTable({data, loading}: RequisitionReq
                 title=""
                 columns={columns}
                 data={loading ? [] : filteredData}
-                searchPlaceholder="Search travel requests..."
+                searchPlaceholder="Search requisition requests..."
                 loading={loading}
                 includeStatusFilter={true}
                 includeDateFilter={true}
             />
+
+            <CustomModal
+              show={!!requisitionNo}
+              onClose={handleCloseModal}
+              title={`${clickAction} Requisition (${requisitionNo})`}
+              size="xl"
+              titleIcon={clickAction === 'Edit'
+                ? <Pencil size={18} className="text-white" />
+                : <EyeIcon size={18} className="text-white" />}
+            >
+                <div className="row">
+                    <div className="col-md-12">
+                        <RequisitionForm requisitionNo={requisitionNo} onClose={handleCloseModal} onSuccess={onRefresh} />
+                    </div>
+                </div>
+            </CustomModal>
         </>
     );
 }

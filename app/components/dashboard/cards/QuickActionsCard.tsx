@@ -29,6 +29,12 @@ export default function QuickActionsCard() {
       title: "Other Advances",
       bgColor: "bg-info",
     },
+    {
+      href: "/dashboard/make-request/requisitions",
+      icon: "iconoir-page",
+      title: "Requisitions",
+      bgColor: "bg-info",
+    },
   ];
 
   const handleNavigate = (href: string) => {

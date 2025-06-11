@@ -7,6 +7,7 @@ import { decodeValue, removeNullAndUndefinedFromObject } from "@/app/utils/helpe
 import FormSelect from "@/app/components/inputs/FormSelect";
 import { useMySetups } from "@/app/context/SetupContext";
 import { Save } from "lucide-react";
+import FormSwitch from "@/app/components/inputs/FormSwitch";
 
 const ACCOMMODATION_TYPES = [
   { code: "Self-Arranged", description: "Self Arranged" },
@@ -154,7 +155,6 @@ const AccommodationForm: React.FC<Props> = ({travelHeaderRequest, isReadOnly = f
                 options={ACCOMMODATION_TYPES}
                 required
                 disabled={isReadOnly}
-                showAsterisk
               />
             </div>
 
@@ -164,48 +164,29 @@ const AccommodationForm: React.FC<Props> = ({travelHeaderRequest, isReadOnly = f
                 value={formData.missionType}
                 onChange={(value) => handleFormChange("missionType", value)}
                 options={missionTypes.map(item => ({ code: item.code, description: item.description }))}
-                required
+                required={formData.requirePerDiem}
                 disabled={isReadOnly || !formData.requirePerDiem}
-                showAsterisk={formData.requirePerDiem}
               />
             </div>
 
             <div className="col-md-6">
-              <div className="form-group form-check form-switch">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="requirePerDiem"
-                  role="switch"
-                  checked={formData.requirePerDiem}
-                  onChange={(e) => handleFormChange("requirePerDiem", e.target.checked)}
-                  disabled={isReadOnly || !requiresPerDiemChecker(decodeValue(formData.accommodationType))}
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="requirePerDiem">
-                  Require Per Diem
-                </label>
-              </div>
+              <FormSwitch
+                label="Require Per Diem"
+                id="requirePerDiem"
+                value={formData.requirePerDiem}
+                onChange={(value) => handleFormChange("requirePerDiem", value)}
+                disabled={isReadOnly}
+              />
             </div>
 
             <div className="col-md-6">
-              <div className="form-group form-check form-switch">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="requirePerDiem"
-                  role="switch"
-                  checked={formData.bookingComplete}
-                  onChange={(e) => handleFormChange("bookingComplete", e.target.checked)}
-                  disabled={isReadOnly}
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="requirePerDiem">
-                  Have completed booking
-                </label>
-              </div>
+              <FormSwitch
+                label="Have completed booking?"
+                id="bookingComplete"
+                value={formData.bookingComplete}
+                onChange={(value) => handleFormChange("bookingComplete", value)}
+                disabled={isReadOnly}
+              />
             </div>
           </div>
 

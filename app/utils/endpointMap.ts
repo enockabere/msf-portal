@@ -28,7 +28,6 @@ export const endpointMap = {
     "/ODataV4/Requisition_CancelApprovalRequest",
   salaryAdvance: "/api/KineticTechnology/PayRoll/v2.0/payrollAdvance",
   advance: "/api/KineticTechnology/CashMgt/v2.0/imprestApi",
-  GetRequisitionStats: "/ODataV4/Requisition_getRequisitionStats",
   employeeBanks: "/api/KineticTechnology/Payroll/v2.0/employeeBanks",
   payrollPeriods: "/api/KineticTechnology/Payroll/v2.0/payrollPeriods",
   imprest: "/api/KineticTechnology/CashMgt/v2.0/imprestApi",
@@ -36,7 +35,6 @@ export const endpointMap = {
   cashManagementAttachment: "/api/KineticTechnology/CashMgt/v2.0/attachments",
   imprestDetailedLine:
     "/api/KineticTechnology/CashMgt/v2.0/detailedImprestLines",
-  requisitions: "/api/kinetics/requisition/v1.0/requisitions",
   delegateApproval: "/ODataV4/ApprovalsManagement_delegateDoc",
   approveDocument: "/ODataV4/ApprovalsManagement_approveDoc",
   rejectApprovalDocument: "/ODataV4/ApprovalsManagement_rejectDoc",
@@ -74,6 +72,12 @@ export const endpointMap = {
   travelRequestLine: "/api/kinetics/adminTravel/v1.0/travelRequestLines",
   getLetterOfInvitation1: "/ODataV4/TravelManager_getLetterOfInvitation1",
   getLetterOfInvitation2: "/ODataV4/TravelManager_getLetterOfInvitation2",
+  getRequisitionStats: "/ODataV4/Requisition_getRequisitionStats",
+  requisitions: "/api/kinetics/requisition/v1.0/requisitions",
+  requisitionLines: "/api/kinetics/requisition/v1.0/requisitionLines",
+  requisitionAttachments: "/api/kinetics/requisition/v1.0/attachments",
+  sendRequisitionForApproval: "/ODataV4/Requisition_SendApprovalRequest",
+  cancelRequisitionApprovalRequest: "/ODataV4/Requisition_CancelApprovalRequest",
 } as const;
 
 export const memoryMap: Map<string, any> = new Map(Object.entries(endpointMap));
