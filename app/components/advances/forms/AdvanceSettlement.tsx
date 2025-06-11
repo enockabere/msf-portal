@@ -620,7 +620,7 @@ export default function AdvanceSettlement({ closeSettlementDialog }: Props) {
   }, [formData]);
 
   return (
-    <div className="container-fluid d-flex flex-column min-vh-100">
+    <div className="container-fluid d-flex flex-column">
       <div className="row flex-grow-1">
         <div className="col-md-9">
           <div className="card border-0 shadow-sm mb-4">
