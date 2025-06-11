@@ -232,7 +232,7 @@ export default function OperationalLineStep({
                     </select>
                   </td>
                   <td className="text-center d-flex gap-1 justify-content-center">
-                    {['Open', ''].includes(formData?.status) && (
+                    {['Draft', undefined, null].includes(formData?.imprestStatus) && (
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
