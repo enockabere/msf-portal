@@ -1,15 +1,21 @@
 "use client";
 
-import TabbedRequisitionRequests from "@/app/components/requisitions/TabbedRequisitionRequests";
+import TabbedRequisitionRequests from "../../../components/requisitions/TabbedRequisitionRequests";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { codeUnit, getResource } from "@/app/lib/api/http";
-import { ToastContainer } from 'react-toastify';
-import { Layers, PlusCircle, ShoppingCartIcon, Store, User } from "lucide-react";
-import SummaryCards from "@/app/components/cards/SummaryCards";
-import CustomModal from "@/app/components/modals/CustomModal";
-import RequisitionForm from "@/app/components/requisitions/forms/RequisitionForm";
+import { codeUnit, getResource } from "../../../lib/api/http";
+import { ToastContainer } from "react-toastify";
+import {
+  Layers,
+  PlusCircle,
+  ShoppingCartIcon,
+  Store,
+  User,
+} from "lucide-react";
+import SummaryCards from "../../../components/cards/SummaryCards";
+import CustomModal from "../../../components/modals/CustomModal";
+import RequisitionForm from "../../../components/requisitions/forms/RequisitionForm";
 import { useSession } from "next-auth/react";
-import { Requisition } from "@/app/types/requisition";
+import { Requisition } from "../../../types/requisition";
 import Swal from "sweetalert2";
 
 interface Statistics {
@@ -23,7 +29,7 @@ export default function RequisitionClient() {
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const {data: session} = useSession();
+  const { data: session } = useSession();
 
   const [statistics, setStatistics] = useState<Statistics>({
     totalRequisitions: 0,
@@ -32,47 +38,52 @@ export default function RequisitionClient() {
     totalStoreRequisitions: 0,
   });
 
-  const fetchRequisitions = useCallback(async (documentType?: string) => {
-    setIsLoading(true);
-    try {
-      let filters = `contains(requestedByFor, '${session?.user?.profile?.no || ""}')`;
+  const fetchRequisitions = useCallback(
+    async (documentType?: string) => {
+      setIsLoading(true);
+      try {
+        let filters = `contains(requestedByFor, '${
+          session?.user?.profile?.no || ""
+        }')`;
 
-      if (documentType) {
-        filters += ` and documentType eq '${documentType}'`;
-      }
-
-      const res = await getResource('requisitions', {
-        params: {
-          $filter: filters,
+        if (documentType) {
+          filters += ` and documentType eq '${documentType}'`;
         }
-      });
 
-      if (res.error) {
-        throw new Error(res.error.message);
+        const res = await getResource("requisitions", {
+          params: {
+            $filter: filters,
+          },
+        });
+
+        if (res.error) {
+          throw new Error(res.error.message);
+        }
+
+        setRequisitions([...res.value]);
+      } catch (error: any) {
+        await Swal.fire("Error fetching requisitions", error.message, "error");
+      } finally {
+        setIsLoading(false);
       }
-
-      setRequisitions([...res.value]);
-    } catch (error: any) {
-      await Swal.fire("Error fetching requisitions", error.message, "error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session?.user?.profile?.no]);
+    },
+    [session?.user?.profile?.no]
+  );
 
   const fetchStatistics = useCallback(async () => {
     try {
       const res = await codeUnit("getRequisitionStats", {
         data: {
-          employeeNo: session?.user?.profile?.no || ""
-        }
+          employeeNo: session?.user?.profile?.no || "",
+        },
       });
 
       if (res.error) {
         throw new Error(res.error.message);
       }
-      setStatistics({...JSON.parse(res.value)});
+      setStatistics({ ...JSON.parse(res.value) });
     } catch (error: any) {
-      console.error('Error fetching statistics:', error.message);
+      console.error("Error fetching statistics:", error.message);
     }
   }, [session?.user?.profile?.no]);
 
@@ -91,52 +102,61 @@ export default function RequisitionClient() {
     }
   }, [fetchRequisitions, fetchStatistics, session?.user?.profile?.no]);
 
-  const cards = useMemo(() => [
-    {
-      title: "User Requisitions",
-      value: statistics.totalUserRequisitions,
-      description: "User Requisitions",
-      icon: <User size={28}/>,
-      bgColorClass: "bg-light-success",
-      textColorClass: "text-success",
-      onClick: async () => {
-        await fetchRequisitions('User Requisition');
+  const cards = useMemo(
+    () => [
+      {
+        title: "User Requisitions",
+        value: statistics.totalUserRequisitions,
+        description: "User Requisitions",
+        icon: <User size={28} />,
+        bgColorClass: "bg-light-success",
+        textColorClass: "text-success",
+        onClick: async () => {
+          await fetchRequisitions("User Requisition");
+        },
       },
-    },
-    {
-      title: "Store Requisitions",
-      value: statistics.totalStoreRequisitions,
-      description: "Store Requisitions",
-      icon: <Store size={28}/>,
-      bgColorClass: "bg-light-warning",
-      textColorClass: "text-warning",
-      onClick: async () => {
-        await fetchRequisitions('Store Requisition');
+      {
+        title: "Store Requisitions",
+        value: statistics.totalStoreRequisitions,
+        description: "Store Requisitions",
+        icon: <Store size={28} />,
+        bgColorClass: "bg-light-warning",
+        textColorClass: "text-warning",
+        onClick: async () => {
+          await fetchRequisitions("Store Requisition");
+        },
       },
-    },
-    {
-      title: "Purchase Requisitions",
-      value: statistics.totalPurchaseRequisitions,
-      description: "Purchase Requisitions",
-      icon: <ShoppingCartIcon size={28}/>,
-      bgColorClass: "bg-light-info",
-      textColorClass: "text-info",
-      onClick: async () => {
-        await fetchRequisitions('Purchase Requisition');
+      {
+        title: "Purchase Requisitions",
+        value: statistics.totalPurchaseRequisitions,
+        description: "Purchase Requisitions",
+        icon: <ShoppingCartIcon size={28} />,
+        bgColorClass: "bg-light-info",
+        textColorClass: "text-info",
+        onClick: async () => {
+          await fetchRequisitions("Purchase Requisition");
+        },
       },
-    },
-    {
-      title: "Total Requisitions",
-      value: statistics.totalRequisitions,
-      description: "Total Requisitions",
-      icon: <Layers size={28}/>,
-      bgColorClass: "bg-light-warning",
-      textColorClass: "text-warning",
-      onClick: async () => {
-        await fetchRequisitions();
+      {
+        title: "Total Requisitions",
+        value: statistics.totalRequisitions,
+        description: "Total Requisitions",
+        icon: <Layers size={28} />,
+        bgColorClass: "bg-light-warning",
+        textColorClass: "text-warning",
+        onClick: async () => {
+          await fetchRequisitions();
+        },
       },
-    },
-  ], [fetchRequisitions, statistics.totalPurchaseRequisitions, statistics.totalRequisitions, statistics.totalStoreRequisitions, statistics.totalUserRequisitions]);
+    ],
+    [
+      fetchRequisitions,
+      statistics.totalPurchaseRequisitions,
+      statistics.totalRequisitions,
+      statistics.totalStoreRequisitions,
+      statistics.totalUserRequisitions,
+    ]
+  );
 
   return (
     <div className="page-content dashboard-container p-3">
@@ -153,7 +173,7 @@ export default function RequisitionClient() {
                 onClick={handleNewRequisitionRequestClick}
                 disabled={isLoading}
               >
-                <i className="fa fa-plus me-1"/>
+                <i className="fa fa-plus me-1" />
                 New Requisition
               </button>
             }
@@ -178,7 +198,7 @@ export default function RequisitionClient() {
         onClose={handleCloseModal}
         title="New Requisition"
         size="xl"
-        titleIcon={<PlusCircle size={18} className="text-white"/>}
+        titleIcon={<PlusCircle size={18} className="text-white" />}
       >
         <div className="row">
           <div className="col-md-12">
