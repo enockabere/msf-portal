@@ -35,50 +35,56 @@ export default function ReusableSalaryAdvanceTabs({
   const { dispatcher } = actions;
   const { imprestTypes, currencies, fetchSetups } = useMySetups();
 
-  const isOtherAdvances = path.includes('otherAdvances');
-  const advanceSet: AdvanceTypeKey = isOtherAdvances ? 'Other' : 'Salary';
+  const isOtherAdvances = path.includes("otherAdvances");
+  const advanceSet: AdvanceTypeKey = isOtherAdvances ? "Other" : "Salary";
   const eventKeys = {
     Other: [
-      { key: 'open', value: 'Open'},
-      { key: 'pending', value: 'Pending'},
-      { key: 'rejected', value: 'Rejected'},
-      { key: 'released', value: 'Released'},
-      { key: 'issued', value: 'Issued'},
-      { key: 'pendingVerification', value: 'Pending Verification'},
-      { key: 'surrendered', value: 'Surrendered'},
-      { key: 'surrenderRejected', value: 'Surrender Rejected'},
-      { key: 'settled', value: 'Settled'},
+      { key: "open", value: "Open" },
+      { key: "pending", value: "Pending" },
+      { key: "rejected", value: "Rejected" },
+      { key: "released", value: "Released" },
+      { key: "issued", value: "Issued" },
+      { key: "pendingVerification", value: "Pending Verification" },
+      { key: "surrendered", value: "Surrendered" },
+      { key: "surrenderRejected", value: "Surrender Rejected" },
+      { key: "settled", value: "Settled" },
     ],
     Salary: [
-      { key: 'open', value: 'Open'},
-      { key: 'pending', value: 'Pending'},
-      { key: 'released', value: 'Released'},
+      { key: "open", value: "Open" },
+      { key: "pending", value: "Pending" },
+      { key: "released", value: "Released" },
+      { key: "disbursed", value: "Disbursed" },
     ],
-  }
-  const searchPlaceHolder = isOtherAdvances ? 'Search advances...' : 'Search salary advances...'
-  const getTypeIcon = useCallback((type: string, ...args: any) => {
-    const icons: Record<AdvanceTypeKey, any> = {
-      Salary: "fa-solid fa-money-bill",
-      Other: {
-        TRAVEL: "fa-solid fa-plane",
-        OPERATION: "fa-solid fa-gear",
-      },
-    };
-    if (isOtherAdvances) {
-      let passedImprestType = '';
-      for (const prop in icons[type]) {
-        if (args.length && args[0].length) {
-          const [value] = args;
-          const type = suggestImprestType(prop, value);
-          if (type) {
-            passedImprestType = type;
+  };
+  const searchPlaceHolder = isOtherAdvances
+    ? "Search advances..."
+    : "Search salary advances...";
+  const getTypeIcon = useCallback(
+    (type: string, ...args: any) => {
+      const icons: Record<AdvanceTypeKey, any> = {
+        Salary: "fa-solid fa-money-bill",
+        Other: {
+          TRAVEL: "fa-solid fa-plane",
+          OPERATION: "fa-solid fa-gear",
+        },
+      };
+      if (isOtherAdvances) {
+        let passedImprestType = "";
+        for (const prop in icons[type]) {
+          if (args.length && args[0].length) {
+            const [value] = args;
+            const type = suggestImprestType(prop, value);
+            if (type) {
+              passedImprestType = type;
+            }
           }
         }
+        return icons["Other"][passedImprestType] || "fa-solid fa-file-alt";
       }
-      return icons['Other'][passedImprestType] || "fa-solid fa-file-alt";
-    }
-    return icons[type] || "fa-solid fa-file-alt";
-  }, [isOtherAdvances])
+      return icons[type] || "fa-solid fa-file-alt";
+    },
+    [isOtherAdvances]
+  );
 
   const columns = useMemo(() => {
     return GetColumnByType(advanceSet, setSelectedRowHandler, {
@@ -86,42 +92,53 @@ export default function ReusableSalaryAdvanceTabs({
       currencies,
       imprestTypes,
       getTypeIcon,
-
-    })
-  }, [advanceSet, setSelectedRowHandler, activeTab, getTypeIcon, imprestTypes, currencies]);
+    });
+  }, [
+    advanceSet,
+    setSelectedRowHandler,
+    activeTab,
+    getTypeIcon,
+    imprestTypes,
+    currencies,
+  ]);
 
   const filteredByStatus = useMemo(() => {
     const advanceByStatus = Map.groupBy(data, ({ status }) => status);
-    let open = advanceByStatus.get('Open') || [];
-    let pending = advanceByStatus.get('Pending Approval') || [];
-    let released = advanceByStatus.get('Released') || [];
-    let settled = advanceByStatus.get('Settled') || [];
-    let rejected = advanceByStatus.get('Rejected') || [];
-    let surrenderRejected = advanceByStatus.get('Surrender Rejected') || [];
-    let issued = advanceByStatus.get('Issued') || [];
-    let pendingVerification = advanceByStatus.get('Pending_x0020_Liquidation') || [];
-    let surrendered = advanceByStatus.get('Surrendered') || [];
+    const disbursed = data.filter((item) => item.disbursed === true);
+    let open = advanceByStatus.get("Open") || [];
+    let pending = advanceByStatus.get("Pending Approval") || [];
+    let released = advanceByStatus.get("Released") || [];
+    let settled = advanceByStatus.get("Settled") || [];
+    let rejected = advanceByStatus.get("Rejected") || [];
+    let surrenderRejected = advanceByStatus.get("Surrender Rejected") || [];
+    let issued = advanceByStatus.get("Issued") || [];
+    let pendingVerification =
+      advanceByStatus.get("Pending_x0020_Liquidation") || [];
+    let surrendered = advanceByStatus.get("Surrendered") || [];
 
     if (isOtherAdvances) {
-      const advancesByImprestStatus = Map.groupBy(data, ({ imprestStatus }) => imprestStatus);
-      open = advancesByImprestStatus.get('Draft') || [];
-      pending = advancesByImprestStatus.get('Pending') || [];
-      settled = advancesByImprestStatus.get('Settled') || [];
-      rejected = advancesByImprestStatus.get('Rejected') || [];
-      surrenderRejected = advancesByImprestStatus.get('Surrender Rejected') || [];
-      issued = advancesByImprestStatus.get('Issued') || [];
-      pendingVerification = advancesByImprestStatus.get('Pending_x0020_Liquidation') || [];
-      surrendered = advancesByImprestStatus.get('Surrendered') || [];
+      const advancesByImprestStatus = Map.groupBy(
+        data,
+        ({ imprestStatus }) => imprestStatus
+      );
+      open = advancesByImprestStatus.get("Draft") || [];
+      pending = advancesByImprestStatus.get("Pending") || [];
+      settled = advancesByImprestStatus.get("Settled") || [];
+      rejected = advancesByImprestStatus.get("Rejected") || [];
+      surrenderRejected =
+        advancesByImprestStatus.get("Surrender Rejected") || [];
+      issued = advancesByImprestStatus.get("Issued") || [];
+      pendingVerification =
+        advancesByImprestStatus.get("Pending_x0020_Liquidation") || [];
+      surrendered = advancesByImprestStatus.get("Surrendered") || [];
       released = [
-        ...advancesByImprestStatus.get('Approved') || [],
-        ...advancesByImprestStatus.get('Posted') || [],
-        ...advancesByImprestStatus.get('Pending Liquidation') || [],
-        ...advancesByImprestStatus.get('Liquidation Rejected') || [],
-        ...advancesByImprestStatus.get('Reversed') || [],
+        ...(advancesByImprestStatus.get("Approved") || []),
+        ...(advancesByImprestStatus.get("Posted") || []),
+        ...(advancesByImprestStatus.get("Pending Liquidation") || []),
+        ...(advancesByImprestStatus.get("Liquidation Rejected") || []),
+        ...(advancesByImprestStatus.get("Reversed") || []),
       ];
-
     }
-
 
     return {
       open,
@@ -133,11 +150,23 @@ export default function ReusableSalaryAdvanceTabs({
       surrendered,
       rejected,
       settled,
+      disbursed,
     };
   }, [data, isOtherAdvances]);
 
   useEffect(() => {
-    const statuses = ['open', 'pending', 'released', 'issued', 'pendingVerification', 'surrenderRejected', 'surrendered', 'settled', 'rejected']
+    const statuses = [
+      "open",
+      "pending",
+      "released",
+      "issued",
+      "pendingVerification",
+      "surrenderRejected",
+      "surrendered",
+      "settled",
+      "rejected",
+      "disbursed",
+    ];
     const counts = {
       open: filteredByStatus.open.length,
       pending: filteredByStatus.pending.length,
@@ -148,14 +177,18 @@ export default function ReusableSalaryAdvanceTabs({
       settled: filteredByStatus.settled.length,
       rejected: filteredByStatus.rejected.length,
       issued: filteredByStatus.issued.length,
-      total: statuses.reduce((sum, status) => sum + filteredByStatus[status].length, 0),
+      disbursed: filteredByStatus.disbursed.length,
+      total: statuses.reduce(
+        (sum, status) => sum + filteredByStatus[status].length,
+        0
+      ),
     };
 
     if (counts.total > 0) {
       dispatcher({
-        type: 'SET_ADVANCES_COUNTS',
+        type: "SET_ADVANCES_COUNTS",
         payload: counts,
-      })
+      });
     }
   }, [filteredByStatus, dispatcher]);
 
@@ -163,7 +196,19 @@ export default function ReusableSalaryAdvanceTabs({
     if (
       !didSetInitialTab.current &&
       initialTab &&
-      ["open", "pending", "released", "pendingVerification", "surrenderRejected", "surrendered", "partiallySettled", "Settled", "Accounted", "Rejected"].includes(initialTab)
+      [
+        "open",
+        "pending",
+        "released",
+        "disbursed",
+        "pendingVerification",
+        "surrenderRejected",
+        "surrendered",
+        "partiallySettled",
+        "Settled",
+        "Accounted",
+        "Rejected",
+      ].includes(initialTab)
     ) {
       setActiveTab(initialTab);
       didSetInitialTab.current = true;
@@ -172,29 +217,31 @@ export default function ReusableSalaryAdvanceTabs({
 
   useEffect(() => {
     if (isOtherAdvances) {
-      fetchSetups([
-        'imprestTypes',
-      ]);
+      fetchSetups(["imprestTypes"]);
     }
   });
 
   return (
     <div>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "open")}>
-        {
-          eventKeys[advanceSet].map(item => {
-            return <Tab eventKey={item.key} key={item.key} title={`${item.value} (${filteredByStatus[item.key].length})`}>
+        {eventKeys[advanceSet].map((item) => {
+          return (
+            <Tab
+              eventKey={item.key}
+              key={item.key}
+              title={`${item.value} (${filteredByStatus[item.key].length})`}
+            >
               <div className="pt-3">
                 <SkeletonDataTable
-                    columns={columns}
-                    data={filteredByStatus[item.key]}
-                    searchPlaceholder={searchPlaceHolder}
-                    loading={loading}
+                  columns={columns}
+                  data={filteredByStatus[item.key] || []}
+                  searchPlaceholder={searchPlaceHolder}
+                  loading={loading}
                 />
               </div>
             </Tab>
-          })
-        }
+          );
+        })}
       </Tabs>
 
       <AdvanceRequestAction
