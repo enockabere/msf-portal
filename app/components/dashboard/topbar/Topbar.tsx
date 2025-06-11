@@ -1,6 +1,6 @@
 "use client";
 
-import { useStickyTopbar } from "@/app/hooks/useStickyTopbar";
+import { useStickyTopbar } from "../../../hooks/useStickyTopbar";
 import MenuToggle from "./MenuToggle";
 import BreadcrumbNav from "./BreadcrumbNav";
 import SearchBar from "./SearchBar";

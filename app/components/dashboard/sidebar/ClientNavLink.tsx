@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../context/PageLoaderContext";
 import { startTransition } from "react";
 
 interface ClientNavLinkProps {
@@ -21,19 +21,24 @@ export default function ClientNavLink({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     dispatcher({
-      type: 'PATCH_LOADING_STATE',
+      type: "PATCH_LOADING_STATE",
       payload: {
         loading: true,
-        message: '',
-      }
+        message: "",
+      },
     });
-    startTransition(() => (router.push(href), dispatcher({
-      type: 'PATCH_LOADING_STATE',
-      payload: {
-        loading: false,
-        message: '',
-      }
-    })));
+    startTransition(
+      () => (
+        router.push(href),
+        dispatcher({
+          type: "PATCH_LOADING_STATE",
+          payload: {
+            loading: false,
+            message: "",
+          },
+        })
+      )
+    );
   };
 
   return (

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useThemeToggle } from "@/app/hooks/useThemeToggle";
+import { useThemeToggle } from "../../../hooks/useThemeToggle";
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useThemeToggle();

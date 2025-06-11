@@ -4,8 +4,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { usePageLoader } from "../../../context/PageLoaderContext";
 import { useEffect, useState, startTransition } from "react";
-import { getResource } from "@/app/lib/api/http";
-import { normalizeDocType } from "@/app/utils/normalizeDocType";
+import { getResource } from "../../../lib/api/http";
+import { normalizeDocType } from "../../../utils/normalizeDocType";
 
 export default function SidebarMenu() {
   const router = useRouter();

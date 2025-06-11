@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Home, ChevronRight } from "lucide-react";
-import { useBreadcrumb } from "@/app/context/BreadcrumbContext";
+import { useBreadcrumb } from "../../../context/BreadcrumbContext";
 import { useSession } from "next-auth/react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -72,9 +72,11 @@ export default function BreadcrumbNav() {
       <li className="mx-3 welcome-text">
         <h3 className="mb-0 fw-bold text-truncate">
           {currentGreeting.greeting},{" "}
-          {isLoading
-              ? <Skeleton width={100} />
-              : (session?.user?.profile?.firstName || session?.user?.name)}
+          {isLoading ? (
+            <Skeleton width={100} />
+          ) : (
+            session?.user?.profile?.firstName || session?.user?.name
+          )}
         </h3>
         <h6 className="mb-0 fw-normal text-muted text-truncate fs-14">
           {quoteText}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSidebarToggle } from "@/app/hooks/useSidebarToggle";
+import { useSidebarToggle } from "../../../hooks/useSidebarToggle";
 
 export default function MenuToggle() {
   const { toggleSidebar } = useSidebarToggle();

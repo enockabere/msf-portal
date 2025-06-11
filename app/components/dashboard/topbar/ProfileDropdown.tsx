@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../context/PageLoaderContext";
 import { startTransition } from "react";
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
@@ -19,20 +19,20 @@ export default function ProfileDropdown() {
     e.preventDefault();
     if (href !== currentPath) {
       dispatcher({
-        type: 'PATCH_LOADING_STATE',
+        type: "PATCH_LOADING_STATE",
         payload: {
           loading: true,
-          message: '',
-        }
+          message: "",
+        },
       });
       startTransition(() => {
         router.push(href);
         dispatcher({
-          type: 'PATCH_LOADING_STATE',
+          type: "PATCH_LOADING_STATE",
           payload: {
             loading: false,
-            message: '',
-          }
+            message: "",
+          },
         });
       });
     }

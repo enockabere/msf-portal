@@ -2,7 +2,7 @@
 
 import React, { startTransition } from "react";
 import { useRouter } from "next/navigation";
-import { usePageLoader } from "@/app/context/PageLoaderContext";
+import { usePageLoader } from "../../../context/PageLoaderContext";
 import "./Cards.css";
 
 export default function QuickActionsCard() {
