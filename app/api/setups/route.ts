@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
-import { ENDPOINTMAP, memoryMap } from "@/app/utils/endpointMap";
-import { APIResponse, EndpointOptions } from "@/app/types/global";
+import { ENDPOINTMAP, memoryMap } from "../../utils/endpointMap";
+import { APIResponse, EndpointOptions } from "../../types/global";
 export async function POST(request: Request) {
   try {
     const { endpoints, resolveAll } = await request.json();
@@ -12,50 +12,58 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const batchRequest = endpoints.map((endpoint: Record<ENDPOINTMAP, EndpointOptions> | string) => {
-      const requstOptions = {} as Record<string, any>;
-      if (typeof endpoint === "object") {
-        for (const [key, value] of Object.entries(endpoint)) {
-          requstOptions["url"] = memoryMap.get(key);
-          if (value && typeof value === "object") {
-            const typedValue = value as Record<string, unknown>;
-            if (typedValue.filters && typeof typedValue.filters === "object") {
-              const filter = transport.filter(typedValue.filters);
-              requstOptions["params"] = filter;
-            }
-            if (typedValue.select && Array.isArray(typedValue.select)) {
-              const allSelectArrayItemsStrings = typedValue.select.every(
-                (s) => typeof s === "string"
-              );
-              if (allSelectArrayItemsStrings) {
-                requstOptions["params"]["$select"] =
-                  typedValue.select.join(",");
+    const batchRequest = endpoints.map(
+      (endpoint: Record<ENDPOINTMAP, EndpointOptions> | string) => {
+        const requstOptions = {} as Record<string, any>;
+        if (typeof endpoint === "object") {
+          for (const [key, value] of Object.entries(endpoint)) {
+            requstOptions["url"] = memoryMap.get(key);
+            if (value && typeof value === "object") {
+              const typedValue = value as Record<string, unknown>;
+              if (
+                typedValue.filters &&
+                typeof typedValue.filters === "object"
+              ) {
+                const filter = transport.filter(typedValue.filters);
+                requstOptions["params"] = filter;
               }
+              if (typedValue.select && Array.isArray(typedValue.select)) {
+                const allSelectArrayItemsStrings = typedValue.select.every(
+                  (s) => typeof s === "string"
+                );
+                if (allSelectArrayItemsStrings) {
+                  requstOptions["params"]["$select"] =
+                    typedValue.select.join(",");
+                }
+              }
+              delete typedValue.filters;
+              delete typedValue.select;
+              requstOptions["params"] = {
+                ...requstOptions["params"],
+                ...typedValue,
+                company: process.env.BC_COMPANY_NAME,
+              };
+              requstOptions["method"] = "GET";
+            } else {
+              throw new Error("Endpoint Value must be an object!", {
+                cause: 400,
+              });
             }
-            delete typedValue.filters;
-            delete typedValue.select;
-            requstOptions["params"] = {
-              ...requstOptions["params"],
-              ...typedValue,
-              company: process.env.BC_COMPANY_NAME,
-            };
-            requstOptions["method"] = "GET";
-          } else {
-            throw new Error('Endpoint Value must be an object!', { cause: 400 });
           }
+        } else if (typeof endpoint === "string") {
+          requstOptions["method"] = "GET";
+          requstOptions["url"] = memoryMap.get(endpoint);
+          requstOptions["params"] = {
+            company: process.env.BC_COMPANY_NAME,
+          };
+        } else {
+          throw new Error("endpoint can only be of type string or object!", {
+            cause: 400,
+          });
         }
+        return requstOptions;
       }
-      else if (typeof endpoint === "string") {
-        requstOptions["method"] = "GET";
-        requstOptions["url"] = memoryMap.get(endpoint);
-        requstOptions["params"] = {
-          company: process.env.BC_COMPANY_NAME,
-        };
-      } else {
-        throw new Error("endpoint can only be of type string or object!", { cause: 400 });
-      }
-      return requstOptions;
-    });
+    );
     const batchReponse = await transport.batch<APIResponse>(batchRequest);
     if (!batchReponse || !Array.isArray(batchReponse)) {
       return NextResponse.json(
@@ -89,31 +97,31 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (e: any) {
     let status: number = 500;
-    let statusCode: string = 'Internal Server Error!';
+    let statusCode: string = "Internal Server Error!";
     switch (e.cause) {
       case 400: {
         status = 400;
-        statusCode = 'Invalid Request!';
+        statusCode = "Invalid Request!";
         break;
       }
       case 404: {
         status = 404;
-        statusCode = 'Not Found!';
+        statusCode = "Not Found!";
         break;
       }
       case 415: {
         status = 415;
-        statusCode = 'Huge payload!';
+        statusCode = "Huge payload!";
         break;
       }
       case 302: {
         status = 302;
-        statusCode = 'Redirect!';
+        statusCode = "Redirect!";
         break;
       }
     }
     return NextResponse.json(
-      { error: `${statusCode}, ${e.message || 'Server Error!'}` },
+      { error: `${statusCode}, ${e.message || "Server Error!"}` },
       { status: status }
     );
   }

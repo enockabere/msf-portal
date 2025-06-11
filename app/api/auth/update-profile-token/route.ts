@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { memoryMap } from "@/app/utils/endpointMap";
+import { memoryMap } from "../../../utils/endpointMap";
 import { transport } from "@brainspore/hypernexus";
 
 export async function POST(req: NextRequest) {

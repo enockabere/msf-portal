@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { transport } from "@brainspore/hypernexus";
-import { memoryMap } from "@/app/utils/endpointMap";
+import { memoryMap } from "../../../utils/endpointMap";
 
 export async function POST(req: Request) {
   const { email } = await req.json();

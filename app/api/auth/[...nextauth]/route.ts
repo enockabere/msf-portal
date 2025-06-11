@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { memoryMap } from "@/app/utils/endpointMap";
+import { memoryMap } from "../../../utils/endpointMap";
 import { transport } from "@brainspore/hypernexus";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";

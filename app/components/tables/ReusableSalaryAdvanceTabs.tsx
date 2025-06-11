@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import SkeletonDataTable from "../tables/SkeletonDataTable";
 import AdvanceRequestAction from "../advances/AdvanceRequestAction";
-import { Advance, AdvanceTypeKey } from "@/app/types/advance";
+import { Advance, AdvanceTypeKey } from "../../types/advance";
 import { usePathname } from "next/navigation";
 import { GetColumnByType } from "../advances/AdvanceTableColumns";
-import { useAdvance } from "@/app/context/AdvanceContext";
-import { useMySetups } from "@/app/context/SetupContext";
-import { suggestImprestType } from "@/app/utils/helpers";
+import { useAdvance } from "../../context/AdvanceContext";
+import { useMySetups } from "../../context/SetupContext";
+import { suggestImprestType } from "../../utils/helpers";
 
 interface Props {
   data: Advance[];
