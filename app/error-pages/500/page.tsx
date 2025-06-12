@@ -1,4 +1,3 @@
-// app/500.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -11,8 +10,6 @@ export default function Custom500() {
 
   useEffect(() => {
     const timer = setTimeout(() => router.push("/"), 10000);
-
-    // Countdown timer
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -46,21 +43,14 @@ export default function Custom500() {
     <>
       <div className="error-container d-flex align-items-center justify-content-center">
         <div className="glass-card p-4 text-center">
-          {/* Error Icon */}
           <div className="error-icon">
             <i
               className="fas fa-exclamation-triangle"
               style={{ fontSize: "2rem", color: "white" }}
             ></i>
           </div>
-
-          {/* Error Number */}
           <h1 className="error-number">500</h1>
-
-          {/* Error Title */}
           <h2 className="h4 text-white mb-2 fw-bold">Internal Server Error</h2>
-
-          {/* Error Description */}
           <div className="error-details mb-3">
             <p className="mb-1" style={{ fontSize: "0.95rem" }}>
               Something went wrong on our end.
@@ -69,8 +59,6 @@ export default function Custom500() {
               Our team is working to fix this issue.
             </p>
           </div>
-
-          {/* Action Buttons */}
           <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center align-items-center mb-3">
             <button
               className="btn btn-modern text-white"
@@ -85,16 +73,12 @@ export default function Custom500() {
               Go Home
             </button>
           </div>
-
-          {/* Support Button */}
           <div className="mb-2">
             <button className="btn btn-ghost" onClick={handleContactSupport}>
               <i className="fas fa-life-ring me-1"></i>
               Contact Support
             </button>
           </div>
-
-          {/* Auto-redirect Countdown */}
           {countdown > 0 && (
             <div className="countdown-badge">
               <i className="fas fa-clock me-1"></i>
@@ -103,8 +87,6 @@ export default function Custom500() {
           )}
         </div>
       </div>
-
-      {/* Font Awesome for Icons */}
       <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"

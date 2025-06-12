@@ -96,7 +96,7 @@ const handler = NextAuth({
             "";
 
           const rawResponse = await transport.get(
-            "/api/kinetics/enigma/v1.0/userProfilesds",
+            "/api/kinetics/enigma/v1.0/userProfiles",
             {
               $filter: `eMail eq '${email}' and eMail ne ''`,
               company: process.env.BC_COMPANY_NAME,
