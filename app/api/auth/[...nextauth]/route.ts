@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { memoryMap } from "../../../utils/endpointMap";
 import { transport } from "@brainspore/hypernexus";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import AzureAD from "next-auth/providers/azure-ad";
@@ -67,20 +65,21 @@ const handler = NextAuth({
     }),
   ],
   session: {
-    maxAge: 1 * 24 * 60 * 60,
+    maxAge: 24 * 60 * 60, // 1 day
   },
   callbacks: {
-    async session({ session, token }: any) {
-      session.user.profile = token.profile ?? null;
-      session.needsProfileSetup = token.needsProfileSetup ?? false;
+    async session({ session, token }) {
+      const profile = token.profile;
 
-      if (token.error) {
+      session.user.profile = isValidProfile(profile) ? profile : null;
+      session.needsProfileSetup = Boolean(token.needsProfileSetup);
+
+      if (typeof token.error === "string") {
         session.error = token.error;
       }
 
       return session;
     },
-
     async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
@@ -88,24 +87,41 @@ const handler = NextAuth({
         const azureProfile = profile as {
           email?: string;
           preferred_username?: string;
-        }
+        };
 
         try {
-          const normalizedEmail = azureProfile?.email?.toLowerCase() || azureProfile?.preferred_username.toLowerCase() || "";
+          const email =
+            azureProfile?.email?.toLowerCase() ||
+            azureProfile?.preferred_username?.toLowerCase() ||
+            "";
 
-          const response = (await transport.get(memoryMap.get("userProfiles"), {
-            $filter: `eMail eq '${normalizedEmail}' and eMail ne ''`,
-            company: process.env.BC_COMPANY_NAME,
-          })) as Record<string, any>;
+          const rawResponse = await transport.get(
+            "/api/kinetics/enigma/v1.0/userProfilesds",
+            {
+              $filter: `eMail eq '${email}' and eMail ne ''`,
+              company: process.env.BC_COMPANY_NAME,
+            }
+          );
 
-          const userProfile = response?.value?.at(0);
-          token.profile = isValidProfile(userProfile) ? userProfile : null;
-
-          if (!token.profile) {
-            token.needsProfileSetup = true;
+          if (
+            !rawResponse ||
+            typeof rawResponse !== "object" ||
+            !Array.isArray((rawResponse as any).value)
+          ) {
+            throw new Error("Unexpected response structure or API failure.");
           }
+
+          const response = rawResponse as { value: any[] };
+          const userProfile = response.value[0];
+
+          token.profile = isValidProfile(userProfile) ? userProfile : null;
+          token.needsProfileSetup = !token.profile;
         } catch (error: any) {
-          console.error("Error fetching user profile:", error);
+          console.error("❌ Error fetching user profile:", {
+            message: error?.message,
+            stack: error?.stack,
+            response: error?.response?.data,
+          });
           token.error = "Failed to fetch user profile. Please try again later.";
         }
       }

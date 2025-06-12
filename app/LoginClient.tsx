@@ -18,9 +18,6 @@ import "./LandingPage.css";
 
 export default function LandingPage() {
   const { status } = useSession();
-  const { data: session } = useSession();
-  const errorMessage = session?.error;
-
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -69,7 +66,7 @@ export default function LandingPage() {
     sessionStorage.setItem("loginAttempt", "true");
     setIsLoggingIn(true);
     await signIn("azure-ad", {
-      callbackUrl: "/dashboard",
+      callbackUrl: "/auth/callback",
     });
   };
 
@@ -77,23 +74,6 @@ export default function LandingPage() {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
         <PageLoader />
-      </div>
-    );
-  }
-
-  if (errorMessage) {
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-        <div className="alert alert-danger text-center w-50">
-          <h5 className="mb-3">Login Failed</h5>
-          <p>{errorMessage}</p>
-          <button
-            className="btn btn-outline-danger mt-3"
-            onClick={() => signIn("azure-ad")}
-          >
-            Try Again
-          </button>
-        </div>
       </div>
     );
   }
